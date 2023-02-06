@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="video">
+      <UniqueIdentifier>{5e49a7f1-f563-4a60-9773-b7ada41f01e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="video\vulkan">
+      <UniqueIdentifier>{95ed64b1-7c88-40ae-8a09-22fa6a2ec9ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{3d198346-7f66-4af9-8f04-08354171e210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="video\core">
+      <UniqueIdentifier>{1d8e49cb-c9cc-422f-8b5f-1d1ac3ab15fe}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\video\window_win32.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unity.cpp" />
+    <ClCompile Include="..\video\vulkan\renderer_vulkan.cpp">
+      <Filter>video\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\file.cpp">
+      <Filter>video\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\video\vulkan\shader_vulkan.cpp">
+      <Filter>video\vulkan</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\renderer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\window.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\shader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\file.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
