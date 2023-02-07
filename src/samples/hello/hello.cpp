@@ -1,3 +1,4 @@
+#include "imgui.h"
 #include "file.h"
 #include "window.h"
 #include "renderer.h"
@@ -10,9 +11,12 @@ int main()
 	void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
 	teCreateRenderer( 1, windowHandle, width, height );
 
-	teFile unlitVsFile = teLoadFile( "unlit_vs.spv" );
-	teFile unlitFsFile = teLoadFile( "unlit_fs.spv" );
+	teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
+	teFile unlitFsFile = teLoadFile( "shaders/unlit_fs.spv" );
 	teShader unlitShader = teCreateShader( unlitVsFile, unlitFsFile, "unlitVS", "unlitFS" );
+
+	ImGuiContext* imContext = ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
 
 	bool shouldQuit = false;
 
@@ -40,6 +44,11 @@ int main()
 		teBeginFrame();
 		teEndFrame();
 	}
+
+	delete[] unlitVsFile.data;
+	delete[] unlitFsFile.data;
+
+	ImGui::DestroyContext( imContext );
 
 	return 0;
 }

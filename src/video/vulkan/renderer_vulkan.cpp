@@ -652,14 +652,12 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     renderer.swapchainWidth = width;
     renderer.swapchainHeight = height;
 
-    const uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount == 2 ? 3 : surfCaps.minImageCount;
-
     VkSurfaceTransformFlagsKHR preTransform = (surfCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : surfCaps.currentTransform;
 
     VkSwapchainCreateInfoKHR swapchainInfo = {};
     swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swapchainInfo.surface = renderer.surface;
-    swapchainInfo.minImageCount = desiredNumberOfSwapchainImages;
+    swapchainInfo.minImageCount = surfCaps.minImageCount;
     swapchainInfo.imageFormat = colorFormat;
     swapchainInfo.imageColorSpace = surfFormats[ 0 ].colorSpace;
     swapchainInfo.imageExtent = { swapchainExtent.width, swapchainExtent.height };
@@ -681,7 +679,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     VkImage* images = new VkImage[ renderer.swapchainImageCount ];
     VK_CHECK( renderer.getSwapchainImagesKHR( renderer.device, renderer.swapchain, &renderer.swapchainImageCount, images ) );
 
-    for (uint32_t i = 0; i < renderer.swapchainImageCount; ++i)
+    for (uint32_t i = 0; i < swapchainInfo.minImageCount; ++i)
     {
         VkImageViewCreateInfo colorAttachmentView = {};
         colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
