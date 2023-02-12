@@ -36,5 +36,8 @@
     <ClInclude Include="..\..\..\include\shader.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\texture.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,9 +1,11 @@
 #include <vulkan/vulkan.h>
 #include <stdio.h>
 #include "renderer.h"
+#include "texture.h"
 #include "shader.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
+teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 
 int teStrcmp( const char* s1, const char* s2 )
 {
@@ -293,6 +295,11 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
 teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName )
 {
     return teCreateShader( renderer.device, vertexFile, fragmentFile, vertexName, fragmentName );
+}
+
+teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
+{
+    return teCreateTexture2D( renderer.device, renderer.deviceMemoryProperties, width, height, flags, format, debugName );
 }
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name )

@@ -28,6 +28,9 @@
     <ClCompile Include="..\video\vulkan\shader_vulkan.cpp">
       <Filter>video\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\video\vulkan\texture_vulkan.cpp">
+      <Filter>video\vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -40,6 +43,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\file.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\texture.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

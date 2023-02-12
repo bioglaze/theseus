@@ -3,6 +3,7 @@
 #include "window.h"
 #include "renderer.h"
 #include "shader.h"
+#include "texture.h"
 
 int main()
 {
@@ -14,6 +15,8 @@ int main()
 	teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
 	teFile unlitFsFile = teLoadFile( "shaders/unlit_fs.spv" );
 	teShader unlitShader = teCreateShader( unlitVsFile, unlitFsFile, "unlitVS", "unlitFS" );
+	teTexture2D cameraColorTex = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
+	teTexture2D cameraDepthTex = teCreateTexture2D( width, height, 0, teTextureFormat::Depth32F, "camera3d depth" );
 
 	ImGuiContext* imContext = ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
