@@ -90,6 +90,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\core\gameobject.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\unity.cpp" />
     <ClCompile Include="..\video\vulkan\renderer_vulkan.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -110,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\file.h" />
+    <ClInclude Include="..\include\gameobject.hpp" />
     <ClInclude Include="..\include\renderer.h" />
     <ClInclude Include="..\include\shader.h" />
     <ClInclude Include="..\include\texture.h" />

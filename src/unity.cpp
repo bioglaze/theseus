@@ -13,6 +13,7 @@
 #define VK_CHECK( x ) { VkResult res = (x); teAssert( res == VK_SUCCESS ); }
 
 #include "core/file.cpp"
+#include "core/gameobject.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"

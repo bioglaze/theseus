@@ -10,8 +10,8 @@
     <Filter Include="include">
       <UniqueIdentifier>{3d198346-7f66-4af9-8f04-08354171e210}</UniqueIdentifier>
     </Filter>
-    <Filter Include="video\core">
-      <UniqueIdentifier>{1d8e49cb-c9cc-422f-8b5f-1d1ac3ab15fe}</UniqueIdentifier>
+    <Filter Include="core">
+      <UniqueIdentifier>{10640caa-1257-4b3e-9b23-77e177a290ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -22,14 +22,17 @@
     <ClCompile Include="..\video\vulkan\renderer_vulkan.cpp">
       <Filter>video\vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="..\core\file.cpp">
-      <Filter>video\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\video\vulkan\shader_vulkan.cpp">
       <Filter>video\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\video\vulkan\texture_vulkan.cpp">
       <Filter>video\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\file.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\gameobject.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +49,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\texture.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gameobject.hpp">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
