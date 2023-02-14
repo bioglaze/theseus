@@ -34,6 +34,9 @@
     <ClCompile Include="..\core\gameobject.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\math.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -52,6 +55,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\gameobject.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\vec3.hpp">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

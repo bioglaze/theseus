@@ -104,9 +104,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\file.h" />
+    <ClInclude Include="..\..\..\include\gameobject.hpp" />
     <ClInclude Include="..\..\..\include\renderer.h" />
     <ClInclude Include="..\..\..\include\shader.h" />
     <ClInclude Include="..\..\..\include\texture.h" />
+    <ClInclude Include="..\..\..\include\vec3.hpp" />
     <ClInclude Include="..\..\..\include\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -14,6 +14,7 @@
 
 #include "core/file.cpp"
 #include "core/gameobject.cpp"
+#include "core/math.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
