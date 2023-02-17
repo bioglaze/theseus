@@ -1,3 +1,5 @@
+#include "matrix.hpp"
+#include "quaternion.hpp"
 #include "vec3.hpp"
 #include <math.h>
 
@@ -14,4 +16,341 @@ Vec3 Vec3::Normalized() const
     Vec3 res = *this;
     res.Normalize();
     return res;
+}
+
+#ifdef SIMD_SSE3
+#include <pmmintrin.h>
+
+void Matrix::Multiply( const Matrix& ma, const Matrix& mb, Matrix& out )
+{
+    Matrix result;
+
+    for (unsigned i = 0; i < 16; i += 4)
+    {
+        // unroll the first step of the loop to avoid having to initialize r_line to zero
+        __m128 a_line = _mm_load_ps( mb.m );
+        __m128 b_line = _mm_set1_ps( ma.m[ i ] );
+        __m128 r_line = _mm_mul_ps( a_line, b_line );
+
+        for (int j = 1; j < 4; ++j)
+        {
+            a_line = _mm_load_ps( &mb.m[ j * 4 ] );
+            b_line = _mm_set1_ps( ma.m[ i + j ] );
+            r_line = _mm_add_ps( _mm_mul_ps( a_line, b_line ), r_line );
+        }
+
+        _mm_store_ps( &result.m[ i ], r_line );
+    }
+
+    out = result;
+}
+
+void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
+{
+    alignas(16) float v4[ 4 ] = { vec.x, vec.y, vec.z, 1 };
+
+    __m128 vec4 = _mm_load_ps( v4 );
+    __m128 vTempX = _mm_shuffle_ps( vec4, vec4, _MM_SHUFFLE( 0, 0, 0, 0 ) );
+    __m128 vTempY = _mm_shuffle_ps( vec4, vec4, _MM_SHUFFLE( 1, 1, 1, 1 ) );
+    __m128 vTempZ = _mm_shuffle_ps( vec4, vec4, _MM_SHUFFLE( 2, 2, 2, 2 ) );
+    __m128 vTempW = _mm_shuffle_ps( vec4, vec4, _MM_SHUFFLE( 3, 3, 3, 3 ) );
+
+    __m128 nrow1 = _mm_load_ps( &mat.m[ 0 ] );
+    __m128 nrow2 = _mm_load_ps( &mat.m[ 4 ] );
+    __m128 nrow3 = _mm_load_ps( &mat.m[ 8 ] );
+    __m128 nrow4 = _mm_load_ps( &mat.m[ 12 ] );
+
+    vTempX = _mm_mul_ps( vTempX, nrow1 );
+    vTempY = _mm_mul_ps( vTempY, nrow2 );
+    vTempZ = _mm_mul_ps( vTempZ, nrow3 );
+    vTempW = _mm_mul_ps( vTempW, nrow4 );
+
+    vTempX = _mm_add_ps( vTempX, vTempY );
+    vTempZ = _mm_add_ps( vTempZ, vTempW );
+    vTempX = _mm_add_ps( vTempX, vTempZ );
+    alignas(16) float tmp[ 4 ];
+    _mm_store_ps( tmp, vTempX );
+
+    out.x = tmp[ 0 ];
+    out.y = tmp[ 1 ];
+    out.z = tmp[ 2 ];
+}
+#endif
+
+void Matrix::MakeLookAtLH( const Vec3& eye, const Vec3& center, const Vec3& up )
+{
+    const Vec3 zAxis = (center - eye).Normalized();
+    const Vec3 xAxis = Vec3::Cross( up, zAxis ).Normalized();
+    const Vec3 yAxis = Vec3::Cross( zAxis, xAxis ).Normalized();
+
+    m[ 0 ] = xAxis.x; m[ 1 ] = xAxis.y; m[ 2 ] = xAxis.z; m[ 3 ] = -Vec3::Dot( xAxis, eye );
+    m[ 4 ] = yAxis.x; m[ 5 ] = yAxis.y; m[ 6 ] = yAxis.z; m[ 7 ] = -Vec3::Dot( yAxis, eye );
+    m[ 8 ] = zAxis.x; m[ 9 ] = zAxis.y; m[ 10 ] = zAxis.z; m[ 11 ] = -Vec3::Dot( zAxis, eye );
+    m[ 12 ] = 0; m[ 13 ] = 0; m[ 14 ] = 0; m[ 15 ] = 1;
+}
+
+void Matrix::MakeIdentity()
+{
+    for (int i = 0; i < 15; ++i)
+    {
+        m[ i ] = 0;
+    }
+
+    m[ 0 ] = m[ 5 ] = m[ 10 ] = m[ 15 ] = 1;
+}
+
+void Matrix::MakeRotationXYZ( float xDeg, float yDeg, float zDeg )
+{
+    const float deg2rad = 3.1415926535f / 180.0f;
+    const float sx = sinf( xDeg * deg2rad );
+    const float sy = sinf( yDeg * deg2rad );
+    const float sz = sinf( zDeg * deg2rad );
+    const float cx = cosf( xDeg * deg2rad );
+    const float cy = cosf( yDeg * deg2rad );
+    const float cz = cosf( zDeg * deg2rad );
+
+    m[ 0 ] = cy * cz;
+    m[ 1 ] = cz * sx * sy - cx * sz;
+    m[ 2 ] = cx * cz * sy + sx * sz;
+    m[ 3 ] = 0;
+    m[ 4 ] = cy * sz;
+    m[ 5 ] = cx * cz + sx * sy * sz;
+    m[ 6 ] = -cz * sx + cx * sy * sz;
+    m[ 7 ] = 0;
+    m[ 8 ] = -sy;
+    m[ 9 ] = cy * sx;
+    m[ 10 ] = cx * cy;
+    m[ 11 ] = 0;
+    m[ 12 ] = 0;
+    m[ 13 ] = 0;
+    m[ 14 ] = 0;
+    m[ 15 ] = 1;
+}
+
+void Matrix::Scale( float x, float y, float z )
+{
+    Matrix scale;
+    scale.MakeIdentity();
+
+    scale.m[ 0 ] = x;
+    scale.m[ 5 ] = y;
+    scale.m[ 10 ] = z;
+
+    Multiply( *this, scale, *this );
+}
+
+void Matrix::Transpose( Matrix& out ) const
+{
+    teAssert( &out != this );
+
+    out.m[ 0 ] = m[ 0 ];
+    out.m[ 1 ] = m[ 4 ];
+    out.m[ 2 ] = m[ 8 ];
+    out.m[ 3 ] = m[ 12 ];
+    out.m[ 4 ] = m[ 1 ];
+    out.m[ 5 ] = m[ 5 ];
+    out.m[ 6 ] = m[ 9 ];
+    out.m[ 7 ] = m[ 13 ];
+    out.m[ 8 ] = m[ 2 ];
+    out.m[ 9 ] = m[ 6 ];
+    out.m[ 10 ] = m[ 10 ];
+    out.m[ 11 ] = m[ 14 ];
+    out.m[ 12 ] = m[ 3 ];
+    out.m[ 13 ] = m[ 7 ];
+    out.m[ 14 ] = m[ 11 ];
+    out.m[ 15 ] = m[ 15 ];
+}
+
+void Matrix::TransformDirection( const Vec3& dir, const Matrix& mat, Vec3* out )
+{
+    out->x = mat.m[ 0 ] * dir.x + mat.m[ 4 ] * dir.y + mat.m[ 8 ] * dir.z;
+    out->y = mat.m[ 1 ] * dir.x + mat.m[ 5 ] * dir.y + mat.m[ 9 ] * dir.z;
+    out->z = mat.m[ 2 ] * dir.x + mat.m[ 6 ] * dir.y + mat.m[ 10 ] * dir.z;
+}
+
+void Matrix::SetTranslation( const Vec3& translation )
+{
+    m[ 12 ] = translation.x;
+    m[ 13 ] = translation.y;
+    m[ 14 ] = translation.z;
+}
+
+void Matrix::Translate( const Vec3& v )
+{
+    Matrix translateMatrix;
+    translateMatrix.MakeIdentity();
+
+    translateMatrix.m[ 12 ] = v.x;
+    translateMatrix.m[ 13 ] = v.y;
+    translateMatrix.m[ 14 ] = v.z;
+
+    Multiply( *this, translateMatrix, *this );
+}
+
+Quaternion::Quaternion( const struct Vec3& v, float aw )
+{
+    x = v.x;
+    y = v.y;
+    z = v.z;
+    w = aw;
+}
+
+Vec3 Quaternion::operator*( const Vec3& vec ) const
+{
+    const Vec3 wComponent( w, w, w );
+    const Vec3 two( 2.0f, 2.0f, 2.0f );
+
+    const Vec3 vT = two * Vec3::Cross( Vec3( x, y, z ), vec );
+    return vec + (wComponent * vT) + Vec3::Cross( Vec3( x, y, z ), vT );
+}
+
+Quaternion Quaternion::operator*( const Quaternion& aQ ) const
+{
+    return Quaternion( Vec3( w * aQ.x + x * aQ.w + y * aQ.z - z * aQ.y,
+        w * aQ.y + y * aQ.w + z * aQ.x - x * aQ.z,
+        w * aQ.z + z * aQ.w + x * aQ.y - y * aQ.x ),
+        w * aQ.w - x * aQ.x - y * aQ.y - z * aQ.z );
+}
+
+void Quaternion::FromAxisAngle( const Vec3& axis, float angleDeg )
+{
+    const float angleRad = angleDeg * (3.1418693659f / 360.0f);
+    const float sinAngle = sinf( angleRad );
+
+    x = axis.x * sinAngle;
+    y = axis.y * sinAngle;
+    z = axis.z * sinAngle;
+    w = cosf( angleRad );
+}
+
+void Quaternion::FindOrthonormals( const Vec3& normal, Vec3& orthonormal1, Vec3& orthonormal2 ) const
+{
+    Matrix orthoX( 90, 0, 0 );
+
+    Vec3 ww;
+    Matrix::TransformDirection( normal, orthoX, &ww );
+    const float dot = Vec3::Dot( normal, ww );
+
+    if (fabsf( dot ) > 0.6f)
+    {
+        Matrix orthoY( 0, 90, 0 );
+        Matrix::TransformDirection( normal, orthoY, &ww );
+    }
+
+    ww = ww.Normalized();
+
+    orthonormal1 = Vec3::Cross( normal, ww ).Normalized();
+    orthonormal2 = Vec3::Cross( normal, orthonormal1 ).Normalized();
+}
+
+float Quaternion::FindTwist( const Vec3& axis ) const
+{
+    // Get the plane the axis is a normal of.
+    Vec3 orthonormal1, orthonormal2;
+    FindOrthonormals( axis, orthonormal1, orthonormal2 );
+
+    Vec3 transformed = *this * orthonormal1;
+
+    //project transformed vector onto plane
+    Vec3 flattened = transformed - axis * Vec3::Dot( transformed, axis );
+    flattened = flattened.Normalized();
+
+    // get angle between original vector and projected transform to get angle around normal
+    float dot = Vec3::Dot( orthonormal1, flattened );
+
+    if (dot < -1)
+    {
+        dot = -1;
+    }
+
+    if (dot > 1)
+    {
+        dot = 1;
+    }
+
+    return acosf( dot );
+}
+
+void Quaternion::Normalize()
+{
+    const float mag2 = w * w + x * x + y * y + z * z;
+    const float acceptableDelta = 0.00001f;
+
+    if (fabsf( mag2 ) > acceptableDelta && fabsf( mag2 - 1.0f ) > acceptableDelta)
+    {
+        const float oneOverMag = 1.0f / sqrtf( mag2 );
+
+        x *= oneOverMag;
+        y *= oneOverMag;
+        z *= oneOverMag;
+        w *= oneOverMag;
+    }
+}
+
+void Quaternion::FromMatrix( const Matrix& mat )
+{
+    float t;
+
+    if (mat.m[ 10 ] < 0)
+    {
+        if (mat.m[ 0 ] > mat.m[ 5 ])
+        {
+            t = 1 + mat.m[ 0 ] - mat.m[ 5 ] - mat.m[ 10 ];
+            *this = Quaternion( Vec3( t, mat.m[ 1 ] + mat.m[ 4 ], mat.m[ 8 ] + mat.m[ 2 ] ), mat.m[ 6 ] - mat.m[ 9 ] );
+        }
+        else
+        {
+            t = 1 - mat.m[ 0 ] + mat.m[ 5 ] - mat.m[ 10 ];
+            *this = Quaternion( Vec3( mat.m[ 1 ] + mat.m[ 4 ], t, mat.m[ 6 ] + mat.m[ 9 ] ), mat.m[ 8 ] - mat.m[ 2 ] );
+        }
+    }
+    else
+    {
+        if (mat.m[ 0 ] < -mat.m[ 5 ])
+        {
+            t = 1 - mat.m[ 0 ] - mat.m[ 5 ] + mat.m[ 10 ];
+            *this = Quaternion( Vec3( mat.m[ 8 ] + mat.m[ 2 ], mat.m[ 6 ] + mat.m[ 9 ], t ), mat.m[ 1 ] - mat.m[ 4 ] );
+        }
+        else
+        {
+            t = 1 + mat.m[ 0 ] + mat.m[ 5 ] + mat.m[ 10 ];
+            *this = Quaternion( Vec3( mat.m[ 6 ] - mat.m[ 9 ], mat.m[ 8 ] - mat.m[ 2 ], mat.m[ 1 ] - mat.m[ 4 ] ), t );
+        }
+    }
+
+    const float factor = 0.5f / sqrtf( t );
+    x *= factor;
+    y *= factor;
+    z *= factor;
+    w *= factor;
+}
+
+void Quaternion::GetMatrix( Matrix& outMatrix ) const
+{
+    const float x2 = x * x;
+    const float y2 = y * y;
+    const float z2 = z * z;
+    const float xy = x * y;
+    const float xz = x * z;
+    const float yz = y * z;
+    const float wx = w * x;
+    const float wy = w * y;
+    const float wz = w * z;
+
+    outMatrix.m[ 0 ] = 1 - 2 * (y2 + z2);
+    outMatrix.m[ 1 ] = 2 * (xy - wz);
+    outMatrix.m[ 2 ] = 2 * (xz + wy);
+    outMatrix.m[ 3 ] = 0;
+    outMatrix.m[ 4 ] = 2 * (xy + wz);
+    outMatrix.m[ 5 ] = 1 - 2 * (x2 + z2);
+    outMatrix.m[ 6 ] = 2 * (yz - wx);
+    outMatrix.m[ 7 ] = 0;
+    outMatrix.m[ 8 ] = 2 * (xz - wy);
+    outMatrix.m[ 9 ] = 2 * (yz + wx);
+    outMatrix.m[ 10 ] = 1 - 2 * (x2 + y2);
+    outMatrix.m[ 11 ] = 0;
+    outMatrix.m[ 12 ] = 0;
+    outMatrix.m[ 13 ] = 0;
+    outMatrix.m[ 14 ] = 0;
+    outMatrix.m[ 15 ] = 1;
 }

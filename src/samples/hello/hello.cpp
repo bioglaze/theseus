@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "shader.h"
 #include "texture.h"
+#include "transform.hpp"
 #include "vec3.hpp"
 
 int main()
@@ -22,7 +23,7 @@ int main()
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
-    //teTransformSetLocalPosition( camera3d.index, cameraPos );
+    teTransformSetLocalPosition( camera3d.index, cameraPos );
     //teCameraSetProjection( camera3d.index, 45, 1280.0f / 720.0f, 0.1f, 800.0f );
 
     ImGuiContext* imContext = ImGui::CreateContext();

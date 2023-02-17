@@ -37,6 +37,9 @@
     <ClCompile Include="..\core\math.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\transform.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -58,6 +61,15 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\vec3.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\transform.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\matrix.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\quaternion.hpp">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
