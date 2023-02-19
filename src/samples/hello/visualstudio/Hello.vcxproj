@@ -103,15 +103,15 @@
     <ClCompile Include="..\hello.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\camera.h" />
     <ClInclude Include="..\..\..\include\file.h" />
-    <ClInclude Include="..\..\..\include\gameobject.hpp" />
-    <ClInclude Include="..\..\..\include\matrix.hpp" />
-    <ClInclude Include="..\..\..\include\quaternion.hpp" />
+    <ClInclude Include="..\..\..\include\gameobject.h" />
+    <ClInclude Include="..\..\..\include\quaternion.h" />
     <ClInclude Include="..\..\..\include\renderer.h" />
     <ClInclude Include="..\..\..\include\shader.h" />
     <ClInclude Include="..\..\..\include\texture.h" />
-    <ClInclude Include="..\..\..\include\transform.hpp" />
-    <ClInclude Include="..\..\..\include\vec3.hpp" />
+    <ClInclude Include="..\..\..\include\transform.h" />
+    <ClInclude Include="..\..\..\include\vec3.h" />
     <ClInclude Include="..\..\..\include\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

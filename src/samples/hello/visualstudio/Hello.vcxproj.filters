@@ -39,19 +39,19 @@
     <ClInclude Include="..\..\..\include\texture.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\gameobject.hpp">
+    <ClInclude Include="..\..\..\include\camera.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\vec3.hpp">
+    <ClInclude Include="..\..\..\include\gameobject.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\transform.hpp">
+    <ClInclude Include="..\..\..\include\quaternion.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\matrix.hpp">
+    <ClInclude Include="..\..\..\include\transform.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\quaternion.hpp">
+    <ClInclude Include="..\..\..\include\vec3.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

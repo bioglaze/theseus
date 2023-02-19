@@ -1,12 +1,13 @@
+#include "camera.h"
 #include "imgui.h"
 #include "file.h"
-#include "gameobject.hpp"
+#include "gameobject.h"
 #include "window.h"
 #include "renderer.h"
 #include "shader.h"
 #include "texture.h"
-#include "transform.hpp"
-#include "vec3.hpp"
+#include "transform.h"
+#include "vec3.h"
 
 int main()
 {
@@ -24,7 +25,7 @@ int main()
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     teTransformSetLocalPosition( camera3d.index, cameraPos );
-    //teCameraSetProjection( camera3d.index, 45, 1280.0f / 720.0f, 0.1f, 800.0f );
+    teCameraSetProjection( camera3d.index, 45, 1280.0f / 720.0f, 0.1f, 800.0f );
 
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

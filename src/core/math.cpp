@@ -1,6 +1,6 @@
-#include "matrix.hpp"
-#include "quaternion.hpp"
-#include "vec3.hpp"
+#include "matrix.h"
+#include "quaternion.h"
+#include "vec3.h"
 #include <math.h>
 
 void Vec3::Normalize()
@@ -77,6 +77,25 @@ void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
 }
 #endif
 
+void Matrix::InitFrom( const float* mat )
+{
+#ifdef SIMD_SSE3
+    __m128 row1 = _mm_load_ps( &mat[ 0 ] );
+    __m128 row2 = _mm_load_ps( &mat[ 4 ] );
+    __m128 row3 = _mm_load_ps( &mat[ 8 ] );
+    __m128 row4 = _mm_load_ps( &mat[ 12 ] );
+    _mm_store_ps( &m[ 0 ], row1 );
+    _mm_store_ps( &m[ 4 ], row2 );
+    _mm_store_ps( &m[ 8 ], row3 );
+    _mm_store_ps( &m[ 12 ], row4 );
+#else
+    for (unsigned i = 0; i < 16; ++i)
+    {
+        m[ i ] = mat[ i ];
+    }
+#endif
+}
+
 void Matrix::MakeLookAtLH( const Vec3& eye, const Vec3& center, const Vec3& up )
 {
     const Vec3 zAxis = (center - eye).Normalized();
@@ -97,6 +116,38 @@ void Matrix::MakeIdentity()
     }
 
     m[ 0 ] = m[ 5 ] = m[ 10 ] = m[ 15 ] = 1;
+}
+
+void Matrix::MakeProjection( float fovDegrees, float aspect, float nearDepth, float farDepth )
+{
+    const float f = 1.0f / tanf( (0.5f * fovDegrees) * 3.14159265358979f / 180.0f );
+
+    const float proj[] =
+    {
+        f / aspect, 0, 0, 0,
+        0, -f, 0, 0,
+        0, 0, farDepth / (nearDepth - farDepth), -1,
+        0, 0, (nearDepth * farDepth) / (nearDepth - farDepth), 0
+    };
+
+    InitFrom( &proj[ 0 ] );
+}
+
+void Matrix::MakeProjection( float left, float right, float bottom, float top, float nearDepth, float farDepth )
+{
+    const float tx = -((right + left) / (right - left));
+    const float ty = -((bottom + top) / (bottom - top));
+    const float tz = nearDepth / (nearDepth - farDepth);
+
+    const float proj[] =
+    {
+        2.0f / (right - left), 0.0f, 0.0f, 0.0f,
+        0.0f, 2.0f / (bottom - top), 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f / (nearDepth - farDepth), 0.0f,
+        tx, ty, tz, 1.0f
+    };
+
+    InitFrom( &proj[ 0 ] );
 }
 
 void Matrix::MakeRotationXYZ( float xDeg, float yDeg, float zDeg )

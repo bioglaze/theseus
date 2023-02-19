@@ -40,6 +40,12 @@
     <ClCompile Include="..\core\transform.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\camera.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\frustum.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -57,20 +63,26 @@
     <ClInclude Include="..\include\texture.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\gameobject.hpp">
+    <ClInclude Include="..\include\camera.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\vec3.hpp">
+    <ClInclude Include="..\include\gameobject.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\transform.hpp">
+    <ClInclude Include="..\include\matrix.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\matrix.hpp">
+    <ClInclude Include="..\include\quaternion.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\quaternion.hpp">
+    <ClInclude Include="..\include\transform.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\vec3.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\frustum.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

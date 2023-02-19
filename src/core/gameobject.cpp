@@ -1,4 +1,4 @@
-#include "gameobject.hpp"
+#include "gameobject.h"
 
 struct teGameObjectImpl
 {

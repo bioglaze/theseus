@@ -1,7 +1,7 @@
-#include "transform.hpp"
-#include "matrix.hpp"
-#include "quaternion.hpp"
-#include "vec3.hpp"
+#include "transform.h"
+#include "matrix.h"
+#include "quaternion.h"
+#include "vec3.h"
 
 struct TransformImpl
 {

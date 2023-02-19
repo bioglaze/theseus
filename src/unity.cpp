@@ -12,7 +12,9 @@
 
 #define VK_CHECK( x ) { VkResult res = (x); teAssert( res == VK_SUCCESS ); }
 
+#include "core/camera.cpp"
 #include "core/file.cpp"
+#include "core/frustum.cpp"
 #include "core/gameobject.cpp"
 #include "core/math.cpp"
 #include "core/transform.cpp"
