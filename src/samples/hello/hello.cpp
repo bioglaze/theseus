@@ -2,12 +2,14 @@
 #include "imgui.h"
 #include "file.h"
 #include "gameobject.h"
-#include "window.h"
+#include "mesh.h"
 #include "renderer.h"
+#include "scene.h"
 #include "shader.h"
 #include "texture.h"
 #include "transform.h"
 #include "vec3.h"
+#include "window.h"
 
 int main()
 {
@@ -26,6 +28,13 @@ int main()
     Vec3 cameraPos = { 0, 0, -10 };
     teTransformSetLocalPosition( camera3d.index, cameraPos );
     teCameraSetProjection( camera3d.index, 45, 1280.0f / 720.0f, 0.1f, 800.0f );
+
+    teMesh cubeMesh = teCreateCubeMesh();
+    teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+
+    teScene scene = teCreateScene();
+    teSceneAdd( scene, camera3d.index );
+    teSceneAdd( scene, cubeGo.index );
 
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

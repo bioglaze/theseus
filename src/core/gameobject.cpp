@@ -23,7 +23,7 @@ teGameObject teCreateGameObject( const char* name, unsigned components )
     return outGo;
 }
 
-unsigned aeGameObjectGetComponents( unsigned index )
+unsigned teGameObjectGetComponents( unsigned index )
 {
     teAssert( index < MaxGameObjects );
 

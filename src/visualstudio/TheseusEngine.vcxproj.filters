@@ -46,6 +46,12 @@
     <ClCompile Include="..\core\frustum.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\scene.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\video\mesh.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -83,6 +89,12 @@
     </ClInclude>
     <ClInclude Include="..\core\frustum.h">
       <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\scene.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mesh.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
