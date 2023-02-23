@@ -513,6 +513,8 @@ void CreateDevice()
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, nullptr );
 
+    printf( "GPU: %s\n", renderer.properties.deviceName );
+
     VkQueueFamilyProperties* queueProps = new VkQueueFamilyProperties[ queueCount ];
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, queueProps );
 

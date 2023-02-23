@@ -35,8 +35,7 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
         moduleCreateInfo.codeSize = vertexFile.size;
         moduleCreateInfo.pCode = (const uint32_t*)vertexFile.data;
 
-        VkResult err = vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].vertexShaderModule );
-        teAssert( err == VK_SUCCESS );
+        VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].vertexShaderModule ) );
         SetObjectName( device, (uint64_t)shaders[ outShader.index ].vertexShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, vertexFile.path );
 
         shaders[ outShader.index ].vertexInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -51,8 +50,7 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
         moduleCreateInfo.codeSize = fragmentFile.size;
         moduleCreateInfo.pCode = (const uint32_t*)fragmentFile.data;
 
-        VkResult err = vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].fragmentShaderModule );
-        teAssert( err == VK_SUCCESS );
+        VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].fragmentShaderModule ) );
         SetObjectName( device, (uint64_t)shaders[ outShader.index ].fragmentShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, fragmentFile.path );
 
         shaders[ outShader.index ].fragmentInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
