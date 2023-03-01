@@ -10,6 +10,9 @@
 #include "transform.h"
 #include "vec3.h"
 
+void BeginRendering( teTexture2D color, teTexture2D depth );
+void EndRendering();
+
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
 struct SceneImpl
@@ -62,4 +65,45 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
     }
 
     teAssert( !"Too many game objects!" );
+}
+
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
+{
+    teTexture2D color;
+    teTexture2D depth;
+
+    unsigned cameraGOIndex = 0;
+
+    {
+        cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
+        color = teCameraGetColorTexture( cameraGOIndex );
+        depth = teCameraGetDepthTexture( cameraGOIndex );
+    }
+
+    teAssert( color.index != -1 ); // Camera must have a render target!
+
+    BeginRendering( color, depth );
+    EndRendering();
+}
+
+void teSceneRender( const teScene& scene )
+{
+    int cameraIndex = -1;
+
+    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    {
+        if (scenes[ scene.index ].gameObjects[ i ] != 0 &&
+            (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ i ] ) & teComponent::Camera) != 0)
+        {
+            cameraIndex = i;
+            break;
+        }
+    }
+
+    if (cameraIndex == -1)
+    {
+        return;
+    }
+
+    RenderSceneWithCamera( scene, cameraIndex );
 }

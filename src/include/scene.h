@@ -7,3 +7,4 @@ struct teScene
 
 teScene teCreateScene();
 void teSceneAdd( const teScene& scene, unsigned gameObjectIndex );
+void teSceneRender( const teScene& scene );

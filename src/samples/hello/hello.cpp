@@ -63,6 +63,7 @@ int main()
         }
 
         teBeginFrame();
+        teSceneRender( scene );
         teEndFrame();
     }
 

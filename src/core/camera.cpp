@@ -12,9 +12,7 @@ struct CameraImpl
     float farDepth = 400.0f;
     teProjectionType projectionType = teProjectionType::Perspective;
     teTexture2D color;
-    teTexture2D colorResolve;
     teTexture2D depth;
-    teTexture2D depthResolve;
 
     struct OrthoParams
     {
@@ -31,16 +29,6 @@ CameraImpl cameras[ MaxCameras ];
 teTexture2D& teCameraGetColorTexture( unsigned index )
 {
     return cameras[ index ].color;
-}
-
-teTexture2D& teCameraGetColorResolveTexture( unsigned index )
-{
-    return cameras[ index ].colorResolve;
-}
-
-teTexture2D& teCameraGetDepthResolveTexture( unsigned index )
-{
-    return cameras[ index ].depthResolve;
 }
 
 teTexture2D& teCameraGetDepthTexture( unsigned index )

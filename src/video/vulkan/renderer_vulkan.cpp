@@ -6,6 +6,7 @@
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
+VkImageView TextureGetView( teTexture2D texture );
 
 int teStrcmp( const char* s1, const char* s2 )
 {
@@ -920,3 +921,40 @@ void teEndFrame()
 
     renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
 }
+
+void BeginRendering( teTexture2D color, teTexture2D depth )
+{
+    VkRenderingAttachmentInfo colorAtt{};
+    colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAtt.imageView = TextureGetView( color );
+    colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    VkRenderingAttachmentInfo depthAtt{};
+    depthAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAtt.imageView = TextureGetView( depth );
+    depthAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    unsigned width = 0, height = 0;
+    teTextureGetDimension( color, width, height );
+
+    VkRenderingInfo renderInfo{};
+    renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderInfo.colorAttachmentCount = 1;
+    renderInfo.flags = 0;
+    renderInfo.layerCount = 1;
+    renderInfo.pColorAttachments = &colorAtt;
+    renderInfo.pDepthAttachment = &depthAtt;
+    renderInfo.renderArea = { { 0, 0 }, { width, height } };
+
+    VkCommandBufferBeginInfo cmdBufInfo = {};
+    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &cmdBufInfo ) );
+}
+
+void EndRendering()
+{
+    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
+}
+

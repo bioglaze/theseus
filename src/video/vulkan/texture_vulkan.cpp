@@ -76,6 +76,17 @@ static void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& ou
     }
 }
 
+VkImageView TextureGetView( teTexture2D texture )
+{
+    return textures[ texture.index ].view;
+}
+
+void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight )
+{
+    outWidth = textures[ texture.index ].width;
+    outHeight = textures[ texture.index ].height;
+}
+
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     const unsigned index = textureCount++;
