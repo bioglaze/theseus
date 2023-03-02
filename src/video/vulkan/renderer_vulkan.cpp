@@ -7,6 +7,7 @@
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 VkImageView TextureGetView( teTexture2D texture );
+VkImage TextureGetImage( teTexture2D texture );
 
 int teStrcmp( const char* s1, const char* s2 )
 {
@@ -929,12 +930,14 @@ void BeginRendering( teTexture2D color, teTexture2D depth )
     colorAtt.imageView = TextureGetView( color );
     colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAtt.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkRenderingAttachmentInfo depthAtt{};
     depthAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     depthAtt.imageView = TextureGetView( depth );
     depthAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    depthAtt.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     unsigned width = 0, height = 0;
     teTextureGetDimension( color, width, height );
@@ -951,10 +954,20 @@ void BeginRendering( teTexture2D color, teTexture2D depth )
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &cmdBufInfo ) );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( color ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( depth ), VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+
+    vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
 }
 
 void EndRendering()
 {
+    vkCmdEndRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
+
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
 }
 

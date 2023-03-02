@@ -21,13 +21,14 @@ int main()
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitFsFile = teLoadFile( "shaders/unlit_fs.spv" );
     teShader unlitShader = teCreateShader( unlitVsFile, unlitFsFile, "unlitVS", "unlitFS" );
-    teTexture2D cameraColorTex = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
-    teTexture2D cameraDepthTex = teCreateTexture2D( width, height, 0, teTextureFormat::Depth32F, "camera3d depth" );
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     teTransformSetLocalPosition( camera3d.index, cameraPos );
     teCameraSetProjection( camera3d.index, 45, 1280.0f / 720.0f, 0.1f, 800.0f );
+
+    teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
+    teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );

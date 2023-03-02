@@ -81,6 +81,11 @@ VkImageView TextureGetView( teTexture2D texture )
     return textures[ texture.index ].view;
 }
 
+VkImage TextureGetImage( teTexture2D texture )
+{
+    return textures[ texture.index ].image;
+}
+
 void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight )
 {
     outWidth = textures[ texture.index ].width;
