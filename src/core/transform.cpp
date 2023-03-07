@@ -5,12 +5,14 @@
 
 struct TransformImpl
 {
+    // TODO: Maybe move some of these matrixes into camera?
     Matrix localMatrix;
     Matrix localToClipLeftEye;
     Matrix localToClipRightEye;
     Matrix localToViewLeftEye;
     Matrix localToViewRightEye;
     Matrix localToShadowClip;
+
     Quaternion localRotation;
     Vec3 localPosition;
     float localScale = 1;

@@ -13,10 +13,16 @@ struct MeshImpl
     unsigned subMeshCount = 0;
 };
 
+struct MeshRenderer
+{
+    teMesh* mesh = nullptr;
+};
+
 static constexpr unsigned MaxMeshes = 10000;
 static constexpr unsigned MaxMaterials = 10000;
 static MeshImpl meshes[ MaxMeshes ];
 static unsigned meshIndex = 0;
+static struct MeshRenderer meshRenderers[ MaxMeshes ];
 
 teMesh teCreateCubeMesh()
 {
@@ -59,4 +65,15 @@ teMesh teCreateCubeMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
 
     return outMesh;
+}
+
+unsigned teMeshGetSubMeshCount( const teMesh& mesh )
+{
+    return meshes[ mesh.index ].subMeshCount;
+}
+
+teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex )
+{
+    teAssert( gameObjectIndex < MaxMeshes );
+    return *meshRenderers[ gameObjectIndex ].mesh;
 }

@@ -15,6 +15,49 @@ struct WindowImpl
 
 WindowImpl win;
 
+static void InitKeyMap()
+{
+    for (unsigned keyIndex = 0; keyIndex < 256; ++keyIndex)
+    {
+        win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::None;
+    }
+
+    win.keyMap[ 13 ] = teWindowEvent::KeyCode::Enter;
+    win.keyMap[ 37 ] = teWindowEvent::KeyCode::Left;
+    win.keyMap[ 38 ] = teWindowEvent::KeyCode::Up;
+    win.keyMap[ 39 ] = teWindowEvent::KeyCode::Right;
+    win.keyMap[ 40 ] = teWindowEvent::KeyCode::Down;
+    win.keyMap[ 27 ] = teWindowEvent::KeyCode::Escape;
+    win.keyMap[ 32 ] = teWindowEvent::KeyCode::Space;
+
+    win.keyMap[ 65 ] = teWindowEvent::KeyCode::A;
+    win.keyMap[ 66 ] = teWindowEvent::KeyCode::B;
+    win.keyMap[ 67 ] = teWindowEvent::KeyCode::C;
+    win.keyMap[ 68 ] = teWindowEvent::KeyCode::D;
+    win.keyMap[ 69 ] = teWindowEvent::KeyCode::E;
+    win.keyMap[ 70 ] = teWindowEvent::KeyCode::F;
+    win.keyMap[ 71 ] = teWindowEvent::KeyCode::G;
+    win.keyMap[ 72 ] = teWindowEvent::KeyCode::H;
+    win.keyMap[ 73 ] = teWindowEvent::KeyCode::I;
+    win.keyMap[ 74 ] = teWindowEvent::KeyCode::J;
+    win.keyMap[ 75 ] = teWindowEvent::KeyCode::K;
+    win.keyMap[ 76 ] = teWindowEvent::KeyCode::L;
+    win.keyMap[ 77 ] = teWindowEvent::KeyCode::M;
+    win.keyMap[ 78 ] = teWindowEvent::KeyCode::N;
+    win.keyMap[ 79 ] = teWindowEvent::KeyCode::O;
+    win.keyMap[ 80 ] = teWindowEvent::KeyCode::P;
+    win.keyMap[ 81 ] = teWindowEvent::KeyCode::Q;
+    win.keyMap[ 82 ] = teWindowEvent::KeyCode::R;
+    win.keyMap[ 83 ] = teWindowEvent::KeyCode::S;
+    win.keyMap[ 84 ] = teWindowEvent::KeyCode::T;
+    win.keyMap[ 85 ] = teWindowEvent::KeyCode::U;
+    win.keyMap[ 86 ] = teWindowEvent::KeyCode::V;
+    win.keyMap[ 87 ] = teWindowEvent::KeyCode::W;
+    win.keyMap[ 88 ] = teWindowEvent::KeyCode::X;
+    win.keyMap[ 89 ] = teWindowEvent::KeyCode::Y;
+    win.keyMap[ 90 ] = teWindowEvent::KeyCode::Z;
+}
+
 void IncEventIndex()
 {
     if (win.eventIndex < EventStackSize - 1)
@@ -86,6 +129,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
         nullptr, nullptr, hInstance, nullptr );
 
     ShowWindow( hwnd, SW_SHOW );
+
+    InitKeyMap();
+
     return hwnd;
 }
 

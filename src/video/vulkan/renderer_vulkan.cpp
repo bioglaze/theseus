@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 #include <stdio.h>
 #include "renderer.h"
+#include "matrix.h"
 #include "texture.h"
 #include "shader.h"
 
@@ -34,6 +35,12 @@ uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryPropertie
     return 0;
 }
 
+struct PerObjectUboStruct
+{
+    Matrix localToClip[ 2 ];
+    Matrix localToView[ 2 ];
+};
+
 struct SwapchainResource
 {
     VkImage image = VK_NULL_HANDLE;
@@ -48,6 +55,14 @@ struct SwapchainResource
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
+};
+
+struct Ubo
+{
+    uint8_t* uboData = nullptr;
+    VkBuffer ubo = VK_NULL_HANDLE;
+    VkDeviceMemory uboMemory = VK_NULL_HANDLE;
+    VkDescriptorBufferInfo uboDesc = {};
 };
 
 struct Renderer
@@ -73,6 +88,8 @@ struct Renderer
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
     unsigned frameIndex = 0;
+
+    Ubo ubo;
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
     PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
@@ -317,6 +334,36 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
     }
 }
 
+static void CreateUBO()
+{
+    const VkDeviceSize uboSize = 256 * 4;
+
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = uboSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+
+    VK_CHECK( vkCreateBuffer( renderer.device, &bufferInfo, nullptr, &renderer.ubo.ubo ) );
+
+    VkMemoryRequirements memReqs;
+    vkGetBufferMemoryRequirements( renderer.device, renderer.ubo.ubo, &memReqs );
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memReqs.size;
+    allocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+    VK_CHECK( vkAllocateMemory( renderer.device, &allocInfo, nullptr, &renderer.ubo.uboMemory ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.ubo.uboMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "ubo memory" );
+
+    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.ubo.ubo, renderer.ubo.uboMemory, 0 ) );
+
+    renderer.ubo.uboDesc.buffer = renderer.ubo.ubo;
+    renderer.ubo.uboDesc.offset = 0;
+    renderer.ubo.uboDesc.range = uboSize;
+
+    VK_CHECK( vkMapMemory( renderer.device, renderer.ubo.uboMemory, 0, uboSize, 0, (void**)&renderer.ubo.uboData ) );
+}
+
 void CreateDepthStencil( uint32_t width, uint32_t height )
 {
     const VkFormat depthFormats[ 4 ] = { VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM };
@@ -385,7 +432,7 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
     }
 }
 
-void LoadFunctionPointers()
+static void LoadFunctionPointers()
 {
     renderer.createSwapchainKHR = (PFN_vkCreateSwapchainKHR)vkGetDeviceProcAddr( renderer.device, "vkCreateSwapchainKHR" );
     renderer.getPhysicalDeviceSurfaceCapabilitiesKHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)vkGetInstanceProcAddr( renderer.instance, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR" );
@@ -539,8 +586,7 @@ void CreateDevice()
 
     const char* enabledExtensions[] =
     {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        "VK_KHR_dynamic_rendering"
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
     
     vkGetPhysicalDeviceFeatures( renderer.physicalDevice, &renderer.features );
@@ -555,7 +601,7 @@ void CreateDevice()
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.pEnabledFeatures = &renderer.features;
-    deviceCreateInfo.enabledExtensionCount = 2;
+    deviceCreateInfo.enabledExtensionCount = 1;
     deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions;
     VK_CHECK( vkCreateDevice( renderer.physicalDevice, &deviceCreateInfo, nullptr, &renderer.device ) );
 
@@ -824,6 +870,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     CreateDevice();
     CreateCommandBuffers();
     LoadFunctionPointers();
+    CreateUBO();
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -962,6 +1009,12 @@ void BeginRendering( teTexture2D color, teTexture2D depth )
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
+
+    VkViewport viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
+    vkCmdSetViewport( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &viewport );
+
+    VkRect2D scissor = { { 0, 0 }, { width, height } };
+    vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
 }
 
 void EndRendering()
@@ -971,3 +1024,16 @@ void EndRendering()
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
 }
 
+void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] )
+{
+    PerObjectUboStruct uboStruct = {};
+    uboStruct.localToClip[ 0 ].InitFrom( localToClip0 );
+    uboStruct.localToClip[ 1 ].InitFrom( localToClip1 );
+    uboStruct.localToView[ 0 ].InitFrom( localToView0 );
+    uboStruct.localToView[ 1 ].InitFrom( localToView1 );
+
+    //++renderers[ 0 ].uboIndex;
+    //teAssert( renderers[ 0 ].uboIndex < UboCount );
+    // TODO: own implementation of memcpy
+    memcpy( renderer.ubo.uboData, &uboStruct, sizeof( uboStruct ) );
+}

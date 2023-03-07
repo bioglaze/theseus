@@ -3,6 +3,7 @@
 #include "frustum.h"
 #include "gameobject.h"
 #include "matrix.h"
+#include "mesh.h"
 #include "quaternion.h"
 #include "renderer.h"
 #include "shader.h"
@@ -12,6 +13,11 @@
 
 void BeginRendering( teTexture2D color, teTexture2D depth );
 void EndRendering();
+
+void TransformSolveLocalMatrix( unsigned index, bool isCamera );
+void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
+void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
+void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -82,7 +88,39 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 
     teAssert( color.index != -1 ); // Camera must have a render target!
 
+    TransformSolveLocalMatrix( cameraGOIndex, true );
+    UpdateFrustum( cameraGOIndex, -teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );
+    //UpdateTransformsAndCull( scene, cameraGOIndex );
+
     BeginRendering( color, depth );
+
+    // fdsfdsf
+    {
+        for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+        {
+            if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
+                (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
+            {
+                continue;
+            }
+
+            Matrix localToClipLeft, localToClipRight;
+            teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClipLeft, localToClipRight );
+
+            Matrix localToViewLeft, localToViewRight;
+            teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToViewLeft, localToViewRight );
+
+            UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
+
+            //const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
+            //for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
+            {
+
+            }
+        }
+    }
+
     EndRendering();
 }
 
@@ -100,10 +138,8 @@ void teSceneRender( const teScene& scene )
         }
     }
 
-    if (cameraIndex == -1)
+    if (cameraIndex != -1)
     {
-        return;
+        RenderSceneWithCamera( scene, cameraIndex );
     }
-
-    RenderSceneWithCamera( scene, cameraIndex );
 }
