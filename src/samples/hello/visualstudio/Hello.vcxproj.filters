@@ -60,5 +60,8 @@
     <ClInclude Include="..\..\..\include\mesh.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\material.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

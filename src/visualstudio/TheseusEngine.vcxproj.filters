@@ -52,6 +52,9 @@
     <ClCompile Include="..\video\mesh.cpp">
       <Filter>video</Filter>
     </ClCompile>
+    <ClCompile Include="..\video\material.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -94,6 +97,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\include\mesh.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\material.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

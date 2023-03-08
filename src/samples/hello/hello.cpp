@@ -2,6 +2,7 @@
 #include "file.h"
 #include "gameobject.h"
 #include "imgui.h"
+#include "material.h"
 #include "mesh.h"
 #include "renderer.h"
 #include "scene.h"
@@ -30,8 +31,13 @@ int main()
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
+    teMaterial material = teCreateMaterial( unlitShader );
+    //teMaterialSetTexture2D( material, tgaTex, 0 );
+
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+    teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
+    teMeshRendererSetMaterial( cubeGo.index, material, 0 );
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );

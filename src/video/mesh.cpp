@@ -1,5 +1,9 @@
 #include "mesh.h"
+#include "material.h"
 #include "vec3.h"
+
+static constexpr unsigned MaxMeshes = 10000;
+static constexpr unsigned MaxMaterials = 10000;
 
 struct SubMesh
 {
@@ -16,10 +20,9 @@ struct MeshImpl
 struct MeshRenderer
 {
     teMesh* mesh = nullptr;
+    teMaterial materials[ MaxMaterials ];
 };
 
-static constexpr unsigned MaxMeshes = 10000;
-static constexpr unsigned MaxMaterials = 10000;
 static MeshImpl meshes[ MaxMeshes ];
 static unsigned meshIndex = 0;
 static struct MeshRenderer meshRenderers[ MaxMeshes ];
@@ -76,4 +79,25 @@ teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex )
 {
     teAssert( gameObjectIndex < MaxMeshes );
     return *meshRenderers[ gameObjectIndex ].mesh;
+}
+
+void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh )
+{
+    teAssert( gameObjectIndex < MaxMeshes );
+    meshRenderers[ gameObjectIndex ].mesh = mesh;
+}
+
+const teMaterial& teMeshRendererGetMaterial( unsigned gameObjectIndex, unsigned subMeshIndex )
+{
+    teAssert( subMeshIndex < MaxMaterials );
+
+    return meshRenderers[ gameObjectIndex ].materials[ subMeshIndex ];
+}
+
+void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMaterial& material, unsigned subMeshIndex )
+{
+    teAssert( gameObjectIndex < MaxMeshes );
+    teAssert( subMeshIndex < MaxMaterials );
+
+    meshRenderers[ gameObjectIndex ].materials[ subMeshIndex ] = material;
 }

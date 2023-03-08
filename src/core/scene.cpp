@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "frustum.h"
 #include "gameobject.h"
+#include "material.h"
 #include "matrix.h"
 #include "mesh.h"
 #include "quaternion.h"
@@ -18,6 +19,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
 void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] );
+void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -94,7 +96,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 
     BeginRendering( color, depth );
 
-    // fdsfdsf
+    // this will be replaced by indirect rendering.
     {
         for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
         {
@@ -112,11 +114,14 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 
             UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
 
-            //const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+            const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
-            //for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
+            for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
             {
+                const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
+                teShader shader = teMaterialGetShader( material );
 
+                Draw( shader, material.blendMode, material.cullMode );
             }
         }
     }

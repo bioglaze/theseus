@@ -20,6 +20,7 @@
 #include "core/math.cpp"
 #include "core/scene.cpp"
 #include "core/transform.cpp"
+#include "material.cpp"
 #include "mesh.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"

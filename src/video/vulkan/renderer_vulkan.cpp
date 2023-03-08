@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 #include <stdio.h>
 #include "renderer.h"
+#include "material.h"
 #include "matrix.h"
 #include "texture.h"
 #include "shader.h"
@@ -9,6 +10,8 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
+
+constexpr unsigned DescriptorEntryCount = 4;
 
 int teStrcmp( const char* s1, const char* s2 )
 {
@@ -41,6 +44,14 @@ struct PerObjectUboStruct
     Matrix localToView[ 2 ];
 };
 
+struct Ubo
+{
+    uint8_t* uboData = nullptr;
+    VkBuffer ubo = VK_NULL_HANDLE;
+    VkDeviceMemory uboMemory = VK_NULL_HANDLE;
+    VkDescriptorBufferInfo uboDesc = {};
+};
+
 struct SwapchainResource
 {
     VkImage image = VK_NULL_HANDLE;
@@ -52,17 +63,10 @@ struct SwapchainResource
     VkImage depthStencilImage = VK_NULL_HANDLE;
     VkDeviceMemory depthStencilMem = VK_NULL_HANDLE;
     VkImageView depthStencilView = VK_NULL_HANDLE;
+    Ubo ubo;
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
-};
-
-struct Ubo
-{
-    uint8_t* uboData = nullptr;
-    VkBuffer ubo = VK_NULL_HANDLE;
-    VkDeviceMemory uboMemory = VK_NULL_HANDLE;
-    VkDescriptorBufferInfo uboDesc = {};
 };
 
 struct Renderer
@@ -88,8 +92,6 @@ struct Renderer
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
     unsigned frameIndex = 0;
-
-    Ubo ubo;
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
     PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
@@ -334,7 +336,7 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
     }
 }
 
-static void CreateUBO()
+static void CreateUBO( unsigned index )
 {
     const VkDeviceSize uboSize = 256 * 4;
 
@@ -343,25 +345,25 @@ static void CreateUBO()
     bufferInfo.size = uboSize;
     bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
-    VK_CHECK( vkCreateBuffer( renderer.device, &bufferInfo, nullptr, &renderer.ubo.ubo ) );
+    VK_CHECK( vkCreateBuffer( renderer.device, &bufferInfo, nullptr, &renderer.swapchainResources[ index ].ubo.ubo ) );
 
     VkMemoryRequirements memReqs;
-    vkGetBufferMemoryRequirements( renderer.device, renderer.ubo.ubo, &memReqs );
+    vkGetBufferMemoryRequirements( renderer.device, renderer.swapchainResources[ index ].ubo.ubo, &memReqs );
 
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memReqs.size;
     allocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-    VK_CHECK( vkAllocateMemory( renderer.device, &allocInfo, nullptr, &renderer.ubo.uboMemory ) );
-    SetObjectName( renderer.device, (uint64_t)renderer.ubo.uboMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "ubo memory" );
+    VK_CHECK( vkAllocateMemory( renderer.device, &allocInfo, nullptr, &renderer.swapchainResources[ index ].ubo.uboMemory ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ index ].ubo.uboMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "ubo memory" );
 
-    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.ubo.ubo, renderer.ubo.uboMemory, 0 ) );
+    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.swapchainResources[ index ].ubo.ubo, renderer.swapchainResources[ index ].ubo.uboMemory, 0 ) );
 
-    renderer.ubo.uboDesc.buffer = renderer.ubo.ubo;
-    renderer.ubo.uboDesc.offset = 0;
-    renderer.ubo.uboDesc.range = uboSize;
+    renderer.swapchainResources[ index ].ubo.uboDesc.buffer = renderer.swapchainResources[ index ].ubo.ubo;
+    renderer.swapchainResources[ index ].ubo.uboDesc.offset = 0;
+    renderer.swapchainResources[ index ].ubo.uboDesc.range = uboSize;
 
-    VK_CHECK( vkMapMemory( renderer.device, renderer.ubo.uboMemory, 0, uboSize, 0, (void**)&renderer.ubo.uboData ) );
+    VK_CHECK( vkMapMemory( renderer.device, renderer.swapchainResources[ index ].ubo.uboMemory, 0, uboSize, 0, (void**)&renderer.swapchainResources[ index ].ubo.uboData ) );
 }
 
 void CreateDepthStencil( uint32_t width, uint32_t height )
@@ -763,7 +765,6 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 
 void CreateDescriptorSets()
 {
-    constexpr unsigned DescriptorEntryCount = 9;
     constexpr unsigned TextureCount = 80;
     constexpr unsigned SamplerCount = 6;
 
@@ -788,7 +789,7 @@ void CreateDescriptorSets()
     bindings[ 3 ].descriptorCount = 1;
     bindings[ 3 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
 
-    bindings[ 4 ].binding = 4;
+    /*bindings[4].binding = 4;
     bindings[ 4 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     bindings[ 4 ].descriptorCount = 1;
     bindings[ 4 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
@@ -811,7 +812,7 @@ void CreateDescriptorSets()
     bindings[ 8 ].binding = 8;
     bindings[ 8 ].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     bindings[ 8 ].descriptorCount = 1;
-    bindings[ 8 ].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+    bindings[ 8 ].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;*/
 
     VkDescriptorSetLayoutCreateInfo setCreateInfo = {};
     setCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -829,7 +830,7 @@ void CreateDescriptorSets()
     typeCounts[ 2 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 3 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     typeCounts[ 3 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 4 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    /*typeCounts[4].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     typeCounts[ 4 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 5 ].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     typeCounts[ 5 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
@@ -838,7 +839,7 @@ void CreateDescriptorSets()
     typeCounts[ 7 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     typeCounts[ 7 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 8 ].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-    typeCounts[ 8 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
+    typeCounts[ 8 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;*/
 
     VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
     descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -870,7 +871,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     CreateDevice();
     CreateCommandBuffers();
     LoadFunctionPointers();
-    CreateUBO();
+    CreateUBO( 0 );
+    CreateUBO( 1 );
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1035,5 +1037,51 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     //++renderers[ 0 ].uboIndex;
     //teAssert( renderers[ 0 ].uboIndex < UboCount );
     // TODO: own implementation of memcpy
-    memcpy( renderer.ubo.uboData, &uboStruct, sizeof( uboStruct ) );
+    memcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData, &uboStruct, sizeof( uboStruct ) );
+}
+
+/*static void UpdateDescriptors(const VertexBuffer& binding2, const VertexBuffer& binding4, unsigned uboOffset)
+{
+    const VkDescriptorSet& dstSet = renderer.swapchainResources[ renderer.currentBuffer ].descriptorSets[ renderer.swapchainResources[ renderer.currentBuffer ].setIndex ];
+
+    VkWriteDescriptorSet sets[ DescriptorEntryCount ] = {};
+    sets[ 0 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 0 ].dstSet = dstSet;
+    sets[ 0 ].descriptorCount = TextureCount;
+    sets[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    sets[ 0 ].pImageInfo = &samplerInfos[ 0 ];
+    sets[ 0 ].dstBinding = 0;
+
+    sets[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 1 ].dstSet = dstSet;
+    sets[ 1 ].descriptorCount = SamplerCount;
+    sets[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    sets[ 1 ].pImageInfo = &samplerInfos[ 0 ];
+    sets[ 1 ].dstBinding = 1;
+
+    VkBufferView binding2View = VertexBufferGetView( binding2 );
+
+    sets[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 2 ].dstSet = dstSet;
+    sets[ 2 ].descriptorCount = 1;
+    sets[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    sets[ 2 ].pTexelBufferView = &binding2View;
+    sets[ 2 ].dstBinding = 2;
+
+    VkDescriptorBufferInfo uboDesc = {};
+    uboDesc.buffer = renderer.swapchainResources[ renderer.currentBuffer ].ubo.ubo;
+    uboDesc.offset = 0;
+    uboDesc.range = VK_WHOLE_SIZE;
+
+    sets[ 3 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 3 ].dstSet = dstSet;
+    sets[ 3 ].descriptorCount = 1;
+    sets[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    sets[ 3 ].pBufferInfo = &uboDesc;
+    sets[ 3 ].dstBinding = 3;
+}*/
+
+void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode )
+{
+
 }
