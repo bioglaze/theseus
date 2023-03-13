@@ -3,10 +3,17 @@
 #include "vec3.h"
 
 static constexpr unsigned MaxMeshes = 10000;
-static constexpr unsigned MaxMaterials = 10000;
+static constexpr unsigned MaxMaterials = 1000;
 
 struct SubMesh
 {
+    unsigned indicesOffset = 0;
+    unsigned indexCount = 0;
+    unsigned uvOffset = 0;
+    unsigned uvCount = 0;
+    unsigned positionOffset = 0;
+    unsigned positionCount = 0;
+
     Vec3 aabbMin;
     Vec3 aabbMax;
 };

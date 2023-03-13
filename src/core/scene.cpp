@@ -19,7 +19,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
 void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] );
-void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode );
+void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -121,7 +121,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
                 const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
                 teShader shader = teMaterialGetShader( material );
 
-                Draw( shader, material.blendMode, material.cullMode );
+                Draw( shader, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, color.format, depth.format );
             }
         }
     }

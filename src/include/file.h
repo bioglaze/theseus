@@ -7,4 +7,6 @@ struct teFile
     char path[ 260 ] = {};
 };
 
+// @param path Path to the file to open.
+// @return File. Caller is responsible for freeing teFile.data.
 teFile teLoadFile( const char* path );

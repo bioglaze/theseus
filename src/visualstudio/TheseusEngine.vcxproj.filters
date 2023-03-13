@@ -55,6 +55,9 @@
     <ClCompile Include="..\video\material.cpp">
       <Filter>video</Filter>
     </ClCompile>
+    <ClCompile Include="..\video\vulkan\buffer_vulkan.cpp">
+      <Filter>video\vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="..\include\material.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\video\buffer.h">
+      <Filter>video</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

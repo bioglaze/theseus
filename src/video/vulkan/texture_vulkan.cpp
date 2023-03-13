@@ -19,7 +19,7 @@ struct teTextureImpl
 teTextureImpl textures[ 100 ];
 unsigned textureCount = 0;
 
-static void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
+void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
 {
     outFormat = isSRGB ? VK_FORMAT_BC1_RGB_SRGB_BLOCK : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
     outBytesPerPixel = 4;
@@ -162,6 +162,7 @@ teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties
 
     teTexture2D outTex;
     outTex.index = index;
+    outTex.format = format;
 
     return outTex;
 }

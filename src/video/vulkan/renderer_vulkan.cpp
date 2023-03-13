@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 #include <stdio.h>
 #include "renderer.h"
+#include "buffer.h"
 #include "material.h"
 #include "matrix.h"
 #include "texture.h"
@@ -8,10 +9,17 @@
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
+void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
+void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel );
+Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
+VkBufferView BufferGetView( const Buffer& buffer );
+VkDeviceMemory BufferGetMemory( const Buffer& buffer );
+VkBuffer BufferGetBuffer( const Buffer& buffer );
 
 constexpr unsigned DescriptorEntryCount = 4;
+constexpr unsigned SamplerCount = 6;
 
 int teStrcmp( const char* s1, const char* s2 )
 {
@@ -38,6 +46,21 @@ uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryPropertie
     return 0;
 }
 
+struct PSO
+{
+    VkPipeline pso = VK_NULL_HANDLE;
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+    VkShaderModule vertexModule = VK_NULL_HANDLE;
+    VkShaderModule fragmentModule = VK_NULL_HANDLE;
+    teBlendMode blendMode = teBlendMode::Off;
+    teCullMode cullMode = teCullMode::Off;
+    teDepthMode depthMode = teDepthMode::NoneWriteOff;
+    teFillMode fillMode = teFillMode::Solid;
+    teTopology topology = teTopology::Triangles;
+    teTextureFormat colorFormat = teTextureFormat::Invalid;
+    teTextureFormat depthFormat = teTextureFormat::Invalid;
+};
+
 struct PerObjectUboStruct
 {
     Matrix localToClip[ 2 ];
@@ -47,9 +70,7 @@ struct PerObjectUboStruct
 struct Ubo
 {
     uint8_t* uboData = nullptr;
-    VkBuffer ubo = VK_NULL_HANDLE;
-    VkDeviceMemory uboMemory = VK_NULL_HANDLE;
-    VkDescriptorBufferInfo uboDesc = {};
+    Buffer buffer;
 };
 
 struct SwapchainResource
@@ -83,7 +104,9 @@ struct Renderer
     VkSwapchainKHR swapchain;
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+    VkDescriptorImageInfo samplerInfos[ TextureCount ];
     VkPipelineLayout pipelineLayout;
+    Buffer positionBuffer;
 
     SwapchainResource swapchainResources[ 2 ] = {};
     uint32_t swapchainImageCount = 0;
@@ -92,6 +115,8 @@ struct Renderer
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
     unsigned frameIndex = 0;
+
+    PSO psos[ 250 ];
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
     PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
@@ -313,6 +338,193 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
     vkCmdPipelineBarrier( cmdbuffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 }
 
+static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
+{
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
+    inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyState.topology = topology == teTopology::Triangles ? VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+
+    VkPipelineRasterizationStateCreateInfo rasterizationState = {};
+    rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationState.polygonMode = fillMode == teFillMode::Solid ? VK_POLYGON_MODE_FILL : VK_POLYGON_MODE_LINE;
+
+    if (cullMode == teCullMode::Off)
+    {
+        rasterizationState.cullMode = VK_CULL_MODE_NONE;
+    }
+    else if (cullMode == teCullMode::CCW)
+    {
+        rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+    }
+    else
+    {
+        teAssert( !"unhandled cull mode" );
+    }
+
+    rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizationState.depthClampEnable = VK_FALSE;
+    rasterizationState.rasterizerDiscardEnable = VK_FALSE;
+    rasterizationState.depthBiasEnable = VK_FALSE;
+    rasterizationState.lineWidth = 1;
+
+    VkPipelineColorBlendAttachmentState blendAttachmentState[ 1 ] = {};
+    blendAttachmentState[ 0 ].colorWriteMask = 0xF;
+    blendAttachmentState[ 0 ].blendEnable = blendMode != teBlendMode::Off ? VK_TRUE : VK_FALSE;
+    blendAttachmentState[ 0 ].alphaBlendOp = VK_BLEND_OP_ADD;
+    blendAttachmentState[ 0 ].colorBlendOp = VK_BLEND_OP_ADD;
+
+    if (blendMode == teBlendMode::Alpha)
+    {
+        blendAttachmentState[ 0 ].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        blendAttachmentState[ 0 ].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        blendAttachmentState[ 0 ].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    }
+    else if (blendMode == teBlendMode::Additive)
+    {
+        blendAttachmentState[ 0 ].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    }
+
+    VkPipelineColorBlendStateCreateInfo colorBlendState = {};
+    colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments = blendAttachmentState;
+
+    VkPipelineDynamicStateCreateInfo dynamicState = {};
+    VkDynamicState dynamicStateEnables[ 2 ] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.pDynamicStates = &dynamicStateEnables[ 0 ];
+    dynamicState.dynamicStateCount = 2;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+    depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencilState.depthTestEnable = depthMode == teDepthMode::NoneWriteOff ? VK_FALSE : VK_TRUE;
+    depthStencilState.depthWriteEnable = depthMode == teDepthMode::LessOrEqualWriteOn ? VK_TRUE : VK_FALSE;
+
+    if (depthMode == teDepthMode::LessOrEqualWriteOn || depthMode == teDepthMode::LessOrEqualWriteOff)
+    {
+        depthStencilState.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+    }
+    else if (depthMode == teDepthMode::NoneWriteOff)
+    {
+        depthStencilState.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+    }
+    else
+    {
+        teAssert( !"unhandled depth function" );
+    }
+
+    depthStencilState.depthBoundsTestEnable = VK_FALSE;
+    depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
+    depthStencilState.back.passOp = VK_STENCIL_OP_KEEP;
+    depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
+    depthStencilState.stencilTestEnable = VK_FALSE;
+    depthStencilState.front = depthStencilState.back;
+
+    VkPipelineMultisampleStateCreateInfo multisampleState = {};
+    multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo );
+    const VkPipelineShaderStageCreateInfo shaderStages[ 2 ] = { vertexInfo, fragmentInfo };
+
+    VkPipelineViewportStateCreateInfo viewportState = {};
+    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportState.viewportCount = 1;
+    viewportState.scissorCount = 1;
+
+    VkPipelineVertexInputStateCreateInfo inputState = {};
+    inputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+    VkFormat colorFormatVulkan = VK_FORMAT_UNDEFINED;
+    VkFormat depthFormatVulkan = VK_FORMAT_UNDEFINED;
+    unsigned bpp = 0;
+    GetFormatAndBPP( colorFormat, true, colorFormatVulkan, bpp );
+    GetFormatAndBPP( depthFormat, false, depthFormatVulkan, bpp );
+
+    VkPipelineRenderingCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    info.colorAttachmentCount = 1;
+    info.pColorAttachmentFormats = &colorFormatVulkan;
+    info.depthAttachmentFormat = depthFormatVulkan;
+    
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineCreateInfo.layout = renderer.pipelineLayout;
+    pipelineCreateInfo.pVertexInputState = &inputState;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+    pipelineCreateInfo.pRasterizationState = &rasterizationState;
+    pipelineCreateInfo.pColorBlendState = &colorBlendState;
+    pipelineCreateInfo.pMultisampleState = &multisampleState;
+    pipelineCreateInfo.pViewportState = &viewportState;
+    pipelineCreateInfo.pDepthStencilState = &depthStencilState;
+    pipelineCreateInfo.stageCount = 2;
+    pipelineCreateInfo.pStages = shaderStages;
+    pipelineCreateInfo.pDynamicState = &dynamicState;
+    pipelineCreateInfo.pNext = &info;
+
+    VkPipeline pso;
+
+    VK_CHECK( vkCreateGraphicsPipelines( renderer.device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pso ) );
+    return pso;
+}
+
+static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
+{
+    int psoIndex = -1;
+
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo );
+
+    for (int i = 0; i < 250; ++i)
+    {
+        if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
+            renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
+            renderer.psos[ i ].colorFormat == colorFormat && renderer.psos[ i ].depthFormat == depthFormat &&
+            renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module)
+        {
+            psoIndex = i;
+            break;
+        }
+    }
+
+    if (psoIndex == -1)
+    {
+        int nextFreePsoIndex = -1;
+
+        for (int i = 0; i < 250; ++i)
+        {
+            if (renderer.psos[ i ].pso == VK_NULL_HANDLE)
+            {
+                nextFreePsoIndex = i;
+            }
+        }
+
+        teAssert( nextFreePsoIndex != -1 );
+
+        if (nextFreePsoIndex == -1)
+        {
+            return 0;
+        }
+
+        psoIndex = nextFreePsoIndex;
+        renderer.psos[ psoIndex ].pso = CreatePipeline( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat );
+        renderer.psos[ psoIndex ].blendMode = blendMode;
+        renderer.psos[ psoIndex ].fillMode = fillMode;
+        renderer.psos[ psoIndex ].topology = topology;
+        renderer.psos[ psoIndex ].cullMode = cullMode;
+        renderer.psos[ psoIndex ].depthMode = depthMode;
+        renderer.psos[ psoIndex ].vertexModule = vertexInfo.module;
+        renderer.psos[ psoIndex ].fragmentModule = fragmentInfo.module;
+    }
+
+    return psoIndex;
+}
+
 teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName )
 {
     return teCreateShader( renderer.device, vertexFile, fragmentFile, vertexName, fragmentName );
@@ -334,36 +546,6 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
         nameInfo.pObjectName = name;
         renderer.SetDebugUtilsObjectNameEXT( device, &nameInfo );
     }
-}
-
-static void CreateUBO( unsigned index )
-{
-    const VkDeviceSize uboSize = 256 * 4;
-
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = uboSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-
-    VK_CHECK( vkCreateBuffer( renderer.device, &bufferInfo, nullptr, &renderer.swapchainResources[ index ].ubo.ubo ) );
-
-    VkMemoryRequirements memReqs;
-    vkGetBufferMemoryRequirements( renderer.device, renderer.swapchainResources[ index ].ubo.ubo, &memReqs );
-
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memReqs.size;
-    allocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
-    VK_CHECK( vkAllocateMemory( renderer.device, &allocInfo, nullptr, &renderer.swapchainResources[ index ].ubo.uboMemory ) );
-    SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ index ].ubo.uboMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "ubo memory" );
-
-    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.swapchainResources[ index ].ubo.ubo, renderer.swapchainResources[ index ].ubo.uboMemory, 0 ) );
-
-    renderer.swapchainResources[ index ].ubo.uboDesc.buffer = renderer.swapchainResources[ index ].ubo.ubo;
-    renderer.swapchainResources[ index ].ubo.uboDesc.offset = 0;
-    renderer.swapchainResources[ index ].ubo.uboDesc.range = uboSize;
-
-    VK_CHECK( vkMapMemory( renderer.device, renderer.swapchainResources[ index ].ubo.uboMemory, 0, uboSize, 0, (void**)&renderer.swapchainResources[ index ].ubo.uboData ) );
 }
 
 void CreateDepthStencil( uint32_t width, uint32_t height )
@@ -765,9 +947,6 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 
 void CreateDescriptorSets()
 {
-    constexpr unsigned TextureCount = 80;
-    constexpr unsigned SamplerCount = 6;
-
     VkDescriptorSetLayoutBinding bindings[ DescriptorEntryCount ] = {};
     bindings[ 0 ].binding = 0;
     bindings[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -865,14 +1044,26 @@ void CreateDescriptorSets()
     }
 }
 
+void CreateBuffers()
+{
+    renderer.positionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float3, "global positions" );
+    
+    constexpr unsigned uboSizeBytes = 256 * 64;
+
+    for (unsigned i = 0; i < 2; ++i)
+    {
+        renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
+        VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
+    }
+}
+
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
 	CreateInstance();
     CreateDevice();
     CreateCommandBuffers();
-    LoadFunctionPointers();
-    CreateUBO( 0 );
-    CreateUBO( 1 );
+    LoadFunctionPointers();    
+    CreateBuffers();
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1034,13 +1225,11 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     uboStruct.localToView[ 0 ].InitFrom( localToView0 );
     uboStruct.localToView[ 1 ].InitFrom( localToView1 );
 
-    //++renderers[ 0 ].uboIndex;
-    //teAssert( renderers[ 0 ].uboIndex < UboCount );
     // TODO: own implementation of memcpy
     memcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData, &uboStruct, sizeof( uboStruct ) );
 }
 
-/*static void UpdateDescriptors(const VertexBuffer& binding2, const VertexBuffer& binding4, unsigned uboOffset)
+static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, unsigned uboOffset )
 {
     const VkDescriptorSet& dstSet = renderer.swapchainResources[ renderer.currentBuffer ].descriptorSets[ renderer.swapchainResources[ renderer.currentBuffer ].setIndex ];
 
@@ -1049,17 +1238,17 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     sets[ 0 ].dstSet = dstSet;
     sets[ 0 ].descriptorCount = TextureCount;
     sets[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    sets[ 0 ].pImageInfo = &samplerInfos[ 0 ];
+    sets[ 0 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 0 ].dstBinding = 0;
 
     sets[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 1 ].dstSet = dstSet;
     sets[ 1 ].descriptorCount = SamplerCount;
     sets[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    sets[ 1 ].pImageInfo = &samplerInfos[ 0 ];
+    sets[ 1 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 1 ].dstBinding = 1;
 
-    VkBufferView binding2View = VertexBufferGetView( binding2 );
+    VkBufferView binding2View = BufferGetView( binding2 );
 
     sets[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 2 ].dstSet = dstSet;
@@ -1069,7 +1258,7 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     sets[ 2 ].dstBinding = 2;
 
     VkDescriptorBufferInfo uboDesc = {};
-    uboDesc.buffer = renderer.swapchainResources[ renderer.currentBuffer ].ubo.ubo;
+    uboDesc.buffer = BufferGetBuffer( renderer.swapchainResources[ renderer.currentBuffer ].ubo.buffer );
     uboDesc.offset = 0;
     uboDesc.range = VK_WHOLE_SIZE;
 
@@ -1079,9 +1268,24 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     sets[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     sets[ 3 ].pBufferInfo = &uboDesc;
     sets[ 3 ].dstBinding = 3;
-}*/
+}
 
-void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode )
+static void BindDescriptors( VkPipelineBindPoint bindPoint )
 {
+    vkCmdBindDescriptorSets( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, bindPoint,
+        renderer.pipelineLayout, 0, 1, &renderer.swapchainResources[ renderer.currentBuffer ].descriptorSets[ renderer.swapchainResources[ renderer.currentBuffer ].setIndex ], 0, nullptr );
 
+    renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
+}
+
+void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
+{
+    UpdateDescriptors( renderer.positionBuffer, renderer.positionBuffer, 0 );
+    BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
+
+    vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
+
+    unsigned indexCount = 3;
+    unsigned indexOffset = 2;
+    //vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
 }
