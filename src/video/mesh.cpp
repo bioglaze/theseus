@@ -2,6 +2,10 @@
 #include "material.h"
 #include "vec3.h"
 
+unsigned AddPositions( const float* positions, unsigned bytes );
+unsigned AddIndices( const unsigned short* indices, unsigned bytes );
+unsigned AddUVs( const float* uvs, unsigned bytes );
+
 static constexpr unsigned MaxMeshes = 10000;
 static constexpr unsigned MaxMaterials = 1000;
 
@@ -65,12 +69,12 @@ teMesh teCreateCubeMesh()
 
     meshes[ outMesh.index ].subMeshCount = 1;
     meshes[ outMesh.index ].subMeshes = new SubMesh[ 1 ]();
-    //meshes[ outMesh.index ].subMeshes[ 0 ].positionOffset = AddPositions( positions, sizeof( positions ) );
-    //meshes[ outMesh.index ].subMeshes[ 0 ].positionCount = 30;
-    //meshes[ outMesh.index ].subMeshes[ 0 ].uvOffset = AddUVs( uvs, sizeof( uvs ) );
-    //meshes[ outMesh.index ].subMeshes[ 0 ].uvCount = 30;
-    //meshes[ outMesh.index ].subMeshes[ 0 ].indicesOffset = AddIndices( indices, sizeof( indices ) );
-    //meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 12;
+    meshes[ outMesh.index ].subMeshes[ 0 ].positionOffset = AddPositions( positions, sizeof( positions ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].positionCount = 30;
+    meshes[ outMesh.index ].subMeshes[ 0 ].uvOffset = AddUVs( uvs, sizeof( uvs ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].uvCount = 30;
+    meshes[ outMesh.index ].subMeshes[ 0 ].indicesOffset = AddIndices( indices, sizeof( indices ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 12;
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMin = Vec3( -1, -1, -1 );
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
 

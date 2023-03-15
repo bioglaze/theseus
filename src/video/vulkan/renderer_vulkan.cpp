@@ -32,6 +32,11 @@ int teStrcmp( const char* s1, const char* s2 )
     return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
+void teMemcpy( void* dst, const void* src, size_t size )
+{
+    memcpy( dst, src, size );
+}
+
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
 {
     for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i)
@@ -106,7 +111,16 @@ struct Renderer
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     VkDescriptorImageInfo samplerInfos[ TextureCount ];
     VkPipelineLayout pipelineLayout;
-    Buffer positionBuffer;
+
+    Buffer staticMeshPositionBuffer;
+    Buffer staticMeshPositionStagingBuffer;
+    Buffer staticMeshUVBuffer;
+    Buffer staticMeshUVStagingBuffer;
+    Buffer staticMeshIndexBuffer;
+    Buffer staticMeshIndexStagingBuffer;
+    unsigned indexCounter = 0;
+    unsigned uvCounter = 0;
+    unsigned positionCounter = 0;
 
     SwapchainResource swapchainResources[ 2 ] = {};
     uint32_t swapchainImageCount = 0;
@@ -1046,7 +1060,12 @@ void CreateDescriptorSets()
 
 void CreateBuffers()
 {
-    renderer.positionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float3, "global positions" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshPositionStagingBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
+    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
+    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
+    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
     
     constexpr unsigned uboSizeBytes = 256 * 64;
 
@@ -1055,6 +1074,85 @@ void CreateBuffers()
         renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
         VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
     }
+}
+
+void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize )
+{
+    VkCommandBufferAllocateInfo cmdBufInfo = {};
+    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdBufInfo.commandPool = renderer.cmdPool;
+    cmdBufInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cmdBufInfo.commandBufferCount = 1;
+
+    // TODO: maybe store this in renderer?
+    VkCommandBuffer copyCommandBuffer;
+    VK_CHECK( vkAllocateCommandBuffers( renderer.device, &cmdBufInfo, &copyCommandBuffer ) );
+
+    VkCommandBufferBeginInfo cmdBufferBeginInfo = {};
+    cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = bufferSize;
+
+    VK_CHECK( vkBeginCommandBuffer( copyCommandBuffer, &cmdBufferBeginInfo ) );
+
+    vkCmdCopyBuffer( copyCommandBuffer, source, destination, 1, &copyRegion );
+
+    VK_CHECK( vkEndCommandBuffer( copyCommandBuffer ) );
+
+    VkSubmitInfo copySubmitInfo = {};
+    copySubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    copySubmitInfo.commandBufferCount = 1;
+    copySubmitInfo.pCommandBuffers = &copyCommandBuffer;
+
+    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &copySubmitInfo, VK_NULL_HANDLE ) );
+    VK_CHECK( vkQueueWaitIdle( renderer.graphicsQueue ) );
+    vkFreeCommandBuffers( renderer.device, cmdBufInfo.commandPool, 1, &copyCommandBuffer );
+}
+
+void UpdateStagingBuffer( const Buffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
+{
+    teAssert( BufferGetMemory( buffer ) != VK_NULL_HANDLE );
+    // TODO: assert that buffer can be mapped.
+
+    void* bufferData = nullptr;
+    VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( buffer ), offset, dataBytes, 0, &bufferData ) );
+
+    teMemcpy( bufferData, data, dataBytes );
+    vkUnmapMemory( renderer.device, BufferGetMemory( buffer ) );
+}
+
+unsigned AddIndices( const unsigned short* indices, unsigned bytes )
+{
+    if (indices)
+    {
+        UpdateStagingBuffer( renderer.staticMeshIndexBuffer, indices, bytes, renderer.indexCounter );
+    }
+
+    renderer.indexCounter += bytes;
+    return renderer.indexCounter - bytes;
+}
+
+unsigned AddUVs( const float* uvs, unsigned bytes )
+{
+    if (uvs)
+    {
+        UpdateStagingBuffer( renderer.staticMeshUVBuffer, uvs, bytes, renderer.uvCounter );
+    }
+
+    renderer.uvCounter += bytes;
+    return renderer.uvCounter - bytes;
+}
+
+unsigned AddPositions( const float* positions, unsigned bytes )
+{
+    if (positions)
+    {
+        UpdateStagingBuffer( renderer.staticMeshPositionBuffer, positions, bytes, renderer.positionCounter );
+    }
+
+    renderer.positionCounter += bytes;
+    return renderer.positionCounter - bytes;
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
@@ -1208,6 +1306,8 @@ void BeginRendering( teTexture2D color, teTexture2D depth )
 
     VkRect2D scissor = { { 0, 0 }, { width, height } };
     vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
+
+    vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 }
 
 void EndRendering()
@@ -1225,8 +1325,7 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     uboStruct.localToView[ 0 ].InitFrom( localToView0 );
     uboStruct.localToView[ 1 ].InitFrom( localToView1 );
 
-    // TODO: own implementation of memcpy
-    memcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData, &uboStruct, sizeof( uboStruct ) );
+    teMemcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData, &uboStruct, sizeof( uboStruct ) );
 }
 
 static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, unsigned uboOffset )
@@ -1280,12 +1379,12 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
 
 void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
-    UpdateDescriptors( renderer.positionBuffer, renderer.positionBuffer, 0 );
+    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshPositionBuffer, 0 );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
 
     unsigned indexCount = 3;
     unsigned indexOffset = 2;
-    //vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
+    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
 }
