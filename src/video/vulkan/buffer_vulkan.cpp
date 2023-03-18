@@ -96,7 +96,7 @@ Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& de
         teAssert( !"Unhandled buffer view type!" );
     }
 
-    if (usageFlags != VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+    if (usageFlags != VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT && usageFlags != VK_BUFFER_USAGE_TRANSFER_SRC_BIT && usageFlags != VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
         VK_CHECK( vkCreateBufferView( device, &bufferViewInfo, nullptr, &buffers[ outBuffer.index ].view ) );
         SetObjectName( device, (uint64_t)buffers[ outBuffer.index ].view, VK_OBJECT_TYPE_BUFFER_VIEW, debugName );

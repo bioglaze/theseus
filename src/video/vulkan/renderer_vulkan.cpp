@@ -122,6 +122,14 @@ struct Renderer
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
 
+    teTexture2D defaultTexture2D;
+    VkSampler samplerLinearRepeat;
+    VkSampler samplerLinearClamp;
+    VkSampler samplerAnisotropic8Repeat;
+    VkSampler samplerAnisotropic8Clamp;
+    VkSampler samplerNearestRepeat;
+    VkSampler samplerNearestClamp;
+
     SwapchainResource swapchainResources[ 2 ] = {};
     uint32_t swapchainImageCount = 0;
     uint32_t graphicsQueueIndex = 0;
@@ -534,6 +542,8 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         renderer.psos[ psoIndex ].depthMode = depthMode;
         renderer.psos[ psoIndex ].vertexModule = vertexInfo.module;
         renderer.psos[ psoIndex ].fragmentModule = fragmentInfo.module;
+        renderer.psos[ psoIndex ].colorFormat = colorFormat;
+        renderer.psos[ psoIndex ].depthFormat = depthFormat;
     }
 
     return psoIndex;
@@ -1076,6 +1086,68 @@ void CreateBuffers()
     }
 }
 
+void CreateSamplers()
+{
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = samplerInfo.magFilter;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+    samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+    samplerInfo.maxAnisotropy = 1;
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerNearestRepeat ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerNearestRepeat, VK_OBJECT_TYPE_SAMPLER, "samplerNearestRepeat" );
+
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerNearestClamp ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerNearestClamp, VK_OBJECT_TYPE_SAMPLER, "samplerNearestClamp" );
+
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = samplerInfo.magFilter;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerLinearRepeat ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerLinearRepeat, VK_OBJECT_TYPE_SAMPLER, "samplerLinearRepeat" );
+
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerLinearClamp ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerLinearClamp, VK_OBJECT_TYPE_SAMPLER, "samplerLinearClamp" );
+
+    if (renderer.features.samplerAnisotropy == VK_FALSE)
+    {
+        printf( "Anisotropy is not supported! Anisotropic samplers are not using anisotropy.\n" );
+    }
+
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = samplerInfo.magFilter;
+    samplerInfo.maxAnisotropy = renderer.features.samplerAnisotropy == VK_TRUE ? 8.0f : 1.0f;
+    samplerInfo.anisotropyEnable = renderer.features.samplerAnisotropy;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerAnisotropic8Repeat ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerAnisotropic8Repeat, VK_OBJECT_TYPE_SAMPLER, "samplerAnisotropic8Repeat" );
+
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    VK_CHECK( vkCreateSampler( renderer.device, &samplerInfo, nullptr, &renderer.samplerAnisotropic8Clamp ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.samplerAnisotropic8Clamp, VK_OBJECT_TYPE_SAMPLER, "samplerAnisotropic8Clamp" );
+}
+
 void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize )
 {
     VkCommandBufferAllocateInfo cmdBufInfo = {};
@@ -1126,7 +1198,7 @@ unsigned AddIndices( const unsigned short* indices, unsigned bytes )
 {
     if (indices)
     {
-        UpdateStagingBuffer( renderer.staticMeshIndexBuffer, indices, bytes, renderer.indexCounter );
+        UpdateStagingBuffer( renderer.staticMeshIndexStagingBuffer, indices, bytes, renderer.indexCounter );
     }
 
     renderer.indexCounter += bytes;
@@ -1137,7 +1209,7 @@ unsigned AddUVs( const float* uvs, unsigned bytes )
 {
     if (uvs)
     {
-        UpdateStagingBuffer( renderer.staticMeshUVBuffer, uvs, bytes, renderer.uvCounter );
+        UpdateStagingBuffer( renderer.staticMeshUVStagingBuffer, uvs, bytes, renderer.uvCounter );
     }
 
     renderer.uvCounter += bytes;
@@ -1148,7 +1220,7 @@ unsigned AddPositions( const float* positions, unsigned bytes )
 {
     if (positions)
     {
-        UpdateStagingBuffer( renderer.staticMeshPositionBuffer, positions, bytes, renderer.positionCounter );
+        UpdateStagingBuffer( renderer.staticMeshPositionStagingBuffer, positions, bytes, renderer.positionCounter );
     }
 
     renderer.positionCounter += bytes;
@@ -1162,6 +1234,9 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     CreateCommandBuffers();
     LoadFunctionPointers();    
     CreateBuffers();
+    CreateSamplers();
+    
+    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::BGRA_sRGB, "default texture 2D" );
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1218,6 +1293,22 @@ void teBeginFrame()
     {
         teAssert( err == VK_SUCCESS );
     }
+
+    for (unsigned i = 0; i < TextureCount; ++i)
+    {
+        renderer.samplerInfos[ i ].imageView = TextureGetView( renderer.defaultTexture2D );
+        renderer.samplerInfos[ i ].sampler = renderer.samplerLinearRepeat;
+        renderer.samplerInfos[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        //renderer.samplerInfosCube[ i ].sampler = renderer.samplerLinearRepeat;
+        //renderer.samplerInfosCube[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    renderer.samplerInfos[ 0 ].sampler = renderer.samplerLinearRepeat;
+    renderer.samplerInfos[ 1 ].sampler = renderer.samplerLinearClamp;
+    renderer.samplerInfos[ 2 ].sampler = renderer.samplerNearestRepeat;
+    renderer.samplerInfos[ 3 ].sampler = renderer.samplerNearestClamp;
+    renderer.samplerInfos[ 4 ].sampler = renderer.samplerAnisotropic8Repeat;
+    renderer.samplerInfos[ 5 ].sampler = renderer.samplerAnisotropic8Clamp;
 }
 
 void teEndFrame()
@@ -1367,6 +1458,8 @@ static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, u
     sets[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     sets[ 3 ].pBufferInfo = &uboDesc;
     sets[ 3 ].dstBinding = 3;
+
+    vkUpdateDescriptorSets( renderer.device, DescriptorEntryCount, sets, 0, nullptr );
 }
 
 static void BindDescriptors( VkPipelineBindPoint bindPoint )
@@ -1377,14 +1470,17 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
     renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
 }
 
-void Draw( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
+void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
+    renderer.samplerInfos[ 0 ].imageView = TextureGetView( renderer.defaultTexture2D );
+
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshPositionBuffer, 0 );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
 
-    unsigned indexCount = 3;
-    unsigned indexOffset = 2;
+    int pushConstants[ 4 ] = { 0, 0, 0, 0 };
+    vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
 }

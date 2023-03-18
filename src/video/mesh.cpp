@@ -112,3 +112,28 @@ void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMateria
 
     meshRenderers[ gameObjectIndex ].materials[ subMeshIndex ] = material;
 }
+
+unsigned teMeshGetPositionOffset( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].positionOffset;
+}
+
+unsigned teMeshGetIndexOffset( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].indicesOffset;
+}
+
+unsigned teMeshGetIndexCount( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].indexCount;
+}
+
+unsigned teMeshGetUVOffset( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].uvOffset;
+}
+
+unsigned teMeshGetUVCount( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].uvCount;
+}
