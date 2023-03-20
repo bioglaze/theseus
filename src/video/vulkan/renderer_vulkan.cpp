@@ -1070,11 +1070,11 @@ void CreateDescriptorSets()
 
 void CreateBuffers()
 {
-    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
     renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshPositionStagingBuffer" );
-    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
-    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
+    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
     
     constexpr unsigned uboSizeBytes = 256 * 64;
@@ -1084,6 +1084,13 @@ void CreateBuffers()
         renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
         VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
     }
+}
+
+void teFinalizeMeshBuffers()
+{
+    CopyBuffer( renderer.staticMeshIndexStagingBuffer, renderer.staticMeshIndexBuffer );
+    CopyBuffer( renderer.staticMeshUVStagingBuffer, renderer.staticMeshUVBuffer );
+    CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
 }
 
 void CreateSamplers()
@@ -1260,6 +1267,9 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     CreateDepthStencil( renderer.swapchainWidth, renderer.swapchainHeight );
 
+    SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
+
     vkEndCommandBuffer( renderer.swapchainResources[ 0 ].drawCommandBuffer );
 
     VkSubmitInfo submitInfo = {};
@@ -1352,7 +1362,7 @@ void teEndFrame()
     renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
 }
 
-void BeginRendering( teTexture2D color, teTexture2D depth )
+void BeginRendering( teTexture2D& color, teTexture2D& depth )
 {
     VkRenderingAttachmentInfo colorAtt{};
     colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -1401,11 +1411,65 @@ void BeginRendering( teTexture2D color, teTexture2D depth )
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 }
 
-void EndRendering()
+void EndRendering( teTexture2D& color )
 {
     vkCmdEndRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
 
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
+}
+
+// TODO: make this use BeginRendering somehow: need to store swapchain inside texture.cpp
+void teBeginSwapchainRendering()
+{
+    VkRenderingAttachmentInfo colorAtt{};
+    colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAtt.imageView = renderer.swapchainResources[ renderer.currentBuffer ].view;
+    colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAtt.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkRenderingAttachmentInfo depthAtt{};
+    depthAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAtt.imageView = renderer.swapchainResources[ renderer.currentBuffer ].depthStencilView;
+    depthAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    depthAtt.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkRenderingInfo renderInfo{};
+    renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderInfo.colorAttachmentCount = 1;
+    renderInfo.flags = 0;
+    renderInfo.layerCount = 1;
+    renderInfo.pColorAttachments = &colorAtt;
+    renderInfo.pDepthAttachment = &depthAtt;
+    renderInfo.renderArea = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
+
+    VkCommandBufferBeginInfo cmdBufInfo = {};
+    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &cmdBufInfo ) );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image, VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].depthStencilImage, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+
+    vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
+
+    VkViewport viewport = { 0.0f, 0.0f, (float)renderer.swapchainWidth, (float)renderer.swapchainHeight, 0.0f, 1.0f };
+    vkCmdSetViewport( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &viewport );
+
+    VkRect2D scissor = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
+    vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
+
+    vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
+}
+
+void teEndSwapchainRendering()
+{
+    teTexture2D nullTex;
+    
+    EndRendering( nullTex );
 }
 
 void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] )
@@ -1483,4 +1547,38 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
+}
+
+// TODO: figure out if this can be replaced with a call to Draw()
+void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
+{
+    /*for (unsigned i = 0; i < TextureCount; ++i)
+    {
+        renderer.samplerInfos[ i ].imageView = renderer.samplerInfos[ 0 ].imageView;
+    }*/
+
+    if ((int)texture.index != -1)
+    {
+        renderer.samplerInfos[ texture.index ].imageView = TextureGetView( texture );
+    }
+
+    Buffer positions, uvs;
+    positions.index = 1; // FIXME: These should probably point to some default resources.
+    uvs.index = 1;
+
+    UpdateDescriptors( positions, uvs, 0 );
+    BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
+
+    VkViewport viewport = { 0, 0, (float)renderer.swapchainWidth, (float)renderer.swapchainHeight, 0.0f, 1.0f };
+    vkCmdSetViewport( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &viewport );
+
+    VkRect2D scissor = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
+    vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
+
+    int pushConstants[ 5 ] = { (int)texture.index, (int)texture.index, (int)texture.index, 2, 0 };
+    vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    
+    const int psoIndex = GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, teTextureFormat::RGBA_sRGB, teTextureFormat::Depth32F );
+    vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ psoIndex ].pso );
+    vkCmdDraw( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 3, 1, 0, 0 );
 }

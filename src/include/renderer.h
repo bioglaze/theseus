@@ -5,3 +5,8 @@
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height );
 void teBeginFrame();
 void teEndFrame();
+// This must be called after loading all the meshes and before rendering them.
+void teFinalizeMeshBuffers();
+void teDrawFullscreenTriangle( struct teShader& shader, struct teTexture2D& texture );
+void teBeginSwapchainRendering();
+void teEndSwapchainRendering();

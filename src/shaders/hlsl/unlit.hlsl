@@ -13,7 +13,7 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
     return vsOut;
 }
 
-float4 unlitFS( VSOutput vsOut ) : SV_Target
+float4 unlitPS( VSOutput vsOut ) : SV_Target
 {
     return float4( 1, 0, 0, 1 );
 }

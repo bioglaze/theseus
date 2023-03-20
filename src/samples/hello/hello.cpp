@@ -20,8 +20,12 @@ int main()
     teCreateRenderer( 1, windowHandle, width, height );
 
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
-    teFile unlitFsFile = teLoadFile( "shaders/unlit_fs.spv" );
-    teShader unlitShader = teCreateShader( unlitVsFile, unlitFsFile, "unlitVS", "unlitFS" );
+    teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
+    teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
+
+    teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
+    teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
+    teShader fullscreenShader = teCreateShader( fullscreenVsFile, fullscreenPsFile, "fullscreenVS", "fullscreenPS" );
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
@@ -38,6 +42,8 @@ int main()
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, material, 0 );
+
+    teFinalizeMeshBuffers();
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
@@ -83,11 +89,18 @@ int main()
         ImGui::Text( "This is some useful text." );
         ImGui::End();
         ImGui::Render();
+
+        //teBeginSwapchainRendering();
+        //teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
+        //teEndSwapchainRendering();
+
         teEndFrame();
     }
 
     delete[] unlitVsFile.data;
-    delete[] unlitFsFile.data;
+    delete[] unlitPsFile.data;
+    delete[] fullscreenVsFile.data;
+    delete[] fullscreenPsFile.data;
 
     ImGui::DestroyContext( imContext );
 

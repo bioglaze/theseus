@@ -12,8 +12,8 @@
 #include "transform.h"
 #include "vec3.h"
 
-void BeginRendering( teTexture2D color, teTexture2D depth );
-void EndRendering();
+void BeginRendering( teTexture2D& color, teTexture2D& depth );
+void EndRendering( teTexture2D& color );
 
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
@@ -77,16 +77,11 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
 
 static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 {
-    teTexture2D color;
-    teTexture2D depth;
-
     unsigned cameraGOIndex = 0;
 
-    {
-        cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
-        color = teCameraGetColorTexture( cameraGOIndex );
-        depth = teCameraGetDepthTexture( cameraGOIndex );
-    }
+    cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
+    teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
     teAssert( color.index != -1 ); // Camera must have a render target!
 
@@ -130,7 +125,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
         }
     }
 
-    EndRendering();
+    EndRendering( color );
 }
 
 void teSceneRender( const teScene& scene )

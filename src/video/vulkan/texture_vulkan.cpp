@@ -17,7 +17,7 @@ struct teTextureImpl
 };
 
 teTextureImpl textures[ 100 ];
-unsigned textureCount = 0;
+unsigned textureCount = 1;
 
 void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
 {
@@ -72,6 +72,11 @@ void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat
     else if (bcFormat == teTextureFormat::BGRA_sRGB)
     {
         outFormat = VK_FORMAT_B8G8R8A8_SRGB;
+        outBytesPerPixel = 4;
+    }
+    else if (bcFormat == teTextureFormat::RGBA_sRGB)
+    {
+        outFormat = VK_FORMAT_R8G8B8A8_SRGB;
         outBytesPerPixel = 4;
     }
 }
