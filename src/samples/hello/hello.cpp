@@ -90,9 +90,9 @@ int main()
         ImGui::End();
         ImGui::Render();
 
-        //teBeginSwapchainRendering();
-        //teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
-        //teEndSwapchainRendering();
+        teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
+        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
+        teEndSwapchainRendering();
 
         teEndFrame();
     }

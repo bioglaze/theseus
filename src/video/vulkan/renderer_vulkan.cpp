@@ -1414,12 +1414,10 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth )
 void EndRendering( teTexture2D& color )
 {
     vkCmdEndRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
-
-    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
 }
 
 // TODO: make this use BeginRendering somehow: need to store swapchain inside texture.cpp
-void teBeginSwapchainRendering()
+void teBeginSwapchainRendering( teTexture2D& color )
 {
     VkRenderingAttachmentInfo colorAtt{};
     colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -1444,15 +1442,8 @@ void teBeginSwapchainRendering()
     renderInfo.pDepthAttachment = &depthAtt;
     renderInfo.renderArea = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
 
-    VkCommandBufferBeginInfo cmdBufInfo = {};
-    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &cmdBufInfo ) );
-
-    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image, VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
-
-    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].depthStencilImage, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( color ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
 
@@ -1470,6 +1461,8 @@ void teEndSwapchainRendering()
     teTexture2D nullTex;
     
     EndRendering( nullTex );
+
+    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
 }
 
 void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] )

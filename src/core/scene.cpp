@@ -20,6 +20,8 @@ void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalTo
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
 void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat );
+void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye );
+void TransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -75,6 +77,52 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
     teAssert( !"Too many game objects!" );
 }
 
+static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
+{
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    {
+        if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
+            (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        TransformSolveLocalMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], false );
+
+        const Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
+        Matrix localToView;
+        Matrix localToClip;
+        Matrix::Multiply( localToWorld, teTransformGetMatrix( cameraGOIndex ), localToView );
+        Matrix::Multiply( localToView, teCameraGetProjection( cameraGOIndex ), localToClip );
+
+        TransformSetComputedLocalToClip( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip, localToClip );
+        TransformSetComputedLocalToView( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView, localToView );
+
+        /*const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[gameObjectIndex]);
+
+        for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
+        {
+            Vec3 meshAabbMinWorld, meshAabbMaxWorld;
+            teMeshGetSubMeshLocalAABB( mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
+
+            Vec3 meshAabbWorld[ 8 ];
+            GetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
+
+            for (unsigned v = 0; v < 8; ++v)
+            {
+                Vec3 res;
+                Matrix::TransformPoint( meshAabbWorld[ v ], localToWorld, res );
+                meshAabbWorld[ v ] = res;
+            }
+
+            GetMinMax( meshAabbWorld, 8, meshAabbMinWorld, meshAabbMaxWorld );
+
+            MeshRendererSetCulled( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex, !BoxInFrustum( cameraGOIndex, meshAabbMinWorld, meshAabbMaxWorld ) );
+        }*/
+    }
+}
+
 static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 {
     unsigned cameraGOIndex = 0;
@@ -87,7 +135,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
 
     TransformSolveLocalMatrix( cameraGOIndex, true );
     UpdateFrustum( cameraGOIndex, -teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );
-    //UpdateTransformsAndCull( scene, cameraGOIndex );
+    UpdateTransformsAndCull( scene, cameraGOIndex );
 
     BeginRendering( color, depth );
 

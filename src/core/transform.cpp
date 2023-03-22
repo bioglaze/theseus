@@ -97,13 +97,13 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera )
     }
 }
 
-void teTransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye )
+void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye )
 {
     transforms[ index ].localToClipLeftEye = localToClipLeftEye;
     transforms[ index ].localToClipRightEye = localToClipRightEye;
 }
 
-void teTransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye )
+void TransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye )
 {
     transforms[ index ].localToViewLeftEye = localToViewLeftEye;
     transforms[ index ].localToViewRightEye = localToViewRightEye;
