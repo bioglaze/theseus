@@ -19,64 +19,69 @@ struct teTextureImpl
 teTextureImpl textures[ 100 ];
 unsigned textureCount = 1;
 
-void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
+void GetFormatAndBPP( teTextureFormat format, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
 {
     outFormat = isSRGB ? VK_FORMAT_BC1_RGB_SRGB_BLOCK : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
     outBytesPerPixel = 4;
 
-    if (bcFormat == teTextureFormat::BC2)
+    if (format == teTextureFormat::BC2)
     {
         outFormat = isSRGB ? VK_FORMAT_BC2_SRGB_BLOCK : VK_FORMAT_BC2_UNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::BC3)
+    else if (format == teTextureFormat::BC3)
     {
         outFormat = isSRGB ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::BC4U)
+    else if (format == teTextureFormat::BC4U)
     {
         outFormat = VK_FORMAT_BC4_UNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::BC4S)
+    else if (format == teTextureFormat::BC4S)
     {
         outFormat = VK_FORMAT_BC4_SNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::BC5U)
+    else if (format == teTextureFormat::BC5U)
     {
         outFormat = VK_FORMAT_BC5_UNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::BC5S)
+    else if (format == teTextureFormat::BC5S)
     {
         outFormat = VK_FORMAT_BC5_SNORM_BLOCK;
         outBytesPerPixel = 2;
     }
-    else if (bcFormat == teTextureFormat::R32G32F)
+    else if (format == teTextureFormat::R32G32F)
     {
         outFormat = VK_FORMAT_R32G32_SFLOAT;
         outBytesPerPixel = 8;
     }
-    else if (bcFormat == teTextureFormat::R32F)
+    else if (format == teTextureFormat::R32F)
     {
         outFormat = VK_FORMAT_R32_SFLOAT;
         outBytesPerPixel = 4;
     }
-    else if (bcFormat == teTextureFormat::Depth32F)
+    else if (format == teTextureFormat::Depth32F)
     {
         outFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
         outBytesPerPixel = 4;
     }
-    else if (bcFormat == teTextureFormat::BGRA_sRGB)
+    else if (format == teTextureFormat::BGRA_sRGB)
     {
         outFormat = VK_FORMAT_B8G8R8A8_SRGB;
         outBytesPerPixel = 4;
     }
-    else if (bcFormat == teTextureFormat::RGBA_sRGB)
+    else if (format == teTextureFormat::RGBA_sRGB)
     {
         outFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        outBytesPerPixel = 4;
+    }
+    else if (format == teTextureFormat::BGRA)
+    {
+        outFormat = VK_FORMAT_B8G8R8A8_UNORM;
         outBytesPerPixel = 4;
     }
 }

@@ -1,5 +1,3 @@
-#include "window_win32.cpp"
-
 #if _DEBUG
 #define VK_CHECK( x ) { VkResult res = (x); teAssert( res == VK_SUCCESS ); }
 #if _MSC_VER
@@ -12,7 +10,9 @@
 #define VK_CHECK( x ) x
 #endif
 
-
+#if VK_USE_PLATFORM_WIN32_KHR
+#include "window_win32.cpp"
+#endif
 #include "core/camera.cpp"
 #include "core/file.cpp"
 #include "core/frustum.cpp"

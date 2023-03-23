@@ -54,7 +54,6 @@ uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryPropertie
 struct PSO
 {
     VkPipeline pso = VK_NULL_HANDLE;
-    VkRenderPass renderPass = VK_NULL_HANDLE;
     VkShaderModule vertexModule = VK_NULL_HANDLE;
     VkShaderModule fragmentModule = VK_NULL_HANDLE;
     teBlendMode blendMode = teBlendMode::Off;
@@ -90,6 +89,7 @@ struct SwapchainResource
     VkDeviceMemory depthStencilMem = VK_NULL_HANDLE;
     VkImageView depthStencilView = VK_NULL_HANDLE;
     Ubo ubo;
+    teTextureFormat colorFormat = teTextureFormat::Invalid;
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
@@ -890,6 +890,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
         if (surfFormats[ formatIndex ].format == VK_FORMAT_B8G8R8A8_SRGB || surfFormats[ formatIndex ].format == VK_FORMAT_R8G8B8A8_SRGB)
         {
             colorFormat = surfFormats[ formatIndex ].format;
+            renderer.swapchainResources[ 0 ].colorFormat = surfFormats[ formatIndex ].format == VK_FORMAT_B8G8R8A8_SRGB ? teTextureFormat::BGRA_sRGB : teTextureFormat::RGBA_sRGB;
             foundSRGB = true;
         }
     }
@@ -897,6 +898,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     if (!foundSRGB && formatCount == 1 && surfFormats[ 0 ].format == VK_FORMAT_UNDEFINED)
     {
         colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+        renderer.swapchainResources[ 0 ].colorFormat = teTextureFormat::BGRA;
     }
     else if (!foundSRGB)
     {
@@ -1239,7 +1241,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 	CreateInstance();
     CreateDevice();
     CreateCommandBuffers();
-    LoadFunctionPointers();    
+    LoadFunctionPointers();
     CreateBuffers();
     CreateSamplers();
     
@@ -1545,11 +1547,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
 // TODO: figure out if this can be replaced with a call to Draw()
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    /*for (unsigned i = 0; i < TextureCount; ++i)
-    {
-        renderer.samplerInfos[ i ].imageView = renderer.samplerInfos[ 0 ].imageView;
-    }*/
-
     if ((int)texture.index != -1)
     {
         renderer.samplerInfos[ texture.index ].imageView = TextureGetView( texture );
@@ -1571,7 +1568,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
     int pushConstants[ 5 ] = { (int)texture.index, (int)texture.index, (int)texture.index, 2, 0 };
     vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
     
-    const int psoIndex = GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, teTextureFormat::RGBA_sRGB, teTextureFormat::Depth32F );
+    const int psoIndex = GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F );
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ psoIndex ].pso );
     vkCmdDraw( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 3, 1, 0, 0 );
 }
