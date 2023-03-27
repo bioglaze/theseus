@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "material.h"
 #include "mesh.h"
+#include "quaternion.h"
 #include "renderer.h"
 #include "scene.h"
 #include "shader.h"
@@ -11,6 +12,31 @@
 #include "transform.h"
 #include "vec3.h"
 #include "window.h"
+#include <stdint.h>
+
+// *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
+// Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
+struct pcg32_random_t
+{
+    uint64_t state;
+    uint64_t inc;
+};
+
+uint32_t pcg32_random_r( pcg32_random_t* rng )
+{
+    uint64_t oldstate = rng->state;
+    rng->state = oldstate * 6364136223846793005ULL + (rng->inc | 1);
+    uint32_t xorshifted = uint32_t( ((oldstate >> 18u) ^ oldstate) >> 27u );
+    int32_t rot = oldstate >> 59u;
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+}
+
+pcg32_random_t rng;
+
+int Random100()
+{
+    return pcg32_random_r( &rng ) % 100;
+}
 
 int main()
 {
@@ -36,6 +62,7 @@ int main()
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
     teMaterial material = teCreateMaterial( unlitShader );
+    //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
     //teMaterialSetTexture2D( material, tgaTex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();
@@ -47,7 +74,35 @@ int main()
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
-    teSceneAdd( scene, cubeGo.index );
+    //teSceneAdd( scene, cubeGo.index );
+
+    teGameObject cubes[ 16 * 4 ];
+    unsigned g = 0;
+    Quaternion rotation;
+
+    for (int j = 0; j < 4; ++j)
+    {
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int k = 0; k < 4; ++k)
+            {
+                cubes[ g ] = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+                teMeshRendererSetMesh( cubes[ g ].index, &cubeMesh );
+                teMeshRendererSetMaterial( cubes[ g ].index, material, 0 );
+                teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4 - 5, j * 4 - 5, -4 - k * 4 ) );
+                teSceneAdd( scene, cubes[ g ].index );
+
+                float angle = Random100() / 100.0f * 90;
+                Vec3 axis{ 1, 1, 1 };
+                axis.Normalize();
+
+                rotation.FromAxisAngle( axis, angle );
+                teTransformSetLocalRotation( cubes[ g ].index, rotation );
+                
+                ++g;
+            }
+        }
+    }
 
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

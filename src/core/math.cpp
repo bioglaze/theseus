@@ -122,6 +122,10 @@ void Matrix::MakeProjection( float fovDegrees, float aspect, float nearDepth, fl
 {
     const float f = 1.0f / tanf( (0.5f * fovDegrees) * 3.14159265358979f / 180.0f );
 
+    const float tmp = farDepth;
+    farDepth = nearDepth;
+    nearDepth = tmp;
+
     const float proj[] =
     {
         f / aspect, 0, 0, 0,
@@ -135,6 +139,10 @@ void Matrix::MakeProjection( float fovDegrees, float aspect, float nearDepth, fl
 
 void Matrix::MakeProjection( float left, float right, float bottom, float top, float nearDepth, float farDepth )
 {
+    const float tmp = farDepth;
+    farDepth = nearDepth;
+    nearDepth = tmp;
+
     const float tx = -((right + left) / (right - left));
     const float ty = -((bottom + top) / (bottom - top));
     const float tz = nearDepth / (nearDepth - farDepth);
