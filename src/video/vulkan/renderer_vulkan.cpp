@@ -75,6 +75,7 @@ struct Ubo
 {
     uint8_t* uboData = nullptr;
     Buffer buffer;
+    size_t offset = 0;
 };
 
 struct SwapchainResource
@@ -1079,7 +1080,7 @@ void CreateBuffers()
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
     
-    constexpr unsigned uboSizeBytes = 256 * 64;
+    constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 
     for (unsigned i = 0; i < 2; ++i)
     {
@@ -1321,6 +1322,8 @@ void teBeginFrame()
     renderer.samplerInfos[ 3 ].sampler = renderer.samplerNearestClamp;
     renderer.samplerInfos[ 4 ].sampler = renderer.samplerAnisotropic8Repeat;
     renderer.samplerInfos[ 5 ].sampler = renderer.samplerAnisotropic8Clamp;
+
+    renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset = 0;
 }
 
 void teEndFrame()
@@ -1458,8 +1461,21 @@ void teBeginSwapchainRendering( teTexture2D& color )
     renderInfo.pDepthAttachment = &depthAtt;
     renderInfo.renderArea = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
 
-    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( color ), VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
+    VkImageMemoryBarrier imageMemoryBarrier = {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageMemoryBarrier.image = TextureGetImage( color );
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
 
@@ -1489,7 +1505,7 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     uboStruct.localToView[ 0 ].InitFrom( localToView0 );
     uboStruct.localToView[ 1 ].InitFrom( localToView1 );
 
-    teMemcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData, &uboStruct, sizeof( uboStruct ) );
+    teMemcpy( renderer.swapchainResources[ renderer.currentBuffer ].ubo.uboData + renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
 
 static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, unsigned uboOffset )
@@ -1522,7 +1538,7 @@ static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, u
 
     VkDescriptorBufferInfo uboDesc = {};
     uboDesc.buffer = BufferGetBuffer( renderer.swapchainResources[ renderer.currentBuffer ].ubo.buffer );
-    uboDesc.offset = 0;
+    uboDesc.offset = uboOffset;
     uboDesc.range = VK_WHOLE_SIZE;
 
     sets[ 3 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1547,7 +1563,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
 {
     renderer.samplerInfos[ 0 ].imageView = TextureGetView( renderer.defaultTexture2D );
 
-    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshPositionBuffer, 0 );
+    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshPositionBuffer, renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
@@ -1556,6 +1572,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
+
+    renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset += sizeof( PerObjectUboStruct );
 }
 
 // TODO: figure out if this can be replaced with a call to Draw()
