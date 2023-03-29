@@ -58,6 +58,9 @@
     <ClCompile Include="..\video\vulkan\buffer_vulkan.cpp">
       <Filter>video\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\video\textureloader.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">

@@ -61,6 +61,9 @@ int main()
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
+    teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
+    teTexture2D gliderTex = teLoadTexture( gliderFile, 0 );
+
     teMaterial material = teCreateMaterial( unlitShader );
     //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
     //teMaterialSetTexture2D( material, tgaTex, 0 );
@@ -114,6 +117,14 @@ int main()
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
 
     bool shouldQuit = false;
+    bool isRightMouseDown = false;
+    int x = 0;
+    int y = 0;
+    float deltaX = 0;
+    float deltaY = 0;
+    int lastMouseX = 0;
+    int lastMouseY = 0;
+    Vec3 moveDir;
 
     while (!shouldQuit)
     {
@@ -134,7 +145,79 @@ int main()
             {
                 shouldQuit = true;
             }
+
+            if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
+            {
+                moveDir.z = -0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
+            {
+                moveDir.z = 0;
+            }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
+            {
+                moveDir.z = 0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
+            {
+                moveDir.z = 0;
+            }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
+            {
+                moveDir.x = 0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
+            {
+                moveDir.x = 0;
+            }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
+            {
+                moveDir.x = -0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
+            {
+                moveDir.x = 0;
+            }
+            else if (event.type == teWindowEvent::Type::Mouse2Down)
+            {
+                x = event.x;
+                y = height - event.y;
+                isRightMouseDown = true;
+                lastMouseX = x;
+                lastMouseY = y;
+                deltaX = 0;
+                deltaY = 0;
+            }
+            else if (event.type == teWindowEvent::Type::Mouse2Up)
+            {
+                x = event.x;
+                y = height - event.y;
+                isRightMouseDown = false;
+                deltaX = 0;
+                deltaY = 0;
+                lastMouseX = x;
+                lastMouseY = y;
+            }
+            else if (event.type == teWindowEvent::Type::MouseMove)
+            {
+                x = event.x;
+                y = height - event.y;
+                deltaX = float( x - lastMouseX );
+                deltaY = float( y - lastMouseY );
+                lastMouseX = x;
+                lastMouseY = y;
+
+                if (isRightMouseDown)
+                {
+                    teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -deltaX / 100.0f );
+                    teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f );
+                }
+            }
         }
+
+        teTransformMoveForward( camera3d.index, moveDir.z );
+        teTransformMoveRight( camera3d.index, moveDir.x );
+        teTransformMoveUp( camera3d.index, moveDir.y );
 
         teBeginFrame();
         ImGui::NewFrame();

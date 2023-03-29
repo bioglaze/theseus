@@ -1,7 +1,9 @@
 #include <vulkan/vulkan.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "renderer.h"
 #include "buffer.h"
+#include "file.h"
 #include "material.h"
 #include "matrix.h"
 #include "texture.h"
@@ -9,6 +11,7 @@
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
@@ -35,6 +38,11 @@ int teStrcmp( const char* s1, const char* s2 )
 void teMemcpy( void* dst, const void* src, size_t size )
 {
     memcpy( dst, src, size );
+}
+
+void* teMalloc( size_t bytes )
+{
+    return malloc( bytes );
 }
 
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
@@ -138,6 +146,10 @@ struct Renderer
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
     unsigned frameIndex = 0;
+
+    VkBuffer textureStagingBuffer;
+    VkDeviceMemory textureStagingMemory;
+    VkMemoryAllocateInfo textureStagingMemAllocInfo;
 
     PSO psos[ 250 ];
 
@@ -361,6 +373,47 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
     vkCmdPipelineBarrier( cmdbuffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 }
 
+static void CreateStagingTexture()
+{
+    const VkDeviceSize imageSize = 8192 * 8192 * 4;
+
+    VkBufferCreateInfo bufferCreateInfo = {};
+    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferCreateInfo.size = imageSize;
+    bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VK_CHECK( vkCreateBuffer( renderer.device, &bufferCreateInfo, nullptr, &renderer.textureStagingBuffer ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingBuffer, VK_OBJECT_TYPE_BUFFER, "texture staging buffer" );
+
+    VkMemoryRequirements memReqs = {};
+    vkGetBufferMemoryRequirements( renderer.device, renderer.textureStagingBuffer, &memReqs );
+
+    renderer.textureStagingMemAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    renderer.textureStagingMemAllocInfo.allocationSize = (memReqs.size + renderer.properties.limits.nonCoherentAtomSize - 1) & ~(renderer.properties.limits.nonCoherentAtomSize - 1);;
+    renderer.textureStagingMemAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
+    VK_CHECK( vkAllocateMemory( renderer.device, &renderer.textureStagingMemAllocInfo, nullptr, &renderer.textureStagingMemory ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "texture staging memory" );
+
+    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.textureStagingBuffer, renderer.textureStagingMemory, 0 ) );
+}
+
+void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel )
+{
+    const VkDeviceSize imageSize = width * height * bytesPerPixel;
+
+    void* stagingData;
+    VK_CHECK( vkMapMemory( renderer.device, renderer.textureStagingMemory, 0, renderer.textureStagingMemAllocInfo.allocationSize, 0, &stagingData ) );
+    teMemcpy( stagingData, &file.data[ dataBeginOffset ], imageSize );
+
+    VkMappedMemoryRange flushRange = {};
+    flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+    flushRange.memory = renderer.textureStagingMemory;
+    flushRange.size = VK_WHOLE_SIZE;
+    vkFlushMappedMemoryRanges( renderer.device, 1, &flushRange );
+
+    vkUnmapMemory( renderer.device, renderer.textureStagingMemory );
+}
+
 static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
@@ -558,6 +611,14 @@ teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& f
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     return teCreateTexture2D( renderer.device, renderer.deviceMemoryProperties, width, height, flags, format, debugName );
+}
+
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
+{
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffer, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
+    //renderer.samplerInfos[ outTexture.index ].imageView = outTexture.view;
+    
+    return outTexture;
 }
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name )
@@ -1245,7 +1306,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     LoadFunctionPointers();
     CreateBuffers();
     CreateSamplers();
-    
+    CreateStagingTexture();
+
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::BGRA_sRGB, "default texture 2D" );
 
     VkCommandBufferBeginInfo cmdBufInfo = {};

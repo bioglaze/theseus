@@ -11,6 +11,7 @@ struct WindowImpl
     teWindowEvent events[ EventStackSize ];
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int eventIndex = -1;
+    unsigned windowHeightWithoutTitleBar = 0;
 };
 
 WindowImpl win;
@@ -85,6 +86,32 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     case WM_CLOSE:
         IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Close;
+        break;
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    {
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
+        win.events[ win.eventIndex ].x = LOWORD( lParam );
+        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+    }
+    break;
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    {
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
+        win.events[ win.eventIndex ].x = LOWORD( lParam );
+        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+    }
+    break;
+    case WM_MOUSEMOVE:
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+        win.events[ win.eventIndex ].x = LOWORD( lParam );
+        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        break;
+
     default:
         break;
     }
@@ -129,6 +156,10 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
         nullptr, nullptr, hInstance, nullptr );
 
     ShowWindow( hwnd, SW_SHOW );
+
+    RECT rect = {};
+    GetClientRect( hwnd, &rect );
+    win.windowHeightWithoutTitleBar = rect.bottom;
 
     InitKeyMap();
 

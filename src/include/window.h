@@ -4,7 +4,7 @@ struct teWindowEvent
 {
     enum class Type
     {
-        Empty, KeyDown, KeyUp, Close
+        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove
     };
 
     enum class KeyCode

@@ -22,6 +22,7 @@
 #include "core/transform.cpp"
 #include "material.cpp"
 #include "mesh.cpp"
+#include "textureloader.cpp"
 #include "vulkan/buffer_vulkan.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
