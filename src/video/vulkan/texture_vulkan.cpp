@@ -368,11 +368,11 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         viewInfo.image = tex.image;
         VK_CHECK( vkCreateImageView( device, &viewInfo, nullptr, &tex.view ) );
         SetObjectName( device, (uint64_t)tex.view, VK_OBJECT_TYPE_IMAGE_VIEW, file.path );
-
-        return outTexture;
     }
     else
     {
         teAssert( !"unhandled texture type" );
     }
+
+    return outTexture;
 }

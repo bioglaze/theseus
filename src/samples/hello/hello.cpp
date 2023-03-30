@@ -66,7 +66,7 @@ int main()
 
     teMaterial material = teCreateMaterial( unlitShader );
     //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
-    //teMaterialSetTexture2D( material, tgaTex, 0 );
+    teMaterialSetTexture2D( material, gliderTex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
