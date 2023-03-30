@@ -8,5 +8,5 @@ Not functional yet.
 
 # Features
 
-  - Modern Vulkan renderer
-
+  - Modern Vulkan 1.3 renderer
+  - Fast compile times
