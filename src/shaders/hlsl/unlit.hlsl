@@ -17,5 +17,5 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 
 float4 unlitPS( VSOutput vsOut ) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.samplerIndex ], vsOut.uv );
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.samplerIndex ], vsOut.uv);
 }
