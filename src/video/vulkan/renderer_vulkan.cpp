@@ -21,7 +21,7 @@ VkBufferView BufferGetView( const Buffer& buffer );
 VkDeviceMemory BufferGetMemory( const Buffer& buffer );
 VkBuffer BufferGetBuffer( const Buffer& buffer );
 
-constexpr unsigned DescriptorEntryCount = 4;
+constexpr unsigned DescriptorEntryCount = 5;
 constexpr unsigned SamplerCount = 6;
 
 int teStrcmp( const char* s1, const char* s2 )
@@ -1036,24 +1036,29 @@ void CreateDescriptorSets()
 {
     VkDescriptorSetLayoutBinding bindings[ DescriptorEntryCount ] = {};
     bindings[ 0 ].binding = 0;
-    bindings[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     bindings[ 0 ].descriptorCount = TextureCount;
     bindings[ 0 ].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
     bindings[ 1 ].binding = 1;
-    bindings[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    bindings[ 1 ].descriptorCount = 1;
-    bindings[ 1 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+    bindings[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    bindings[ 1 ].descriptorCount = TextureCount;
+    bindings[ 1 ].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
     bindings[ 2 ].binding = 2;
-    bindings[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    bindings[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     bindings[ 2 ].descriptorCount = 1;
-    bindings[ 2 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+    bindings[ 2 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
 
     bindings[ 3 ].binding = 3;
-    bindings[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    bindings[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     bindings[ 3 ].descriptorCount = 1;
-    bindings[ 3 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+    bindings[ 3 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+
+    bindings[ 4 ].binding = 4;
+    bindings[ 4 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    bindings[ 4 ].descriptorCount = 1;
+    bindings[ 4 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
 
     /*bindings[5].binding = 5;
     bindings[ 5 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -1083,14 +1088,16 @@ void CreateDescriptorSets()
     VK_CHECK( vkCreateDescriptorSetLayout( renderer.device, &setCreateInfo, nullptr, &renderer.descriptorSetLayout ) );
 
     VkDescriptorPoolSize typeCounts[ DescriptorEntryCount ];
-    typeCounts[ 0 ].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    typeCounts[ 0 ].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     typeCounts[ 0 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 1 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    typeCounts[ 1 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 2 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    typeCounts[ 1 ].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+    typeCounts[ 1 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
+    typeCounts[ 2 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     typeCounts[ 2 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 3 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    typeCounts[ 3 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     typeCounts[ 3 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
+    typeCounts[ 4 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    typeCounts[ 4 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
     /*typeCounts[5].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     typeCounts[ 5 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 6 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
@@ -1300,7 +1307,12 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     CreateSamplers();
     CreateStagingTexture();
 
-    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::BGRA_sRGB, "default texture 2D" );
+    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::RGBA_sRGB, "default texture 2D" );
+
+    for (unsigned i = 0; i < TextureCount; ++i)
+    {
+        renderer.samplerInfos[ i ].imageView = TextureGetView( renderer.defaultTexture2D );
+    }
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1569,39 +1581,46 @@ static void UpdateDescriptors( const Buffer& binding1, const Buffer& binding3, u
     sets[ 0 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 0 ].dstSet = dstSet;
     sets[ 0 ].descriptorCount = TextureCount;
-    sets[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    sets[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     sets[ 0 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 0 ].dstBinding = 0;
 
-    VkBufferView binding2View = BufferGetView( binding1 );
-
     sets[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 1 ].dstSet = dstSet;
-    sets[ 1 ].descriptorCount = 1;
-    sets[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    sets[ 1 ].pTexelBufferView = &binding2View;
+    sets[ 1 ].descriptorCount = TextureCount;
+    sets[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    sets[ 1 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 1 ].dstBinding = 1;
+
+    VkBufferView binding2View = BufferGetView( binding1 );
+
+    sets[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 2 ].dstSet = dstSet;
+    sets[ 2 ].descriptorCount = 1;
+    sets[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    sets[ 2 ].pTexelBufferView = &binding2View;
+    sets[ 2 ].dstBinding = 2;
 
     VkDescriptorBufferInfo uboDesc = {};
     uboDesc.buffer = BufferGetBuffer( renderer.swapchainResources[ renderer.currentBuffer ].ubo.buffer );
     uboDesc.offset = uboOffset;
     uboDesc.range = sizeof( PerObjectUboStruct );
 
-    sets[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    sets[ 2 ].dstSet = dstSet;
-    sets[ 2 ].descriptorCount = 1;
-    sets[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    sets[ 2 ].pBufferInfo = &uboDesc;
-    sets[ 2 ].dstBinding = 2;
-
-    VkBufferView binding4View = BufferGetView( binding3 );
-
     sets[ 3 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 3 ].dstSet = dstSet;
     sets[ 3 ].descriptorCount = 1;
-    sets[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    sets[ 3 ].pTexelBufferView = &binding4View;
+    sets[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    sets[ 3 ].pBufferInfo = &uboDesc;
     sets[ 3 ].dstBinding = 3;
+
+    VkBufferView binding4View = BufferGetView( binding3 );
+
+    sets[ 4 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 4 ].dstSet = dstSet;
+    sets[ 4 ].descriptorCount = 1;
+    sets[ 4 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    sets[ 4 ].pTexelBufferView = &binding4View;
+    sets[ 4 ].dstBinding = 4;
 
     vkUpdateDescriptorSets( renderer.device, DescriptorEntryCount, sets, 0, nullptr );
 }
