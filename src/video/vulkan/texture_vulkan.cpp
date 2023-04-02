@@ -5,7 +5,9 @@
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
 void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
+bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 void teMemcpy( void* dst, const void* src, size_t size );
+const char* teStrstr( const char* s1, const char* s2 );
 void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
     VkImageLayout newImageLayout, unsigned layerCount, unsigned mipLevel, unsigned mipLevelCount, VkPipelineStageFlags srcStageFlags );
@@ -327,7 +329,7 @@ static void CreateMipLevels( teTextureImpl& tex, unsigned mipLevelCount, VkDevic
     vkDeviceWaitIdle( device );
 }
 
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer )
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
@@ -342,7 +344,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     unsigned mipLevelCount = 1;
     VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
 
-    if (strstr( file.path, ".tga" ) || strstr( file.path, ".TGA" ))
+    if (teStrstr( file.path, ".tga" ) || teStrstr( file.path, ".TGA" ))
     {
         unsigned bitsPerPixel = 24;
         unsigned dataBeginOffset = 0;
@@ -368,6 +370,159 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         viewInfo.image = tex.image;
         VK_CHECK( vkCreateImageView( device, &viewInfo, nullptr, &tex.view ) );
         SetObjectName( device, (uint64_t)tex.view, VK_OBJECT_TYPE_IMAGE_VIEW, file.path );
+    }
+    else if (teStrstr( file.path, ".dds" ) || teStrstr( file.path, ".DDS" ))
+    {
+        teTextureFormat bcFormat = teTextureFormat::Invalid;
+        unsigned mipOffsets[ 15 ] = {};
+        LoadDDS( file, tex.width, tex.height, bcFormat, mipLevelCount, mipOffsets );
+
+        if (!(flags & teTextureFlags::GenerateMips))
+        {
+            mipLevelCount = 1;
+        }
+
+        GetFormatAndBPP( bcFormat, (flags & teTextureFlags::SRGB) ? true : false, format, bytesPerPixel );
+        tex.vulkanFormat = format;
+
+        VkImageCreateInfo imageCreateInfo = {};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.format = format;
+        imageCreateInfo.mipLevels = mipLevelCount;
+        imageCreateInfo.arrayLayers = 1;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCreateInfo.extent = { (uint32_t)tex.width, (uint32_t)tex.height, 1 };
+        imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+        VK_CHECK( vkCreateImage( device, &imageCreateInfo, nullptr, &tex.image ) );
+        SetObjectName( device, (uint64_t)tex.image, VK_OBJECT_TYPE_IMAGE, file.path );
+
+        VkMemoryRequirements memReqs = {};
+        vkGetImageMemoryRequirements( device, tex.image, &memReqs );
+
+        VkMemoryAllocateInfo memAllocInfo = {};
+        memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memAllocInfo.allocationSize = (memReqs.size + properties.limits.nonCoherentAtomSize - 1) & ~(properties.limits.nonCoherentAtomSize - 1);;
+        memAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+
+        VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &tex.deviceMemory ) );
+        VK_CHECK( vkBindImageMemory( device, tex.image, tex.deviceMemory, 0 ) );
+
+        VkBuffer stagingBuffers[ 15 ] = {};
+        VkDeviceMemory stagingMemories[ 15 ] = {};
+        const VkDeviceSize bc1BlockSize = (bcFormat == teTextureFormat::BC1) ? 8 : 16;
+
+        for (unsigned i = 0; i < mipLevelCount; ++i)
+        {
+            const int32_t mipWidth = Max2( tex.width >> i, 1 );
+            const int32_t mipHeight = Max2( tex.height >> i, 1 );
+
+            const VkDeviceSize bc1Size = (mipWidth / 4) * (mipHeight / 4) * bc1BlockSize;
+            VkDeviceSize imageSize2 = (bcFormat != teTextureFormat::Invalid) ? bc1Size : (mipWidth * mipHeight * bytesPerPixel);
+
+            if (imageSize2 == 0)
+            {
+                imageSize2 = 16;
+            }
+
+            VkBufferCreateInfo mipBufferCreateInfo = {};
+            mipBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            mipBufferCreateInfo.size = imageSize2;
+            mipBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            mipBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            VK_CHECK( vkCreateBuffer( device, &mipBufferCreateInfo, nullptr, &stagingBuffers[ i ] ) );
+
+            vkGetBufferMemoryRequirements( device, stagingBuffers[ i ], &memReqs );
+
+            memAllocInfo.allocationSize = (memReqs.size + properties.limits.nonCoherentAtomSize - 1) & ~(properties.limits.nonCoherentAtomSize - 1);
+            memAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
+            VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &stagingMemories[ i ] ) );
+            VK_CHECK( vkBindBufferMemory( device, stagingBuffers[ i ], stagingMemories[ i ], 0 ) );
+
+            void* stagingData;
+            VK_CHECK( vkMapMemory( device, stagingMemories[ i ], 0, memAllocInfo.allocationSize, 0, &stagingData ) );
+            VkDeviceSize amountToCopy = imageSize2;
+            if (mipOffsets[ i ] + imageSize2 >= (unsigned)file.size)
+            {
+                amountToCopy = file.size - mipOffsets[ i ];
+            }
+
+            teMemcpy( stagingData, &file.data[ mipOffsets[ i ] ], amountToCopy );
+
+            VkMappedMemoryRange flushRange = {};
+            flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+            flushRange.memory = stagingMemories[ i ];
+            flushRange.offset = 0;
+            flushRange.size = VK_WHOLE_SIZE;
+            vkFlushMappedMemoryRanges( device, 1, &flushRange );
+
+            vkUnmapMemory( device, stagingMemories[ i ] );
+        }
+
+        VkImageViewCreateInfo viewInfo = {};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = format;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.layerCount = 1;
+        viewInfo.subresourceRange.levelCount = mipLevelCount;
+        viewInfo.image = tex.image;
+        VK_CHECK( vkCreateImageView( device, &viewInfo, nullptr, &tex.view ) );
+        SetObjectName( device, (uint64_t)tex.view, VK_OBJECT_TYPE_IMAGE_VIEW, file.path );
+
+        VkCommandBufferBeginInfo cmdBufInfo = {};
+        cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
+
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+
+        for (unsigned mipLevel = 0; mipLevel < mipLevelCount; ++mipLevel)
+        {
+            VkBufferImageCopy mipBufferCopyRegion = {};
+            mipBufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            mipBufferCopyRegion.imageSubresource.mipLevel = mipLevel;
+            mipBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
+            mipBufferCopyRegion.imageSubresource.layerCount = 1;
+            mipBufferCopyRegion.imageExtent.width = Max2( tex.width >> mipLevel, 1 );
+            mipBufferCopyRegion.imageExtent.height = Max2( tex.height >> mipLevel, 1 );
+            mipBufferCopyRegion.imageExtent.depth = 1;
+            mipBufferCopyRegion.bufferOffset = 0;
+
+            vkCmdCopyBufferToImage( cmdBuffer, stagingBuffers[ mipLevel ], tex.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &mipBufferCopyRegion );
+        }
+
+        vkEndCommandBuffer( cmdBuffer );
+
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &cmdBuffer;
+        VK_CHECK( vkQueueSubmit( graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) );
+
+        vkDeviceWaitIdle( device );
+
+        VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
+
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+
+        vkEndCommandBuffer( cmdBuffer );
+        VK_CHECK( vkQueueSubmit( graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) );
+
+        vkDeviceWaitIdle( device );
+
+        for (unsigned i = 0; i < 15; ++i)
+        {
+            if (stagingBuffers[ i ] != VK_NULL_HANDLE)
+            {
+                vkDestroyBuffer( device, stagingBuffers[ i ], nullptr );
+                vkFreeMemory( device, stagingMemories[ i ], nullptr );
+            }
+        }
     }
     else
     {
