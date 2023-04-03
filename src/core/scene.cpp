@@ -8,6 +8,7 @@
 #include "quaternion.h"
 #include "renderer.h"
 #include "shader.h"
+#include "te_stdlib.h"
 #include "texture.h"
 #include "transform.h"
 #include "vec3.h"

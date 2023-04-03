@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "frustum.h"
 #include "matrix.h"
+#include "te_stdlib.h"
 #include "texture.h"
 
 struct CameraImpl

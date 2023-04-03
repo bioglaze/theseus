@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "material.h"
+#include "te_stdlib.h"
 #include "vec3.h"
 
 unsigned AddPositions( const float* positions, unsigned bytes );

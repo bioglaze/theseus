@@ -1,4 +1,5 @@
 #include "gameobject.h"
+#include "te_stdlib.h"
 
 struct teGameObjectImpl
 {

@@ -7,6 +7,7 @@
 #include "material.h"
 #include "matrix.h"
 #include "texture.h"
+#include "te_stdlib.h"
 #include "shader.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
@@ -23,32 +24,6 @@ VkBuffer BufferGetBuffer( const Buffer& buffer );
 
 constexpr unsigned DescriptorEntryCount = 5;
 constexpr unsigned SamplerCount = 6;
-
-int teStrcmp( const char* s1, const char* s2 )
-{
-    while (*s1 && (*s1 == *s2))
-    {
-        s1++;
-        s2++;
-    }
-
-    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
-}
-
-const char* teStrstr( const char* s1, const char* s2 )
-{
-    return strstr( s1, s2 );
-}
-
-void teMemcpy( void* dst, const void* src, size_t size )
-{
-    memcpy( dst, src, size );
-}
-
-void* teMalloc( size_t bytes )
-{
-    return malloc( bytes );
-}
 
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
 {

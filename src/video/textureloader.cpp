@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "file.h"
 #include "texture.h"
+#include "te_stdlib.h"
 
 #define DDS_MAGIC 0x20534444
 
@@ -54,9 +55,6 @@
 #define PF_IS_ATI1(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '1') ))
 #define PF_IS_ATI2(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '2') ))
 #define PF_IS_DX10(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0') ))
-
-void teMemcpy( void* dst, const void* src, size_t size );
-void* teMalloc( size_t bytes );
 
 static inline unsigned MyMax2( unsigned x, unsigned y ) noexcept
 {

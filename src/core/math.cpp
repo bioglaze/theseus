@@ -1,5 +1,6 @@
 #include "matrix.h"
 #include "quaternion.h"
+#include "te_stdlib.h"
 #include "vec3.h"
 #include <math.h>
 
@@ -75,6 +76,62 @@ void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
     out.y = tmp[ 1 ];
     out.z = tmp[ 2 ];
 }
+#elif __APPLE__
+#include <arm_neon.h>
+
+void Matrix::Multiply( const Matrix& ma, const Matrix& mb, Matrix& out )
+{
+    Matrix result;
+    Matrix matA = ma;
+    Matrix matB = mb;
+    
+    const float* a = matA.m;
+    const float* b = matB.m;
+    float32x4_t a_line, b_line, r_line;
+    
+    for (int i = 0; i < 16; i += 4)
+    {
+        // unroll the first step of the loop to avoid having to initialize r_line to zero
+        a_line = vld1q_f32( b );
+        b_line = vld1q_dup_f32( &a[ i ] );
+        r_line = vmulq_f32( a_line, b_line );
+        
+        for (int j = 1; j < 4; j++)
+        {
+            a_line = vld1q_f32( &b[ j * 4 ] );
+            b_line = vdupq_n_f32(  a[ i + j ] );
+            r_line = vaddq_f32(vmulq_f32( a_line, b_line ), r_line);
+        }
+        
+        vst1q_f32( &result.m[ i ], r_line );
+    }
+    
+    out = result;
+}
+
+void Matrix::TransformPoint( const Vec3& point, const Matrix& mat, Vec3& out )
+{
+    Matrix trans;
+    mat.Transpose( trans );
+    
+    alignas( 16 ) float vec[ 4 ] = { point.x, point.y, point.z, 1 };
+    
+    float32x4x4_t matt = vld4q_f32( trans.m );
+    float32x4_t vec4 = vld1q_f32( vec );
+
+    float32x4_t result = vmulq_lane_f32( matt.val[ 0 ], vget_low_f32( vec4 ), 0 );
+    result = vmlaq_lane_f32( result, matt.val[ 1 ], vget_low_f32( vec4 ), 1 );
+    result = vmlaq_lane_f32( result, matt.val[ 2 ], vget_high_f32( vec4 ), 0 );
+    result = vmlaq_lane_f32( result, matt.val[ 3 ], vget_high_f32( vec4 ), 1 );
+
+    alignas( 16 ) float res[ 4 ];
+    vst1q_f32( res, result );
+    
+    out.x = res[ 0 ];
+    out.y = res[ 1 ];
+    out.z = res[ 2 ];
+}
+
 #endif
 
 void Matrix::InitFrom( const float* mat )
