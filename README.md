@@ -1,12 +1,21 @@
 # theseus
 Theseus Engine
 
-Author: [Timo Wirén](http://twiren.kapsi.fi)
+Author: [Timo Wirén](https://twiren.kapsi.fi)
+
+![Screenshot](screenshot.jpg)
 
 This will become the successor to [Aether3D engine](https://github.com/bioglaze/aether3d).
-Not functional yet.
+Very early days, only renders hard-coded cubes, without lights etc.
 
 # Features
 
   - Modern Vulkan 1.3 renderer
   - Fast compile times
+  - Loads .tga and .dds textures
+
+# Platforms
+
+  - Windows (VS 2022 project files included)
+  - macOS/iOS (just starting to implement these, not functional yet)
+  - Linux is coming soon

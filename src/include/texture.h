@@ -10,8 +10,15 @@ struct teTexture2D
     teTextureFormat format = teTextureFormat::Invalid;
 };
 
+struct teTextureCube
+{
+    unsigned index = 0;
+    teTextureFormat format = teTextureFormat::Invalid;
+};
+
 constexpr unsigned TextureCount = 80;
 
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight );
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags );
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter );

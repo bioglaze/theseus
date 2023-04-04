@@ -68,6 +68,15 @@ int main()
     //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
     teMaterialSetTexture2D( material, gliderTex, 0 );
 
+    teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
+    teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
+    teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );
+    teFile rightFile = teLoadFile( "assets/textures/skybox/right.dds" );
+    teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
+    teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
+
+    teTextureCube cubeTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, teTextureFlags::SRGB, teTextureFilter::LinearRepeat );
+
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
@@ -239,6 +248,13 @@ int main()
     delete[] unlitPsFile.data;
     delete[] fullscreenVsFile.data;
     delete[] fullscreenPsFile.data;
+    delete[] gliderFile.data;
+    delete[] backFile.data;
+    delete[] frontFile.data;
+    delete[] leftFile.data;
+    delete[] rightFile.data;
+    delete[] topFile.data;
+    delete[] bottomFile.data;
 
     ImGui::DestroyContext( imContext );
 

@@ -7,7 +7,7 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
 void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, unsigned index );
+void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, VkFormat format, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
     VkImageLayout newImageLayout, unsigned layerCount, unsigned mipLevel, unsigned mipLevelCount, VkPipelineStageFlags srcStageFlags );
 
@@ -128,7 +128,7 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
     outHeight = textures[ texture.index ].height;
 }
 
-teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
+teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     const unsigned index = textureCount++;
 
@@ -203,14 +203,15 @@ teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties
     return outTex;
 }
 
-static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkBuffer stagingBuffer, VkFormat format, unsigned mipLevelCount, const char* debugName, VkCommandBuffer cmdBuffer )
+static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkBuffer* stagingBuffers, unsigned stagingBufferCount, VkFormat format, unsigned mipLevelCount, const char* debugName, VkCommandBuffer cmdBuffer )
 {
     VkImageCreateInfo imageCreateInfo = {};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     imageCreateInfo.format = format;
     imageCreateInfo.mipLevels = mipLevelCount;
-    imageCreateInfo.arrayLayers = 1;
+    imageCreateInfo.arrayLayers = stagingBufferCount;
+    imageCreateInfo.flags = stagingBufferCount == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -237,18 +238,21 @@ static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDevice
 
     VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
 
-    SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+    SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, stagingBufferCount, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
 
-    VkBufferImageCopy bufferCopyRegion = {};
-    bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    bufferCopyRegion.imageSubresource.mipLevel = 0;
-    bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-    bufferCopyRegion.imageSubresource.layerCount = 1;
-    bufferCopyRegion.imageExtent.width = tex.width;
-    bufferCopyRegion.imageExtent.height = tex.height;
-    bufferCopyRegion.imageExtent.depth = 1;
-
-    vkCmdCopyBufferToImage( cmdBuffer, stagingBuffer, tex.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion );
+    for (unsigned face = 0; face < stagingBufferCount; ++face)
+    {
+        VkBufferImageCopy bufferCopyRegion = {};
+        bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        bufferCopyRegion.imageSubresource.mipLevel = 0;
+        bufferCopyRegion.imageSubresource.baseArrayLayer = face;
+        bufferCopyRegion.imageSubresource.layerCount = 1;
+        bufferCopyRegion.imageExtent.width = tex.width;
+        bufferCopyRegion.imageExtent.height = tex.height;
+        bufferCopyRegion.imageExtent.depth = 1;
+    
+        vkCmdCopyBufferToImage( cmdBuffer, stagingBuffers[ face ], tex.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion );
+    }
 
     vkEndCommandBuffer( cmdBuffer );
 
@@ -328,7 +332,7 @@ static void CreateMipLevels( teTextureImpl& tex, unsigned mipLevelCount, VkDevic
     vkDeviceWaitIdle( device );
 }
 
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties )
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
@@ -355,8 +359,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( mipLevelCount <= 15 );
 
-        UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel, 0 );
-        CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, stagingBuffer, format, mipLevelCount, file.path, cmdBuffer );
+        UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel, format, 0 );
+        CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, mipLevelCount, file.path, cmdBuffer );
         CreateMipLevels( tex, mipLevelCount, device, graphicsQueue, cmdBuffer );
 
         VkImageViewCreateInfo viewInfo = {};
@@ -527,6 +531,80 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     {
         teAssert( !"unhandled texture type" );
     }
+
+    return outTexture;
+}
+
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
+                             VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties )
+{
+    teAssert( textureCount < 100 );
+    teAssert( !(flags & teTextureFlags::UAV) );
+
+    teTextureCube outTexture;
+    outTexture.index = textureCount++;
+    teTextureImpl& tex = textures[ outTexture.index ];
+    //tex.filter = filter;
+    tex.flags = flags;
+
+    const char* paths[ 6 ] = { negX.path, posX.path, negY.path, posY.path, negZ.path, posZ.path };
+    const teFile files[ 6 ] = { negX, posX, negY, posY, negZ, posZ };
+    unsigned mipOffsets[ 6 ][ 15 ] = {};
+    unsigned bytesPerPixel = 4;
+    bool isDDS = false;
+    bool isTGA = false;
+    teTextureFormat bcFormat = teTextureFormat::Invalid;
+    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+
+    for (unsigned face = 0; face < 6; ++face)
+    {
+        if (strstr( paths[ face ], ".tga" ) || strstr( paths[ face ], ".TGA" ))
+        {
+            isTGA = true;
+
+            if (isDDS)
+            {
+                teAssert( !"cube map contains both .tga and .dds, not supported!" );
+                outTexture.index = (unsigned)-1;
+                return outTexture;
+            }
+
+            unsigned bitsPerPixel = 24;
+            unsigned dataBeginOffset = 0;
+            unsigned char* pixelData = nullptr;
+
+            LoadTGA( files[ face ], tex.width, tex.height, dataBeginOffset, bitsPerPixel, &pixelData );
+            bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
+            tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
+            teAssert( tex.mipLevelCount <= 15 );
+
+            UpdateStagingTexture( files[ face ], tex.width, tex.height, dataBeginOffset, bytesPerPixel, format, face );
+        }
+        else if (strstr( paths[ face ], ".dds" ) || strstr( paths[ face ], ".DDS" ))
+        {
+            isDDS = true;
+
+            if (isTGA)
+            {
+                teAssert( !"cube map contains both .tga and .dds, not supported!" );
+                outTexture.index = (unsigned)-1;
+                return outTexture;
+            }
+
+            LoadDDS( files[ face ], tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets[ face ] );
+
+            if (!(flags & teTextureFlags::GenerateMips))
+            {
+                tex.mipLevelCount = 1;
+            }
+
+            GetFormatAndBPP( bcFormat, (flags & teTextureFlags::SRGB) ? true : false, format, bytesPerPixel );
+            tex.vulkanFormat = format;
+            UpdateStagingTexture( files[ face ], tex.width, tex.height, mipOffsets[ face ][ 0 ], bytesPerPixel, format, face );
+        }
+    }
+
+    CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, stagingBuffers, 6, format, tex.mipLevelCount, posX.path, cmdBuffer );
 
     return outTexture;
 }

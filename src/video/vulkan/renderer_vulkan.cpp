@@ -11,8 +11,10 @@
 #include "shader.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
-teTexture2D teCreateTexture2D( VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
+teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
+    VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
@@ -379,12 +381,44 @@ static void CreateStagingTexture( unsigned index )
     VK_CHECK( vkBindBufferMemory( renderer.device, renderer.textureStagingBuffers[ index ], renderer.textureStagingMemories[ index ], 0 ) );
 }
 
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, unsigned index )
+static unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
 {
-    const VkDeviceSize imageSize = width * height * bytesPerPixel;
+    if (format == VK_FORMAT_BC1_RGB_SRGB_BLOCK || format == VK_FORMAT_BC1_RGB_UNORM_BLOCK)
+    {
+        return (width * height * 4) / 8;
+    }
+    else if (format == VK_FORMAT_BC2_SRGB_BLOCK || format == VK_FORMAT_BC2_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 4) / 4;
+    }
+    else if (format == VK_FORMAT_BC3_SRGB_BLOCK || format == VK_FORMAT_BC3_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 4) / 4;
+    }
+    else if (format == VK_FORMAT_BC4_SNORM_BLOCK || format == VK_FORMAT_BC4_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 2) / 4;
+    }
+    else if (format == VK_FORMAT_BC5_SNORM_BLOCK || format == VK_FORMAT_BC5_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 4) / 4;
+    }
+
+    return width * height * 4;
+}
+
+void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, VkFormat format, unsigned index )
+{
+    const VkDeviceSize imageSize = GetMemoryUsage( width, height, format );
 
     void* stagingData;
     VK_CHECK( vkMapMemory( renderer.device, renderer.textureStagingMemories[ index ], 0, renderer.textureStagingMemAllocInfos[ index ].allocationSize, 0, &stagingData ) );
+    
+    // FIXME: This should only work for POW2 textures.
     teMemcpy( stagingData, &file.data[ dataBeginOffset ], imageSize );
 
     VkMappedMemoryRange flushRange = {};
@@ -597,8 +631,15 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
 
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
 {
-    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[renderer.currentBuffer].drawCommandBuffer, renderer.properties );
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties );
     
+    return outTexture;
+}
+
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter )
+{
+    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, filter, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties );
+
     return outTexture;
 }
 
