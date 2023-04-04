@@ -111,5 +111,8 @@
     <ClInclude Include="..\video\buffer.h">
       <Filter>video</Filter>
     </ClInclude>
+    <ClInclude Include="..\core\te_stdlib.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

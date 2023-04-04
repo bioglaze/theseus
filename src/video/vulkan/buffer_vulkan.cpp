@@ -3,7 +3,6 @@
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
-void teMemcpy( void* dst, const void* src, size_t size );
 void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize );
 
 struct BufferImpl

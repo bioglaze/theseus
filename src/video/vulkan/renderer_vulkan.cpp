@@ -127,9 +127,9 @@ struct Renderer
     unsigned swapchainHeight = 0;
     unsigned frameIndex = 0;
 
-    VkBuffer textureStagingBuffer;
-    VkDeviceMemory textureStagingMemory;
-    VkMemoryAllocateInfo textureStagingMemAllocInfo;
+    VkBuffer textureStagingBuffers[ 6 ];
+    VkDeviceMemory textureStagingMemories[ 6 ];
+    VkMemoryAllocateInfo textureStagingMemAllocInfos[ 6 ];
 
     PSO psos[ 250 ];
 
@@ -353,8 +353,10 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
     vkCmdPipelineBarrier( cmdbuffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 }
 
-static void CreateStagingTexture()
+static void CreateStagingTexture( unsigned index )
 {
+    teAssert( index < 6 );
+
     const VkDeviceSize imageSize = 8192 * 8192 * 4;
 
     VkBufferCreateInfo bufferCreateInfo = {};
@@ -362,36 +364,36 @@ static void CreateStagingTexture()
     bufferCreateInfo.size = imageSize;
     bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    VK_CHECK( vkCreateBuffer( renderer.device, &bufferCreateInfo, nullptr, &renderer.textureStagingBuffer ) );
-    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingBuffer, VK_OBJECT_TYPE_BUFFER, "texture staging buffer" );
+    VK_CHECK( vkCreateBuffer( renderer.device, &bufferCreateInfo, nullptr, &renderer.textureStagingBuffers[ index ] ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingBuffers[ index ], VK_OBJECT_TYPE_BUFFER, "texture staging buffer" );
 
     VkMemoryRequirements memReqs = {};
-    vkGetBufferMemoryRequirements( renderer.device, renderer.textureStagingBuffer, &memReqs );
+    vkGetBufferMemoryRequirements( renderer.device, renderer.textureStagingBuffers[ index ], &memReqs );
 
-    renderer.textureStagingMemAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    renderer.textureStagingMemAllocInfo.allocationSize = (memReqs.size + renderer.properties.limits.nonCoherentAtomSize - 1) & ~(renderer.properties.limits.nonCoherentAtomSize - 1);;
-    renderer.textureStagingMemAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
-    VK_CHECK( vkAllocateMemory( renderer.device, &renderer.textureStagingMemAllocInfo, nullptr, &renderer.textureStagingMemory ) );
-    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "texture staging memory" );
+    renderer.textureStagingMemAllocInfos[ index ].sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    renderer.textureStagingMemAllocInfos[ index ].allocationSize = (memReqs.size + renderer.properties.limits.nonCoherentAtomSize - 1) & ~(renderer.properties.limits.nonCoherentAtomSize - 1);;
+    renderer.textureStagingMemAllocInfos[ index ].memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, renderer.deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
+    VK_CHECK( vkAllocateMemory( renderer.device, &renderer.textureStagingMemAllocInfos[ index ], nullptr, &renderer.textureStagingMemories[ index ] ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.textureStagingMemories[ index ], VK_OBJECT_TYPE_DEVICE_MEMORY, "texture staging memory" );
 
-    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.textureStagingBuffer, renderer.textureStagingMemory, 0 ) );
+    VK_CHECK( vkBindBufferMemory( renderer.device, renderer.textureStagingBuffers[ index ], renderer.textureStagingMemories[ index ], 0 ) );
 }
 
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel )
+void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, unsigned index )
 {
     const VkDeviceSize imageSize = width * height * bytesPerPixel;
 
     void* stagingData;
-    VK_CHECK( vkMapMemory( renderer.device, renderer.textureStagingMemory, 0, renderer.textureStagingMemAllocInfo.allocationSize, 0, &stagingData ) );
+    VK_CHECK( vkMapMemory( renderer.device, renderer.textureStagingMemories[ index ], 0, renderer.textureStagingMemAllocInfos[ index ].allocationSize, 0, &stagingData ) );
     teMemcpy( stagingData, &file.data[ dataBeginOffset ], imageSize );
 
     VkMappedMemoryRange flushRange = {};
     flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    flushRange.memory = renderer.textureStagingMemory;
+    flushRange.memory = renderer.textureStagingMemories[ index ];
     flushRange.size = VK_WHOLE_SIZE;
     vkFlushMappedMemoryRanges( renderer.device, 1, &flushRange );
 
-    vkUnmapMemory( renderer.device, renderer.textureStagingMemory );
+    vkUnmapMemory( renderer.device, renderer.textureStagingMemories[ index ] );
 }
 
 static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
@@ -595,7 +597,7 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
 
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
 {
-    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffer, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties );
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[renderer.currentBuffer].drawCommandBuffer, renderer.properties );
     
     return outTexture;
 }
@@ -752,7 +754,11 @@ void CreateInstance()
     const char* enabledExtensions[] =
     {
         VK_KHR_SURFACE_EXTENSION_NAME,
+ #if VK_USE_PLATFORM_WIN32_KHR
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#elif VK_USE_PLATFORM_WAYLAND_KHR
+        VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
+#endif
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME
     };
 
@@ -1066,6 +1072,7 @@ void CreateDescriptorSets()
     setCreateInfo.pBindings = bindings;
 
     VK_CHECK( vkCreateDescriptorSetLayout( renderer.device, &setCreateInfo, nullptr, &renderer.descriptorSetLayout ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.descriptorSetLayout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, "descriptorSetLayout" );
 
     VkDescriptorPoolSize typeCounts[ DescriptorEntryCount ];
     typeCounts[ 0 ].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -1095,6 +1102,7 @@ void CreateDescriptorSets()
     descriptorPoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
     VK_CHECK( vkCreateDescriptorPool( renderer.device, &descriptorPoolInfo, nullptr, &renderer.descriptorPool ) );
+    SetObjectName( renderer.device, (uint64_t)renderer.descriptorPool, VK_OBJECT_TYPE_DESCRIPTOR_POOL, "descriptorPool" );
 
     for (uint32_t i = 0; i < renderer.swapchainImageCount; ++i)
     {
@@ -1107,6 +1115,7 @@ void CreateDescriptorSets()
             allocInfo.pSetLayouts = &renderer.descriptorSetLayout;
 
             VK_CHECK( vkAllocateDescriptorSets( renderer.device, &allocInfo, &renderer.swapchainResources[ i ].descriptorSets[ s ] ) );
+            SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ i ].descriptorSets[ s ], VK_OBJECT_TYPE_DESCRIPTOR_SET, "descriptorSets" );
         }
     }
 }
@@ -1285,7 +1294,11 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     LoadFunctionPointers();
     CreateBuffers();
     CreateSamplers();
-    CreateStagingTexture();
+
+    for (unsigned i = 0; i < 6; ++i)
+    {
+        CreateStagingTexture( i );
+    }
 
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::RGBA_sRGB, "default texture 2D" );
 
@@ -1622,7 +1635,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
         renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
     }
 
-    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
+    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );

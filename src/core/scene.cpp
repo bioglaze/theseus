@@ -55,7 +55,7 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
 
     if ((teGameObjectGetComponents( gameObjectIndex ) & teComponent::Camera) != 0)
     {
-        teAssert( teCameraGetColorTexture( gameObjectIndex ).index != -1 ); // Camera must have a render texture!
+        teAssert( teCameraGetColorTexture( gameObjectIndex ).index != (unsigned)-1); // Camera must have a render texture!
     }
 
     for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)

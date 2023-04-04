@@ -1,6 +1,8 @@
 #pragma once
 
-#if __APPLE__
+#if _MSC_VER
+#define teAssert( c ) if (!(c)) __debugbreak()
+#else
 #define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
 #endif
 

@@ -1,12 +1,6 @@
 #if _DEBUG
 #define VK_CHECK( x ) { VkResult res = (x); teAssert( res == VK_SUCCESS ); }
-#if _MSC_VER
-#define teAssert( c ) if (!(c)) __debugbreak()
 #else
-#define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
-#endif
-#else
-#define teAssert( c )
 #define VK_CHECK( x ) x
 #endif
 

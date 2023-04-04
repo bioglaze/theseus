@@ -1,14 +1,13 @@
 #include "texture.h"
 #include "file.h"
+#include "te_stdlib.h"
 #include <vulkan/vulkan.h>
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
 void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
-void teMemcpy( void* dst, const void* src, size_t size );
-const char* teStrstr( const char* s1, const char* s2 );
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel );
+void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
     VkImageLayout newImageLayout, unsigned layerCount, unsigned mipLevel, unsigned mipLevelCount, VkPipelineStageFlags srcStageFlags );
 
@@ -356,7 +355,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( mipLevelCount <= 15 );
 
-        UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel );
+        UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel, 0 );
         CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, stagingBuffer, format, mipLevelCount, file.path, cmdBuffer );
         CreateMipLevels( tex, mipLevelCount, device, graphicsQueue, cmdBuffer );
 
