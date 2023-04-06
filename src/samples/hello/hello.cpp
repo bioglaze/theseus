@@ -82,7 +82,7 @@ int main()
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, teTextureFlags::SRGB, teTextureFilter::LinearRepeat );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
-    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips );
+    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::SRGB | teTextureFlags::GenerateMips );
     teMaterialSetTexture2D( material, bc1Tex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();

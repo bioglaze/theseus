@@ -332,14 +332,16 @@ static void CreateMipLevels( teTextureImpl& tex, unsigned mipLevelCount, VkDevic
     vkDeviceWaitIdle( device );
 }
 
-static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat format, const teFile files[ 6 ], unsigned mipOffsets[ 6 ][ 15 ], VkDevice device, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties )
+static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat format, unsigned faceCount, const teFile* files, unsigned mipOffsets[ 6 ][ 15 ], VkDevice device, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties )
 {
-    for (unsigned face = 0; face < 6; ++face)
+    teAssert( faceCount <= 6 );
+
+    for (unsigned face = 0; face < faceCount; ++face)
     {
         VkBuffer stagingBuffers[ 15 ];
         VkDeviceMemory stagingMemory[ 15 ];
 
-        for (unsigned mipLevel = 1; mipLevel < tex.mipLevelCount; ++mipLevel)
+        for (unsigned mipLevel = 0; mipLevel < tex.mipLevelCount; ++mipLevel)
         {
             const int32_t mipWidth = Max2( tex.width >> mipLevel, 1 );
             const int32_t mipHeight = Max2( tex.height >> mipLevel, 1 );
@@ -363,6 +365,7 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat form
             vkGetBufferMemoryRequirements( device, stagingBuffers[ mipLevel ], &memReqs );
 
             VkMemoryAllocateInfo memAllocInfo = {};
+            memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             memAllocInfo.allocationSize = memReqs.size;
             memAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
             VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &stagingMemory[ mipLevel ] ) );
@@ -380,6 +383,15 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat form
             }
 
             teMemcpy( stagingData, &files[ face ].data[ mipOffsets[ face ][ mipLevel ] ], amountToCopy );
+
+            VkMappedMemoryRange flushRange = {};
+            flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+            flushRange.memory = stagingMemory[ mipLevel ];
+            flushRange.offset = 0;
+            flushRange.size = VK_WHOLE_SIZE;
+            vkFlushMappedMemoryRanges( device, 1, &flushRange );
+
+            vkUnmapMemory( device, stagingMemory[ mipLevel ] );
 
             VkBufferImageCopy bufferCopyRegion = {};
             bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -408,7 +420,6 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     tex.flags = flags;
 
     unsigned bytesPerPixel = 4;
-    unsigned mipLevelCount = 1;
     VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
 
     if (teStrstr( file.path, ".tga" ) || teStrstr( file.path, ".TGA" ))
@@ -420,22 +431,28 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel, &pixelData );
         bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
 
-        mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
-        teAssert( mipLevelCount <= 15 );
+        tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
+        teAssert( tex.mipLevelCount <= 15 );
 
         UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel, format, 0 );
-        CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, mipLevelCount, file.path, cmdBuffer );
-        CreateMipLevels( tex, mipLevelCount, device, graphicsQueue, cmdBuffer );
+        CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, tex.mipLevelCount, file.path, cmdBuffer );
+        CreateMipLevels( tex, tex.mipLevelCount, device, graphicsQueue, cmdBuffer );
     }
     else if (teStrstr( file.path, ".dds" ) || teStrstr( file.path, ".DDS" ))
     {
         teTextureFormat bcFormat = teTextureFormat::Invalid;
         unsigned mipOffsets[ 15 ] = {};
-        LoadDDS( file, tex.width, tex.height, bcFormat, mipLevelCount, mipOffsets );
+        unsigned mipOffsets2[ 6 ][ 15 ] = {};
+        LoadDDS( file, tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets );
+        
+        for (unsigned i = 0; i < 15; ++i)
+        {
+            mipOffsets2[ 0 ][ i ] = mipOffsets[ i ];
+        }
 
         if (!(flags & teTextureFlags::GenerateMips))
         {
-            mipLevelCount = 1;
+            tex.mipLevelCount = 1;
         }
 
         GetFormatAndBPP( bcFormat, (flags & teTextureFlags::SRGB) ? true : false, format, bytesPerPixel );
@@ -445,7 +462,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
         imageCreateInfo.format = format;
-        imageCreateInfo.mipLevels = mipLevelCount;
+        imageCreateInfo.mipLevels = tex.mipLevelCount;
         imageCreateInfo.arrayLayers = 1;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -468,79 +485,16 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &tex.deviceMemory ) );
         VK_CHECK( vkBindImageMemory( device, tex.image, tex.deviceMemory, 0 ) );
 
-        VkBuffer stagingBuffers[ 15 ] = {};
-        VkDeviceMemory stagingMemories[ 15 ] = {};
-        const VkDeviceSize bc1BlockSize = (bcFormat == teTextureFormat::BC1) ? 8 : 16;
-
-        for (unsigned i = 0; i < mipLevelCount; ++i)
-        {
-            const int32_t mipWidth = Max2( tex.width >> i, 1 );
-            const int32_t mipHeight = Max2( tex.height >> i, 1 );
-
-            const VkDeviceSize bc1Size = (mipWidth / 4) * (mipHeight / 4) * bc1BlockSize;
-            VkDeviceSize imageSize2 = (bcFormat != teTextureFormat::Invalid) ? bc1Size : (mipWidth * mipHeight * bytesPerPixel);
-
-            if (imageSize2 == 0)
-            {
-                imageSize2 = 16;
-            }
-
-            VkBufferCreateInfo mipBufferCreateInfo = {};
-            mipBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            mipBufferCreateInfo.size = imageSize2;
-            mipBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-            mipBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            VK_CHECK( vkCreateBuffer( device, &mipBufferCreateInfo, nullptr, &stagingBuffers[ i ] ) );
-
-            vkGetBufferMemoryRequirements( device, stagingBuffers[ i ], &memReqs );
-
-            memAllocInfo.allocationSize = (memReqs.size + properties.limits.nonCoherentAtomSize - 1) & ~(properties.limits.nonCoherentAtomSize - 1);
-            memAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT );
-            VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &stagingMemories[ i ] ) );
-            VK_CHECK( vkBindBufferMemory( device, stagingBuffers[ i ], stagingMemories[ i ], 0 ) );
-
-            void* stagingData;
-            VK_CHECK( vkMapMemory( device, stagingMemories[ i ], 0, memAllocInfo.allocationSize, 0, &stagingData ) );
-            VkDeviceSize amountToCopy = imageSize2;
-            if (mipOffsets[ i ] + imageSize2 >= (unsigned)file.size)
-            {
-                amountToCopy = file.size - mipOffsets[ i ];
-            }
-
-            teMemcpy( stagingData, &file.data[ mipOffsets[ i ] ], amountToCopy );
-
-            VkMappedMemoryRange flushRange = {};
-            flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-            flushRange.memory = stagingMemories[ i ];
-            flushRange.offset = 0;
-            flushRange.size = VK_WHOLE_SIZE;
-            vkFlushMappedMemoryRanges( device, 1, &flushRange );
-
-            vkUnmapMemory( device, stagingMemories[ i ] );
-        }
-
         VkCommandBufferBeginInfo cmdBufInfo = {};
         cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
         VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
 
-        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 0, tex.mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
-        for (unsigned mipLevel = 0; mipLevel < mipLevelCount; ++mipLevel)
-        {
-            VkBufferImageCopy mipBufferCopyRegion = {};
-            mipBufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            mipBufferCopyRegion.imageSubresource.mipLevel = mipLevel;
-            mipBufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-            mipBufferCopyRegion.imageSubresource.layerCount = 1;
-            mipBufferCopyRegion.imageExtent.width = Max2( tex.width >> mipLevel, 1 );
-            mipBufferCopyRegion.imageExtent.height = Max2( tex.height >> mipLevel, 1 );
-            mipBufferCopyRegion.imageExtent.depth = 1;
-            mipBufferCopyRegion.bufferOffset = 0;
+        CopyMipmapsFromDDS( tex, bcFormat == teTextureFormat::BC1, format, 1, &file, mipOffsets2, device, cmdBuffer, deviceMemoryProperties );
 
-            vkCmdCopyBufferToImage( cmdBuffer, stagingBuffers[ mipLevel ], tex.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &mipBufferCopyRegion );
-        }
-
-        vkEndCommandBuffer( cmdBuffer );
+        VK_CHECK( vkEndCommandBuffer( cmdBuffer ) );
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -552,22 +506,13 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 
         VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
 
-        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
-        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, 1, 0, tex.mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, tex.mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
         vkEndCommandBuffer( cmdBuffer );
         VK_CHECK( vkQueueSubmit( graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) );
 
         vkDeviceWaitIdle( device );
-
-        for (unsigned i = 0; i < 15; ++i)
-        {
-            if (stagingBuffers[ i ] != VK_NULL_HANDLE)
-            {
-                vkDestroyBuffer( device, stagingBuffers[ i ], nullptr );
-                vkFreeMemory( device, stagingMemories[ i ], nullptr );
-            }
-        }
     }
     else
     {
@@ -580,7 +525,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     viewInfo.format = format;
     viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     viewInfo.subresourceRange.layerCount = 1;
-    viewInfo.subresourceRange.levelCount = mipLevelCount;
+    viewInfo.subresourceRange.levelCount = tex.mipLevelCount;
     viewInfo.image = tex.image;
     VK_CHECK( vkCreateImageView( device, &viewInfo, nullptr, &tex.view ) );
     SetObjectName( device, (uint64_t)tex.view, VK_OBJECT_TYPE_IMAGE_VIEW, file.path );
@@ -668,10 +613,24 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
     if (isDDS)
     {
-        CopyMipmapsFromDDS( tex, bcFormat == teTextureFormat::BC1, format, files, mipOffsets, device, cmdBuffer, deviceMemoryProperties );
+        CopyMipmapsFromDDS( tex, bcFormat == teTextureFormat::BC1, format, 6, files, mipOffsets, device, cmdBuffer, deviceMemoryProperties );
     }
 
-    SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
+    VkImageMemoryBarrier imageMemoryBarrier = {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageMemoryBarrier.image = tex.image;
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = tex.mipLevelCount;
+    imageMemoryBarrier.subresourceRange.layerCount = 6;
+    imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier( cmdBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
     VK_CHECK( vkEndCommandBuffer( cmdBuffer ) );
 
