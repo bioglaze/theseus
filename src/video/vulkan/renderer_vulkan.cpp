@@ -13,7 +13,7 @@
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
-    VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
+    VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
@@ -638,7 +638,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
 
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter )
 {
-    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, filter, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties );
+    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, filter, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
 
     return outTexture;
 }
@@ -1673,7 +1673,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     {
         teTexture2D tex;
         tex.index = textureIndex;
-        renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
+        
+        for (unsigned i = 0; i < 80; ++i)
+        {
+            renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
+        }
     }
 
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
@@ -1689,31 +1693,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset += sizeof( PerObjectUboStruct );
 }
 
-// TODO: figure out if this can be replaced with a call to Draw()
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    if ((int)texture.index != -1)
-    {
-        renderer.samplerInfos[ texture.index ].imageView = TextureGetView( texture );
-    }
-
-    Buffer positions, uvs;
-    positions.index = 1; // FIXME: These should probably point to some default resources.
-    uvs.index = 1;
-
-    UpdateDescriptors( positions, uvs, 0 );
-    BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
-
-    VkViewport viewport = { 0, 0, (float)renderer.swapchainWidth, (float)renderer.swapchainHeight, 0.0f, 1.0f };
-    vkCmdSetViewport( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &viewport );
-
-    VkRect2D scissor = { { 0, 0 }, { renderer.swapchainWidth, renderer.swapchainHeight } };
-    vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
-
-    int pushConstants[ 4 ] = { (int)texture.index, (int)texture.index, (int)texture.index, 2 };
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
-    
-    const int psoIndex = GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F );
-    vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ psoIndex ].pso );
-    vkCmdDraw( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 3, 1, 0, 0 );
+    Draw( shader, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index );
 }

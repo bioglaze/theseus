@@ -7,4 +7,4 @@ struct teScene
 
 teScene teCreateScene();
 void teSceneAdd( const teScene& scene, unsigned gameObjectIndex );
-void teSceneRender( const teScene& scene );
+void teSceneRender( const teScene& scene, const struct teShader* skyboxShader, const struct teTextureCube* skyboxTexture, const struct teMesh* skyboxMesh );

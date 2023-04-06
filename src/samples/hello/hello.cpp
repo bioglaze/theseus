@@ -53,6 +53,10 @@ int main()
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
     teShader fullscreenShader = teCreateShader( fullscreenVsFile, fullscreenPsFile, "fullscreenVS", "fullscreenPS" );
 
+    teFile skyboxVsFile = teLoadFile( "shaders/skybox_vs.spv" );
+    teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
+    teShader skyboxShader = teCreateShader( skyboxVsFile, skyboxPsFile, "skyboxVS", "skyboxPS" );
+
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     teTransformSetLocalPosition( camera3d.index, cameraPos );
@@ -62,7 +66,7 @@ int main()
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
-    teTexture2D gliderTex = teLoadTexture( gliderFile, 0 );
+    teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips );
 
     teMaterial material = teCreateMaterial( unlitShader );
     //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
@@ -74,8 +78,12 @@ int main()
     teFile rightFile = teLoadFile( "assets/textures/skybox/right.dds" );
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
+    
+    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, teTextureFlags::SRGB, teTextureFilter::LinearRepeat );
 
-    teTextureCube cubeTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, teTextureFlags::SRGB, teTextureFilter::LinearRepeat );
+    teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
+    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips );
+    teMaterialSetTexture2D( material, bc1Tex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
@@ -230,7 +238,8 @@ int main()
 
         teBeginFrame();
         ImGui::NewFrame();
-        teSceneRender( scene );
+        //teSceneRender( scene, nullptr, nullptr, nullptr );
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
 
         ImGui::Begin( "ImGUI" );
         ImGui::Text( "This is some useful text." );
@@ -255,6 +264,9 @@ int main()
     delete[] rightFile.data;
     delete[] topFile.data;
     delete[] bottomFile.data;
+    delete[] bc1File.data;
+    delete[] skyboxVsFile.data;
+    delete[] skyboxPsFile.data;
 
     ImGui::DestroyContext( imContext );
 

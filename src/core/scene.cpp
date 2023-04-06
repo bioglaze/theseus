@@ -15,6 +15,8 @@
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth );
 void EndRendering( teTexture2D& color );
+void PushGroupMarker( const char* name );
+void PopGroupMarker();
 
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
@@ -124,11 +126,35 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
     }
 }
 
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
+static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
-    unsigned cameraGOIndex = 0;
+    teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
-    cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
+    Matrix localToViews[ 2 ];
+
+    Matrix localToClip;
+    Matrix view;
+    Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
+    cameraRot.GetMatrix( view );
+    const Matrix& projection = teCameraGetProjection( cameraGOIndex );
+    Matrix::Multiply( view, projection, localToClip );
+    UpdateUBO( localToClip.m, localToClip.m, localToViews[ 0 ].m, localToViews[ 1 ].m );
+
+    PushGroupMarker( "Skybox" );
+    unsigned indexOffset = teMeshGetIndexOffset( skyboxMesh->index, 0 );
+    unsigned indexCount = teMeshGetIndexCount( skyboxMesh->index, 0 );
+    unsigned positionOffset = teMeshGetPositionOffset( skyboxMesh->index, 0 );
+
+    Draw( *skyboxShader, positionOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, skyboxTexture->index );
+
+    PopGroupMarker();
+}
+
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
+{
+    const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
+
     teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
@@ -139,6 +165,11 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
     UpdateTransformsAndCull( scene, cameraGOIndex );
 
     BeginRendering( color, depth );
+
+    if (skyboxShader && skyboxTexture && skyboxMesh)
+    {
+        RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
+    }
 
     // this will be replaced by indirect rendering.
     {
@@ -179,7 +210,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex )
     EndRendering( color );
 }
 
-void teSceneRender( const teScene& scene )
+void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
     int cameraIndex = -1;
 
@@ -195,6 +226,6 @@ void teSceneRender( const teScene& scene )
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, cameraIndex );
+        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 }
