@@ -1,14 +1,20 @@
 #pragma once
 
+// TODO: Replace includes with own implementation of strstr, memcpy and malloc.
+#include <string.h>
+#include <stdlib.h>
+
 #if _MSC_VER
 #define teAssert( c ) if (!(c)) __debugbreak()
 #else
 #define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
 #endif
 
-// TODO: Replace includes with own implementation of strstr, memcpy and malloc.
-#include <string.h>
-#include <stdlib.h>
+#if _DEBUG
+#define VK_CHECK( x ) { VkResult res = (x); teAssert( res == VK_SUCCESS ); }
+#else
+#define VK_CHECK( x ) x
+#endif
 
 static int teStrcmp( const char* s1, const char* s2 )
 {
