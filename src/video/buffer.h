@@ -11,3 +11,4 @@ struct Buffer
 
 void CopyBuffer( const Buffer& source, const Buffer& destination );
 void UpdateStagingBuffer( const Buffer& buffer, const void* data, unsigned dataBytes, unsigned offset );
+

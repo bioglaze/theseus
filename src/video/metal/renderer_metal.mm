@@ -8,6 +8,9 @@
 struct Renderer
 {
     id<MTLDevice> device;
+    id<MTLBuffer> uniformBuffer;
+    id<MTLRenderCommandEncoder> renderEncoder;
+    
     id<MTLSamplerState> anisotropicRepeat;
     id<MTLSamplerState> anisotropicClamp;
     id<MTLSamplerState> linearRepeat;
@@ -18,9 +21,14 @@ struct Renderer
     unsigned indexCounter = 0;
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
+    
+    unsigned width = 0;
+    unsigned height = 0;
 };
 
 Renderer renderer;
+
+id<MTLLibrary> defaultLibrary;
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
@@ -88,6 +96,21 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor.label = @"nearest clamp";
     renderer.nearestClamp = [renderer.device newSamplerStateWithDescriptor:samplerDescriptor];
 
+    defaultLibrary = [renderer.device newDefaultLibrary];
+    
+    renderer.width = width;
+    renderer.height = height;
+}
+
+void PushGroupMarker( const char* name )
+{
+    NSString* fName = [NSString stringWithUTF8String: name];
+    [renderer.renderEncoder pushDebugGroup:fName];
+}
+
+void PopGroupMarker()
+{
+    [renderer.renderEncoder popDebugGroup];
 }
 
 unsigned AddIndices( const unsigned short* indices, unsigned bytes )
