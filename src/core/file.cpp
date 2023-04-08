@@ -4,6 +4,12 @@
 teFile teLoadFile( const char* path )
 {
     teFile outFile;
+    
+    if (path && *path == 0)
+    {
+        return outFile;
+    }
+
     FILE* file = fopen( path, "rb" );
 
     if (file)

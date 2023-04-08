@@ -1,29 +1,27 @@
-//
-//  AppDelegate.m
-//  hello macOS
-//
-//  Created by Timo Wiren on 7.4.2023.
-//
-
 #import "AppDelegate.h"
 
 @interface AppDelegate ()
 
 @end
 
+extern NSViewController* myViewController;
+
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    [[ [myViewController view] window ] makeFirstResponder:myViewController];
 }
 
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
     // Insert code here to tear down your application
 }
 
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender
+{
     return YES;
 }
 

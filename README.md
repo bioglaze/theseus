@@ -1,5 +1,5 @@
 # theseus
-Theseus Engine
+Theseus Game Engine
 
 Author: [Timo Wirén](https://twiren.kapsi.fi)
 
@@ -10,7 +10,7 @@ Very early days, only renders hard-coded cubes, without lights etc.
 
 # Features
 
-  - Modern Vulkan 1.3 renderer
+  - Modern Vulkan 1.3 and Metal 3 renderers
   - Fast compile times
   - Loads .tga and .dds textures
 
@@ -19,3 +19,9 @@ Very early days, only renders hard-coded cubes, without lights etc.
   - Windows (VS 2022 project files included)
   - macOS/iOS (just starting to implement these, not functional yet)
   - Linux is coming soon
+
+# Building
+
+  - macOS:
+    - build theseus.xcodeproj and copy the resulting framework to src/samples/hello_mac_ios
+    - build and run hello_mac_ios/hello.xcodeproj

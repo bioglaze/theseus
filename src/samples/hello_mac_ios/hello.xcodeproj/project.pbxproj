@@ -58,24 +58,24 @@
 		AB7EADFC29E04943003A182A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		AB7EADFE29E04943003A182A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AB7EAE0029E04943003A182A /* hello_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hello_macOS.entitlements; sourceTree = "<group>"; };
-		ABA3AC9A29E04EBD008BAD89 /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = renderer.h; path = ../../../include/renderer.h; sourceTree = "<group>"; };
-		ABA3AC9B29E04EBD008BAD89 /* file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = file.h; path = ../../../include/file.h; sourceTree = "<group>"; };
-		ABA3AC9C29E04EBD008BAD89 /* vec3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vec3.h; path = ../../../include/vec3.h; sourceTree = "<group>"; };
-		ABA3AC9D29E04EBD008BAD89 /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matrix.h; path = ../../../include/matrix.h; sourceTree = "<group>"; };
-		ABA3AC9E29E04EBD008BAD89 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = camera.h; path = ../../../include/camera.h; sourceTree = "<group>"; };
-		ABA3AC9F29E04EBD008BAD89 /* material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = material.h; path = ../../../include/material.h; sourceTree = "<group>"; };
-		ABA3ACA029E04EBD008BAD89 /* gameobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gameobject.h; path = ../../../include/gameobject.h; sourceTree = "<group>"; };
-		ABA3ACA129E04EBD008BAD89 /* mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mesh.h; path = ../../../include/mesh.h; sourceTree = "<group>"; };
-		ABA3ACA229E04EBD008BAD89 /* quaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quaternion.h; path = ../../../include/quaternion.h; sourceTree = "<group>"; };
-		ABA3ACA329E04EBD008BAD89 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = texture.h; path = ../../../include/texture.h; sourceTree = "<group>"; };
-		ABA3ACA429E04EBD008BAD89 /* window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = window.h; path = ../../../include/window.h; sourceTree = "<group>"; };
-		ABA3ACA529E04EBE008BAD89 /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shader.h; path = ../../../include/shader.h; sourceTree = "<group>"; };
-		ABA3ACA629E04EBE008BAD89 /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scene.h; path = ../../../include/scene.h; sourceTree = "<group>"; };
-		ABA3ACA729E04EBE008BAD89 /* transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = transform.h; path = ../../../include/transform.h; sourceTree = "<group>"; };
 		ABA3ACA829E0624E008BAD89 /* theseus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = theseus.framework; sourceTree = "<group>"; };
 		ABA3ACB329E07DCD008BAD89 /* ubo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ubo.h; path = ../../shaders/metal/ubo.h; sourceTree = "<group>"; };
 		ABA3ACB429E07DCD008BAD89 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
 		ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = fullscreen.metal; path = ../../shaders/metal/fullscreen.metal; sourceTree = "<group>"; };
+		ABD7244829E1B37200A1578E /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = camera.h; path = ../../include/camera.h; sourceTree = "<group>"; };
+		ABD7244929E1B37200A1578E /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matrix.h; path = ../../include/matrix.h; sourceTree = "<group>"; };
+		ABD7244A29E1B37200A1578E /* quaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quaternion.h; path = ../../include/quaternion.h; sourceTree = "<group>"; };
+		ABD7244B29E1B37200A1578E /* material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = material.h; path = ../../include/material.h; sourceTree = "<group>"; };
+		ABD7244C29E1B37200A1578E /* vec3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vec3.h; path = ../../include/vec3.h; sourceTree = "<group>"; };
+		ABD7244D29E1B37200A1578E /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = renderer.h; path = ../../include/renderer.h; sourceTree = "<group>"; };
+		ABD7244E29E1B37200A1578E /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shader.h; path = ../../include/shader.h; sourceTree = "<group>"; };
+		ABD7244F29E1B37200A1578E /* mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mesh.h; path = ../../include/mesh.h; sourceTree = "<group>"; };
+		ABD7245029E1B37200A1578E /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scene.h; path = ../../include/scene.h; sourceTree = "<group>"; };
+		ABD7245129E1B37200A1578E /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = texture.h; path = ../../include/texture.h; sourceTree = "<group>"; };
+		ABD7245229E1B37200A1578E /* gameobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gameobject.h; path = ../../include/gameobject.h; sourceTree = "<group>"; };
+		ABD7245329E1B37200A1578E /* file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = file.h; path = ../../include/file.h; sourceTree = "<group>"; };
+		ABD7245429E1B37200A1578E /* window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = window.h; path = ../../include/window.h; sourceTree = "<group>"; };
+		ABD7245529E1B37200A1578E /* transform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = transform.h; path = ../../include/transform.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,8 +100,8 @@
 		AB7EADCF29E04942003A182A = {
 			isa = PBXGroup;
 			children = (
+				ABD7244729E1B35800A1578E /* include */,
 				ABA3ACB229E07DAD008BAD89 /* shaders */,
-				ABA3AC9929E04E94008BAD89 /* include */,
 				AB7EADD429E04942003A182A /* hello Shared */,
 				AB7EADE029E04943003A182A /* hello iOS */,
 				AB7EADF429E04943003A182A /* hello macOS */,
@@ -163,27 +163,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		ABA3AC9929E04E94008BAD89 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				ABA3AC9E29E04EBD008BAD89 /* camera.h */,
-				ABA3AC9B29E04EBD008BAD89 /* file.h */,
-				ABA3ACA029E04EBD008BAD89 /* gameobject.h */,
-				ABA3AC9F29E04EBD008BAD89 /* material.h */,
-				ABA3AC9D29E04EBD008BAD89 /* matrix.h */,
-				ABA3ACA129E04EBD008BAD89 /* mesh.h */,
-				ABA3ACA229E04EBD008BAD89 /* quaternion.h */,
-				ABA3AC9A29E04EBD008BAD89 /* renderer.h */,
-				ABA3ACA629E04EBE008BAD89 /* scene.h */,
-				ABA3ACA529E04EBE008BAD89 /* shader.h */,
-				ABA3ACA329E04EBD008BAD89 /* texture.h */,
-				ABA3ACA729E04EBE008BAD89 /* transform.h */,
-				ABA3AC9C29E04EBD008BAD89 /* vec3.h */,
-				ABA3ACA429E04EBD008BAD89 /* window.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
 		ABA3ACB229E07DAD008BAD89 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
@@ -192,6 +171,27 @@
 				ABA3ACB429E07DCD008BAD89 /* unlit.metal */,
 			);
 			name = shaders;
+			sourceTree = "<group>";
+		};
+		ABD7244729E1B35800A1578E /* include */ = {
+			isa = PBXGroup;
+			children = (
+				ABD7244829E1B37200A1578E /* camera.h */,
+				ABD7245329E1B37200A1578E /* file.h */,
+				ABD7245229E1B37200A1578E /* gameobject.h */,
+				ABD7244B29E1B37200A1578E /* material.h */,
+				ABD7244929E1B37200A1578E /* matrix.h */,
+				ABD7244F29E1B37200A1578E /* mesh.h */,
+				ABD7244A29E1B37200A1578E /* quaternion.h */,
+				ABD7244D29E1B37200A1578E /* renderer.h */,
+				ABD7245029E1B37200A1578E /* scene.h */,
+				ABD7244E29E1B37200A1578E /* shader.h */,
+				ABD7245129E1B37200A1578E /* texture.h */,
+				ABD7245529E1B37200A1578E /* transform.h */,
+				ABD7244C29E1B37200A1578E /* vec3.h */,
+				ABD7245429E1B37200A1578E /* window.h */,
+			);
+			name = include;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
