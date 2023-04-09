@@ -29,10 +29,10 @@ NSViewController* myViewController;
     teScene scene;
 }
 
-void RotateCamera( float x, float y )
+void RotateCamera( unsigned index, float x, float y )
 {
-    //teTransformOffsetRotate( app.camera3d.index, Vec3( 0, 1, 0 ), -x / 20 );
-    //teTransformOffsetRotate( app.camera3d.index, Vec3( 1, 0, 0 ), -y / 20 );
+    teTransformOffsetRotate( index, Vec3( 0, 1, 0 ), -x / 20 );
+    teTransformOffsetRotate( index, Vec3( 1, 0, 0 ), -y / 20 );
 }
 
 void MoveForward( float amount )
@@ -104,9 +104,12 @@ void MoveUp( float amount )
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
     SetDrawable( view.currentDrawable );
+    teBeginFrame();
+    teSceneRender( scene, NULL, NULL, NULL );
     teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
     teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
     teEndSwapchainRendering();
+    teEndFrame();
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
@@ -138,7 +141,7 @@ void MoveUp( float amount )
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    RotateCamera( theEvent.deltaX, theEvent.deltaY );
+    RotateCamera( camera3d.index, theEvent.deltaX, theEvent.deltaY );
 }
 
 - (void)keyDown:(NSEvent *)theEvent

@@ -14,6 +14,16 @@ static constexpr unsigned MaxShaders = 40;
 static ShaderImpl shaders[ MaxShaders ];
 static unsigned shaderCount = 0;
 
+id< MTLFunction > teShaderGetVertexProgram( const teShader& shader )
+{
+    return shaders[ shader.index ].vertexProgram;
+}
+
+id< MTLFunction > teShaderGetPixelProgram( const teShader& shader )
+{
+    return shaders[ shader.index ].pixelProgram;
+}
+
 teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFile, const char* vertexName, const char* pixelName )
 {
     teAssert( shaderCount < MaxShaders );

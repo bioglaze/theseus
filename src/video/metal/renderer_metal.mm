@@ -10,6 +10,11 @@
 Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging );
 unsigned BufferGetSizeBytes( const Buffer& buffer );
 id<MTLBuffer> BufferGetBuffer( const Buffer& buffer );
+id<MTLFunction> teShaderGetVertexProgram( const teShader& shader );
+id<MTLFunction> teShaderGetPixelProgram( const teShader& shader );
+id<MTLTexture> TextureGetMetalTexture( unsigned index );
+
+static const unsigned MaxPSOs = 100;
 
 struct PerObjectUboStruct
 {
@@ -24,15 +29,30 @@ struct FrameResource
     unsigned uboOffset = 0;
 };
 
+struct PSO
+{
+    id<MTLRenderPipelineState> pso;
+    id<MTLFunction> vertexFunction;
+    id<MTLFunction> pixelFunction;
+    MTLPixelFormat format = MTLPixelFormatBGRA8Unorm_sRGB;
+    teBlendMode blendMode = teBlendMode::Off;
+    teTopology topology = teTopology::Triangles;
+};
+
 struct Renderer
 {
     id<MTLDevice> device;
-    
     id<MTLRenderCommandEncoder> renderEncoder;
     id<MTLCommandQueue> commandQueue;
+    MTLRenderPassDescriptor* renderPassDescriptorFBO;
     FrameResource frameResources[ 2 ];
     teTextureFormat colorFormat = teTextureFormat::BGRA_sRGB;
+    PSO psos[ MaxPSOs ];
     
+    id<MTLDepthStencilState> depthStateGreaterWriteOn;
+    id<MTLDepthStencilState> depthStateGreaterWriteOff;
+    id<MTLDepthStencilState> depthStateNoneWriteOff;
+
     id<MTLSamplerState> anisotropicRepeat;
     id<MTLSamplerState> anisotropicClamp;
     id<MTLSamplerState> linearRepeat;
@@ -128,12 +148,29 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor.label = @"nearest clamp";
     renderer.nearestClamp = [renderer.device newSamplerStateWithDescriptor:samplerDescriptor];
 
+    MTLDepthStencilDescriptor* depthStateDesc = [[MTLDepthStencilDescriptor alloc] init];
+    depthStateDesc.depthCompareFunction = MTLCompareFunctionGreater;
+    depthStateDesc.depthWriteEnabled = YES;
+    depthStateDesc.label = @"greater write on";
+    renderer.depthStateGreaterWriteOn = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
+    
+    depthStateDesc.depthCompareFunction = MTLCompareFunctionGreater;
+    depthStateDesc.depthWriteEnabled = NO;
+    depthStateDesc.label = @"greater write off";
+    renderer.depthStateGreaterWriteOff = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
+    
+    depthStateDesc.depthCompareFunction = MTLCompareFunctionAlways;
+    depthStateDesc.depthWriteEnabled = NO;
+    depthStateDesc.label = @"none write off";
+    renderer.depthStateNoneWriteOff = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
+
     defaultLibrary = [renderer.device newDefaultLibrary];
     
     renderer.width = width;
     renderer.height = height;
     
     renderer.commandQueue = [renderer.device newCommandQueue];
+    renderer.renderPassDescriptorFBO = [MTLRenderPassDescriptor renderPassDescriptor];
     
     const unsigned bufferBytes = 1024 * 1024 * 500;
     
@@ -143,6 +180,18 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
     renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false );
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
+    
+    for (unsigned i = 0; i < 2; ++i)
+    {
+        constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
+
+#if !TARGET_OS_IPHONE
+        renderer.frameResources[ i ].uniformBuffer = [renderer.device newBufferWithLength:UniformBufferSize options:MTLResourceStorageModeManaged];
+#else
+        renderer.frameResources[ i ].uniformBuffer = [renderer.device newBufferWithLength:UniformBufferSize options:MTLResourceCPUCacheModeDefaultCache];
+#endif
+        renderer.frameResources[ i ].uniformBuffer.label = @"uniform buffer";
+    }
 }
 
 void PushGroupMarker( const char* name )
@@ -233,7 +282,23 @@ void teEndFrame()
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth )
 {
-    
+    if (color.index != -1 && depth.index != -1)
+    {
+        bool clear = true;
+        float clearColor[] = { 0, 0, 0, 0 };
+        
+        renderer.renderPassDescriptorFBO.colorAttachments[0].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture = TextureGetMetalTexture( color.index );
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].resolveTexture = nil;
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
+        renderer.renderPassDescriptorFBO.depthAttachment.loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderer.renderPassDescriptorFBO.depthAttachment.clearDepth = 0;
+        renderer.renderPassDescriptorFBO.depthAttachment.texture = TextureGetMetalTexture( depth.index );
+        
+        renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderer.renderPassDescriptorFBO];
+        renderer.renderEncoder.label = @"RenderEncoderFBO";
+    }
 }
 
 void EndRendering( teTexture2D& color )
@@ -275,8 +340,113 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
 }
 
+static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat format )
+{
+    int psoIndex = -1;
+    
+    for (unsigned i = 0; i < MaxPSOs; ++i)
+    {
+        if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[ i ].topology == topology &&
+            renderer.psos[ i ].vertexFunction == vertexProgram && renderer.psos[ i ].pixelFunction == pixelProgram &&
+            renderer.psos[ i ].format == format )
+        {
+            return i;
+        }
+    }
+    
+    if (psoIndex == -1)
+    {
+        MTLRenderPipelineDescriptor* pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+        pipelineStateDescriptor.rasterSampleCount = 1;
+        pipelineStateDescriptor.vertexFunction = vertexProgram;
+        pipelineStateDescriptor.fragmentFunction = pixelProgram;
+#if !TARGET_OS_IPHONE
+        pipelineStateDescriptor.inputPrimitiveTopology = topology == teTopology::Triangles ? MTLPrimitiveTopologyClassTriangle : MTLPrimitiveTopologyClassLine;
+#endif
+        pipelineStateDescriptor.colorAttachments[ 0 ].pixelFormat = format;
+        pipelineStateDescriptor.colorAttachments[ 0 ].blendingEnabled = blendMode != teBlendMode::Off;
+        pipelineStateDescriptor.colorAttachments[ 0 ].sourceRGBBlendFactor = blendMode == teBlendMode::Alpha ? MTLBlendFactorSourceAlpha : MTLBlendFactorOne;
+        pipelineStateDescriptor.colorAttachments[ 0 ].destinationRGBBlendFactor = blendMode == teBlendMode::Alpha ?  MTLBlendFactorOneMinusSourceAlpha : MTLBlendFactorOne;
+        pipelineStateDescriptor.colorAttachments[ 0 ].rgbBlendOperation = MTLBlendOperationAdd;
+        pipelineStateDescriptor.colorAttachments[ 0 ].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
+        pipelineStateDescriptor.colorAttachments[ 0 ].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+        pipelineStateDescriptor.colorAttachments[ 0 ].alphaBlendOperation = MTLBlendOperationAdd;
+        pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+        
+        NSError* error = nullptr;
+        MTLPipelineOption option = MTLPipelineOptionNone;
+        
+        int nextFreePsoIndex = -1;
+        
+        for (unsigned i = 0; i < MaxPSOs && nextFreePsoIndex == -1; ++i)
+        {
+            if (nextFreePsoIndex == -1 && renderer.psos[ i ].pso == nil)
+            {
+                nextFreePsoIndex = i;
+            }
+        }
+        
+        teAssert( nextFreePsoIndex != -1 );
+
+        renderer.psos[ nextFreePsoIndex ].pso = [renderer.device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor options:option reflection:nullptr error:&error];
+        
+        if (!renderer.psos[ nextFreePsoIndex ].pso)
+        {
+            NSLog( @"Failed to create pipeline state, error %@", error );
+        }
+        
+        psoIndex = nextFreePsoIndex;
+        renderer.psos[ psoIndex ].blendMode = blendMode;
+        renderer.psos[ psoIndex ].vertexFunction = vertexProgram;
+        renderer.psos[ psoIndex ].pixelFunction = pixelProgram;
+        renderer.psos[ psoIndex ].topology = topology;
+        renderer.psos[ psoIndex ].format = format;
+    }
+
+    return psoIndex;
+}
+
 void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
 {
+    id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
+    NSRange range = { 0, 3 };
+    [renderer.renderEncoder setFragmentTextures:textures withRange:range ];
+    
+    [renderer.renderEncoder setFragmentSamplerState:renderer.linearRepeat atIndex:0];
+
+    MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format );
+
+    [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
+    [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
+    [renderer.renderEncoder setCullMode:(MTLCullMode)cullMode];
+
+    // Note that we're using reverse-z, so less equal is really greater.
+    if (depthMode == teDepthMode::LessOrEqualWriteOn)
+    {
+        [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOn];
+    }
+    if (depthMode == teDepthMode::LessOrEqualWriteOff)
+    {
+        [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOff];
+    }
+    else if (depthMode == teDepthMode::NoneWriteOff)
+    {
+        [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
+    }
+
+    id< MTLBuffer > buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ) };
+    NSUInteger offsets[] = { 0, 0, 0 };
+    
+    [renderer.renderEncoder setTriangleFillMode:fillMode == teFillMode::Solid ? MTLTriangleFillModeFill : MTLTriangleFillModeLines];
+    [renderer.renderEncoder setFragmentBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:0 atIndex:0];
+    [renderer.renderEncoder setVertexBuffers:buffers offsets:offsets withRange:range];
+    [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                              indexCount:indexCount * 3
+                               indexType:MTLIndexTypeUInt16
+                             indexBuffer:BufferGetBuffer( renderer.staticMeshIndexBuffer )
+                       indexBufferOffset:indexOffset];
+
     renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
 }
 

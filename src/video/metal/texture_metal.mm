@@ -82,6 +82,11 @@ static MTLPixelFormat GetPixelFormat( teTextureFormat aeFormat )
     return MTLPixelFormatRGBA8Unorm_sRGB;
 }
 
+id<MTLTexture> TextureGetMetalTexture( unsigned index )
+{
+    return textures[ index ].metalTexture;
+}
+
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     teAssert( textureCount < 100 );
