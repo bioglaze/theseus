@@ -13,18 +13,22 @@
 #include "vec3.h"
 
 void SetDrawable( id< CAMetalDrawable > drawable );
+extern MTLRenderPassDescriptor* renderPassDescriptor;
+extern id<MTLCommandBuffer> gCommandBuffer;
 NSViewController* myViewController;
 
 @implementation GameViewController
 {
-    MTKView *_view;
-
+    MTKView* _view;
+    dispatch_semaphore_t inflightSemaphore;
+    
     teShader unlitShader;
     teShader fullscreenShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
     teMaterial material;
+    teMesh cubeMesh;
     
     teScene scene;
 }
@@ -72,6 +76,7 @@ void MoveUp( float amount )
     _view.delegate = self;
     
     myViewController = self;
+    inflightSemaphore = dispatch_semaphore_create( 2 );
     
     const unsigned width = self.view.bounds.size.width;
     const unsigned height = self.view.bounds.size.height;
@@ -89,7 +94,9 @@ void MoveUp( float amount )
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
     
-    teMesh cubeMesh = teCreateCubeMesh();
+    material = teCreateMaterial( unlitShader );
+    
+    cubeMesh = teCreateCubeMesh();
     cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, material, 0 );
@@ -103,12 +110,20 @@ void MoveUp( float amount )
 
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
+    dispatch_semaphore_wait( inflightSemaphore, DISPATCH_TIME_FOREVER );
+
+    renderPassDescriptor = _view.currentRenderPassDescriptor;
+
     SetDrawable( view.currentDrawable );
     teBeginFrame();
     teSceneRender( scene, NULL, NULL, NULL );
     teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
     teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
     teEndSwapchainRendering();
+    
+    __block dispatch_semaphore_t block_sema = inflightSemaphore;
+    [gCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) { dispatch_semaphore_signal( block_sema ); }];
+
     teEndFrame();
 }
 

@@ -80,6 +80,8 @@ Renderer renderer;
 id<MTLLibrary> defaultLibrary;
 id<CAMetalDrawable> gDrawable;
 id<MTLDevice> gDevice;
+MTLRenderPassDescriptor* renderPassDescriptor; // This comes from the application
+id<MTLCommandBuffer> gCommandBuffer; // This is used by the application.
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
@@ -266,6 +268,10 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
 
 void teBeginFrame()
 {
+    renderer.frameResources[ 0 ].commandBuffer = [renderer.commandQueue commandBuffer];
+    renderer.frameResources[ 0 ].commandBuffer.label = @"MyCommand";
+    gCommandBuffer = renderer.frameResources[ 0 ].commandBuffer;
+
     renderer.frameResources[ 0 ].uboOffset = 0;
 }
 
@@ -299,21 +305,39 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth )
         renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderer.renderPassDescriptorFBO];
         renderer.renderEncoder.label = @"RenderEncoderFBO";
     }
+    else if (color.index == -1 && depth.index == -1)
+    {
+        bool clear = true;
+        float clearColor[] = { 0, 0, 0, 0 };
+        
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
+        renderPassDescriptor.colorAttachments[ 0 ].loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderPassDescriptor.colorAttachments[ 0 ].resolveTexture = nil;
+        renderPassDescriptor.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
+        renderPassDescriptor.depthAttachment.loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderPassDescriptor.depthAttachment.clearDepth = 0;
+        
+        renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+        renderer.renderEncoder.label = @"RenderEncoderFBO";
+    }
 }
 
 void EndRendering( teTexture2D& color )
 {
-    
+    [renderer.renderEncoder endEncoding];
 }
 
 void teBeginSwapchainRendering( teTexture2D& color )
 {
-    
+    teTexture2D nullColor, nullDepth;
+    nullColor.index = -1;
+    nullDepth.index = -1;
+    BeginRendering( nullColor, nullDepth );
 }
 
 void teEndSwapchainRendering()
 {
-    
+    [renderer.renderEncoder endEncoding];
 }
 
 void CopyBuffer( const Buffer& source, const Buffer& destination )

@@ -91,9 +91,10 @@ void teMeshGetSubMeshLocalAABB( const teMesh& mesh, unsigned subMeshIndex, Vec3&
     outAABBMax = meshes[ mesh.index ].subMeshes[ subMeshIndex ].aabbMax;
 }
 
-
 unsigned teMeshGetSubMeshCount( const teMesh& mesh )
 {
+    teAssert( mesh.index != (unsigned)-1);
+    teAssert( mesh.index < MaxMeshes );
     return meshes[ mesh.index ].subMeshCount;
 }
 
