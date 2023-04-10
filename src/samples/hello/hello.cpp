@@ -40,8 +40,8 @@ int Random100()
 
 int main()
 {
-    constexpr unsigned width = 1920;
-    constexpr unsigned height = 1080;
+    unsigned width = 1920;
+    unsigned height = 1080;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teCreateRenderer( 1, windowHandle, width, height );
 
@@ -79,10 +79,10 @@ int main()
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     
-    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, teTextureFlags::SRGB, teTextureFilter::LinearRepeat );
+    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0, teTextureFilter::LinearRepeat );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
-    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::SRGB | teTextureFlags::GenerateMips );
+    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips );
     teMaterialSetTexture2D( material, bc1Tex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();

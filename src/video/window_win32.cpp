@@ -12,6 +12,8 @@ struct WindowImpl
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int eventIndex = -1;
     unsigned windowHeightWithoutTitleBar = 0;
+    unsigned width = 0;
+    unsigned height = 0;
 };
 
 WindowImpl win;
@@ -127,8 +129,8 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     _CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDERR );
 #endif
 
-    const unsigned winWidth = width == 0 ? GetSystemMetrics( SM_CXSCREEN ) : width;
-    const unsigned winHeight = height == 0 ? GetSystemMetrics( SM_CYSCREEN ) : height;
+    win.width = width == 0 ? GetSystemMetrics( SM_CXSCREEN ) : width;
+    win.height = height == 0 ? GetSystemMetrics( SM_CYSCREEN ) : height;
 
     const HINSTANCE hInstance = GetModuleHandle(nullptr);
     const bool fullscreen = (width == 0 && height == 0);
@@ -145,14 +147,14 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     RegisterClassEx( &wc );
 
-    const int xPos = (GetSystemMetrics( SM_CXSCREEN ) - winWidth) / 2;
-    const int yPos = (GetSystemMetrics( SM_CYSCREEN ) - winHeight) / 2;
+    const int xPos = (GetSystemMetrics( SM_CXSCREEN ) - win.width) / 2;
+    const int yPos = (GetSystemMetrics( SM_CYSCREEN ) - win.height) / 2;
 
     HWND hwnd = CreateWindowExA( fullscreen ? WS_EX_TOOLWINDOW | WS_EX_TOPMOST : 0,
         "WindowClass1", title,
         fullscreen ? WS_POPUP : (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU),
         xPos, yPos,
-        winWidth, winHeight,
+        win.width, win.height,
         nullptr, nullptr, hInstance, nullptr );
 
     ShowWindow( hwnd, SW_SHOW );
@@ -187,4 +189,10 @@ const teWindowEvent& tePopWindowEvent()
 
     --win.eventIndex;
     return win.events[ win.eventIndex + 1 ];
+}
+
+void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
+{
+    outWidth = win.width;
+    outHeight = win.height;
 }

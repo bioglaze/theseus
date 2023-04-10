@@ -45,19 +45,36 @@ static unsigned GetMipLevelCount( unsigned width, unsigned height ) noexcept
     return count;
 }
 
-void GetFormatAndBPP( teTextureFormat format, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel )
+void GetFormatAndBPP( teTextureFormat format, VkFormat& outFormat, unsigned& outBytesPerPixel )
 {
-    outFormat = isSRGB ? VK_FORMAT_BC1_RGB_SRGB_BLOCK : VK_FORMAT_BC1_RGB_UNORM_BLOCK;
-    outBytesPerPixel = 4;
-
-    if (format == teTextureFormat::BC2)
+    if (format == teTextureFormat::BC1)
     {
-        outFormat = isSRGB ? VK_FORMAT_BC2_SRGB_BLOCK : VK_FORMAT_BC2_UNORM_BLOCK;
+        outFormat = VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+        outBytesPerPixel = 4;
+    }
+    else if (format == teTextureFormat::BC1_SRGB)
+    {
+        outFormat = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+        outBytesPerPixel = 4;
+    }
+    else if (format == teTextureFormat::BC2)
+    {
+        outFormat = VK_FORMAT_BC2_UNORM_BLOCK;
+        outBytesPerPixel = 2;
+    }
+    else if (format == teTextureFormat::BC2_SRGB)
+    {
+        outFormat = VK_FORMAT_BC2_SRGB_BLOCK;
         outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC3)
     {
-        outFormat = isSRGB ? VK_FORMAT_BC3_SRGB_BLOCK : VK_FORMAT_BC3_UNORM_BLOCK;
+        outFormat = VK_FORMAT_BC3_UNORM_BLOCK;
+        outBytesPerPixel = 2;
+    }
+    else if (format == teTextureFormat::BC3_SRGB)
+    {
+        outFormat = VK_FORMAT_BC3_SRGB_BLOCK;
         outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC4U)
@@ -110,6 +127,10 @@ void GetFormatAndBPP( teTextureFormat format, bool isSRGB, VkFormat& outFormat, 
         outFormat = VK_FORMAT_B8G8R8A8_UNORM;
         outBytesPerPixel = 4;
     }
+    else
+    {
+        teAssert( !"unhandled format!" );
+    }
 }
 
 VkImageView TextureGetView( teTexture2D texture )
@@ -139,7 +160,7 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
 
     VkFormat vFormat = VK_FORMAT_UNDEFINED;
     unsigned bpp = 0;
-    GetFormatAndBPP( format, false, vFormat, bpp );
+    GetFormatAndBPP( format, vFormat, bpp );
     tex.vulkanFormat = vFormat;
 
     VkImageCreateInfo imageCreateInfo = {};
@@ -455,7 +476,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
             tex.mipLevelCount = 1;
         }
 
-        GetFormatAndBPP( bcFormat, (flags & teTextureFlags::SRGB) ? true : false, format, bytesPerPixel );
+        GetFormatAndBPP( bcFormat, format, bytesPerPixel );
         tex.vulkanFormat = format;
 
         VkImageCreateInfo imageCreateInfo = {};
@@ -597,7 +618,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                 tex.mipLevelCount = 1;
             }
 
-            GetFormatAndBPP( bcFormat, (flags & teTextureFlags::SRGB) ? true : false, format, bytesPerPixel );
+            GetFormatAndBPP( bcFormat, format, bytesPerPixel );
             tex.vulkanFormat = format;
             outTexture.format = bcFormat;
             UpdateStagingTexture( files[ face ], tex.width, tex.height, mipOffsets[ face ][ 0 ], bytesPerPixel, format, face );

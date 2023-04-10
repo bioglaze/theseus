@@ -19,11 +19,12 @@ struct teWindowEvent
     int y = 0;
 };
 
-// @param width Width in pixels.
-// @param height Height in pixels.
+// @param width Width in pixels. Pass 0 to width and height for fullscreen.
+// @param height Height in pixels. Pass 0 to width and height for fullscreen.
 // @param title Window title.
 // @return Window handle opaque pointer. On Windows its type is HWND.
 void* teCreateWindow( unsigned width, unsigned height, const char* title );
 void tePushWindowEvents();
 // @return Type::Empty when no events remain in the event queue.
 const teWindowEvent& tePopWindowEvent();
+void teWindowGetSize( unsigned& outWidth, unsigned& outHeight );

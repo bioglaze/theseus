@@ -18,7 +18,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
-void GetFormatAndBPP( teTextureFormat bcFormat, bool isSRGB, VkFormat& outFormat, unsigned& outBytesPerPixel );
+void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
 Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
 VkBufferView BufferGetView( const Buffer& buffer );
 VkDeviceMemory BufferGetMemory( const Buffer& buffer );
@@ -535,8 +535,8 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     VkFormat colorFormatVulkan = VK_FORMAT_UNDEFINED;
     VkFormat depthFormatVulkan = VK_FORMAT_UNDEFINED;
     unsigned bpp = 0;
-    GetFormatAndBPP( colorFormat, true, colorFormatVulkan, bpp );
-    GetFormatAndBPP( depthFormat, false, depthFormatVulkan, bpp );
+    GetFormatAndBPP( colorFormat, colorFormatVulkan, bpp );
+    GetFormatAndBPP( depthFormat, depthFormatVulkan, bpp );
 
     VkPipelineRenderingCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -1341,7 +1341,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
         CreateStagingTexture( i );
     }
 
-    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, teTextureFlags::SRGB, teTextureFormat::RGBA_sRGB, "default texture 2D" );
+    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
 
     for (unsigned i = 0; i < TextureCount; ++i)
     {

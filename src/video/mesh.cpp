@@ -33,6 +33,7 @@ struct MeshRenderer
 {
     teMesh* mesh = nullptr;
     teMaterial materials[ MaxMaterials ];
+    bool isSubMeshCulled[ MaxMaterials ];
 };
 
 static MeshImpl meshes[ MaxMeshes ];
@@ -82,6 +83,15 @@ teMesh teCreateCubeMesh()
     return outMesh;
 }
 
+void teMeshGetSubMeshLocalAABB( const teMesh& mesh, unsigned subMeshIndex, Vec3& outAABBMin, Vec3& outAABBMax )
+{
+    teAssert( subMeshIndex < MaxMaterials );
+
+    outAABBMin = meshes[ mesh.index ].subMeshes[ subMeshIndex ].aabbMin;
+    outAABBMax = meshes[ mesh.index ].subMeshes[ subMeshIndex ].aabbMax;
+}
+
+
 unsigned teMeshGetSubMeshCount( const teMesh& mesh )
 {
     return meshes[ mesh.index ].subMeshCount;
@@ -91,6 +101,20 @@ teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex )
 {
     teAssert( gameObjectIndex < MaxMeshes );
     return *meshRenderers[ gameObjectIndex ].mesh;
+}
+
+bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex )
+{
+    teAssert( subMeshIndex < MaxMaterials );
+
+    return meshRenderers[ gameObjectIndex ].isSubMeshCulled[ subMeshIndex ];
+}
+
+void MeshRendererSetCulled( unsigned gameObjectIndex, unsigned subMeshIndex, bool isCulled )
+{
+    teAssert( subMeshIndex < MaxMaterials );
+
+    meshRenderers[ gameObjectIndex ].isSubMeshCulled[ subMeshIndex ] = isCulled;
 }
 
 void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh )
@@ -114,27 +138,27 @@ void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMateria
     meshRenderers[ gameObjectIndex ].materials[ subMeshIndex ] = material;
 }
 
-unsigned teMeshGetPositionOffset( unsigned index, unsigned subMeshIndex )
+unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
-    return meshes[ index ].subMeshes[ subMeshIndex ].positionOffset;
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].positionOffset;
 }
 
-unsigned teMeshGetIndexOffset( unsigned index, unsigned subMeshIndex )
+unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
-    return meshes[ index ].subMeshes[ subMeshIndex ].indicesOffset;
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].indicesOffset;
 }
 
-unsigned teMeshGetIndexCount( unsigned index, unsigned subMeshIndex )
+unsigned teMeshGetIndexCount( const teMesh& mesh, unsigned subMeshIndex )
 {
-    return meshes[ index ].subMeshes[ subMeshIndex ].indexCount;
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].indexCount;
 }
 
-unsigned teMeshGetUVOffset( unsigned index, unsigned subMeshIndex )
+unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
-    return meshes[ index ].subMeshes[ subMeshIndex ].uvOffset;
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].uvOffset;
 }
 
-unsigned teMeshGetUVCount( unsigned index, unsigned subMeshIndex )
+unsigned teMeshGetUVCount( const teMesh& mesh, unsigned subMeshIndex )
 {
-    return meshes[ index ].subMeshes[ subMeshIndex ].uvCount;
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].uvCount;
 }

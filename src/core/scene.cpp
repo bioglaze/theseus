@@ -18,6 +18,8 @@ void EndRendering( teTexture2D& color );
 void PushGroupMarker( const char* name );
 void PopGroupMarker();
 
+void MeshRendererSetCulled( unsigned gameObjectIndex, unsigned subMeshIndex, bool isCulled );
+bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
@@ -25,6 +27,8 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye );
+void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
+void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -102,7 +106,7 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
         TransformSetComputedLocalToClip( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip, localToClip );
         TransformSetComputedLocalToView( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView, localToView );
 
-        /*const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[gameObjectIndex]);
+        const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[ gameObjectIndex ] );
 
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
         {
@@ -122,7 +126,7 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
             GetMinMax( meshAabbWorld, 8, meshAabbMinWorld, meshAabbMaxWorld );
 
             MeshRendererSetCulled( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex, !BoxInFrustum( cameraGOIndex, meshAabbMinWorld, meshAabbMaxWorld ) );
-        }*/
+        }
     }
 }
 
@@ -142,9 +146,9 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     UpdateUBO( localToClip.m, localToClip.m, localToViews[ 0 ].m, localToViews[ 1 ].m );
 
     PushGroupMarker( "Skybox" );
-    unsigned indexOffset = teMeshGetIndexOffset( skyboxMesh->index, 0 );
-    unsigned indexCount = teMeshGetIndexCount( skyboxMesh->index, 0 );
-    unsigned positionOffset = teMeshGetPositionOffset( skyboxMesh->index, 0 );
+    unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
+    unsigned indexCount = teMeshGetIndexCount( *skyboxMesh, 0 );
+    unsigned positionOffset = teMeshGetPositionOffset( *skyboxMesh, 0 );
 
     Draw( *skyboxShader, positionOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, skyboxTexture->index );
 
@@ -194,11 +198,17 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
             for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
             {
                 const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
+                
+                if (MeshRendererIsCulled( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex ))
+                {
+                    continue;
+                }
+
                 teShader shader = teMaterialGetShader( material );
 
-                unsigned indexOffset = teMeshGetIndexOffset( mesh.index, subMeshIndex );
-                unsigned indexCount = teMeshGetIndexCount( mesh.index, subMeshIndex );
-                unsigned positionOffset = teMeshGetPositionOffset( mesh.index, subMeshIndex );
+                unsigned indexOffset = teMeshGetIndexOffset( mesh, subMeshIndex );
+                unsigned indexCount = teMeshGetIndexCount( mesh, subMeshIndex );
+                unsigned positionOffset = teMeshGetPositionOffset( mesh, subMeshIndex );
 
                 unsigned textureIndex = teMaterialGetTexture2D( material, 0 );
 

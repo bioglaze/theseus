@@ -470,3 +470,56 @@ void Quaternion::GetMatrix( Matrix& outMatrix ) const
     outMatrix.m[ 14 ] = 0;
     outMatrix.m[ 15 ] = 1;
 }
+
+void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] )
+{
+    outCorners[ 0 ] = Vec3( min.x, min.y, min.z );
+    outCorners[ 1 ] = Vec3( max.x, min.y, min.z );
+    outCorners[ 2 ] = Vec3( min.x, max.y, min.z );
+    outCorners[ 3 ] = Vec3( min.x, min.y, max.z );
+    outCorners[ 4 ] = Vec3( max.x, max.y, min.z );
+    outCorners[ 5 ] = Vec3( min.x, max.y, max.z );
+    outCorners[ 6 ] = Vec3( max.x, max.y, max.z );
+    outCorners[ 7 ] = Vec3( max.x, min.y, max.z );
+}
+
+void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax )
+{
+    outMin = aPoints[ 0 ];
+    outMax = aPoints[ 0 ];
+
+    for (int i = 1, s = count; i < s; ++i)
+    {
+        const Vec3& point = aPoints[ i ];
+
+        if (point.x < outMin.x)
+        {
+            outMin.x = point.x;
+        }
+
+        if (point.y < outMin.y)
+        {
+            outMin.y = point.y;
+        }
+
+        if (point.z < outMin.z)
+        {
+            outMin.z = point.z;
+        }
+
+        if (point.x > outMax.x)
+        {
+            outMax.x = point.x;
+        }
+
+        if (point.y > outMax.y)
+        {
+            outMax.y = point.y;
+        }
+
+        if (point.z > outMax.z)
+        {
+            outMax.z = point.z;
+        }
+    }
+}

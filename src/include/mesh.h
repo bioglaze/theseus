@@ -11,9 +11,9 @@ teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex );
 void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh );
 void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMaterial& material, unsigned subMeshIndex );
 const teMaterial& teMeshRendererGetMaterial( unsigned gameObjectIndex, unsigned subMeshIndex );
-unsigned teMeshGetPositionOffset( unsigned index, unsigned subMeshIndex );
-unsigned teMeshGetIndexOffset( unsigned index, unsigned subMeshIndex );
-unsigned teMeshGetIndexCount( unsigned index, unsigned subMeshIndex );
-unsigned teMeshGetUVOffset( unsigned index, unsigned subMeshIndex );
-unsigned teMeshGetUVCount( unsigned index, unsigned subMeshIndex );
-
+unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetIndexCount( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetUVCount( const teMesh& mesh, unsigned subMeshIndex );
+void teMeshGetSubMeshLocalAABB( const teMesh& mesh, unsigned subMeshIndex, struct Vec3& outAABBMin, Vec3& outAABBMax );
