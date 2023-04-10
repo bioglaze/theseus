@@ -61,7 +61,7 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
 
     if ((teGameObjectGetComponents( gameObjectIndex ) & teComponent::Camera) != 0)
     {
-        teAssert( teCameraGetColorTexture( gameObjectIndex ).index != (unsigned)-1); // Camera must have a render texture!
+        teAssert( teCameraGetColorTexture( gameObjectIndex ).index != 0 ); // Camera must have a render texture!
     }
 
     for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
@@ -162,7 +162,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
-    teAssert( color.index != -1 ); // Camera must have a render target!
+    teAssert( color.index != 0 ); // Camera must have a render target!
 
     TransformSolveLocalMatrix( cameraGOIndex, true );
     UpdateFrustum( cameraGOIndex, -teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );

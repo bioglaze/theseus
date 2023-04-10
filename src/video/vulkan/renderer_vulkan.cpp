@@ -1669,7 +1669,7 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
 {
-    if ((int)textureIndex != -1)
+    if (textureIndex != 0)
     {
         teTexture2D tex;
         tex.index = textureIndex;

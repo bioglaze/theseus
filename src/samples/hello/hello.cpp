@@ -13,6 +13,26 @@
 #include "vec3.h"
 #include "window.h"
 #include <stdint.h>
+#include <stdio.h>
+
+#if _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
+static LONGLONG PCFreq;
+
+double GetMilliseconds()
+{
+    LARGE_INTEGER li;
+    QueryPerformanceCounter( &li );
+    return (double)(li.QuadPart / (double)PCFreq);
+}
+#else
+double GetMilliseconds()
+{
+    return 1;
+}
+#endif
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -40,6 +60,11 @@ int Random100()
 
 int main()
 {
+#ifdef _WIN32
+    LARGE_INTEGER li;
+    QueryPerformanceFrequency( &li );
+    PCFreq = li.QuadPart / 1000;
+#endif
     unsigned width = 1920;
     unsigned height = 1080;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
@@ -143,8 +168,15 @@ int main()
     int lastMouseY = 0;
     Vec3 moveDir;
 
+    double theTime = GetMilliseconds();
+
     while (!shouldQuit)
     {
+        double lastTime = theTime;
+        theTime = GetMilliseconds();
+        double dt = theTime - lastTime;
+        //printf("dt: %f\n", dt);
+
         tePushWindowEvents();
 
         bool eventsHandled = false;
@@ -195,6 +227,22 @@ int main()
             {
                 moveDir.x = 0;
             }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
+            {
+                moveDir.y = 0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
+            {
+                moveDir.y = 0;
+            }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
+            {
+                moveDir.y = -0.5f;
+            }
+            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
+            {
+                moveDir.y = 0;
+            }
             else if (event.type == teWindowEvent::Type::Mouse2Down)
             {
                 x = event.x;
@@ -232,9 +280,9 @@ int main()
             }
         }
 
-        teTransformMoveForward( camera3d.index, moveDir.z );
-        teTransformMoveRight( camera3d.index, moveDir.x );
-        teTransformMoveUp( camera3d.index, moveDir.y );
+        teTransformMoveForward( camera3d.index, moveDir.z * dt * 0.5f );
+        teTransformMoveRight( camera3d.index, moveDir.x * dt * 0.5f );
+        teTransformMoveUp( camera3d.index, moveDir.y * dt * 0.5f );
 
         teBeginFrame();
         ImGui::NewFrame();

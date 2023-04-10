@@ -93,7 +93,7 @@ void teMeshGetSubMeshLocalAABB( const teMesh& mesh, unsigned subMeshIndex, Vec3&
 
 unsigned teMeshGetSubMeshCount( const teMesh& mesh )
 {
-    teAssert( mesh.index != (unsigned)-1);
+    teAssert( mesh.index != 0);
     teAssert( mesh.index < MaxMeshes );
     return meshes[ mesh.index ].subMeshCount;
 }
@@ -141,25 +141,35 @@ void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMateria
 
 unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].positionOffset;
 }
 
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].indicesOffset;
 }
 
 unsigned teMeshGetIndexCount( const teMesh& mesh, unsigned subMeshIndex )
 {
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].indexCount;
 }
 
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex )
 {
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].uvOffset;
 }
 
 unsigned teMeshGetUVCount( const teMesh& mesh, unsigned subMeshIndex )
 {
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].uvCount;
 }

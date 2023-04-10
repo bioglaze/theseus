@@ -24,7 +24,7 @@ struct teTextureImpl
 };
 
 teTextureImpl textures[ 100 ];
-unsigned textureCount = 1;
+unsigned textureCount = 0;
 
 static inline unsigned Max2( unsigned x, unsigned y ) noexcept
 {
@@ -151,7 +151,7 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
 
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
-    const unsigned index = textureCount++;
+    const unsigned index = ++textureCount;
 
     teTextureImpl& tex = textures[ index ];
     tex.width = width;
@@ -435,7 +435,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTexture2D outTexture;
-    outTexture.index = textureCount++;
+    outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
@@ -561,7 +561,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTextureCube outTexture;
-    outTexture.index = textureCount++;
+    outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
@@ -585,7 +585,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isDDS)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = (unsigned)-1;
+                outTexture.index = 0;
                 return outTexture;
             }
 
@@ -607,7 +607,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isTGA)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = (unsigned)-1;
+                outTexture.index = 0;
                 return outTexture;
             }
 
