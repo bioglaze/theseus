@@ -13,7 +13,7 @@
 #include "transform.h"
 #include "vec3.h"
 
-void BeginRendering( teTexture2D& color, teTexture2D& depth );
+void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor );
 void EndRendering( teTexture2D& color );
 void PushGroupMarker( const char* name );
 void PopGroupMarker();
@@ -168,7 +168,10 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     UpdateFrustum( cameraGOIndex, -teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );
     UpdateTransformsAndCull( scene, cameraGOIndex );
 
-    BeginRendering( color, depth );
+    teClearFlag clearFlag;
+    Vec4 clearColor;
+    teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
+    BeginRendering( color, depth, clearFlag, &clearColor.x );
 
     if (skyboxShader && skyboxTexture && skyboxMesh)
     {

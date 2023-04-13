@@ -84,9 +84,11 @@ int main()
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
+    Vec4 clearColor = { 1, 0, 0, 1 };
+    teClearFlag clearFlag = teClearFlag::DepthAndColor;
     teTransformSetLocalPosition( camera3d.index, cameraPos );
     teCameraSetProjection( camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
-
+    teCameraSetClear( camera3d.index, clearFlag, clearColor );
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
@@ -134,7 +136,7 @@ int main()
                 cubes[ g ] = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
                 teMeshRendererSetMesh( cubes[ g ].index, &cubeMesh );
                 teMeshRendererSetMaterial( cubes[ g ].index, material, 0 );
-                teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4 - 5, j * 4 - 5, -4 - k * 4 ) );
+                teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4.0f - 5.0f, j * 4.0f - 5.0f, -4.0f - k * 4.0f ) );
                 teSceneAdd( scene, cubes[ g ].index );
 
                 float angle = Random100() / 100.0f * 90;
@@ -151,8 +153,8 @@ int main()
 
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = width;
-    io.DisplaySize.y = height;
+    io.DisplaySize.x = (float)width;
+    io.DisplaySize.y = (float)height;
     ImGui::StyleColorsDark();
     unsigned char* fontPixels;
     int fontWidth, fontHeight;
@@ -274,15 +276,15 @@ int main()
 
                 if (isRightMouseDown)
                 {
-                    teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -deltaX / 100.0f );
-                    teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f );
+                    teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -deltaX / 100.0f * (float)dt );
+                    teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f * (float)dt );
                 }
             }
         }
 
-        teTransformMoveForward( camera3d.index, moveDir.z * dt * 0.5f );
-        teTransformMoveRight( camera3d.index, moveDir.x * dt * 0.5f );
-        teTransformMoveUp( camera3d.index, moveDir.y * dt * 0.5f );
+        teTransformMoveForward( camera3d.index, moveDir.z * (float)dt * 0.5f );
+        teTransformMoveRight( camera3d.index, moveDir.x * (float)dt * 0.5f );
+        teTransformMoveUp( camera3d.index, moveDir.y * (float)dt * 0.5f );
 
         teBeginFrame();
         ImGui::NewFrame();

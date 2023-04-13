@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "renderer.h"
 #include "buffer.h"
+#include "camera.h"
 #include "file.h"
 #include "material.h"
 #include "matrix.h"
@@ -1467,21 +1468,26 @@ void teEndFrame()
     renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
 }
 
-void BeginRendering( teTexture2D& color, teTexture2D& depth )
+void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )
 {
     VkRenderingAttachmentInfo colorAtt{};
     colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     colorAtt.imageView = TextureGetView( color );
-    colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAtt.loadOp = clearFlag == teClearFlag::DepthAndColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
     colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAtt.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAtt.clearValue.color.float32[ 0 ] = clearColor[ 0 ];
+    colorAtt.clearValue.color.float32[ 1 ] = clearColor[ 1 ];
+    colorAtt.clearValue.color.float32[ 2 ] = clearColor[ 2 ];
+    colorAtt.clearValue.color.float32[ 3 ] = clearColor[ 3 ];
 
     VkRenderingAttachmentInfo depthAtt{};
     depthAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     depthAtt.imageView = TextureGetView( depth );
-    depthAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAtt.loadOp = clearFlag == teClearFlag::DontClear ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAtt.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAtt.clearValue.depthStencil.depth = 0;
 
     unsigned width = 0, height = 0;
     teTextureGetDimension( color, width, height );

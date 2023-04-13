@@ -3,6 +3,7 @@
 #include "matrix.h"
 #include "te_stdlib.h"
 #include "texture.h"
+#include "vec3.h"
 
 struct CameraImpl
 {
@@ -14,6 +15,8 @@ struct CameraImpl
     teProjectionType projectionType = teProjectionType::Perspective;
     teTexture2D color;
     teTexture2D depth;
+    teClearFlag clearFlag = teClearFlag::DepthAndColor;
+    Vec4 clearColor;
 
     struct OrthoParams
     {
@@ -27,13 +30,31 @@ struct CameraImpl
 constexpr unsigned MaxCameras = 10000;
 CameraImpl cameras[ MaxCameras ];
 
+void teCameraSetClear( unsigned index, teClearFlag clearFlag, const Vec4& color )
+{
+    teAssert( index < MaxCameras );
+
+    cameras[ index ].clearColor = color;
+    cameras[ index ].clearFlag = clearFlag;
+}
+
+void teCameraGetClear( unsigned index, teClearFlag& outClearFlag, Vec4& outColor )
+{
+    teAssert( index < MaxCameras );
+
+    outColor = cameras[ index ].clearColor;
+    outClearFlag = cameras[ index ].clearFlag;
+}
+
 teTexture2D& teCameraGetColorTexture( unsigned index )
 {
+    teAssert( index < MaxCameras );
     return cameras[ index ].color;
 }
 
 teTexture2D& teCameraGetDepthTexture( unsigned index )
 {
+    teAssert( index < MaxCameras );
     return cameras[ index ].depth;
 }
 
