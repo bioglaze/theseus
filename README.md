@@ -17,7 +17,7 @@ Very early days, only renders hard-coded cubes, without lights etc.
 # Platforms
 
   - Windows (VS 2022 project files included)
-  - macOS/iOS (just starting to implement these, not functional yet)
+  - macOS/iOS
   - Linux is coming soon
 
 # Building

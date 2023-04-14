@@ -1,6 +1,9 @@
 #if VK_USE_PLATFORM_WIN32_KHR
 #include "window_win32.cpp"
 #endif
+#if VK_USE_PLATFORM_WAYLAND_KHR
+
+#endif
 #include "core/camera.cpp"
 #include "core/file.cpp"
 #include "core/frustum.cpp"

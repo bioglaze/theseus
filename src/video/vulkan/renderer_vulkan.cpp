@@ -25,6 +25,9 @@ VkBufferView BufferGetView( const Buffer& buffer );
 VkDeviceMemory BufferGetMemory( const Buffer& buffer );
 VkBuffer BufferGetBuffer( const Buffer& buffer );
 
+extern struct wl_display* wlDisplay;
+extern struct wl_surface* wlSurface;
+
 constexpr unsigned DescriptorEntryCount = 5;
 constexpr unsigned SamplerCount = 6;
 
@@ -962,7 +965,11 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     surfaceCreateInfo.hwnd = (HWND)windowHandle;
     VK_CHECK( vkCreateWin32SurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
 #else
-#error unhandled platform
+    VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
+    surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+    surfaceCreateInfo.surface = wlSurface;
+    surfaceCreateInfo.display = wlDisplay;
+    VK_CHECK( vkCreateWaylandSurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
 #endif
 
     uint32_t formatCount = 0;
