@@ -1,8 +1,12 @@
 #import <Metal/Metal.h>
 #include "texture.h"
+#include "file.h"
 #include "te_stdlib.h"
 
+void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
+
 extern id<MTLDevice> gDevice;
+extern id<MTLCommandQueue> gCommandQueue;
 
 struct teTextureImpl
 {
@@ -144,6 +148,52 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
+
+    MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    unsigned multiplier = 1;
+    unsigned bitsPerPixel = 0;
+    unsigned offset = 0;
+    
+    if (strstr( file.path, ".tga" ) || strstr( file.path, ".TGA" ))
+    {
+        unsigned char* pixelData = nullptr;
+        LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel, &pixelData );
+        multiplier = 4;
+
+        MTLTextureDescriptor* stagingDescriptor =
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pixelFormat
+                                                           width:tex.width
+                                                          height:tex.height
+                                                       mipmapped:(flags & teTextureFlags::GenerateMips ? YES : NO)];
+        id<MTLTexture> stagingTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+
+        MTLRegion region = MTLRegionMake2D( 0, 0, tex.width, tex.height );
+        [stagingTexture replaceRegion:region mipmapLevel:0 withBytes:&file.data[ offset ] bytesPerRow:tex.width * multiplier];
+
+        stagingDescriptor.usage = MTLTextureUsageShaderRead;
+        stagingDescriptor.storageMode = MTLStorageModePrivate;
+        tex.metalTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+        tex.metalTexture.label = [NSString stringWithUTF8String:file.path];
+
+        id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
+        id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
+        [blitEncoder copyFromTexture:stagingTexture
+                      sourceSlice:0
+                      sourceLevel:0
+                     sourceOrigin:MTLOriginMake( 0, 0, 0 )
+                       sourceSize:MTLSizeMake( tex.width, tex.height, 1 )
+                        toTexture:tex.metalTexture
+                 destinationSlice:0
+                 destinationLevel:0
+                destinationOrigin:MTLOriginMake( 0, 0, 0 ) ];
+        if ((flags & teTextureFlags::GenerateMips))
+        {
+            [blitEncoder generateMipmapsForTexture:tex.metalTexture];
+        }
+        [blitEncoder endEncoding];
+        [cmdBuffer commit];
+        [cmdBuffer waitUntilCompleted];
+    }
 
     return outTexture;
 }

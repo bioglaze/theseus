@@ -24,6 +24,8 @@
 		ABA3ACB729E07DCD008BAD89 /* unlit.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB429E07DCD008BAD89 /* unlit.metal */; };
 		ABA3ACB829E07DCD008BAD89 /* fullscreen.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */; };
 		ABA3ACB929E07DCD008BAD89 /* fullscreen.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */; };
+		ABBD223829EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
+		ABBD223929EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -62,6 +64,7 @@
 		ABA3ACB329E07DCD008BAD89 /* ubo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ubo.h; path = ../../shaders/metal/ubo.h; sourceTree = "<group>"; };
 		ABA3ACB429E07DCD008BAD89 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
 		ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = fullscreen.metal; path = ../../shaders/metal/fullscreen.metal; sourceTree = "<group>"; };
+		ABBD223729EAD3C000847A91 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../../build/assets; sourceTree = "<group>"; };
 		ABD7244829E1B37200A1578E /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = camera.h; path = ../../include/camera.h; sourceTree = "<group>"; };
 		ABD7244929E1B37200A1578E /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matrix.h; path = ../../include/matrix.h; sourceTree = "<group>"; };
 		ABD7244A29E1B37200A1578E /* quaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quaternion.h; path = ../../include/quaternion.h; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		AB7EADD429E04942003A182A /* hello Shared */ = {
 			isa = PBXGroup;
 			children = (
+				ABBD223729EAD3C000847A91 /* assets */,
 				AB7EADD929E04943003A182A /* Assets.xcassets */,
 			);
 			path = "hello Shared";
@@ -274,6 +278,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB7EADE929E04943003A182A /* Main.storyboard in Resources */,
+				ABBD223829EAD3C000847A91 /* assets in Resources */,
 				AB7EAE0529E04943003A182A /* Assets.xcassets in Resources */,
 				AB7EADEC29E04943003A182A /* LaunchScreen.storyboard in Resources */,
 			);
@@ -283,6 +288,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABBD223929EAD3C000847A91 /* assets in Resources */,
 				AB7EAE0629E04943003A182A /* Assets.xcassets in Resources */,
 				AB7EADFD29E04943003A182A /* Main.storyboard in Resources */,
 			);

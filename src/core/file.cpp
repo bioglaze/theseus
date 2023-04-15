@@ -1,6 +1,15 @@
 #include "file.h"
 #include <stdio.h>
 
+#if __APPLE__
+const char* GetFullPath( const char* fileName );
+#else
+const char* GetFullPath( const char* fileName )
+{
+    return fileName;
+}
+#endif
+
 teFile teLoadFile( const char* path )
 {
     teFile outFile;
@@ -10,7 +19,7 @@ teFile teLoadFile( const char* path )
         return outFile;
     }
 
-    FILE* file = fopen( path, "rb" );
+    FILE* file = fopen( GetFullPath( path ), "rb" );
 
     if (file)
     {    

@@ -1,5 +1,7 @@
 #import <MetalKit/MetalKit.h>
+#import <Foundation/Foundation.h>
 #include "buffer.h"
+#include "camera.h"
 #include "material.h"
 #include "matrix.h"
 #include "renderer.h"
@@ -80,8 +82,21 @@ Renderer renderer;
 id<MTLLibrary> defaultLibrary;
 id<CAMetalDrawable> gDrawable;
 id<MTLDevice> gDevice;
+id<MTLCommandQueue> gCommandQueue;
 MTLRenderPassDescriptor* renderPassDescriptor; // This comes from the application
 id<MTLCommandBuffer> gCommandBuffer; // This is used by the application.
+
+// TODO: Move into a better place.
+const char* GetFullPath( const char* fileName )
+{
+    NSBundle *b = [NSBundle mainBundle];
+    NSString *dir = [b resourcePath];
+    NSString* fName = [NSString stringWithUTF8String: "/"];
+    NSString* fPath = [NSString stringWithUTF8String: fileName];
+    fName = [fName stringByAppendingString:fPath];
+    dir = [dir stringByAppendingString:fName];
+    return [dir fileSystemRepresentation];
+}
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
@@ -172,6 +187,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.height = height;
     
     renderer.commandQueue = [renderer.device newCommandQueue];
+    gCommandQueue = renderer.commandQueue;
     renderer.renderPassDescriptorFBO = [MTLRenderPassDescriptor renderPassDescriptor];
     
     const unsigned bufferBytes = 1024 * 1024 * 500;
@@ -286,19 +302,16 @@ void teEndFrame()
     [renderer.frameResources[ 0 ].commandBuffer commit];
 }
 
-void BeginRendering( teTexture2D& color, teTexture2D& depth )
+void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )
 {
     if (color.index != -1 && depth.index != -1)
     {
-        bool clear = true;
-        float clearColor[] = { 0, 0, 0, 0 };
-        
-        renderer.renderPassDescriptorFBO.colorAttachments[0].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
-        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
+        renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].loadAction = clearFlag == teClearFlag::DepthAndColor ? MTLLoadActionClear : MTLLoadActionLoad;
         renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture = TextureGetMetalTexture( color.index );
         renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].resolveTexture = nil;
         renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
-        renderer.renderPassDescriptorFBO.depthAttachment.loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderer.renderPassDescriptorFBO.depthAttachment.loadAction = clearFlag != teClearFlag::DontClear ? MTLLoadActionClear : MTLLoadActionLoad;
         renderer.renderPassDescriptorFBO.depthAttachment.clearDepth = 0;
         renderer.renderPassDescriptorFBO.depthAttachment.texture = TextureGetMetalTexture( depth.index );
         
@@ -307,14 +320,11 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth )
     }
     else if (color.index == -1 && depth.index == -1)
     {
-        bool clear = true;
-        float clearColor[] = { 0, 0, 0, 0 };
-        
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
-        renderPassDescriptor.colorAttachments[ 0 ].loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderPassDescriptor.colorAttachments[ 0 ].clearColor = MTLClearColorMake( clearColor[ 0 ], clearColor[ 1 ], clearColor[ 2 ], clearColor[ 3 ] );
+        renderPassDescriptor.colorAttachments[ 0 ].loadAction = clearFlag == teClearFlag::DepthAndColor ? MTLLoadActionClear : MTLLoadActionLoad;
         renderPassDescriptor.colorAttachments[ 0 ].resolveTexture = nil;
         renderPassDescriptor.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
-        renderPassDescriptor.depthAttachment.loadAction = clear ? MTLLoadActionClear : MTLLoadActionLoad;
+        renderPassDescriptor.depthAttachment.loadAction = clearFlag != teClearFlag::DontClear ? MTLLoadActionClear : MTLLoadActionLoad;
         renderPassDescriptor.depthAttachment.clearDepth = 0;
         
         renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
@@ -332,7 +342,8 @@ void teBeginSwapchainRendering( teTexture2D& color )
     teTexture2D nullColor, nullDepth;
     nullColor.index = -1;
     nullDepth.index = -1;
-    BeginRendering( nullColor, nullDepth );
+    float clearColor[ 4 ] = { 0, 0, 0, 1 };
+    BeginRendering( nullColor, nullDepth, teClearFlag::DepthAndColor, clearColor );
 }
 
 void teEndSwapchainRendering()
@@ -460,7 +471,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     }
 
     id< MTLBuffer > buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ) };
-    NSUInteger offsets[] = { 0, 0, 0 };
+    NSUInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, 0, 0 };
     
     [renderer.renderEncoder setTriangleFillMode:fillMode == teFillMode::Solid ? MTLTriangleFillModeFill : MTLTriangleFillModeLines];
     [renderer.renderEncoder setFragmentBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:0 atIndex:0];

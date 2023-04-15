@@ -25,5 +25,5 @@ fragment float4 fullscreenPS( ColorInOut in [[stage_in]],
 {
     constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
 
-    return textureMap.sample( mysampler, float2( in.texCoords.x, 1 - in.texCoords.y ) );
+    return textureMap.sample( mysampler, float2( in.texCoords.x, /*1 -*/ in.texCoords.y ) );
 }
