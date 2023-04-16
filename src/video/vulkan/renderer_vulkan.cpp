@@ -12,11 +12,11 @@
 #include "shader.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
+void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
     VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
-void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
@@ -131,7 +131,6 @@ struct Renderer
     unsigned currentBuffer = 0;
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
-    unsigned frameIndex = 0;
 
     VkBuffer textureStagingBuffers[ 6 ];
     VkDeviceMemory textureStagingMemories[ 6 ];
@@ -1393,10 +1392,10 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
 void teBeginFrame()
 {
-    vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence, VK_TRUE, UINT64_MAX );
-    vkResetFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence );
+    vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.currentBuffer ].fence, VK_TRUE, UINT64_MAX );
+    vkResetFences( renderer.device, 1, &renderer.swapchainResources[ renderer.currentBuffer ].fence );
 
-    VkResult err = renderer.acquireNextImageKHR( renderer.device, renderer.swapchain, UINT64_MAX, renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore, VK_NULL_HANDLE, &renderer.currentBuffer );
+    VkResult err = renderer.acquireNextImageKHR( renderer.device, renderer.swapchain, UINT64_MAX, renderer.swapchainResources[ renderer.currentBuffer ].imageAcquiredSemaphore, VK_NULL_HANDLE, &renderer.currentBuffer );
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -1442,20 +1441,20 @@ void teEndFrame()
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pWaitDstStageMask = &pipelineStages;
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore;
+    submitInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].imageAcquiredSemaphore;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
+    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer;
 
-    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
+    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.currentBuffer ].fence ) );
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &renderer.swapchain;
     presentInfo.pImageIndices = &renderer.currentBuffer;
-    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
+    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
     presentInfo.waitSemaphoreCount = 1;
     VkResult err = renderer.queuePresentKHR( renderer.graphicsQueue, &presentInfo );
 
@@ -1471,8 +1470,6 @@ void teEndFrame()
     {
         teAssert( err == VK_SUCCESS );
     }
-
-    renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
 }
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )
