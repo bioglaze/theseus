@@ -56,6 +56,34 @@
 #define PF_IS_ATI2(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '2') ))
 #define PF_IS_DX10(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0') ))
 
+constexpr unsigned dxgiFormat_BC1_UNORM = 71;
+constexpr unsigned dxgiFormat_BC1_UNORM_SRGB = 72;
+constexpr unsigned dxgiFormat_BC2_UNORM = 74;
+constexpr unsigned dxgiFormat_BC2_UNORM_SRGB = 75;
+constexpr unsigned dxgiFormat_BC3_UNORM = 77;
+constexpr unsigned dxgiFormat_BC3_UNORM_SRGB = 78;
+constexpr unsigned dxgiFormat_BC4_UNORM = 80;
+constexpr unsigned dxgiFormat_BC4_SNORM = 81;
+constexpr unsigned dxgiFormat_BC5_UNORM = 83;
+constexpr unsigned dxgiFormat_BC5_SNORM = 84;
+
+teTextureFormat DXGIFormatToTeTextureFormat( unsigned dxgiFormat )
+{
+    if (dxgiFormat == dxgiFormat_BC1_UNORM) return teTextureFormat::BC1;
+    if (dxgiFormat == dxgiFormat_BC1_UNORM_SRGB) return teTextureFormat::BC1_SRGB;
+    if (dxgiFormat == dxgiFormat_BC2_UNORM) return teTextureFormat::BC2;
+    if (dxgiFormat == dxgiFormat_BC2_UNORM_SRGB) return teTextureFormat::BC2_SRGB;
+    if (dxgiFormat == dxgiFormat_BC3_UNORM) return teTextureFormat::BC3;
+    if (dxgiFormat == dxgiFormat_BC3_UNORM_SRGB) return teTextureFormat::BC3_SRGB;
+    if (dxgiFormat == dxgiFormat_BC4_UNORM) return teTextureFormat::BC4U;
+    if (dxgiFormat == dxgiFormat_BC4_SNORM) return teTextureFormat::BC4S;
+    if (dxgiFormat == dxgiFormat_BC5_UNORM) return teTextureFormat::BC5U;
+    if (dxgiFormat == dxgiFormat_BC5_SNORM) return teTextureFormat::BC5S;
+
+    teAssert( !"Unhandled format!" );
+    return teTextureFormat::Invalid;
+}
+
 static inline unsigned MyMax2( unsigned x, unsigned y ) noexcept
 {
     return x > y ? x : y;
@@ -109,9 +137,19 @@ union DDSHeader
     uint8_t data[ 128 ];
 };
 
+struct DDSHeaderDX10
+{
+    uint32_t DXGIFormat;
+    uint32_t resourceDimension;
+    uint32_t miscFlag;
+    uint32_t arraySize;
+    uint32_t reserved;
+};
+
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] )
 {
     DDSHeader header;
+    DDSHeaderDX10 header10;
 
     if (!fileContents.data)
     {
@@ -149,21 +187,22 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     constexpr DDSInfo loadInfoDXT5 = { 4, 16 };
 
     DDSInfo li = {};
+    size_t additionalFileOffset = 0;
 
     if (PF_IS_DXT1( header.sHeader.sPixelFormat ))
     {
         li = loadInfoDXT1;
-        outFormat = teTextureFormat::BC1;
+        outFormat = teTextureFormat::BC1_SRGB;
     }
     else if (PF_IS_DXT3( header.sHeader.sPixelFormat ))
     {
         li = loadInfoDXT3;
-        outFormat = teTextureFormat::BC2;
+        outFormat = teTextureFormat::BC2_SRGB;
     }
     else if (PF_IS_DXT5( header.sHeader.sPixelFormat ))
     {
         li = loadInfoDXT5;
-        outFormat = teTextureFormat::BC3;
+        outFormat = teTextureFormat::BC3_SRGB;
     }
     else if (PF_IS_BC4S( header.sHeader.sPixelFormat ))
     {
@@ -187,10 +226,10 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     }
     else if (PF_IS_DX10( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
-        outFormat = teTextureFormat::BC5U;
-        printf( "DDS Loader unimplemented header DX10 in %s\n", fileContents.path );
-        return false;
+        teMemcpy( &header10, fileContents.data + sizeof( header ), sizeof( header10 ) );
+        li = (header10.DXGIFormat == dxgiFormat_BC1_UNORM || header10.DXGIFormat == dxgiFormat_BC1_UNORM_SRGB) ? loadInfoDXT1 : loadInfoDXT5;
+        outFormat = DXGIFormatToTeTextureFormat( header10.DXGIFormat );
+        additionalFileOffset = sizeof( header10 );
     }
     else if (PF_IS_ATI1( header.sHeader.sPixelFormat ))
     {
@@ -214,7 +253,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     outMipLevelCount = (header.sHeader.dwFlags & DDSD_MIPMAPCOUNT) ? header.sHeader.dwMipMapCount : 1;
     teAssert( outMipLevelCount < 16 && "Too many mipmap levels!" );
 
-    size_t fileOffset = sizeof( header );
+    size_t fileOffset = sizeof( header ) + additionalFileOffset;
     unsigned x = outWidth;
     unsigned y = outHeight;
 

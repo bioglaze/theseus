@@ -129,6 +129,7 @@ struct Renderer
     uint32_t swapchainImageCount = 0;
     uint32_t graphicsQueueIndex = 0;
     unsigned currentBuffer = 0;
+    unsigned frameIndex = 0;
     unsigned swapchainWidth = 0;
     unsigned swapchainHeight = 0;
 
@@ -224,18 +225,18 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
     }
     else if (msgType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
     {
-        printf( "PERF: %s\n", callbackData->pMessage );
+        //printf( "PERF: %s\n", callbackData->pMessage );
     }
 
     if (callbackData->objectCount > 0)
     {
-        printf( "Objects: %u\n", callbackData->objectCount );
+        //printf( "Objects: %u\n", callbackData->objectCount );
 
         // TODO: callbackData has more information, like context marker name.
         for (uint32_t i = 0; i < callbackData->objectCount; ++i)
         {
             const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
-            printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
+            //printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
         }
     }
 
@@ -1392,10 +1393,10 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
 void teBeginFrame()
 {
-    vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.currentBuffer ].fence, VK_TRUE, UINT64_MAX );
-    vkResetFences( renderer.device, 1, &renderer.swapchainResources[ renderer.currentBuffer ].fence );
+    vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence, VK_TRUE, UINT64_MAX );
+    vkResetFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence );
 
-    VkResult err = renderer.acquireNextImageKHR( renderer.device, renderer.swapchain, UINT64_MAX, renderer.swapchainResources[ renderer.currentBuffer ].imageAcquiredSemaphore, VK_NULL_HANDLE, &renderer.currentBuffer );
+    VkResult err = renderer.acquireNextImageKHR( renderer.device, renderer.swapchain, UINT64_MAX, renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore, VK_NULL_HANDLE, &renderer.currentBuffer );
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -1441,20 +1442,20 @@ void teEndFrame()
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pWaitDstStageMask = &pipelineStages;
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].imageAcquiredSemaphore;
+    submitInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
+    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer;
 
-    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.currentBuffer ].fence ) );
+    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &renderer.swapchain;
     presentInfo.pImageIndices = &renderer.currentBuffer;
-    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
+    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
     presentInfo.waitSemaphoreCount = 1;
     VkResult err = renderer.queuePresentKHR( renderer.graphicsQueue, &presentInfo );
 
@@ -1470,6 +1471,8 @@ void teEndFrame()
     {
         teAssert( err == VK_SUCCESS );
     }
+
+    renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
 }
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )
@@ -1524,7 +1527,8 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    //vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
     SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( depth ), VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
@@ -1584,7 +1588,8 @@ void teBeginSwapchainRendering( teTexture2D& color )
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    //vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
 
