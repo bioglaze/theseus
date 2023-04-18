@@ -1703,7 +1703,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     int pushConstants[ 4 ] = { (int)textureIndex, 0, 0, 0 };
     vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
-    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, 0, 0 );
+    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
 
     renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset += sizeof( PerObjectUboStruct );
 }
