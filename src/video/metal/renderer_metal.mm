@@ -229,7 +229,7 @@ void UpdateStagingBuffer( const Buffer& buffer, const void* data, unsigned dataB
     
     uint8_t* bufferPointer = (uint8_t *)[BufferGetBuffer( buffer ) contents];
 
-    teMemcpy( bufferPointer, data, dataBytesNextMultipleOf4 );
+    teMemcpy( bufferPointer + offset, data, dataBytesNextMultipleOf4 );
 }
 
 unsigned AddIndices( const unsigned short* indices, unsigned bytes )
@@ -441,7 +441,7 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
     return psoIndex;
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
 {
     id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
     NSRange range = { 0, 3 };
@@ -471,10 +471,10 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
     }
 
     id< MTLBuffer > buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ) };
-    NSUInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, 0, 0 };
+    NSUInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset };
     
     [renderer.renderEncoder setTriangleFillMode:fillMode == teFillMode::Solid ? MTLTriangleFillModeFill : MTLTriangleFillModeLines];
-    [renderer.renderEncoder setFragmentBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:0 atIndex:0];
+    [renderer.renderEncoder setFragmentBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:0];
     [renderer.renderEncoder setVertexBuffers:buffers offsets:offsets withRange:range];
     [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                               indexCount:indexCount * 3
@@ -487,5 +487,5 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index );
 }

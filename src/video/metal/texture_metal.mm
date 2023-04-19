@@ -4,6 +4,7 @@
 #include "te_stdlib.h"
 
 void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
+bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 
 extern id<MTLDevice> gDevice;
 extern id<MTLCommandQueue> gCommandQueue;
@@ -20,6 +21,11 @@ struct teTextureImpl
 
 teTextureImpl textures[ 100 ];
 unsigned textureCount = 1;
+
+static inline unsigned Max2( unsigned x, unsigned y ) noexcept
+{
+    return x > y ? x : y;
+}
 
 static MTLPixelFormat GetPixelFormat( teTextureFormat aeFormat )
 {
@@ -148,8 +154,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
-
-    MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    tex.format = MTLPixelFormatBGRA8Unorm_sRGB;
+    
     unsigned multiplier = 1;
     unsigned bitsPerPixel = 0;
     unsigned offset = 0;
@@ -161,7 +167,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
         multiplier = 4;
 
         MTLTextureDescriptor* stagingDescriptor =
-        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:pixelFormat
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:tex.format
                                                            width:tex.width
                                                           height:tex.height
                                                        mipmapped:(flags & teTextureFlags::GenerateMips ? YES : NO)];
@@ -194,7 +200,77 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
         [cmdBuffer commit];
         [cmdBuffer waitUntilCompleted];
     }
+#if !TARGET_OS_IPHONE
+    else if (strstr( file.path, ".dds" ) || strstr( file.path, ".DDS" ))
+    {
+        unsigned mipOffsets[ 15 ];
+        LoadDDS( file, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets  );
+        tex.format = GetPixelFormat( outTexture.format );
+        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
 
+        if (!(flags & teTextureFlags::GenerateMips))
+        {
+            tex.mipLevelCount = 1;
+        }
+        
+        MTLTextureDescriptor* stagingDescriptor =
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:tex.format
+                                                           width:tex.width
+                                                          height:tex.height
+                                                       mipmapped:(flags & teTextureFlags::GenerateMips ? YES : NO)];
+        id<MTLTexture> stagingTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+
+        for (unsigned mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
+        {
+            const unsigned mipWidth = Max2( tex.width >> mipIndex, 1 );
+            const unsigned mipHeight = Max2( tex.height >> mipIndex, 1 );
+            unsigned mipBytesPerRow = mipWidth * multiplier;
+            
+            if (mipBytesPerRow < 8)
+            {
+                mipBytesPerRow = 8;
+            }
+            
+            MTLRegion region = MTLRegionMake2D( 0, 0, mipWidth, mipHeight );
+            [stagingTexture replaceRegion:region mipmapLevel:mipIndex withBytes:&file.data[ mipOffsets[ mipIndex ] ] bytesPerRow:mipBytesPerRow];
+        }
+
+        stagingDescriptor.usage = MTLTextureUsageShaderRead;
+        stagingDescriptor.storageMode = MTLStorageModePrivate;
+        tex.metalTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+        tex.metalTexture.label = [NSString stringWithUTF8String:file.path];
+
+
+        for (unsigned mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
+        {
+            id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
+            cmdBuffer.label = @"BlitCommandBuffer";
+            id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
+
+            const unsigned mipWidth = Max2( tex.width >> mipIndex, 1 );
+            const unsigned mipHeight = Max2( tex.height >> mipIndex, 1 );
+
+            [blitEncoder copyFromTexture:stagingTexture
+                              sourceSlice:0
+                              sourceLevel:mipIndex
+                             sourceOrigin:MTLOriginMake( 0, 0, 0 )
+                               sourceSize:MTLSizeMake( mipWidth, mipHeight, 1 )
+                                toTexture:tex.metalTexture
+                         destinationSlice:0
+                         destinationLevel:mipIndex
+                        destinationOrigin:MTLOriginMake( 0, 0, 0 ) ];
+            
+            [blitEncoder endEncoding];
+            [cmdBuffer commit];
+            [cmdBuffer waitUntilCompleted];
+        }
+    }
+#endif
+    else
+    {
+        teAssert( !"Unknown texture extension!" );
+    }
+    
     return outTexture;
 }
 
