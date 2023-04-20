@@ -415,15 +415,14 @@ static unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format
     return width * height * 4;
 }
 
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, VkFormat format, unsigned index )
+void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index )
 {
     const VkDeviceSize imageSize = GetMemoryUsage( width, height, format );
 
     void* stagingData;
     VK_CHECK( vkMapMemory( renderer.device, renderer.textureStagingMemories[ index ], 0, renderer.textureStagingMemAllocInfos[ index ].allocationSize, 0, &stagingData ) );
     
-    // FIXME: This should only work for POW2 textures.
-    teMemcpy( stagingData, &file.data[ dataBeginOffset ], imageSize );
+    teMemcpy( stagingData, src, imageSize );
 
     VkMappedMemoryRange flushRange = {};
     flushRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -1682,14 +1681,14 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
     renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
 {
     if (textureIndex != 0)
     {
         teTexture2D tex;
         tex.index = textureIndex;
         
-        for (unsigned i = 0; i < 80; ++i)
+        for (unsigned i = 0; i < TextureCount; ++i)
         {
             renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
         }
@@ -1710,5 +1709,5 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned indexCount,
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index );
 }

@@ -7,7 +7,7 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
 void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
-void UpdateStagingTexture( const teFile& file, unsigned width, unsigned height, unsigned dataBeginOffset, unsigned bytesPerPixel, VkFormat format, unsigned index );
+void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
     VkImageLayout newImageLayout, unsigned layerCount, unsigned mipLevel, unsigned mipLevelCount, VkPipelineStageFlags srcStageFlags );
 
@@ -455,7 +455,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( tex.mipLevelCount <= 15 );
 
-        UpdateStagingTexture( file, tex.width, tex.height, dataBeginOffset, bytesPerPixel, format, 0 );
+        UpdateStagingTexture( &file.data[ dataBeginOffset ], tex.width, tex.height, format, 0 );
         CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, tex.mipLevelCount, file.path, cmdBuffer );
         CreateMipLevels( tex, tex.mipLevelCount, device, graphicsQueue, cmdBuffer );
     }
@@ -598,7 +598,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
             teAssert( tex.mipLevelCount <= 15 );
 
-            UpdateStagingTexture( files[ face ], tex.width, tex.height, dataBeginOffset, bytesPerPixel, format, face );
+            UpdateStagingTexture( &files[ face ].data[ dataBeginOffset ], tex.width, tex.height, format, face );
         }
         else if (strstr( paths[ face ], ".dds" ) || strstr( paths[ face ], ".DDS" ))
         {
@@ -621,7 +621,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             GetFormatAndBPP( bcFormat, format, bytesPerPixel );
             tex.vulkanFormat = format;
             outTexture.format = bcFormat;
-            UpdateStagingTexture( files[ face ], tex.width, tex.height, mipOffsets[ face ][ 0 ], bytesPerPixel, format, face );
+            UpdateStagingTexture( &files[ face ].data[ mipOffsets[ face ][ 0 ] ], tex.width, tex.height, format, face);
         }
     }
 

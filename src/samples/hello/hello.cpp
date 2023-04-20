@@ -58,6 +58,31 @@ int Random100()
     return pcg32_random_r( &rng ) % 100;
 }
 
+struct ImGUIImplCustom
+{
+    int width = 0;
+    int height = 0;
+    const char* name = "jeejee";
+};
+
+void RenderImGUIDrawData( ImDrawData* drawData )
+{
+    int fbWidth = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+    int fbHeight = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+    // Don't render when minimized.
+    if (fbWidth <= 0 || fbHeight <= 0)
+        return;
+
+    if (drawData->TotalVtxCount > 0)
+    {
+        size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+
+        ImDrawVert* vtxDst = nullptr;
+        ImDrawIdx* idxDst = nullptr;
+    }
+}
+
 int main()
 {
 #ifdef _WIN32
@@ -93,6 +118,7 @@ int main()
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
+    //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
     teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips );
 
     teMaterial material = teCreateMaterial( unlitShader );
@@ -117,11 +143,18 @@ int main()
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, material, 0 );
 
+    teMesh cubeMesh2 = teCreateCubeMesh();
+    teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
+    teTransformSetLocalPosition( cubeGo2.index, Vec3( 0, 20, 0 ) );
+    teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
+    teMeshRendererSetMaterial( cubeGo2.index, material, 0 );
+
     teFinalizeMeshBuffers();
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
-    //teSceneAdd( scene, cubeGo.index );
+    teSceneAdd( scene, cubeGo.index );
+    teSceneAdd( scene, cubeGo2.index );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;
@@ -151,6 +184,8 @@ int main()
         }
     }
 
+    ImGUIImplCustom impl;
+
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
@@ -159,6 +194,9 @@ int main()
     unsigned char* fontPixels;
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
+    io.BackendRendererUserData = &impl;
+    io.BackendRendererName = "imgui_impl_vulkan";
+    //io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;
@@ -295,6 +333,8 @@ int main()
         ImGui::Text( "This is some useful text." );
         ImGui::End();
         ImGui::Render();
+        ImDrawData* drawData = ImGui::GetDrawData();
+        RenderImGUIDrawData( drawData );
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
@@ -307,6 +347,8 @@ int main()
     delete[] unlitPsFile.data;
     delete[] fullscreenVsFile.data;
     delete[] fullscreenPsFile.data;
+    delete[] skyboxVsFile.data;
+    delete[] skyboxPsFile.data;
     delete[] gliderFile.data;
     delete[] backFile.data;
     delete[] frontFile.data;
@@ -315,8 +357,6 @@ int main()
     delete[] topFile.data;
     delete[] bottomFile.data;
     delete[] bc1File.data;
-    delete[] skyboxVsFile.data;
-    delete[] skyboxPsFile.data;
 
     ImGui::DestroyContext( imContext );
 
