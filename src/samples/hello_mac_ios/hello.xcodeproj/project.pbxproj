@@ -18,6 +18,8 @@
 		AB7EADFF29E04943003A182A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADFE29E04943003A182A /* main.m */; };
 		AB7EAE0529E04943003A182A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADD929E04943003A182A /* Assets.xcassets */; };
 		AB7EAE0629E04943003A182A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADD929E04943003A182A /* Assets.xcassets */; };
+		AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB91EFAA29F2C076009A7EEA /* skybox.metal */; };
+		AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB91EFAA29F2C076009A7EEA /* skybox.metal */; };
 		ABA3ACA929E0624E008BAD89 /* theseus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; };
 		ABA3ACAA29E0624E008BAD89 /* theseus.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		ABA3ACB629E07DCD008BAD89 /* unlit.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB429E07DCD008BAD89 /* unlit.metal */; };
@@ -60,6 +62,7 @@
 		AB7EADFC29E04943003A182A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		AB7EADFE29E04943003A182A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AB7EAE0029E04943003A182A /* hello_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hello_macOS.entitlements; sourceTree = "<group>"; };
+		AB91EFAA29F2C076009A7EEA /* skybox.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = skybox.metal; path = ../../shaders/metal/skybox.metal; sourceTree = "<group>"; };
 		ABA3ACA829E0624E008BAD89 /* theseus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = theseus.framework; sourceTree = "<group>"; };
 		ABA3ACB329E07DCD008BAD89 /* ubo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ubo.h; path = ../../shaders/metal/ubo.h; sourceTree = "<group>"; };
 		ABA3ACB429E07DCD008BAD89 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
@@ -171,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */,
+				AB91EFAA29F2C076009A7EEA /* skybox.metal */,
 				ABA3ACB329E07DCD008BAD89 /* ubo.h */,
 				ABA3ACB429E07DCD008BAD89 /* unlit.metal */,
 			);
@@ -306,6 +310,7 @@
 				ABA3ACB829E07DCD008BAD89 /* fullscreen.metal in Sources */,
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
+				AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,6 +323,7 @@
 				ABA3ACB929E07DCD008BAD89 /* fullscreen.metal in Sources */,
 				AB7EADFF29E04943003A182A /* main.m in Sources */,
 				AB7EADF729E04943003A182A /* AppDelegate.m in Sources */,
+				AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

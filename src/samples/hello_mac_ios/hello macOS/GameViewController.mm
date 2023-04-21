@@ -50,6 +50,7 @@ int Random100()
     
     teShader unlitShader;
     teShader fullscreenShader;
+    teShader skyboxShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
@@ -57,6 +58,10 @@ int Random100()
     teMaterial material;
     teMesh cubeMesh;
     teTexture2D gliderTex;
+    teTexture2D bc1Tex;
+    teTexture2D bc2Tex;
+    teTexture2D bc3Tex;
+    teTextureCube skyTex;
     teScene scene;
 }
 
@@ -112,6 +117,7 @@ void MoveUp( float amount )
     
     fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
     unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
+    skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
     
     camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
@@ -122,14 +128,26 @@ void MoveUp( float amount )
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
     
     gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips );
+    bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips );
+    bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips );
+    bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips );
     
     material = teCreateMaterial( unlitShader );
-    teMaterialSetTexture2D( material, gliderTex, 0 );
+    teMaterialSetTexture2D( material, bc1Tex, 0 );
     
     cubeMesh = teCreateCubeMesh();
     cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, material, 0 );
+
+    teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
+    teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
+    teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );
+    teFile rightFile = teLoadFile( "assets/textures/skybox/right.dds" );
+    teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
+    teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
+    
+    skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0, teTextureFilter::LinearRepeat );
 
     scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
@@ -179,7 +197,8 @@ void MoveUp( float amount )
 
     SetDrawable( view.currentDrawable );
     teBeginFrame();
-    teSceneRender( scene, NULL, NULL, NULL );
+    //teSceneRender( scene, NULL, NULL, NULL );
+    teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
     teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
     teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
     teEndSwapchainRendering();

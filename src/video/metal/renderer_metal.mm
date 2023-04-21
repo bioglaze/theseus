@@ -75,6 +75,8 @@ struct Renderer
     Buffer staticMeshPositionStagingBuffer;
     Buffer staticMeshUVStagingBuffer;
     Buffer staticMeshUVBuffer;
+    
+    teTexture2D defaultTexture2D;
 };
 
 Renderer renderer;
@@ -210,6 +212,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 #endif
         renderer.frameResources[ i ].uniformBuffer.label = @"uniform buffer";
     }
+    
+    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
 }
 
 void PushGroupMarker( const char* name )

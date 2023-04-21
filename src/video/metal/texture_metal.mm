@@ -20,7 +20,7 @@ struct teTextureImpl
 };
 
 teTextureImpl textures[ 100 ];
-unsigned textureCount = 1;
+unsigned textureCount = 0;
 
 static inline unsigned Max2( unsigned x, unsigned y ) noexcept
 {
@@ -101,7 +101,7 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
 {
     teAssert( textureCount < 100 );
 
-    const unsigned index = textureCount++;
+    const unsigned index = ++textureCount;
 
     teTextureImpl& tex = textures[ index ];
     tex.width = width;
@@ -150,11 +150,18 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTexture2D outTexture;
-    outTexture.index = textureCount++;
+    outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
     tex.format = MTLPixelFormatBGRA8Unorm_sRGB;
+    
+    if (file.data == nullptr)
+    {
+        outTexture.index = 1;
+        --textureCount;
+        return outTexture;
+    }
     
     unsigned multiplier = 1;
     unsigned bitsPerPixel = 0;
@@ -240,13 +247,12 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
         tex.metalTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
         tex.metalTexture.label = [NSString stringWithUTF8String:file.path];
 
+        id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
+        cmdBuffer.label = @"BlitCommandBuffer";
+        id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
 
         for (unsigned mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
         {
-            id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
-            cmdBuffer.label = @"BlitCommandBuffer";
-            id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
-
             const unsigned mipWidth = Max2( tex.width >> mipIndex, 1 );
             const unsigned mipHeight = Max2( tex.height >> mipIndex, 1 );
 
@@ -259,11 +265,11 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
                          destinationSlice:0
                          destinationLevel:mipIndex
                         destinationOrigin:MTLOriginMake( 0, 0, 0 ) ];
-            
-            [blitEncoder endEncoding];
-            [cmdBuffer commit];
-            [cmdBuffer waitUntilCompleted];
         }
+        
+        [blitEncoder endEncoding];
+        [cmdBuffer commit];
+        [cmdBuffer waitUntilCompleted];
     }
 #endif
     else
@@ -280,11 +286,78 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTextureCube outTexture;
-    outTexture.index = textureCount++;
+    outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
     //tex.filter = filter;
     tex.flags = flags;
 
+#if !TARGET_OS_IPHONE
+    if (strstr( negX.path, ".dds" ) || strstr( negX.path, ".DDS" ))
+    {
+        // This code assumes that all cube map faces have the same format/dimension.
+        unsigned multiplier = 1;
+        unsigned bitsPerPixel = 0;
+        unsigned offset = 0;
+        unsigned mipOffsets[ 15 ];
+        
+        LoadDDS( negX, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets );
+        
+        tex.format = GetPixelFormat( outTexture.format );
+        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
+
+        if (!(flags & teTextureFlags::GenerateMips))
+        {
+            tex.mipLevelCount = 1;
+        }
+        
+        MTLTextureDescriptor* stagingDescriptor =
+        [MTLTextureDescriptor textureCubeDescriptorWithPixelFormat:tex.format
+                                                           size:tex.width
+                                                       mipmapped:(flags & teTextureFlags::GenerateMips ? YES : NO)];
+        id<MTLTexture> stagingTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+
+        const unsigned char* datas[ 6 ] = { negX.data, posX.data, negY.data, posY.data, negZ.data, posZ.data };
+        MTLRegion region = MTLRegionMake2D( 0, 0, tex.width, tex.width );
+        
+        for (int face = 0; face < 6; ++face)
+        {
+            [stagingTexture replaceRegion:region
+                              mipmapLevel:0
+                                    slice:face
+                                withBytes:datas[ face ] + offset
+                              bytesPerRow:multiplier * tex.width
+                            bytesPerImage:0];
+        }
+
+        stagingDescriptor.usage = MTLTextureUsageShaderRead;
+        stagingDescriptor.storageMode = MTLStorageModePrivate;
+        tex.metalTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+        tex.metalTexture.label = [NSString stringWithUTF8String:negX.path];
+
+        for (unsigned mipIndex = 0; mipIndex < [stagingTexture mipmapLevelCount]; ++mipIndex)
+        {
+            for (unsigned faceIndex = 0; faceIndex < 6; ++faceIndex)
+            {
+                id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
+                cmdBuffer.label = @"BlitCommandBuffer";
+                id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
+                [blitEncoder copyFromTexture:stagingTexture
+                                  sourceSlice:faceIndex
+                                  sourceLevel:mipIndex
+                                 sourceOrigin:MTLOriginMake( 0, 0, 0 )
+                                   sourceSize:MTLSizeMake( tex.width >> mipIndex, tex.height >> mipIndex, 1 )
+                                    toTexture:tex.metalTexture
+                             destinationSlice:faceIndex
+                             destinationLevel:mipIndex
+                            destinationOrigin:MTLOriginMake( 0, 0, 0 ) ];
+                [blitEncoder endEncoding];
+                [cmdBuffer commit];
+                [cmdBuffer waitUntilCompleted];
+            }
+        }
+    }
+#endif
+    
     return outTexture;
 }
 

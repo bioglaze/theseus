@@ -7,10 +7,10 @@ using namespace metal;
 struct ColorInOut
 {
     float4 position [[position]];
-    float2 uv;
+    float3 uv;
 };
 
-vertex ColorInOut unlitVS( uint vid [[ vertex_id ]],
+vertex ColorInOut skyboxVS( uint vid [[ vertex_id ]],
                           constant Uniforms & uniforms [[ buffer(0) ]],
                            const device packed_float3* positions [[ buffer(1) ]],
                            const device packed_float2* uvs [[ buffer(2) ]])
@@ -18,12 +18,12 @@ vertex ColorInOut unlitVS( uint vid [[ vertex_id ]],
     ColorInOut out;
 
     out.position = uniforms.localToClip[ 0 ] * float4( positions[ vid ], 1 );
-    out.uv = float2( uvs[ vid ] );
+    out.uv = float3( positions[ vid ] );
     
     return out;
 }
 
-fragment float4 unlitPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]]/*, sampler sampler0 [[sampler(0)]]*/ )
+fragment float4 skyboxPS( ColorInOut in [[stage_in]], texturecube<float, access::sample> textureMap [[texture(0)]] )
 {
     constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
     //return float4( 1, 0, 0, 1 );
