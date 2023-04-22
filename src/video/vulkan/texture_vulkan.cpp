@@ -5,7 +5,7 @@
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
+void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
@@ -43,6 +43,34 @@ static unsigned GetMipLevelCount( unsigned width, unsigned height ) noexcept
     }
 
     return count;
+}
+
+unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
+{
+    if (format == VK_FORMAT_BC1_RGB_SRGB_BLOCK || format == VK_FORMAT_BC1_RGB_UNORM_BLOCK)
+    {
+        return (width * height * 4) / 8;
+    }
+    else if (format == VK_FORMAT_BC2_SRGB_BLOCK || format == VK_FORMAT_BC2_UNORM_BLOCK)
+    {
+        return (width * height * 4) / 4;
+    }
+    else if (format == VK_FORMAT_BC3_SRGB_BLOCK || format == VK_FORMAT_BC3_UNORM_BLOCK)
+    {
+        return (width * height * 4) / 4;
+    }
+    else if (format == VK_FORMAT_BC4_SNORM_BLOCK || format == VK_FORMAT_BC4_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 2) / 4;
+    }
+    else if (format == VK_FORMAT_BC5_SNORM_BLOCK || format == VK_FORMAT_BC5_UNORM_BLOCK)
+    {
+        // TODO: Verify this!
+        return (width * height * 4) / 4;
+    }
+
+    return width * height * 4;
 }
 
 void GetFormatAndBPP( teTextureFormat format, VkFormat& outFormat, unsigned& outBytesPerPixel )
@@ -353,7 +381,7 @@ static void CreateMipLevels( teTextureImpl& tex, unsigned mipLevelCount, VkDevic
     vkDeviceWaitIdle( device );
 }
 
-static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat format, unsigned faceCount, const teFile* files, unsigned mipOffsets[ 6 ][ 15 ], VkDevice device, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties )
+static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned faceCount, const teFile* files, unsigned mipOffsets[ 6 ][ 15 ], VkDevice device, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties )
 {
     teAssert( faceCount <= 6 );
 
@@ -367,8 +395,10 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat form
             const int32_t mipWidth = Max2( tex.width >> mipLevel, 1 );
             const int32_t mipHeight = Max2( tex.height >> mipLevel, 1 );
 
-            const VkDeviceSize bc1BlockSize = isOpaque ? 8 : 16;
-            VkDeviceSize imageSize = (mipWidth / 4) * (mipHeight / 4) * (format == VK_FORMAT_BC5_UNORM_BLOCK ? 16 : bc1BlockSize);
+            const VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK) ? 8 : 16;
+            
+            // TODO: Use GetMemoryUsage() instead.
+            VkDeviceSize imageSize = (mipWidth / 4) * (mipHeight / 4) * bcBlockSize;
 
             if (imageSize == 0)
             {
@@ -394,7 +424,7 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, bool isOpaque, VkFormat form
             VK_CHECK( vkBindBufferMemory( device, stagingBuffers[ mipLevel ], stagingMemory[ mipLevel ], 0 ) );
 
             void* stagingData;
-            VK_CHECK( vkMapMemory( device, stagingMemory[ mipLevel ], 0, memReqs.size, 0, &stagingData ) );
+            VK_CHECK(vkMapMemory(device, stagingMemory[mipLevel], 0, memReqs.size, 0, &stagingData));
 
             VkDeviceSize amountToCopy = imageSize;
 
@@ -440,6 +470,13 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     //tex.filter = filter;
     tex.flags = flags;
 
+    if (file.data == nullptr)
+    {
+        outTexture.index = 1;
+        --textureCount;
+        return outTexture;
+    }
+
     unsigned bytesPerPixel = 4;
     VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
 
@@ -447,9 +484,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     {
         unsigned bitsPerPixel = 24;
         unsigned dataBeginOffset = 0;
-        unsigned char* pixelData = nullptr;
 
-        LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel, &pixelData );
+        LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
         bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
 
         tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
@@ -513,7 +549,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 
         SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 0, tex.mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
-        CopyMipmapsFromDDS( tex, bcFormat == teTextureFormat::BC1, format, 1, &file, mipOffsets2, device, cmdBuffer, deviceMemoryProperties );
+        CopyMipmapsFromDDS( tex, format, 1, &file, mipOffsets2, device, cmdBuffer, deviceMemoryProperties );
 
         VK_CHECK( vkEndCommandBuffer( cmdBuffer ) );
 
@@ -591,9 +627,8 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
             unsigned bitsPerPixel = 24;
             unsigned dataBeginOffset = 0;
-            unsigned char* pixelData = nullptr;
 
-            LoadTGA( files[ face ], tex.width, tex.height, dataBeginOffset, bitsPerPixel, &pixelData );
+            LoadTGA( files[ face ], tex.width, tex.height, dataBeginOffset, bitsPerPixel );
             bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
             tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
             teAssert( tex.mipLevelCount <= 15 );
@@ -634,7 +669,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
     if (isDDS)
     {
-        CopyMipmapsFromDDS( tex, bcFormat == teTextureFormat::BC1, format, 6, files, mipOffsets, device, cmdBuffer, deviceMemoryProperties );
+        CopyMipmapsFromDDS( tex, format, 6, files, mipOffsets, device, cmdBuffer, deviceMemoryProperties );
     }
 
     VkImageMemoryBarrier imageMemoryBarrier = {};

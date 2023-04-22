@@ -13,6 +13,7 @@
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
+unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
     VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
@@ -383,36 +384,6 @@ static void CreateStagingTexture( unsigned index )
     SetObjectName( renderer.device, (uint64_t)renderer.textureStagingMemories[ index ], VK_OBJECT_TYPE_DEVICE_MEMORY, "texture staging memory" );
 
     VK_CHECK( vkBindBufferMemory( renderer.device, renderer.textureStagingBuffers[ index ], renderer.textureStagingMemories[ index ], 0 ) );
-}
-
-static unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
-{
-    if (format == VK_FORMAT_BC1_RGB_SRGB_BLOCK || format == VK_FORMAT_BC1_RGB_UNORM_BLOCK)
-    {
-        return (width * height * 4) / 8;
-    }
-    else if (format == VK_FORMAT_BC2_SRGB_BLOCK || format == VK_FORMAT_BC2_UNORM_BLOCK)
-    {
-        // TODO: Verify this!
-        return (width * height * 4) / 4;
-    }
-    else if (format == VK_FORMAT_BC3_SRGB_BLOCK || format == VK_FORMAT_BC3_UNORM_BLOCK)
-    {
-        // TODO: Verify this!
-        return (width * height * 4) / 4;
-    }
-    else if (format == VK_FORMAT_BC4_SNORM_BLOCK || format == VK_FORMAT_BC4_UNORM_BLOCK)
-    {
-        // TODO: Verify this!
-        return (width * height * 2) / 4;
-    }
-    else if (format == VK_FORMAT_BC5_SNORM_BLOCK || format == VK_FORMAT_BC5_UNORM_BLOCK)
-    {
-        // TODO: Verify this!
-        return (width * height * 4) / 4;
-    }
-
-    return width * height * 4;
 }
 
 void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index )

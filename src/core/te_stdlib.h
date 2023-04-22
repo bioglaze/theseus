@@ -34,6 +34,10 @@ static const char* teStrstr( const char* s1, const char* s2 )
 
 static void teMemcpy( void* dst, const void* src, size_t size )
 {
+    char* x = (char*)dst;
+    char* y = (char*)src;
+    teAssert( !((x <= y && x + size > y) || (y <= x && y + size > x)) ); // overlap test
+
     memcpy( dst, src, size );
 }
 

@@ -281,7 +281,8 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     return true;
 }
 
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData )
+// Supported format: RGBA8, non-RLE .tga
+void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel )
 {
     unsigned char* data = (unsigned char*)file.data;
 
@@ -299,21 +300,15 @@ void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsig
     offs += 5; // colorSpec
     offs += 4; // specBegin
 
-    unsigned width = data[ offs ] | (data[ offs + 1 ] << 8);
+    outWidth = data[ offs ] | (data[ offs + 1 ] << 8);
     ++offs;
 
-    unsigned height = data[ offs + 1 ] | (data[ offs + 2 ] << 8);
+    outHeight = data[ offs + 1 ] | (data[ offs + 2 ] << 8);
 
     ++offs;
-
-    outWidth = width;
-    outHeight = height;
 
     offs += 4; // specEnd
     outBitsPerPixel = data[ offs - 2 ];
-
-    *outPixelData = (unsigned char*)teMalloc( width * height * 4 );
-    teMemcpy( *outPixelData, data, width * outBitsPerPixel / 8 );
 
     const int topLeft = data[ offs - 1 ] & 32;
 
