@@ -943,10 +943,10 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 #endif
 
     uint32_t formatCount = 0;
-    VkResult err = renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, nullptr );
+    VK_CHECK( renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, nullptr ) );
 
     VkSurfaceFormatKHR* surfFormats = new VkSurfaceFormatKHR[ formatCount ];
-    err = renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, surfFormats );
+    VK_CHECK( renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, surfFormats ) );
 
     VkFormat colorFormat = VK_FORMAT_UNDEFINED;
     bool foundSRGB = false;
@@ -1514,7 +1514,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 }
 
-void EndRendering( teTexture2D& color )
+void EndRendering()
 {
     vkCmdEndRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
 }
@@ -1574,9 +1574,7 @@ void teBeginSwapchainRendering( teTexture2D& color )
 
 void teEndSwapchainRendering()
 {
-    teTexture2D nullTex;
-    
-    EndRendering( nullTex );
+    EndRendering();
 
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer ) );
 }
