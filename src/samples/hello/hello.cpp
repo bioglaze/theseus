@@ -235,7 +235,11 @@ int main()
                 shouldQuit = true;
             }
 
-            if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
+            if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::R)
+            {
+                teHotReload();
+            }
+            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
             {
                 moveDir.z = -0.5f;
             }

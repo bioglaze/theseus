@@ -10,3 +10,5 @@ struct teFile
 // @param path Path to the file to open.
 // @return File. Caller is responsible for freeing teFile.data.
 teFile teLoadFile( const char* path );
+// Reloads shaders, textures etc. that have changed on disk.
+void teHotReload();
