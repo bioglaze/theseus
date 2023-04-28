@@ -1,8 +1,11 @@
 #include "shader.h"
 #include <vulkan/vulkan.h>
 #include "file.h"
+#include "te_stdlib.h"
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
+void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const char*) );
+void ClearPSOCache();
 
 struct teShaderImpl
 {
@@ -13,8 +16,21 @@ struct teShaderImpl
     VkPipeline pso = {};
 };
 
-teShaderImpl shaders[ 40 ];
-unsigned shaderCount = 0;
+constexpr unsigned MaxShaders = 40;
+teShaderImpl shaders[ MaxShaders ];
+unsigned nextShaderIndex = 1;
+
+struct ShaderCacheEntry
+{
+    char vertexPath[ 260 ] = {};
+    char fragmentPath[ 260 ] = {};
+    char vertexName[ 260 ] = {};
+    char fragmentName[ 260 ] = {};
+    unsigned shaderIndex = 0;
+    inline static VkDevice device;
+};
+
+ShaderCacheEntry shaderCacheEntries[ MaxShaders ];
 
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo )
 {
@@ -22,12 +38,58 @@ void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& o
     outFragmentInfo = shaders[ shader.index ].fragmentInfo;
 }
 
+void ReloadShader( const char* path )
+{
+    for (unsigned i = 0; i < MaxShaders; ++i)
+    {
+        if (!teStrcmp( shaderCacheEntries[ i ].vertexPath, path ) || !teStrcmp( shaderCacheEntries[ i ].fragmentPath, path ))
+        {
+            teFile vertexFile = teLoadFile( shaderCacheEntries[ i ].vertexPath );
+            teFile fragmentFile = teLoadFile( shaderCacheEntries[ i ].fragmentPath );
+
+            {
+                VkShaderModuleCreateInfo moduleCreateInfo = {};
+                moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+                moduleCreateInfo.codeSize = vertexFile.size;
+                moduleCreateInfo.pCode = (const uint32_t*)vertexFile.data;
+
+                VK_CHECK( vkCreateShaderModule( ShaderCacheEntry::device, &moduleCreateInfo, nullptr, &shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexShaderModule ) );
+                SetObjectName( ShaderCacheEntry::device, (uint64_t)shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, vertexFile.path );
+
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexInfo.module = shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexShaderModule;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].vertexInfo.pName = shaderCacheEntries[ i ].vertexName;
+            }
+
+            {
+                VkShaderModuleCreateInfo moduleCreateInfo = {};
+                moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+                moduleCreateInfo.codeSize = fragmentFile.size;
+                moduleCreateInfo.pCode = (const uint32_t*)fragmentFile.data;
+
+                VK_CHECK( vkCreateShaderModule( ShaderCacheEntry::device, &moduleCreateInfo, nullptr, &shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentShaderModule ) );
+                SetObjectName( ShaderCacheEntry::device, (uint64_t)shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, fragmentFile.path );
+
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.module = shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentShaderModule;
+                shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.pName = shaderCacheEntries[ i ].fragmentName;
+            }
+        }
+    }
+
+    ClearPSOCache();
+}
+
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName )
 {
-    teAssert( shaderCount < 40 );
+    teAssert( nextShaderIndex < MaxShaders );
+
+    ShaderCacheEntry::device = device;
 
     teShader outShader;
-    outShader.index = shaderCount++;
+    outShader.index = nextShaderIndex++;
 
     {
         VkShaderModuleCreateInfo moduleCreateInfo = {};
@@ -57,6 +119,22 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
         shaders[ outShader.index ].fragmentInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         shaders[ outShader.index ].fragmentInfo.module = shaders[ outShader.index ].fragmentShaderModule;
         shaders[ outShader.index ].fragmentInfo.pName = fragmentName;
+    }
+
+    RegisterFileForModifications( vertexFile, ReloadShader );
+    RegisterFileForModifications( fragmentFile, ReloadShader );
+
+    for (unsigned i = 0; i < MaxShaders; ++i)
+    {
+        if (shaderCacheEntries[ i ].shaderIndex == 0)
+        {
+            shaderCacheEntries[ i ].shaderIndex = outShader.index;
+            teMemcpy( shaderCacheEntries[ i ].vertexName, vertexName, teStrlen( vertexName ) + 1 );
+            teMemcpy( shaderCacheEntries[ i ].fragmentName, fragmentName, teStrlen( fragmentName ) + 1 );
+            teMemcpy( shaderCacheEntries[ i ].vertexPath, vertexFile.path, teStrlen( vertexFile.path ) + 1 );
+            teMemcpy( shaderCacheEntries[ i ].fragmentPath, fragmentFile.path, teStrlen( fragmentFile.path ) + 1 );
+            break;
+        }
     }
 
     return outShader;

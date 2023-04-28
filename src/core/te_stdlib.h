@@ -32,6 +32,18 @@ static const char* teStrstr( const char* s1, const char* s2 )
     return strstr( s1, s2 );
 }
 
+static unsigned teStrlen( const char* str )
+{
+    unsigned len = 0;
+
+    while (str[ len ] != 0)
+    {
+        ++len;
+    }
+
+    return len;
+}
+
 static void teMemcpy( void* dst, const void* src, size_t size )
 {
     char* x = (char*)dst;

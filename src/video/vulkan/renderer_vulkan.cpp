@@ -138,7 +138,8 @@ struct Renderer
     VkDeviceMemory textureStagingMemories[ 6 ];
     VkMemoryAllocateInfo textureStagingMemAllocInfos[ 6 ];
 
-    PSO psos[ 250 ];
+    static constexpr unsigned MaxPSOs = 250;
+    PSO psos[ MaxPSOs ];
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
     PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
@@ -236,7 +237,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
         // TODO: callbackData has more information, like context marker name.
         for (uint32_t i = 0; i < callbackData->objectCount; ++i)
         {
-            const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
+            //const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
             //printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
         }
     }
@@ -539,6 +540,14 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     return pso;
 }
 
+void ClearPSOCache()
+{
+    for (int i = 0; i < Renderer::MaxPSOs; ++i)
+    {
+        renderer.psos[ i ] = {};
+    }
+}
+
 static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
     int psoIndex = -1;
@@ -546,7 +555,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo );
 
-    for (int i = 0; i < 250; ++i)
+    for (int i = 0; i < Renderer::MaxPSOs; ++i)
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
@@ -562,7 +571,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     {
         int nextFreePsoIndex = -1;
 
-        for (int i = 0; i < 250; ++i)
+        for (int i = 0; i < Renderer::MaxPSOs; ++i)
         {
             if (renderer.psos[ i ].pso == VK_NULL_HANDLE)
             {
@@ -1650,7 +1659,7 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
     renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
+void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
 {
     if (textureIndex != 0)
     {

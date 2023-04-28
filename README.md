@@ -13,7 +13,8 @@ Very early days, only renders hard-coded cubes, without lights etc.
   - Modern Vulkan 1.3 and Metal 3 renderers
   - Fast compile times
   - Loads .tga and .dds textures
-
+  - Shader hot-reloading
+  
 # Platforms
 
   - Windows (VS 2022 project files included)
