@@ -336,7 +336,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     }
 }
 
-void EndRendering( teTexture2D& color )
+void EndRendering()
 {
     [renderer.renderEncoder endEncoding];
 }

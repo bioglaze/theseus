@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AB74C0D529FD37E400A1B505 /* HelloShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB74C0D429FD37E400A1B505 /* HelloShared.mm */; };
+		AB74C0D629FD37E400A1B505 /* HelloShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB74C0D429FD37E400A1B505 /* HelloShared.mm */; };
 		AB7EADE329E04943003A182A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADE229E04943003A182A /* AppDelegate.m */; };
 		AB7EADE629E04943003A182A /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADE529E04943003A182A /* GameViewController.m */; };
 		AB7EADE929E04943003A182A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADE729E04943003A182A /* Main.storyboard */; };
@@ -45,6 +47,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AB74C0D429FD37E400A1B505 /* HelloShared.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloShared.mm; sourceTree = "<group>"; };
 		AB7EADD929E04943003A182A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB7EADDE29E04943003A182A /* hello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB7EADE129E04943003A182A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -119,6 +122,7 @@
 		AB7EADD429E04942003A182A /* hello Shared */ = {
 			isa = PBXGroup;
 			children = (
+				AB74C0D429FD37E400A1B505 /* HelloShared.mm */,
 				ABBD223729EAD3C000847A91 /* assets */,
 				AB7EADD929E04943003A182A /* Assets.xcassets */,
 			);
@@ -311,6 +315,7 @@
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */,
+				AB74C0D529FD37E400A1B505 /* HelloShared.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +329,7 @@
 				AB7EADFF29E04943003A182A /* main.m in Sources */,
 				AB7EADF729E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */,
+				AB74C0D629FD37E400A1B505 /* HelloShared.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

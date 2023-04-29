@@ -3,7 +3,7 @@
 #include "file.h"
 #include "te_stdlib.h"
 
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel, unsigned char** outPixelData );
+void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 
 extern id<MTLDevice> gDevice;
@@ -169,8 +169,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     
     if (strstr( file.path, ".tga" ) || strstr( file.path, ".TGA" ))
     {
-        unsigned char* pixelData = nullptr;
-        LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel, &pixelData );
+        LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel );
         multiplier = 4;
 
         MTLTextureDescriptor* stagingDescriptor =
@@ -296,7 +295,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     {
         // This code assumes that all cube map faces have the same format/dimension.
         unsigned multiplier = 1;
-        unsigned bitsPerPixel = 0;
         unsigned offset = 0;
         unsigned mipOffsets[ 15 ];
         

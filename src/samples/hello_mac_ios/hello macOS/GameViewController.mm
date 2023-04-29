@@ -12,78 +12,22 @@
 #include "transform.h"
 #include "vec3.h"
 
+void InitApp( unsigned width, unsigned height );
+void DrawApp();
+void MoveForward( float amount );
+void MoveUp( float amount );
+void MoveRight( float amount );
+void RotateCamera( float x, float y );
+
 void SetDrawable( id< CAMetalDrawable > drawable );
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 NSViewController* myViewController;
 
-Vec3 moveDir;
-
-// *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
-// Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
-struct pcg32_random_t
-{
-    uint64_t state;
-    uint64_t inc;
-};
-
-uint32_t pcg32_random_r( pcg32_random_t* rng )
-{
-    uint64_t oldstate = rng->state;
-    rng->state = oldstate * 6364136223846793005ULL + (rng->inc | 1);
-    uint32_t xorshifted = uint32_t( ((oldstate >> 18u) ^ oldstate) >> 27u );
-    int32_t rot = oldstate >> 59u;
-    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
-}
-
-pcg32_random_t rng;
-
-int Random100()
-{
-    return pcg32_random_r( &rng ) % 100;
-}
-
 @implementation GameViewController
 {
     MTKView* _view;
-    dispatch_semaphore_t inflightSemaphore;
-    
-    teShader unlitShader;
-    teShader fullscreenShader;
-    teShader skyboxShader;
-    
-    teGameObject camera3d;
-    teGameObject cubeGo;
-    teGameObject cubes[ 16 * 4 ];
-    teMaterial material;
-    teMesh cubeMesh;
-    teTexture2D gliderTex;
-    teTexture2D bc1Tex;
-    teTexture2D bc2Tex;
-    teTexture2D bc3Tex;
-    teTextureCube skyTex;
-    teScene scene;
-}
-
-void RotateCamera( unsigned index, float x, float y )
-{
-    teTransformOffsetRotate( index, Vec3( 0, 1, 0 ), -x / 20 );
-    teTransformOffsetRotate( index, Vec3( 1, 0, 0 ), -y / 20 );
-}
-
-void MoveForward( float amount )
-{
-    moveDir.z = 0.3f * amount;
-}
-
-void MoveRight( float amount )
-{
-    moveDir.x = 0.3f * amount;
-}
-
-void MoveUp( float amount )
-{
-    moveDir.y = 0.3f * amount;
+    dispatch_semaphore_t inflightSemaphore;    
 }
 
 - (void)viewDidLoad
@@ -112,75 +56,8 @@ void MoveUp( float amount )
     
     const unsigned width = self.view.bounds.size.width;
     const unsigned height = self.view.bounds.size.height;
-    
-    teCreateRenderer( 1, NULL, width, height );
-    
-    fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
-    unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
-    skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
-    
-    camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
-    Vec3 cameraPos = { 0, 0, -10 };
-    teTransformSetLocalPosition( camera3d.index, cameraPos );
-    teCameraSetProjection( camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
-    teCameraSetClear( camera3d.index, teClearFlag::DepthAndColor, Vec4( 1, 0, 0, 1 ) );
-    teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
-    teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
-    
-    gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips );
-    bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips );
-    bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips );
-    bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips );
-    
-    material = teCreateMaterial( unlitShader );
-    teMaterialSetTexture2D( material, bc1Tex, 0 );
-    
-    cubeMesh = teCreateCubeMesh();
-    cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-    teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
-    teMeshRendererSetMaterial( cubeGo.index, material, 0 );
-
-    teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
-    teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
-    teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );
-    teFile rightFile = teLoadFile( "assets/textures/skybox/right.dds" );
-    teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
-    teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
-    
-    skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0, teTextureFilter::LinearRepeat );
-
-    scene = teCreateScene();
-    teSceneAdd( scene, camera3d.index );
-    teSceneAdd( scene, cubeGo.index );
-    
-    unsigned g = 0;
-    Quaternion rotation;
-
-    for (int j = 0; j < 4; ++j)
-    {
-        for (int i = 0; i < 4; ++i)
-        {
-            for (int k = 0; k < 4; ++k)
-            {
-                cubes[ g ] = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-                teMeshRendererSetMesh( cubes[ g ].index, &cubeMesh );
-                teMeshRendererSetMaterial( cubes[ g ].index, material, 0 );
-                teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4.0f - 5.0f, j * 4.0f - 5.0f, -4.0f - k * 4.0f ) );
-                teSceneAdd( scene, cubes[ g ].index );
-
-                float angle = Random100() / 100.0f * 90;
-                Vec3 axis{ 1, 1, 1 };
-                axis.Normalize();
-
-                rotation.FromAxisAngle( axis, angle );
-                teTransformSetLocalRotation( cubes[ g ].index, rotation );
-                
-                ++g;
-            }
-        }
-    }
-
-    teFinalizeMeshBuffers();
+        
+    InitApp( width, height );
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view
@@ -189,20 +66,10 @@ void MoveUp( float amount )
 
     renderPassDescriptor = _view.currentRenderPassDescriptor;
 
-    float dt = 1;
-    
-    teTransformMoveForward( camera3d.index, moveDir.z * (float)dt * 0.5f );
-    teTransformMoveRight( camera3d.index, moveDir.x * (float)dt * 0.5f );
-    teTransformMoveUp( camera3d.index, moveDir.y * (float)dt * 0.5f );
-
     SetDrawable( view.currentDrawable );
-    teBeginFrame();
-    //teSceneRender( scene, NULL, NULL, NULL );
-    teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
-    teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-    teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
-    teEndSwapchainRendering();
-    
+
+    DrawApp();
+        
     __block dispatch_semaphore_t block_sema = inflightSemaphore;
     [gCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) { dispatch_semaphore_signal( block_sema ); }];
 
@@ -238,7 +105,7 @@ void MoveUp( float amount )
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    RotateCamera( camera3d.index, theEvent.deltaX, theEvent.deltaY );
+    RotateCamera( theEvent.deltaX, theEvent.deltaY );
 }
 
 - (void)keyDown:(NSEvent *)theEvent

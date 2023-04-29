@@ -85,7 +85,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
         localtime_s( &timeinfo, &inode.st_mtime );
         tm* timeinfo2 = &timeinfo;
 #else
-        const tm* timeinfo2 = std::localtime( &inode.st_mtime );
+        const tm* timeinfo2 = localtime( &inode.st_mtime );
 #endif
         fileEntries[ fileEntryCount ].hour = timeinfo2->tm_hour;
         fileEntries[ fileEntryCount ].minute = timeinfo2->tm_min;
@@ -108,7 +108,7 @@ void teHotReload()
             localtime_s( &timeinfo, &inode.st_mtime );
             tm* timeinfo2 = &timeinfo;
 #else
-            const tm* timeinfo2 = std::localtime( &inode.st_mtime );
+            const tm* timeinfo2 = localtime( &inode.st_mtime );
 #endif
             if (timeinfo2->tm_hour != fileEntries[ i ].hour || timeinfo2->tm_min != fileEntries[ i ].minute || timeinfo2->tm_sec != fileEntries[ i ].second)
             {
