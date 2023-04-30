@@ -156,6 +156,52 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     PopGroupMarker();
 }
 
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
+{
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    {
+        if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
+            (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        Matrix localToClipLeft, localToClipRight;
+        teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClipLeft, localToClipRight );
+
+        Matrix localToViewLeft, localToViewRight;
+        teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToViewLeft, localToViewRight );
+
+        const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
+        for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
+        {
+            const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
+
+            if (MeshRendererIsCulled( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex ) || material.blendMode != blendMode)
+            {
+                continue;
+            }
+
+            if (subMeshIndex == 0)
+            {
+                UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
+            }
+
+            teShader shader = teMaterialGetShader( material );
+
+            unsigned indexOffset = teMeshGetIndexOffset( mesh, subMeshIndex );
+            unsigned indexCount = teMeshGetIndexCount( mesh, subMeshIndex );
+            unsigned positionOffset = teMeshGetPositionOffset( mesh, subMeshIndex );
+            unsigned uvOffset = teMeshGetUVOffset( mesh, subMeshIndex );
+
+            unsigned textureIndex = teMaterialGetTexture2D( material, 0 );
+
+            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, colorFormat, depthFormat, textureIndex );
+        }
+    }
+}
+
 static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
     const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
@@ -179,48 +225,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 
-    // this will be replaced by indirect rendering.
-    {
-        for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
-        {
-            if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
-                (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
-            {
-                continue;
-            }
-
-            Matrix localToClipLeft, localToClipRight;
-            teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClipLeft, localToClipRight );
-
-            Matrix localToViewLeft, localToViewRight;
-            teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToViewLeft, localToViewRight );
-
-            UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
-
-            const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
-
-            for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
-            {
-                const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
-                
-                if (MeshRendererIsCulled( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex ))
-                {
-                    continue;
-                }
-
-                teShader shader = teMaterialGetShader( material );
-
-                unsigned indexOffset = teMeshGetIndexOffset( mesh, subMeshIndex );
-                unsigned indexCount = teMeshGetIndexCount( mesh, subMeshIndex );
-                unsigned positionOffset = teMeshGetPositionOffset( mesh, subMeshIndex );
-                unsigned uvOffset = teMeshGetUVOffset( mesh, subMeshIndex );
-                
-                unsigned textureIndex = teMaterialGetTexture2D( material, 0 );
-
-                Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, color.format, depth.format, textureIndex );
-            }
-        }
-    }
+    RenderMeshes( scene, teBlendMode::Off, color.format, depth.format );
+    RenderMeshes( scene, teBlendMode::Alpha, color.format, depth.format );
 
     EndRendering();
 }

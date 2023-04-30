@@ -120,10 +120,14 @@ int main()
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
     teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips );
-
     teMaterial material = teCreateMaterial( unlitShader );
-    //teMaterialSetParams( teDepthMode::LessOrEqualWriteOff, teBlendMode::Off, teCullMode::CCW );
     teMaterialSetTexture2D( material, gliderTex, 0 );
+
+    teFile transFile = teLoadFile( "assets/textures/font.tga" );
+    teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips );
+    teMaterial materialTrans = teCreateMaterial( unlitShader );
+    materialTrans.blendMode = teBlendMode::Alpha;
+    teMaterialSetTexture2D( materialTrans, transTex, 0 );
 
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
@@ -147,7 +151,7 @@ int main()
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( cubeGo2.index, Vec3( 0, 20, 0 ) );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
-    teMeshRendererSetMaterial( cubeGo2.index, material, 0 );
+    teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
     teFinalizeMeshBuffers();
 
