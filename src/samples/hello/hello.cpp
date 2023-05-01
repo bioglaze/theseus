@@ -136,10 +136,11 @@ int main()
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     
-    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0, teTextureFilter::LinearRepeat );
+    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips );
+    bc1Tex.sampler = teTextureSampler::NearestRepeat;
     teMaterialSetTexture2D( material, bc1Tex, 0 );
 
     teMesh cubeMesh = teCreateCubeMesh();

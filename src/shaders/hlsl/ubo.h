@@ -8,7 +8,7 @@ struct PushConstants
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
-    int samplerIndex;
+    int unused;
 };
 
 #define S_LINEAR_REPEAT 0
@@ -22,7 +22,7 @@ struct PushConstants
 
 [[vk::binding(0)]] Texture2D<float4> texture2ds[ 80 ];
 [[vk::binding(0)]] TextureCube<float4> textureCubes[ 80 ];
-[[vk::binding(1)]] SamplerState samplers[ 6 ];
+[[vk::binding(1)]] SamplerState samplers[ 80 ];
 [[vk::binding(2)]] Buffer<float3> positions;
 [[vk::binding(3)]] ConstantBuffer< UniformData > uniforms;
 [[vk::binding(4)]] Buffer<float2> uvs;

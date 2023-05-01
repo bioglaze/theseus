@@ -4,7 +4,7 @@
 
 struct MaterialImpl
 {
-    int texture2Ds[ 3 ];
+    teTexture2D texture2Ds[ 3 ];
     teShader shader;
 };
 
@@ -18,9 +18,6 @@ teMaterial teCreateMaterial( const teShader& shader )
     outMaterial.index = materialCount++;
     
     materials[ outMaterial.index ].shader = shader;
-    materials[ outMaterial.index ].texture2Ds[ 0 ] = 0;
-    materials[ outMaterial.index ].texture2Ds[ 1 ] = 0;
-    materials[ outMaterial.index ].texture2Ds[ 2 ] = 0;
     
     return outMaterial;
 }
@@ -29,7 +26,7 @@ void teMaterialSetTexture2D( const teMaterial& material, const struct teTexture2
 {
     if (slot < 3)
     {
-        materials[ material.index ].texture2Ds[ slot ] = tex.index;
+        materials[ material.index ].texture2Ds[ slot ] = tex;
     }
 }
 
@@ -38,7 +35,7 @@ teShader& teMaterialGetShader( const teMaterial& material )
     return materials[ material.index ].shader;
 }
 
-int teMaterialGetTexture2D( const teMaterial& material, unsigned slot )
+teTexture2D teMaterialGetTexture2D( const teMaterial& material, unsigned slot )
 {
     return materials[ material.index ].texture2Ds[ slot ];
 }

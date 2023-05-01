@@ -590,7 +590,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     return outTexture;
 }
 
-teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags,
                              VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer )
 {
     teAssert( textureCount < 100 );

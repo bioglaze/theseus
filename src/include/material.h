@@ -19,4 +19,4 @@ struct teMaterial
 teMaterial teCreateMaterial( const struct teShader& shader );
 void teMaterialSetTexture2D( const teMaterial& material, const struct teTexture2D& tex, unsigned slot );
 teShader& teMaterialGetShader( const teMaterial& material );
-int teMaterialGetTexture2D( const teMaterial& material, unsigned slot );
+teTexture2D teMaterialGetTexture2D( const teMaterial& material, unsigned slot );

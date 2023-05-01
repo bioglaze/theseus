@@ -15,7 +15,7 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
-teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter,
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags,
     VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
 VkImageView TextureGetView( teTexture2D texture );
@@ -542,7 +542,7 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
 
 void ClearPSOCache()
 {
-    for (int i = 0; i < Renderer::MaxPSOs; ++i)
+    for (unsigned i = 0; i < Renderer::MaxPSOs; ++i)
     {
         renderer.psos[ i ] = {};
     }
@@ -555,7 +555,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo );
 
-    for (int i = 0; i < Renderer::MaxPSOs; ++i)
+    for (unsigned i = 0; i < Renderer::MaxPSOs; ++i)
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
@@ -571,7 +571,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     {
         int nextFreePsoIndex = -1;
 
-        for (int i = 0; i < Renderer::MaxPSOs; ++i)
+        for (unsigned i = 0; i < Renderer::MaxPSOs; ++i)
         {
             if (renderer.psos[ i ].pso == VK_NULL_HANDLE)
             {
@@ -619,9 +619,9 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     return outTexture;
 }
 
-teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter )
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags )
 {
-    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, filter, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
+    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
 
     return outTexture;
 }
@@ -1403,13 +1403,6 @@ void teBeginFrame()
         //renderer.samplerInfosCube[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
-    renderer.samplerInfos[ 0 ].sampler = renderer.samplerLinearRepeat;
-    renderer.samplerInfos[ 1 ].sampler = renderer.samplerLinearClamp;
-    renderer.samplerInfos[ 2 ].sampler = renderer.samplerNearestRepeat;
-    renderer.samplerInfos[ 3 ].sampler = renderer.samplerNearestClamp;
-    renderer.samplerInfos[ 4 ].sampler = renderer.samplerAnisotropic8Repeat;
-    renderer.samplerInfos[ 5 ].sampler = renderer.samplerAnisotropic8Clamp;
-
     renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset = 0;
 }
 
@@ -1659,17 +1652,32 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
     renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
+static VkSampler GetSampler( teTextureSampler sampler )
+{
+    if (sampler == teTextureSampler::LinearRepeat) return renderer.samplerLinearRepeat;
+    if (sampler == teTextureSampler::LinearClamp) return renderer.samplerLinearClamp;
+    if (sampler == teTextureSampler::NearestClamp) return renderer.samplerNearestClamp;
+    if (sampler == teTextureSampler::NearestRepeat) return renderer.samplerNearestRepeat;
+    if (sampler == teTextureSampler::Anisotropic8Clamp) return renderer.samplerAnisotropic8Clamp;
+    if (sampler == teTextureSampler::Anisotropic8Repeat) return renderer.samplerAnisotropic8Repeat;
+    teAssert( !"Unhandled sampler!" );
+    return renderer.samplerLinearRepeat;
+}
+
+void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
+           teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler )
 {
     if (textureIndex != 0)
     {
         teTexture2D tex;
         tex.index = textureIndex;
-        
+
         for (unsigned i = 0; i < TextureCount; ++i)
         {
             renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
         }
+
+        renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
     }
 
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
@@ -1687,5 +1695,5 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat );
 }
