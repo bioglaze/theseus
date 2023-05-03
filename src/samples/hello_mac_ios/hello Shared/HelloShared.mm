@@ -116,7 +116,7 @@ void InitApp( unsigned width, unsigned height )
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     
-    app.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0, teTextureFilter::LinearRepeat );
+    app.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     app.scene = teCreateScene();
     teSceneAdd( app.scene, app.camera3d.index );

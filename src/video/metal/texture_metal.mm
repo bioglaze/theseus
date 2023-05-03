@@ -144,15 +144,15 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
     outHeight = textures[ texture.index ].height;
 }
 
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
+teTexture2D teLoadTexture( const teFile& file, unsigned flags )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTexture2D outTexture;
     outTexture.index = ++textureCount;
+    outTexture.format = teTextureFormat::BGRA_sRGB;
     teTextureImpl& tex = textures[ outTexture.index ];
-    //tex.filter = filter;
     tex.flags = flags;
     tex.format = MTLPixelFormatBGRA8Unorm_sRGB;
     
@@ -279,7 +279,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
     return outTexture;
 }
 
-teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags, teTextureFilter filter )
+teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
@@ -287,7 +287,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teTextureCube outTexture;
     outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
-    //tex.filter = filter;
     tex.flags = flags;
 
 #if !TARGET_OS_IPHONE
@@ -295,7 +294,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     {
         // This code assumes that all cube map faces have the same format/dimension.
         unsigned multiplier = 1;
-        unsigned offset = 0;
         unsigned mipOffsets[ 15 ];
         
         LoadDDS( negX, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets );
@@ -322,7 +320,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             [stagingTexture replaceRegion:region
                               mipmapLevel:0
                                     slice:face
-                                withBytes:datas[ face ] + offset
+                                withBytes:datas[ face ] + mipOffsets[ 0 ]
                               bytesPerRow:multiplier * tex.width
                             bytesPerImage:0];
         }

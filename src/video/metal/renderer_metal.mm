@@ -100,6 +100,17 @@ const char* GetFullPath( const char* fileName )
     return [dir fileSystemRepresentation];
 }
 
+static id<MTLSamplerState> GetSampler( teTextureSampler sampler )
+{
+    if (sampler == teTextureSampler::LinearClamp) return renderer.linearClamp;
+    if (sampler == teTextureSampler::LinearRepeat) return renderer.linearRepeat;
+    if (sampler == teTextureSampler::NearestClamp) return renderer.nearestClamp;
+    if (sampler == teTextureSampler::NearestRepeat) return renderer.nearestRepeat;
+    
+    teAssert( !"Unhandled sampler!" );
+    return renderer.linearClamp;
+}
+
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
     renderer.device = MTLCreateSystemDefaultDevice();
@@ -445,13 +456,14 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
     return psoIndex;
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex )
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex,
+          teTextureSampler sampler )
 {
     id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
     NSRange range = { 0, 3 };
     [renderer.renderEncoder setFragmentTextures:textures withRange:range ];
     
-    [renderer.renderEncoder setFragmentSamplerState:renderer.linearRepeat atIndex:0];
+    [renderer.renderEncoder setFragmentSamplerState:GetSampler( sampler ) atIndex:0];
 
     MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format );
@@ -491,5 +503,5 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp );
 }
