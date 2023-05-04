@@ -2,7 +2,7 @@
 #include "window_win32.cpp"
 #endif
 #if VK_USE_PLATFORM_WAYLAND_KHR
-
+#include "video/window_wayland.cpp"
 #endif
 #include "core/camera.cpp"
 #include "core/file.cpp"
