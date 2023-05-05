@@ -25,6 +25,7 @@ Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& de
 VkBufferView BufferGetView( const Buffer& buffer );
 VkDeviceMemory BufferGetMemory( const Buffer& buffer );
 VkBuffer BufferGetBuffer( const Buffer& buffer );
+void WaylandDispatch();
 
 extern struct wl_display* wlDisplay;
 extern struct wl_surface* wlSurface;
@@ -1445,6 +1446,10 @@ void teEndFrame()
     }
 
     renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
+
+#if VK_USE_PLATFORM_WAYLAND_KHR
+    WaylandDispatch();
+#endif
 }
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )

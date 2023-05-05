@@ -2,6 +2,11 @@
 #include "window.h"
 #include "te_stdlib.h"
 #include <stdio.h>
+#include <time.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #define XDG_SURFACE_ACK_CONFIGURE 4
 #define XDG_SURFACE_GET_TOPLEVEL 1
@@ -19,9 +24,72 @@ struct WindowImpl
     teWindowEvent events[ EventStackSize ];
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int eventIndex = -1;
+    unsigned width = 0;
+    unsigned height = 0;
 };
 
 WindowImpl win;
+
+static wl_buffer_listener wlBufferListener = {};
+
+static void randname( char* buf )
+{
+    struct timespec ts;
+    clock_gettime( CLOCK_REALTIME, &ts );
+    long r = ts.tv_nsec;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        buf[ i ] = 'A' + (r & 15) + (r & 16) * 2;
+        r >>= 5;
+    }    
+}
+
+static int create_shm_file()
+{
+    int retries = 100;
+
+    do
+    {
+        char name[] = "/wl_shm-XXXXXX";
+        randname( name + sizeof( name ) - 7 );
+        --retries;
+        int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
+
+        if (fd >= 0)
+        {
+            shm_unlink( name );
+            return fd;
+        }
+    } while (retries > 0 && errno == EEXIST);
+
+    return -1;
+}
+
+static int allocate_shm_file( size_t size )
+{
+    int fd = create_shm_file();
+
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    int ret;
+    
+    do
+    {
+        ret = ftruncate(fd, size);
+    } while (ret < 0 && errno == EINTR);
+    
+    if (ret < 0)
+    {
+        close(fd);
+        return -1;
+    }
+    
+    return fd;
+}
 
 struct client_state
 {
@@ -33,9 +101,46 @@ struct client_state
     struct xdg_toplevel* xdg_toplevel;
 };
 
-static struct wl_buffer* draw_frame( client_state* state )
+static wl_buffer* draw_frame( client_state* state )
 {
-    return NULL;
+    int stride = win.width * 4;
+    int size = stride * win.height;
+
+    int fd = allocate_shm_file( size );
+    
+    if (fd == -1)
+    {
+        return nullptr;
+    }
+
+    uint32_t* data = (uint32_t*)mmap( nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
+    
+    if (data == MAP_FAILED)
+    {
+        close( fd );
+        return nullptr;
+    }
+
+    wl_shm_pool* pool = wl_shm_create_pool( state->wl_shm, fd, size );
+    wl_buffer* buffer = wl_shm_pool_create_buffer( pool, 0,
+            win.width, win.height, stride, WL_SHM_FORMAT_XRGB8888 );
+    wl_shm_pool_destroy( pool );
+    close( fd );
+
+    /* Draw checkerboxed background */
+    for (unsigned y = 0; y < win.height; ++y) {
+        for (unsigned x = 0; x < win.width; ++x) {
+            if ((x + y / 8 * 8) % 16 < 8)
+                data[ y * win.width + x ] = 0xFF666666;
+            else
+                data[ y * win.width + x ] = 0xFFEEEEEE;
+        }
+    }
+
+    munmap( data, size );
+    wl_buffer_add_listener( buffer, &wlBufferListener, nullptr );
+
+    return buffer;
 }
 
 extern const struct wl_interface wl_output_interface;
@@ -232,16 +337,16 @@ struct xdg_wm_base_listener
 };
 
 static inline int xdg_wm_base_add_listener( xdg_wm_base* xdg_wm_base,
-			 const xdg_wm_base_listener *listener, void* data )
+			 const xdg_wm_base_listener* listener, void* data )
 {
-	return wl_proxy_add_listener((struct wl_proxy *) xdg_wm_base,
-				     (void (**)(void)) listener, data);
+	return wl_proxy_add_listener( (struct wl_proxy*) xdg_wm_base,
+				     (void (**)(void)) listener, data );
 }
 
 static xdg_surface* xdg_wm_base_get_xdg_surface( xdg_wm_base* xdg_wm_base, struct wl_surface* surface )
 {
 	wl_proxy* id = wl_proxy_marshal_flags((struct wl_proxy *) xdg_wm_base,
-			 XDG_WM_BASE_GET_XDG_SURFACE, &xdg_surface_interface, wl_proxy_get_version((struct wl_proxy *) xdg_wm_base), 0, NULL, surface);
+			 XDG_WM_BASE_GET_XDG_SURFACE, &xdg_surface_interface, wl_proxy_get_version( (struct wl_proxy *) xdg_wm_base), 0, nullptr, surface );
 
 	return (struct xdg_surface *) id;
 }
@@ -253,41 +358,18 @@ static void registry_global( void* data, struct wl_registry* wl_registry,
 {
     client_state* state = (client_state*)data;
 
-    printf("registry_global %s\n", interface);
-    
     if (strcmp( interface, wl_shm_interface.name ) == 0)
     {
-        if (state)
-        {
-            state->wl_shm = (wl_shm*)wl_registry_bind( wl_registry, name, &wl_shm_interface, 1 );
-        }
-        else
-        {
-            printf( "shm state null\n" );
-        }
+        state->wl_shm = (wl_shm*)wl_registry_bind( wl_registry, name, &wl_shm_interface, 1 );
     }
     else if (strcmp( interface, wl_compositor_interface.name ) == 0)
     {
-        if (state)
-        {
-            state->wl_compositor = (wl_compositor*)wl_registry_bind( wl_registry, name, &wl_compositor_interface, 4 );
-        }
-        else
-        {
-            printf( "compositor state null\n" );
-        }
+        state->wl_compositor = (wl_compositor*)wl_registry_bind( wl_registry, name, &wl_compositor_interface, 4 );
     }
     else if (strcmp( interface, xdg_wm_base_interface.name ) == 0)
     {
-        if (state)
-        {
-            state->xdg_wm_base = (xdg_wm_base*)wl_registry_bind( wl_registry, name, &xdg_wm_base_interface, 1 );
-            xdg_wm_base_add_listener( state->xdg_wm_base, &xdg_wm_base_listener, state );
-        }
-        else
-        {
-            printf( "xdg_wm_base state null\n" );
-        }
+        state->xdg_wm_base = (xdg_wm_base*)wl_registry_bind( wl_registry, name, &xdg_wm_base_interface, 1 );
+        xdg_wm_base_add_listener( state->xdg_wm_base, &xdg_wm_base_listener, state );
     }
 }
 
@@ -304,21 +386,30 @@ static inline void xdg_toplevel_set_title( xdg_toplevel* xdg_toplevel, const cha
 			 XDG_TOPLEVEL_SET_TITLE, NULL, wl_proxy_get_version((struct wl_proxy *) xdg_toplevel), 0, title);
 }
 
+static void wl_buffer_release( void* data, wl_buffer* wl_buffer )
+{
+    wl_buffer_destroy( wl_buffer );
+}
+
 static wl_registry_listener wl_registry_listener = {};
 
 client_state state = {};
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
+    win.width = width;
+    win.height = height;
+    
     xdg_surface_listener.configure = xdg_surface_configure;
     xdg_wm_base_listener.ping = xdg_wm_base_ping;
     wl_registry_listener.global = registry_global;
     wl_registry_listener.global_remove = registry_global_remove;
+    wlBufferListener.release = wl_buffer_release;
 
     wlDisplay = wl_display_connect( nullptr );
     teAssert( wlDisplay );
     state.wl_registry = wl_display_get_registry( wlDisplay );
-    wl_registry_add_listener( state.wl_registry, &wl_registry_listener, NULL );
+    wl_registry_add_listener( state.wl_registry, &wl_registry_listener, &state );
     wl_display_roundtrip( wlDisplay );
 
     wlSurface = wl_compositor_create_surface( state.wl_compositor );
@@ -329,11 +420,12 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     xdg_toplevel_set_title( state.xdg_toplevel, "Example client" );
     wl_surface_commit( wlSurface );
 
-    while (wl_display_dispatch( wlDisplay ))
-    {
-        /* This space deliberately left blank */
-    }
     return nullptr;
+}
+
+void WaylandDispatch()
+{
+    wl_display_dispatch( wlDisplay );
 }
 
 void tePushWindowEvents()
