@@ -19,3 +19,6 @@ engine:
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello
 
+toolz:
+	$(CC) $(FLAGS) $(SANITIZERS) tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
+
