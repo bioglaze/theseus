@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "material.h"
+#include "file.h"
 #include "te_stdlib.h"
 #include "vec3.h"
 
@@ -79,6 +80,65 @@ teMesh teCreateCubeMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 12;
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMin = Vec3( -1, -1, -1 );
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
+
+    return outMesh;
+}
+
+teMesh teLoadMesh( const teFile& file )
+{
+    teAssert( meshIndex < MaxMeshes );
+
+    if (!file.data)
+    {
+        return teCreateCubeMesh();
+    }
+
+    teMesh outMesh;
+    outMesh.index = ++meshIndex;
+
+    unsigned char* pointer = &file.data[ 8 ];
+    meshes[ outMesh.index ].subMeshCount = *((unsigned*)pointer);
+    meshes[ outMesh.index ].subMeshes = new SubMesh[ meshes[ outMesh.index ].subMeshCount ]();
+    pointer += 4;
+
+    for (unsigned m = 0; m < meshes[ outMesh.index ].subMeshCount; ++m)
+    {
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMin.x = *((float*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMin.y = *((float*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMin.z = *((float*)pointer);
+
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMax.x = *((float*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMax.y = *((float*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].aabbMax.z = *((float*)pointer);
+
+        pointer += 4;
+        const unsigned faceCount = *((unsigned*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].indicesOffset = AddIndices( (const unsigned short*)pointer, faceCount * 2 * 3 );
+        meshes[ outMesh.index ].subMeshes[ m ].indexCount = faceCount;
+        pointer += faceCount * 2 * 3;
+
+        if (faceCount % 2 != 0)
+        {
+            pointer += 2;
+        }
+
+        const unsigned vertexCount = *((unsigned*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].positionOffset = AddPositions( (float*)pointer, vertexCount * 3 * 4 );
+        meshes[ outMesh.index ].subMeshes[ m ].positionCount = vertexCount;
+        pointer += vertexCount * 3 * 4;
+        meshes[ outMesh.index ].subMeshes[ m ].uvOffset = AddUVs( (float*)pointer, vertexCount * 2 * 4 );
+        meshes[ outMesh.index ].subMeshes[ m ].uvCount = vertexCount;
+        pointer += vertexCount * 2 * 4;
+        //meshes[ outMesh.index ].subMeshes[ m ].normals = AddNormals( (float*)pointer, vertexCount * 3 * 4 );
+        pointer += vertexCount * 3 * 4;
+    }
 
     return outMesh;
 }

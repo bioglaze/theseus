@@ -154,12 +154,20 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
+    teFile meshFile = teLoadFile( "assets/meshes/table.t3d" );
+    teMesh mesh = teLoadMesh( meshFile );
+    teGameObject meshGo = teCreateGameObject( "table", teComponent::Transform | teComponent::MeshRenderer );
+    teTransformSetLocalPosition( meshGo.index, Vec3( 0, 20, 0 ) );
+    teMeshRendererSetMesh( meshGo.index, &mesh );
+    teMeshRendererSetMaterial( meshGo.index, material, 0 );
+
     teFinalizeMeshBuffers();
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, meshGo.index );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;

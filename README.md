@@ -13,6 +13,7 @@ Very early days, only renders hard-coded cubes, without lights etc.
   - Modern Vulkan 1.3 and Metal 3 renderers
   - Fast compile times
   - Loads .tga and .dds textures
+  - OBJ mesh converter
   - Shader hot-reloading
   
 # Platforms
@@ -26,3 +27,7 @@ Very early days, only renders hard-coded cubes, without lights etc.
   - macOS:
     - build theseus.xcodeproj and copy the resulting framework to src/samples/hello_mac_ios
     - build and run hello_mac_ios/hello.xcodeproj
+
+  - Linux:
+    - src/Makefile can be used to compile the engine. Build results are copied to theseus/build.
+    
