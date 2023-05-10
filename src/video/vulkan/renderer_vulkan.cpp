@@ -99,7 +99,7 @@ struct Renderer
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
-    VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
+    VkPhysicalDeviceMemoryProperties deviceMemoryProperties = {};
     VkQueue graphicsQueue;
     VkCommandPool cmdPool;
     VkSurfaceKHR surface;
@@ -127,7 +127,7 @@ struct Renderer
     VkSampler samplerNearestRepeat;
     VkSampler samplerNearestClamp;
 
-    SwapchainResource swapchainResources[ 2 ] = {};
+    SwapchainResource swapchainResources[ 4 ] = {};
     uint32_t swapchainImageCount = 0;
     uint32_t graphicsQueueIndex = 0;
     unsigned currentBuffer = 0;
@@ -674,7 +674,7 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
     image.tiling = VK_IMAGE_TILING_OPTIMAL;
     image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-    for (unsigned i = 0; i < 2; ++i)
+    for (unsigned i = 0; i < renderer.swapchainImageCount; ++i)
     {
         VK_CHECK( vkCreateImage( renderer.device, &image, nullptr, &renderer.swapchainResources[ i ].depthStencilImage ) );
         SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ i ].depthStencilImage, VK_OBJECT_TYPE_IMAGE, "depthstencil" );
@@ -901,12 +901,12 @@ void CreateCommandBuffers()
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.commandPool = renderer.cmdPool;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = 2;
+    commandBufferAllocateInfo.commandBufferCount = 4;
 
-    VkCommandBuffer drawCmdBuffers[ 2 ];
+    VkCommandBuffer drawCmdBuffers[ 4 ];
     VK_CHECK( vkAllocateCommandBuffers( renderer.device, &commandBufferAllocateInfo, drawCmdBuffers ) );
 
-    for (uint32_t i = 0; i < 2; ++i)
+    for (uint32_t i = 0; i < 4; ++i)
     {
         renderer.swapchainResources[ i ].drawCommandBuffer = drawCmdBuffers[ i ];
         const char* name = "drawCommandBuffer 0";
@@ -1160,7 +1160,7 @@ void CreateBuffers()
     
     constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 
-    for (unsigned i = 0; i < 2; ++i)
+    for (unsigned i = 0; i < 4; ++i)
     {
         renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
         VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
@@ -1487,7 +1487,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &cmdBufInfo ) );
+    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
     VkImageMemoryBarrier imageMemoryBarrier = {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1504,21 +1504,20 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-    //vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
-    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
-    SetImageLayout( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, TextureGetImage( depth ), VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, &renderInfo );
 
     VkViewport viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
-    vkCmdSetViewport( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &viewport );
+    vkCmdSetViewport( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &viewport );
 
     VkRect2D scissor = { { 0, 0 }, { width, height } };
-    vkCmdSetScissor( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, 0, 1, &scissor );
+    vkCmdSetScissor( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &scissor );
 
-    vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
+    vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 }
 
 void EndRendering()
@@ -1651,8 +1650,8 @@ static void UpdateDescriptors( const Buffer& binding1, const Buffer& binding3, u
 
 static void BindDescriptors( VkPipelineBindPoint bindPoint )
 {
-    vkCmdBindDescriptorSets( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, bindPoint,
-        renderer.pipelineLayout, 0, 1, &renderer.swapchainResources[ renderer.currentBuffer ].descriptorSets[ renderer.swapchainResources[ renderer.currentBuffer ].setIndex ], 0, nullptr );
+    vkCmdBindDescriptorSets( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, bindPoint,
+                             renderer.pipelineLayout, 0, 1, &renderer.swapchainResources[ renderer.frameIndex ].descriptorSets[ renderer.swapchainResources[ renderer.frameIndex ].setIndex ], 0, nullptr );
 
     renderer.swapchainResources[ renderer.currentBuffer ].setIndex = (renderer.swapchainResources[ renderer.currentBuffer ].setIndex + 1) % renderer.swapchainResources[ renderer.currentBuffer ].SetCount;
 }
@@ -1688,14 +1687,14 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    vkCmdBindPipeline( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
+    vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
 
     int pushConstants[ 4 ] = { (int)textureIndex, 0, 0, 0 };
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
-    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
+    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
 
-    renderer.swapchainResources[ renderer.currentBuffer ].ubo.offset += sizeof( PerObjectUboStruct );
+    renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += sizeof( PerObjectUboStruct );
 }
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
