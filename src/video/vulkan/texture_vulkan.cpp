@@ -16,7 +16,6 @@ struct teTextureImpl
     VkImage image = VK_NULL_HANDLE;
     VkImageView view = VK_NULL_HANDLE;
     VkDeviceMemory deviceMemory = VK_NULL_HANDLE;
-    VkFormat vulkanFormat = VK_FORMAT_UNDEFINED;
     unsigned flags = 0;
     unsigned width = 0;
     unsigned height = 0;
@@ -189,7 +188,6 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     VkFormat vFormat = VK_FORMAT_UNDEFINED;
     unsigned bpp = 0;
     GetFormatAndBPP( format, vFormat, bpp );
-    tex.vulkanFormat = vFormat;
 
     VkImageCreateInfo imageCreateInfo = {};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -466,8 +464,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 
     teTexture2D outTexture;
     outTexture.index = ++textureCount;
+    outTexture.format = teTextureFormat::BGRA_sRGB;
     teTextureImpl& tex = textures[ outTexture.index ];
-    //tex.filter = filter;
     tex.flags = flags;
 
     if (file.data == nullptr)
@@ -513,7 +511,6 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         }
 
         GetFormatAndBPP( bcFormat, format, bytesPerPixel );
-        tex.vulkanFormat = format;
 
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -599,7 +596,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teTextureCube outTexture;
     outTexture.index = ++textureCount;
     teTextureImpl& tex = textures[ outTexture.index ];
-    //tex.filter = filter;
     tex.flags = flags;
 
     const char* paths[ 6 ] = { negX.path, posX.path, negY.path, posY.path, negZ.path, posZ.path };
@@ -654,7 +650,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             }
 
             GetFormatAndBPP( bcFormat, format, bytesPerPixel );
-            tex.vulkanFormat = format;
             outTexture.format = bcFormat;
             UpdateStagingTexture( &files[ face ].data[ mipOffsets[ face ][ 0 ] ], tex.width, tex.height, format, face);
         }
