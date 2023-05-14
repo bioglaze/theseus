@@ -17,6 +17,10 @@
 wl_display* wlDisplay;
 wl_surface* wlSurface;
 
+// TODO: move into state if possible
+wl_seat* seat;
+wl_surface* cursor_surface;
+
 constexpr int EventStackSize = 100;
 
 struct WindowImpl
@@ -29,6 +33,14 @@ struct WindowImpl
 };
 
 WindowImpl win;
+
+void IncEventIndex()
+{
+    if (win.eventIndex < EventStackSize - 1)
+    {
+        ++win.eventIndex;
+    }
+}
 
 static wl_buffer_listener wlBufferListener = {};
 
@@ -93,55 +105,13 @@ static int allocate_shm_file( size_t size )
 
 struct client_state
 {
-    wl_registry* wl_registry;
-    wl_shm* wl_shm;
-    wl_compositor* wl_compositor;
+    struct wl_registry* wl_registry;
+    struct wl_shm* wl_shm;
+    struct wl_compositor* wl_compositor;
     struct xdg_wm_base* xdg_wm_base;
     struct xdg_surface* xdg_surface;
     struct xdg_toplevel* xdg_toplevel;
 };
-
-static wl_buffer* draw_frame( client_state* state )
-{
-    int stride = win.width * 4;
-    int size = stride * win.height;
-
-    int fd = allocate_shm_file( size );
-    
-    if (fd == -1)
-    {
-        return nullptr;
-    }
-
-    uint32_t* data = (uint32_t*)mmap( nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
-    
-    if (data == MAP_FAILED)
-    {
-        close( fd );
-        return nullptr;
-    }
-
-    wl_shm_pool* pool = wl_shm_create_pool( state->wl_shm, fd, size );
-    wl_buffer* buffer = wl_shm_pool_create_buffer( pool, 0,
-            win.width, win.height, stride, WL_SHM_FORMAT_XRGB8888 );
-    wl_shm_pool_destroy( pool );
-    close( fd );
-
-    /* Draw checkerboxed background */
-    for (unsigned y = 0; y < win.height; ++y) {
-        for (unsigned x = 0; x < win.width; ++x) {
-            if ((x + y / 8 * 8) % 16 < 8)
-                data[ y * win.width + x ] = 0xFF666666;
-            else
-                data[ y * win.width + x ] = 0xFFEEEEEE;
-        }
-    }
-
-    munmap( data, size );
-    wl_buffer_add_listener( buffer, &wlBufferListener, nullptr );
-
-    return buffer;
-}
 
 extern const struct wl_interface wl_output_interface;
 extern const struct wl_interface wl_seat_interface;
@@ -254,7 +224,7 @@ static void xdg_surface_ack_configure( xdg_surface* xdg_surface, uint32_t serial
 
 static xdg_toplevel* xdg_surface_get_toplevel( xdg_surface* xdg_surface )
 {
-	struct wl_proxy* id = wl_proxy_marshal_flags((struct wl_proxy*) xdg_surface,
+	struct wl_proxy* id = wl_proxy_marshal_flags( (struct wl_proxy*) xdg_surface,
 			 XDG_SURFACE_GET_TOPLEVEL, &xdg_toplevel_interface, wl_proxy_get_version( (struct wl_proxy *) xdg_surface), 0, nullptr );
 
 	return (struct xdg_toplevel*) id;
@@ -262,12 +232,6 @@ static xdg_toplevel* xdg_surface_get_toplevel( xdg_surface* xdg_surface )
 
 static void xdg_surface_configure( void* data, xdg_surface* xdg_surface, uint32_t serial )
 {
-    client_state* state = (client_state*)data;
-    xdg_surface_ack_configure( xdg_surface, serial );
-
-    wl_buffer* buffer = draw_frame( state );
-    wl_surface_attach( wlSurface, buffer, 0, 0 );
-    wl_surface_commit( wlSurface );
 }
 
 static xdg_surface_listener xdg_surface_listener = {};
@@ -336,8 +300,48 @@ struct xdg_wm_base_listener
 		     uint32_t serial);
 };
 
-static inline int xdg_wm_base_add_listener( xdg_wm_base* xdg_wm_base,
-			 const xdg_wm_base_listener* listener, void* data )
+static void pointer_enter( void* data, wl_pointer* pointer, uint32_t serial, struct wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y )
+{
+}
+
+static void pointer_leave( void* data, wl_pointer* pointer, uint32_t serial, struct wl_surface* surface )
+{
+}
+
+static void pointer_button( void* data, wl_pointer* pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t pointerState )
+{
+}
+
+static void pointer_axis( void* data, wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value )
+{
+}
+
+static void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
+{
+    printf( "pointer motion: %f, %f\n", wl_fixed_to_double( x ), wl_fixed_to_double( y ) );
+    IncEventIndex();
+    win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+    win.events[ win.eventIndex ].x = (float)wl_fixed_to_double( x );
+    win.events[ win.eventIndex ].y = (float)wl_fixed_to_double( y );
+}
+
+wl_pointer_listener pointer_listener = { &pointer_enter, &pointer_leave, &pointer_motion, &pointer_button, &pointer_axis };
+
+client_state state = {};
+
+static void seat_capabilities( void* data, wl_seat* theSeat, uint32_t capabilities )
+{
+    if (capabilities & WL_SEAT_CAPABILITY_POINTER)
+    {
+        wl_pointer* pointer = wl_seat_get_pointer( theSeat );
+        wl_pointer_add_listener( pointer, &pointer_listener, data );
+        cursor_surface = wl_compositor_create_surface( state.wl_compositor );
+    }
+}
+
+static wl_seat_listener seat_listener = {&seat_capabilities};
+
+static inline int xdg_wm_base_add_listener( xdg_wm_base* xdg_wm_base, const xdg_wm_base_listener* listener, void* data )
 {
 	return wl_proxy_add_listener( (struct wl_proxy*) xdg_wm_base,
 				     (void (**)(void)) listener, data );
@@ -356,20 +360,26 @@ static xdg_wm_base_listener xdg_wm_base_listener = {};
 static void registry_global( void* data, struct wl_registry* wl_registry,
         uint32_t name, const char* interface, uint32_t version )
 {
-    client_state* state = (client_state*)data;
+    client_state* theState = (client_state*)data;
 
     if (strcmp( interface, wl_shm_interface.name ) == 0)
     {
-        state->wl_shm = (wl_shm*)wl_registry_bind( wl_registry, name, &wl_shm_interface, 1 );
+        theState->wl_shm = (wl_shm*)wl_registry_bind( wl_registry, name, &wl_shm_interface, 1 );
     }
     else if (strcmp( interface, wl_compositor_interface.name ) == 0)
     {
-        state->wl_compositor = (wl_compositor*)wl_registry_bind( wl_registry, name, &wl_compositor_interface, 4 );
+        theState->wl_compositor = (wl_compositor*)wl_registry_bind( wl_registry, name, &wl_compositor_interface, 4 );
     }
     else if (strcmp( interface, xdg_wm_base_interface.name ) == 0)
     {
-        state->xdg_wm_base = (xdg_wm_base*)wl_registry_bind( wl_registry, name, &xdg_wm_base_interface, 1 );
-        xdg_wm_base_add_listener( state->xdg_wm_base, &xdg_wm_base_listener, state );
+        theState->xdg_wm_base = (xdg_wm_base*)wl_registry_bind( wl_registry, name, &xdg_wm_base_interface, 1 );
+        xdg_wm_base_add_listener( theState->xdg_wm_base, &xdg_wm_base_listener, theState );
+    }
+    else if (strcmp( interface, "wl_seat" ) == 0)
+    {
+        printf("registry_global seat\n");
+        seat = static_cast< wl_seat* >(wl_registry_bind( wl_registry, name, &wl_seat_interface, 1 ) );
+        wl_seat_add_listener( seat, &seat_listener, data );
     }
 }
 
@@ -392,8 +402,6 @@ static void wl_buffer_release( void* data, wl_buffer* wl_buffer )
 }
 
 static wl_registry_listener wl_registry_listener = {};
-
-client_state state = {};
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
@@ -434,5 +442,12 @@ void tePushWindowEvents()
 
 const teWindowEvent& tePopWindowEvent()
 {
-    return win.events[ 0 ];
+    if (win.eventIndex == -1)
+    {
+        win.events[ 0 ].type = teWindowEvent::Type::Empty;
+        return win.events[ 0 ];
+    }
+
+    --win.eventIndex;
+    return win.events[ win.eventIndex + 1 ];
 }
