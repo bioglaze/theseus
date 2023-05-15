@@ -1,4 +1,5 @@
 #include <wayland-client.h>
+#include <linux/input.h>
 #include "window.h"
 #include "te_stdlib.h"
 #include <stdio.h>
@@ -30,6 +31,11 @@ struct WindowImpl
     int eventIndex = -1;
     unsigned width = 0;
     unsigned height = 0;
+
+    // FIXME: this is a hack to get mouse coordinate into mouse move event.
+    //       A proper fix would be to read mouse coordinate when mouse move event is detected.
+    unsigned lastMouseX = 0;
+    unsigned lastMouseY = 0;
 };
 
 WindowImpl win;
@@ -295,9 +301,7 @@ static void xdg_wm_base_ping( void* data, xdg_wm_base* xdg_wm_base, uint32_t ser
 
 struct xdg_wm_base_listener
 {
-	void (*ping)(void *data,
-		     xdg_wm_base *xdg_wm_base,
-		     uint32_t serial);
+	void (*ping)( void* data, xdg_wm_base* xdg_wm_base, uint32_t serial );
 };
 
 static void pointer_enter( void* data, wl_pointer* pointer, uint32_t serial, struct wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y )
@@ -310,6 +314,19 @@ static void pointer_leave( void* data, wl_pointer* pointer, uint32_t serial, str
 
 static void pointer_button( void* data, wl_pointer* pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t pointerState )
 {
+    IncEventIndex();
+
+    if (button == BTN_LEFT)
+    {
+        win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
+    }
+    else if (button == BTN_RIGHT)
+    {
+        win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
+    }
+    
+    win.events[ win.eventIndex ].x = win.lastMouseX;
+    win.events[ win.eventIndex ].y = win.lastMouseY;
 }
 
 static void pointer_axis( void* data, wl_pointer* pointer, uint32_t time, uint32_t axis, wl_fixed_t value )
@@ -318,11 +335,13 @@ static void pointer_axis( void* data, wl_pointer* pointer, uint32_t time, uint32
 
 static void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
 {
-    printf( "pointer motion: %f, %f\n", wl_fixed_to_double( x ), wl_fixed_to_double( y ) );
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
     win.events[ win.eventIndex ].x = (float)wl_fixed_to_double( x );
-    win.events[ win.eventIndex ].y = (float)wl_fixed_to_double( y );
+    win.events[ win.eventIndex ].y = win.height - (float)wl_fixed_to_double( y );
+    
+    win.lastMouseX = win.events[ win.eventIndex ].x;
+    win.lastMouseY = win.events[ win.eventIndex ].y;
 }
 
 wl_pointer_listener pointer_listener = { &pointer_enter, &pointer_leave, &pointer_motion, &pointer_button, &pointer_axis };
@@ -377,7 +396,6 @@ static void registry_global( void* data, struct wl_registry* wl_registry,
     }
     else if (strcmp( interface, "wl_seat" ) == 0)
     {
-        printf("registry_global seat\n");
         seat = static_cast< wl_seat* >(wl_registry_bind( wl_registry, name, &wl_seat_interface, 1 ) );
         wl_seat_add_listener( seat, &seat_listener, data );
     }

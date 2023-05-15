@@ -28,9 +28,13 @@ double GetMilliseconds()
     return (double)(li.QuadPart / (double)PCFreq);
 }
 #else
+#include <time.h>
+
 double GetMilliseconds()
 {
-    return 1;
+    timespec spec;
+    clock_gettime( CLOCK_MONOTONIC, &spec );
+    return spec.tv_nsec / 1000000;
 }
 #endif
 
@@ -90,8 +94,8 @@ int main()
     QueryPerformanceFrequency( &li );
     PCFreq = li.QuadPart / 1000;
 #endif
-    unsigned width = 1920;
-    unsigned height = 1080;
+    unsigned width = 1920 / 1;
+    unsigned height = 1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teCreateRenderer( 1, windowHandle, width, height );
 
@@ -228,7 +232,6 @@ int main()
         double lastTime = theTime;
         theTime = GetMilliseconds();
         double dt = theTime - lastTime;
-        //printf("dt: %f\n", dt);
 
         tePushWindowEvents();
 
@@ -237,7 +240,7 @@ int main()
         while (!eventsHandled)
         {
             const teWindowEvent& event = tePopWindowEvent();
-
+            
             if (event.type == teWindowEvent::Type::Empty)
             {
                 eventsHandled = true;

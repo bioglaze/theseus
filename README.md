@@ -6,7 +6,6 @@ Author: [Timo Wirén](https://twiren.kapsi.fi)
 ![Screenshot](screenshot.jpg)
 
 This will become the successor to [Aether3D engine](https://github.com/bioglaze/aether3d).
-Very early days, only renders hard-coded cubes, without lights etc.
 
 # Features
 
@@ -20,7 +19,7 @@ Very early days, only renders hard-coded cubes, without lights etc.
 
   - Windows (VS 2022 project files included)
   - macOS/iOS
-  - Linux is coming soon
+  - Linux support (requires Wayland)
 
 # Building
 
