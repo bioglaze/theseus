@@ -141,6 +141,7 @@ struct Renderer
 
     static constexpr unsigned MaxPSOs = 250;
     PSO psos[ MaxPSOs ];
+    VkPipeline boundPSO = VK_NULL_HANDLE;
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
     PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
@@ -547,6 +548,8 @@ void ClearPSOCache()
     {
         renderer.psos[ i ] = {};
     }
+
+    renderer.boundPSO = VK_NULL_HANDLE;
 }
 
 static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
@@ -1405,6 +1408,7 @@ void teBeginFrame()
     }
 
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset = 0;
+    renderer.boundPSO = VK_NULL_HANDLE;
 }
 
 void teEndFrame()
@@ -1686,7 +1690,13 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso );
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso;
+
+    if (renderer.boundPSO != pso)
+    {
+        renderer.boundPSO = pso;
+        vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
+    }
 
     int pushConstants[ 4 ] = { (int)textureIndex, 0, 0, 0 };
     vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
