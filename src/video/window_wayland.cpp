@@ -40,6 +40,49 @@ struct WindowImpl
 
 WindowImpl win;
 
+static void InitKeyMap()
+{
+    for (unsigned keyIndex = 0; keyIndex < 256; ++keyIndex)
+    {
+        win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::None;
+    }
+
+    win.keyMap[ 28 ] = teWindowEvent::KeyCode::Enter;
+    win.keyMap[ 105 ] = teWindowEvent::KeyCode::Left;
+    win.keyMap[ 103 ] = teWindowEvent::KeyCode::Up;
+    win.keyMap[ 106 ] = teWindowEvent::KeyCode::Right;
+    win.keyMap[ 108 ] = teWindowEvent::KeyCode::Down;
+    win.keyMap[ 1 ] = teWindowEvent::KeyCode::Escape;
+    win.keyMap[ 57 ] = teWindowEvent::KeyCode::Space;
+
+    win.keyMap[ 30 ] = teWindowEvent::KeyCode::A;
+    win.keyMap[ 48 ] = teWindowEvent::KeyCode::B;
+    win.keyMap[ 46 ] = teWindowEvent::KeyCode::C;
+    win.keyMap[ 32 ] = teWindowEvent::KeyCode::D;
+    win.keyMap[ 18 ] = teWindowEvent::KeyCode::E;
+    win.keyMap[ 33 ] = teWindowEvent::KeyCode::F;
+    win.keyMap[ 34 ] = teWindowEvent::KeyCode::G;
+    win.keyMap[ 35 ] = teWindowEvent::KeyCode::H;
+    win.keyMap[ 23 ] = teWindowEvent::KeyCode::I;
+    win.keyMap[ 36 ] = teWindowEvent::KeyCode::J;
+    win.keyMap[ 37 ] = teWindowEvent::KeyCode::K;
+    win.keyMap[ 38 ] = teWindowEvent::KeyCode::L;
+    win.keyMap[ 50 ] = teWindowEvent::KeyCode::M;
+    win.keyMap[ 49 ] = teWindowEvent::KeyCode::N;
+    win.keyMap[ 24 ] = teWindowEvent::KeyCode::O;
+    win.keyMap[ 25 ] = teWindowEvent::KeyCode::P;
+    win.keyMap[ 16 ] = teWindowEvent::KeyCode::Q;
+    win.keyMap[ 19 ] = teWindowEvent::KeyCode::R;
+    win.keyMap[ 31 ] = teWindowEvent::KeyCode::S;
+    win.keyMap[ 20 ] = teWindowEvent::KeyCode::T;
+    win.keyMap[ 22 ] = teWindowEvent::KeyCode::U;
+    win.keyMap[ 47 ] = teWindowEvent::KeyCode::V;
+    win.keyMap[ 17 ] = teWindowEvent::KeyCode::W;
+    win.keyMap[ 45 ] = teWindowEvent::KeyCode::X;
+    win.keyMap[ 21 ] = teWindowEvent::KeyCode::Y;
+    win.keyMap[ 44 ] = teWindowEvent::KeyCode::Z;
+}
+
 void IncEventIndex()
 {
     if (win.eventIndex < EventStackSize - 1)
@@ -348,6 +391,43 @@ wl_pointer_listener pointer_listener = { &pointer_enter, &pointer_leave, &pointe
 
 client_state state = {};
 
+void keyMap( void* data, wl_keyboard* wl_keyboard, uint format, int fd, uint size )
+{
+    printf("keymap\n");
+}
+
+void keyEnter( void* data, wl_keyboard* wl_keyboard, uint serial, wl_surface* surface, wl_array* keys )
+{
+    printf("keyEnter\n");
+}
+
+void keyLeave( void* data, wl_keyboard* wl_keyboard, uint serial, wl_surface* surface )
+{
+    printf("keyLeave\n");
+}
+
+void keyKey( void* data, wl_keyboard* wl_keyboard, uint serial, uint time, uint key, uint keyState )
+{
+    if (keyState == 1)
+        printf("keyKey %u state %u\n", key, keyState);
+
+    IncEventIndex();
+    win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
+    win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
+}
+
+void keyModifiers( void* data, wl_keyboard* wl_keyboard, uint serial, uint mods_depressed, uint mods_latched, uint mods_locked, uint group )
+{
+    printf("keyModifiers\n");
+}
+
+void keyRepeat( void* data, wl_keyboard* wl_keyboard, int rate, int delay )
+{
+    printf("keyRepeat\n");
+}
+
+wl_keyboard_listener keyboard_listener = { &keyMap, &keyEnter, &keyLeave, &keyKey, &keyModifiers, &keyRepeat };
+
 static void seat_capabilities( void* data, wl_seat* theSeat, uint32_t capabilities )
 {
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
@@ -355,6 +435,12 @@ static void seat_capabilities( void* data, wl_seat* theSeat, uint32_t capabiliti
         wl_pointer* pointer = wl_seat_get_pointer( theSeat );
         wl_pointer_add_listener( pointer, &pointer_listener, data );
         cursor_surface = wl_compositor_create_surface( state.wl_compositor );
+    }
+
+    if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
+    {
+        wl_keyboard* keyboard = wl_seat_get_keyboard( seat );
+        wl_keyboard_add_listener( keyboard, &keyboard_listener, nullptr );
     }
 }
 
@@ -423,6 +509,8 @@ static wl_registry_listener wl_registry_listener = {};
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
+    InitKeyMap();
+    
     win.width = width;
     win.height = height;
     
