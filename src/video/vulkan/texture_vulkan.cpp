@@ -250,6 +250,81 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     return outTex;
 }
 
+teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName )
+{
+    const unsigned index = ++textureCount;
+
+    teTextureImpl& tex = textures[ index ];
+    tex.width = dimension;
+    tex.height = dimension;
+    tex.flags = flags;
+
+    VkFormat vFormat = VK_FORMAT_UNDEFINED;
+    unsigned bpp = 0;
+    GetFormatAndBPP( format, vFormat, bpp );
+
+    VkImageCreateInfo imageCreateInfo = {};
+    imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.format = vFormat;
+    imageCreateInfo.mipLevels = 1;
+    imageCreateInfo.arrayLayers = 6;
+    imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCreateInfo.extent = { (uint32_t)tex.width, (uint32_t)tex.height, 1 };
+    imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+
+    if ((flags & teTextureFlags::RenderTexture) && format == teTextureFormat::Depth32F)
+    {
+        imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    }
+    else if (flags & teTextureFlags::RenderTexture)
+    {
+        imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+
+    if (flags & teTextureFlags::UAV)
+    {
+        imageCreateInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+
+    VK_CHECK( vkCreateImage( device, &imageCreateInfo, nullptr, &tex.image ) );
+    SetObjectName( device, (uint64_t)tex.image, VK_OBJECT_TYPE_IMAGE, debugName );
+
+    VkMemoryRequirements memReqs = {};
+    vkGetImageMemoryRequirements( device, tex.image, &memReqs );
+
+    VkMemoryAllocateInfo memAllocInfo = {};
+    memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memAllocInfo.allocationSize = memReqs.size;
+    memAllocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
+
+    VK_CHECK( vkAllocateMemory( device, &memAllocInfo, nullptr, &tex.deviceMemory ) );
+    SetObjectName( device, (uint64_t)tex.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, debugName );
+
+    VK_CHECK( vkBindImageMemory( device, tex.image, tex.deviceMemory, 0 ) );
+
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+    viewInfo.format = imageCreateInfo.format;
+    viewInfo.subresourceRange.aspectMask = format == teTextureFormat::Depth32F ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.layerCount = 6;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.image = tex.image;
+    VK_CHECK( vkCreateImageView( device, &viewInfo, nullptr, &tex.view ) );
+    SetObjectName( device, (uint64_t)tex.view, VK_OBJECT_TYPE_IMAGE_VIEW, debugName );
+
+    teTextureCube outTex;
+    outTex.index = index;
+    outTex.format = format;
+
+    return outTex;
+}
+
 static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDeviceMemoryProperties deviceMemoryProperties, VkQueue graphicsQueue, VkBuffer* stagingBuffers, unsigned stagingBufferCount, VkFormat format, unsigned mipLevelCount, const char* debugName, VkCommandBuffer cmdBuffer )
 {
     VkImageCreateInfo imageCreateInfo = {};
@@ -617,7 +692,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isDDS)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = 0;
+                outTexture.index = 2;
+                return outTexture;
+            }
+            else if (files[ face ].data == nullptr)
+            {
+                // File not found, return default cube texture.
+                outTexture.index = 2;
                 return outTexture;
             }
 
@@ -638,7 +719,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isTGA)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = 0;
+                outTexture.index = 2;
+                return outTexture;
+            }
+            else if (files[ face ].data == nullptr)
+            {
+                // File not found, return default cube texture.
+                outTexture.index = 2;
                 return outTexture;
             }
 

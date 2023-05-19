@@ -15,6 +15,7 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
+teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags,
     VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
@@ -120,6 +121,7 @@ struct Renderer
     unsigned positionCounter = 0;
 
     teTexture2D defaultTexture2D;
+    teTextureCube defaultTextureCube;
     VkSampler samplerLinearRepeat;
     VkSampler samplerLinearClamp;
     VkSampler samplerAnisotropic8Repeat;
@@ -614,6 +616,11 @@ teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& f
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     return teCreateTexture2D( renderer.device, renderer.deviceMemoryProperties, width, height, flags, format, debugName );
+}
+
+teTextureCube teCreateTextureCube( unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName )
+{
+    return teCreateTextureCube( renderer.device, renderer.deviceMemoryProperties, dimension, flags, format, debugName );
 }
 
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
@@ -1333,6 +1340,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     }
 
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
+    renderer.defaultTextureCube = teCreateTextureCube( 32, 0, teTextureFormat::RGBA_sRGB, "default texture Cube" );
 
     for (unsigned i = 0; i < TextureCount; ++i)
     {
