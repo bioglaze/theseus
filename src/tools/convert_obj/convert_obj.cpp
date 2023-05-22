@@ -265,7 +265,7 @@ void InitMeshArrays( FILE* file )
         {
             ++totalUVCount;
         }
-        else if (strstr( input, "f" ))
+        else if (strchr( input, 'f' ))
         {
             Face face;
             Face face2;
@@ -275,7 +275,7 @@ void InitMeshArrays( FILE* file )
             const bool isQuad = res == 13;
             faceCount += isQuad ? 2 : 1;
         }
-        else if (strstr( input, "s" ) && strstr( input, "usemtl" ) == nullptr)
+        else if (strchr( input, 's' ) && strstr( input, "usemtl" ) == nullptr)
         {
             char str1[ 128 ];
             char smoothName[ 128 ];
@@ -286,7 +286,7 @@ void InitMeshArrays( FILE* file )
                 printf( "Warning: The file contains smoothing groups. They are not supported by the converter.\n" );
             }
         }
-        else if (strstr( input, "v" ))
+        else if (strchr( input, 'v' ))
         {
             ++totalPositionCount;
         }
@@ -316,7 +316,6 @@ void InitMeshArrays( FILE* file )
     unsigned positionIndex = 0;
     unsigned uvIndex = 0;
     unsigned normalIndex = 0;
-    int meshIndex = -1;
     
     while (fgets( line, 255, file ) != nullptr)
     {
@@ -338,16 +337,11 @@ void InitMeshArrays( FILE* file )
             allUVs[ uvIndex ].v = v;
             ++uvIndex;
         }
-        else if (strstr( input, "v" ))
+        else if (strchr( input, 'v'))
         {
             Vec3& pos = allPositions[ positionIndex ];
             sscanf( line, "%254s %f %f %f", input, &pos.x, &pos.y, &pos.z );
             ++positionIndex;
-        }
-
-        if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
-        {
-            ++meshIndex;
         }
     }
 }
@@ -386,7 +380,7 @@ int main( int argc, char* argv[] )
             ++meshCount;
             faceIndex = 0;
         }
-        else if (strstr( input, "f" ))
+        else if (strchr( input, 'f' ))
         {
             Face& face = meshes[ meshCount - 1 ].faces[ faceIndex ];
             Face& face2 = meshes[ meshCount - 1 ].faces[ faceIndex + 1 ];
