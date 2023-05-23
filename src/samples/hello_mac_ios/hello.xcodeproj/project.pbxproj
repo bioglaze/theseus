@@ -10,7 +10,7 @@
 		AB74C0D529FD37E400A1B505 /* HelloShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB74C0D429FD37E400A1B505 /* HelloShared.mm */; };
 		AB74C0D629FD37E400A1B505 /* HelloShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB74C0D429FD37E400A1B505 /* HelloShared.mm */; };
 		AB7EADE329E04943003A182A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADE229E04943003A182A /* AppDelegate.m */; };
-		AB7EADE629E04943003A182A /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADE529E04943003A182A /* GameViewController.m */; };
+		AB7EADE629E04943003A182A /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADE529E04943003A182A /* GameViewController.mm */; };
 		AB7EADE929E04943003A182A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADE729E04943003A182A /* Main.storyboard */; };
 		AB7EADEC29E04943003A182A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADEA29E04943003A182A /* LaunchScreen.storyboard */; };
 		AB7EADEE29E04943003A182A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AB7EADED29E04943003A182A /* main.m */; };
@@ -30,6 +30,8 @@
 		ABA3ACB929E07DCD008BAD89 /* fullscreen.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */; };
 		ABBD223829EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
 		ABBD223929EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
+		ABED5D332A1D30F500A85DB3 /* theseus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; };
+		ABED5D342A1D30F500A85DB3 /* theseus.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -44,6 +46,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ABED5D352A1D30F500A85DB3 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				ABED5D342A1D30F500A85DB3 /* theseus.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -53,7 +66,7 @@
 		AB7EADE129E04943003A182A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		AB7EADE229E04943003A182A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		AB7EADE429E04943003A182A /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
-		AB7EADE529E04943003A182A /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		AB7EADE529E04943003A182A /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		AB7EADE829E04943003A182A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		AB7EADEB29E04943003A182A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AB7EADED29E04943003A182A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -92,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABED5D332A1D30F500A85DB3 /* theseus.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +158,7 @@
 				AB7EADE129E04943003A182A /* AppDelegate.h */,
 				AB7EADE229E04943003A182A /* AppDelegate.m */,
 				AB7EADE429E04943003A182A /* GameViewController.h */,
-				AB7EADE529E04943003A182A /* GameViewController.m */,
+				AB7EADE529E04943003A182A /* GameViewController.mm */,
 				AB7EADE729E04943003A182A /* Main.storyboard */,
 				AB7EADEA29E04943003A182A /* LaunchScreen.storyboard */,
 				AB7EADED29E04943003A182A /* main.m */,
@@ -216,6 +230,7 @@
 				AB7EADDA29E04943003A182A /* Sources */,
 				AB7EADDB29E04943003A182A /* Frameworks */,
 				AB7EADDC29E04943003A182A /* Resources */,
+				ABED5D352A1D30F500A85DB3 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -310,7 +325,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ABA3ACB629E07DCD008BAD89 /* unlit.metal in Sources */,
-				AB7EADE629E04943003A182A /* GameViewController.m in Sources */,
+				AB7EADE629E04943003A182A /* GameViewController.mm in Sources */,
 				ABA3ACB829E07DCD008BAD89 /* fullscreen.metal in Sources */,
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
@@ -475,6 +490,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UKGWYKDBK4;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -503,6 +523,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UKGWYKDBK4;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
