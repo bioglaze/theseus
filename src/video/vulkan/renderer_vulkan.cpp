@@ -774,7 +774,7 @@ void CreateInstance()
 
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, nullptr );
-    VkExtensionProperties* extensions = new VkExtensionProperties[ extensionCount ];
+    VkExtensionProperties* extensions = (VkExtensionProperties* )teMalloc( extensionCount * sizeof( VkExtensionProperties ) );
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, extensions );
 
     bool hasDebugUtils = false;
@@ -836,17 +836,17 @@ void CreateInstance()
     }
 #endif
 
-    delete[] extensions;
+    teFree( extensions );
 }
 
 void CreateDevice()
 {
     uint32_t gpuCount;
     VK_CHECK( vkEnumeratePhysicalDevices( renderer.instance, &gpuCount, nullptr ) );
-    VkPhysicalDevice* physicalDevices = new VkPhysicalDevice[ gpuCount ];
+    VkPhysicalDevice* physicalDevices = (VkPhysicalDevice*)teMalloc( sizeof( VkPhysicalDevice ) * gpuCount );
     VK_CHECK( vkEnumeratePhysicalDevices( renderer.instance, &gpuCount, physicalDevices ) );
     renderer.physicalDevice = physicalDevices[ 0 ];
-    delete[] physicalDevices;
+    teFree( physicalDevices );
 
     vkGetPhysicalDeviceProperties( renderer.physicalDevice, &renderer.properties );
     uint32_t queueCount;
@@ -854,7 +854,7 @@ void CreateDevice()
 
     printf( "GPU: %s\n", renderer.properties.deviceName );
 
-    VkQueueFamilyProperties* queueProps = new VkQueueFamilyProperties[ queueCount ];
+    VkQueueFamilyProperties* queueProps = (VkQueueFamilyProperties*)teMalloc( sizeof( VkQueueFamilyProperties ) * queueCount );
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, queueProps );
 
     for (renderer.graphicsQueueIndex = 0; renderer.graphicsQueueIndex < queueCount; ++renderer.graphicsQueueIndex)
@@ -865,7 +865,7 @@ void CreateDevice()
         }
     }
     
-    delete[] queueProps;
+    free( queueProps );
 
     float queuePriorities = 0;
     VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -965,7 +965,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     uint32_t formatCount = 0;
     VK_CHECK( renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, nullptr ) );
 
-    VkSurfaceFormatKHR* surfFormats = new VkSurfaceFormatKHR[ formatCount ];
+    VkSurfaceFormatKHR* surfFormats = (VkSurfaceFormatKHR*)teMalloc( sizeof( VkSurfaceFormatKHR ) * formatCount );
     VK_CHECK( renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, surfFormats ) );
 
     VkFormat colorFormat = VK_FORMAT_UNDEFINED;
@@ -1023,13 +1023,13 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     swapchainInfo.clipped = VK_TRUE;
     swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
-    delete[] surfFormats;
+    teFree( surfFormats );
 
     VK_CHECK( renderer.createSwapchainKHR( renderer.device, &swapchainInfo, nullptr, &renderer.swapchain ) );
     SetObjectName( renderer.device, (uint64_t)renderer.swapchain, VK_OBJECT_TYPE_SWAPCHAIN_KHR, "swap chain" );
 
     VK_CHECK( renderer.getSwapchainImagesKHR( renderer.device, renderer.swapchain, &renderer.swapchainImageCount, nullptr ) );
-    VkImage* images = new VkImage[ renderer.swapchainImageCount ];
+    VkImage* images = (VkImage*)teMalloc( sizeof( VkImage ) * renderer.swapchainImageCount );
     VK_CHECK( renderer.getSwapchainImagesKHR( renderer.device, renderer.swapchain, &renderer.swapchainImageCount, images ) );
 
     for (uint32_t i = 0; i < swapchainInfo.minImageCount; ++i)
@@ -1054,7 +1054,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 
     }
 
-    delete[] images;
+    teFree( images );
 }
 
 void CreateDescriptorSets()

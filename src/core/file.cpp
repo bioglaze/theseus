@@ -29,7 +29,7 @@ teFile teLoadFile( const char* path )
         fseek( file, 0, SEEK_END );
         auto length = ftell( file );
         fseek( file, 0, SEEK_SET );
-        outFile.data = new unsigned char[ length ];
+        outFile.data = (unsigned char*)teMalloc( length );
         outFile.size = (unsigned)length;
 
         for (unsigned i = 0; i < 260; ++i)

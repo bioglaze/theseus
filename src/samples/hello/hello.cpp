@@ -14,6 +14,7 @@
 #include "window.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -162,6 +163,7 @@ int main()
     teMesh mesh = teLoadMesh( meshFile );
     teGameObject meshGo = teCreateGameObject( "table", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( meshGo.index, Vec3( 0, 20, 0 ) );
+    //teTransformSetLocalScale( meshGo.index, 0.001f );
     teMeshRendererSetMesh( meshGo.index, &mesh );
     teMeshRendererSetMaterial( meshGo.index, material, 0 );
 
@@ -363,20 +365,20 @@ int main()
         teEndFrame();
     }
 
-    delete[] unlitVsFile.data;
-    delete[] unlitPsFile.data;
-    delete[] fullscreenVsFile.data;
-    delete[] fullscreenPsFile.data;
-    delete[] skyboxVsFile.data;
-    delete[] skyboxPsFile.data;
-    delete[] gliderFile.data;
-    delete[] backFile.data;
-    delete[] frontFile.data;
-    delete[] leftFile.data;
-    delete[] rightFile.data;
-    delete[] topFile.data;
-    delete[] bottomFile.data;
-    delete[] bc1File.data;
+    free( unlitVsFile.data );
+    free( unlitPsFile.data );
+    free( fullscreenVsFile.data );
+    free( fullscreenPsFile.data );
+    free( skyboxVsFile.data );
+    free( skyboxPsFile.data );
+    free( gliderFile.data );
+    free( backFile.data );
+    free( frontFile.data );
+    free( leftFile.data );
+    free( rightFile.data );
+    free( topFile.data );
+    free( bottomFile.data );
+    free( bc1File.data );
 
     ImGui::DestroyContext( imContext );
 

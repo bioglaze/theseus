@@ -55,6 +55,12 @@ static void teMemcpy( void* dst, const void* src, size_t size )
 
 static void* teMalloc( size_t bytes )
 {
+    teAssert( bytes > 0 );
+
     return malloc( bytes );
 }
 
+static void teFree( void* ptr )
+{
+    free( ptr );
+}
