@@ -78,14 +78,26 @@ void RenderImGUIDrawData( ImDrawData* drawData )
     if (fbWidth <= 0 || fbHeight <= 0)
         return;
 
-    if (drawData->TotalVtxCount > 0)
+    /*if (drawData->TotalVtxCount > 0)
     {
         size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
         size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
-        ImDrawVert* vtxDst = nullptr;
-        ImDrawIdx* idxDst = nullptr;
-    }
+        ImDrawVert* vtxDst = teMapUiVertexMemory();
+        ImDrawIdx* idxDst = teMapUiIndexMemory();
+
+        for (unsigned n = 0; n < drawData->CmdListsCount; ++n)
+        {
+            const ImDrawList* cmd_list = drawData->CmdLists[ n ];
+            memcpy( vtxDst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
+            memcpy( idxDst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof( ImDrawIdx ) );
+            vtxDst += cmd_list->VtxBuffer.Size;
+            idxDst += cmd_list->IdxBuffer.Size;
+        }
+        
+        teUnmapUiVertexMemory();
+        teUnmapUiIndexMemory();
+    }*/
 }
 
 int main()

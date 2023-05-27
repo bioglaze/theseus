@@ -25,13 +25,13 @@ static void InitKeyMap()
         win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::None;
     }
 
-    win.keyMap[ 13 ] = teWindowEvent::KeyCode::Enter;
-    win.keyMap[ 37 ] = teWindowEvent::KeyCode::Left;
-    win.keyMap[ 38 ] = teWindowEvent::KeyCode::Up;
-    win.keyMap[ 39 ] = teWindowEvent::KeyCode::Right;
-    win.keyMap[ 40 ] = teWindowEvent::KeyCode::Down;
-    win.keyMap[ 27 ] = teWindowEvent::KeyCode::Escape;
-    win.keyMap[ 32 ] = teWindowEvent::KeyCode::Space;
+    win.keyMap[ VK_RETURN ] = teWindowEvent::KeyCode::Enter;
+    win.keyMap[ VK_LEFT ] = teWindowEvent::KeyCode::Left;
+    win.keyMap[ VK_UP ] = teWindowEvent::KeyCode::Up;
+    win.keyMap[ VK_RIGHT ] = teWindowEvent::KeyCode::Right;
+    win.keyMap[ VK_DOWN ] = teWindowEvent::KeyCode::Down;
+    win.keyMap[ VK_ESCAPE ] = teWindowEvent::KeyCode::Escape;
+    win.keyMap[ VK_SPACE ] = teWindowEvent::KeyCode::Space;
 
     win.keyMap[ 65 ] = teWindowEvent::KeyCode::A;
     win.keyMap[ 66 ] = teWindowEvent::KeyCode::B;
@@ -143,7 +143,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wc.hCursor = LoadCursor( nullptr, IDC_ARROW );
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.lpszClassName = "WindowClass1";
-    wc.hIcon = static_cast< HICON >(LoadImage( nullptr, "theseus.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE) );
+    wc.hIcon = static_cast< HICON >(LoadImage( nullptr, "assets/textures/theseus.ico", IMAGE_ICON, 128, 128, LR_LOADFROMFILE) );
 
     RegisterClassEx( &wc );
 
