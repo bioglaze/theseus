@@ -183,10 +183,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
                 continue;
             }
 
-            if (subMeshIndex == 0)
-            {
-                UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
-            }
+            UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
 
             teShader shader = teMaterialGetShader( material );
 
