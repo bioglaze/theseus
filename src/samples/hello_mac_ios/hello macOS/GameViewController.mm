@@ -53,11 +53,6 @@ NSViewController* myViewController;
     
     myViewController = self;
     inflightSemaphore = dispatch_semaphore_create( 2 );
-    
-    const unsigned width = self.view.bounds.size.width;
-    const unsigned height = self.view.bounds.size.height;
-        
-    InitApp( width, height );
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view
@@ -78,7 +73,12 @@ NSViewController* myViewController;
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
+    NSLog(@"Resize");
     
+    const unsigned width = _view.bounds.size.width;
+    const unsigned height = _view.bounds.size.height;
+        
+    InitApp( width, height );
 }
 
 - (BOOL)commitEditingAndReturnError:(NSError *__autoreleasing  _Nullable * _Nullable)error
