@@ -10,3 +10,5 @@ void teFinalizeMeshBuffers();
 void teDrawFullscreenTriangle( struct teShader& shader, struct teTexture2D& texture );
 void teBeginSwapchainRendering( teTexture2D& color );
 void teEndSwapchainRendering();
+void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
+void teUnmapUiMemory();

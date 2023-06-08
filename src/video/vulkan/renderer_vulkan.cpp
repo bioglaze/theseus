@@ -116,6 +116,10 @@ struct Renderer
     Buffer staticMeshUVStagingBuffer;
     Buffer staticMeshIndexBuffer;
     Buffer staticMeshIndexStagingBuffer;
+    Buffer uiVertexBuffer;
+    Buffer uiIndexBuffer;
+    float* uiVertices = nullptr;
+    uint16_t* uiIndices = nullptr;
     unsigned indexCounter = 0;
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
@@ -1167,7 +1171,11 @@ void CreateBuffers()
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
-    
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "uiIndexBuffer" );
+    renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
+    renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
+
     constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 
     for (unsigned i = 0; i < 4; ++i)
@@ -1717,4 +1725,16 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
     Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat );
+}
+
+void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
+{
+    *outVertexMemory = renderer.uiVertices;
+    *outIndexMemory = renderer.uiIndices;
+}
+
+void teUnmapUiMemory()
+{
+    UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, 8 * 1024 * 1024, 0 );
+    UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
 }

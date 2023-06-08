@@ -78,15 +78,18 @@ void RenderImGUIDrawData( ImDrawData* drawData )
     if (fbWidth <= 0 || fbHeight <= 0)
         return;
 
-    /*if (drawData->TotalVtxCount > 0)
+    if (drawData->TotalVtxCount > 0)
     {
         size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
         size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
-        ImDrawVert* vtxDst = teMapUiVertexMemory();
-        ImDrawIdx* idxDst = teMapUiIndexMemory();
+        void* vertexMemory = nullptr;
+        void* indexMemory = nullptr;
+        teMapUiMemory( &vertexMemory, &indexMemory );
+        ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
+        ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
 
-        for (unsigned n = 0; n < drawData->CmdListsCount; ++n)
+        for (int n = 0; n < drawData->CmdListsCount; ++n)
         {
             const ImDrawList* cmd_list = drawData->CmdLists[ n ];
             memcpy( vtxDst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
@@ -95,9 +98,8 @@ void RenderImGUIDrawData( ImDrawData* drawData )
             idxDst += cmd_list->IdxBuffer.Size;
         }
         
-        teUnmapUiVertexMemory();
-        teUnmapUiIndexMemory();
-    }*/
+        teUnmapUiMemory();
+    }
 }
 
 int main()
@@ -171,11 +173,11 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
-    teFile meshFile = teLoadFile( "assets/meshes/table.t3d" );
+    teFile meshFile = teLoadFile( "assets/meshes/unnamed.t3d" );
     teMesh mesh = teLoadMesh( meshFile );
     teGameObject meshGo = teCreateGameObject( "table", teComponent::Transform | teComponent::MeshRenderer );
-    teTransformSetLocalPosition( meshGo.index, Vec3( 0, 20, 0 ) );
-    //teTransformSetLocalScale( meshGo.index, 0.001f );
+    teTransformSetLocalPosition( meshGo.index, Vec3( 0, 25, 0 ) );
+    teTransformSetLocalScale( meshGo.index, 0.05f );
     teMeshRendererSetMesh( meshGo.index, &mesh );
     teMeshRendererSetMaterial( meshGo.index, material, 0 );
 
