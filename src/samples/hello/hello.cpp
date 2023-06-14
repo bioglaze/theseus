@@ -12,6 +12,7 @@
 #include "transform.h"
 #include "vec3.h"
 #include "window.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,8 +71,10 @@ struct ImGUIImplCustom
     const char* name = "jeejee";
 };
 
-void RenderImGUIDrawData( ImDrawData* drawData )
+void RenderImGUIDrawData()
 {
+    ImDrawData* drawData = ImGui::GetDrawData();
+
     int fbWidth = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
     int fbHeight = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
     // Don't render when minimized.
@@ -99,6 +102,49 @@ void RenderImGUIDrawData( ImDrawData* drawData )
         }
         
         teUnmapUiMemory();
+    }
+
+    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fbWidth, fbHeight );
+
+    // Will project scissor/clipping rectangles into framebuffer space
+    ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+    int global_vtx_offset = 0;
+    int global_idx_offset = 0;
+
+    for (int n = 0; n < drawData->CmdListsCount; ++n)
+    {
+        const ImDrawList* cmd_list = drawData->CmdLists[ n ];
+
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
+        {
+            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[ cmd_i ];
+
+            if (pcmd->UserCallback != nullptr)
+            {
+                printf( "UserCallback not implemented\n" );
+            }
+            else
+            {
+                // Project scissor/clipping rectangles into framebuffer space
+                ImVec2 clip_min( (pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y );
+                ImVec2 clip_max( (pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y );
+
+                // Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+                if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
+                if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
+                if (clip_max.x > fbWidth) { clip_max.x = (float)fbWidth; }
+                if (clip_max.y > fbHeight) { clip_max.y = (float)fbHeight; }
+                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+                    continue;
+
+                //teUIDrawCall( (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+            }
+        }
+
+        global_idx_offset += cmd_list->IdxBuffer.Size;
+        global_vtx_offset += cmd_list->VtxBuffer.Size;
     }
 }
 
@@ -369,10 +415,9 @@ int main()
         ImGui::Text( "This is some useful text." );
         ImGui::End();
         ImGui::Render();
-        ImDrawData* drawData = ImGui::GetDrawData();
-        RenderImGUIDrawData( drawData );
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
+        RenderImGUIDrawData();
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 

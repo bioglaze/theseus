@@ -1738,3 +1738,15 @@ void teUnmapUiMemory()
     UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, 8 * 1024 * 1024, 0 );
     UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
 }
+
+void teUIDrawCall( int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+{
+    VkRect2D scissor;
+    scissor.offset.x = scissorX;
+    scissor.offset.y = scissorY;
+    scissor.extent.width = scissorW;
+    scissor.extent.height = scissorH;
+    vkCmdSetScissor( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &scissor );
+
+    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
+}
