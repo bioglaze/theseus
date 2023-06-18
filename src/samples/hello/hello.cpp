@@ -216,16 +216,9 @@ int main()
     teMesh cubeMesh2 = teCreateCubeMesh();
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( cubeGo2.index, Vec3( 0, 20, 0 ) );
+    //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
-
-    teFile meshFile = teLoadFile( "assets/meshes/unnamed.t3d" );
-    teMesh mesh = teLoadMesh( meshFile );
-    teGameObject meshGo = teCreateGameObject( "table", teComponent::Transform | teComponent::MeshRenderer );
-    teTransformSetLocalPosition( meshGo.index, Vec3( 0, 25, 0 ) );
-    teTransformSetLocalScale( meshGo.index, 0.05f );
-    teMeshRendererSetMesh( meshGo.index, &mesh );
-    teMeshRendererSetMaterial( meshGo.index, material, 0 );
 
     teFinalizeMeshBuffers();
 
@@ -233,7 +226,6 @@ int main()
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
-    teSceneAdd( scene, meshGo.index );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;
@@ -402,14 +394,22 @@ int main()
             }
         }
 
+        Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
+
         teTransformMoveForward( camera3d.index, moveDir.z * (float)dt * 0.5f );
         teTransformMoveRight( camera3d.index, moveDir.x * (float)dt * 0.5f );
         teTransformMoveUp( camera3d.index, moveDir.y * (float)dt * 0.5f );
 
         teBeginFrame();
         ImGui::NewFrame();
-        //teSceneRender( scene, nullptr, nullptr, nullptr );
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
+
+        cameraPos = -teTransformGetLocalPosition( camera3d.index );
+
+        if (teScenePointInsideAABB( scene, cameraPos ))
+        {
+            teTransformSetLocalPosition( camera3d.index, oldCameraPos );
+        }
 
         ImGui::Begin( "ImGUI" );
         ImGui::Text( "This is some useful text." );

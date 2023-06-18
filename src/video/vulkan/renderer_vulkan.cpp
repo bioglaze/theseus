@@ -161,6 +161,8 @@ struct Renderer
     PFN_vkGetPhysicalDeviceSurfaceFormatsKHR getPhysicalDeviceSurfaceFormatsKHR;
     PFN_vkAcquireNextImageKHR acquireNextImageKHR;
     PFN_vkQueuePresentKHR queuePresentKHR;
+
+    static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
 
 Renderer renderer;
@@ -1176,12 +1178,10 @@ void CreateBuffers()
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
 
-    constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
-
     for (unsigned i = 0; i < 4; ++i)
     {
-        renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
-        VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
+        renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, renderer.uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
+        VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, renderer.uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
     }
 }
 
@@ -1720,6 +1720,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
 
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += sizeof( PerObjectUboStruct );
+    teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
 }
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )

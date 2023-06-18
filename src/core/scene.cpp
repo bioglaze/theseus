@@ -247,3 +247,48 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
         RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 }
+
+bool teScenePointInsideAABB( const teScene& scene, Vec3& point )
+{
+    bool isInside = false;
+
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    {
+        if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] != 0 &&
+            (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::Transform) != 0 &&
+            (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) != 0)
+        {
+            const Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
+            const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
+            for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
+            {
+                Vec3 meshAabbMinWorld, meshAabbMaxWorld;
+                teMeshGetSubMeshLocalAABB( mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
+
+                // TODO: This could use the results of updateFrustumsAndCull() instead of calculating this again.
+                Vec3 meshAabbWorld[ 8 ];
+                GetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
+
+                for (unsigned v = 0; v < 8; ++v)
+                {
+                    Vec3 res;
+                    Matrix::TransformPoint( meshAabbWorld[ v ], localToWorld, res );
+                    meshAabbWorld[ v ] = res;
+                }
+
+                GetMinMax( meshAabbWorld, 8, meshAabbMinWorld, meshAabbMaxWorld );
+
+                if (point.x > meshAabbMinWorld.x && point.x < meshAabbMaxWorld.x &&
+                    point.y > meshAabbMinWorld.y && point.y < meshAabbMaxWorld.y &&
+                    point.z > meshAabbMinWorld.z && point.z < meshAabbMaxWorld.z )
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return isInside;
+}
