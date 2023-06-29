@@ -71,7 +71,7 @@ struct ImGUIImplCustom
     const char* name = "jeejee";
 };
 
-void RenderImGUIDrawData()
+void RenderImGUIDrawData( const teShader& shader )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -104,8 +104,6 @@ void RenderImGUIDrawData()
         teUnmapUiMemory();
     }
 
-    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fbWidth, fbHeight );
-
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
     ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
@@ -124,6 +122,15 @@ void RenderImGUIDrawData()
             if (pcmd->UserCallback != nullptr)
             {
                 printf( "UserCallback not implemented\n" );
+                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                {
+                    printf( "ImDrawCallback_ResetRenderState not implemented\n" );
+                    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fb_width, fb_height );
+                }
+                else
+                {
+                    pcmd->UserCallback( cmd_list, pcmd );
+                }
             }
             else
             {
@@ -139,7 +146,7 @@ void RenderImGUIDrawData()
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                //teUIDrawCall( (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -417,7 +424,7 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        RenderImGUIDrawData();
+        //RenderImGUIDrawData( unlitShader );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 

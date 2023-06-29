@@ -1615,7 +1615,7 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
 
-static void UpdateDescriptors( const Buffer& binding1, const Buffer& binding3, unsigned uboOffset )
+static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, unsigned uboOffset )
 {
     const VkDescriptorSet& dstSet = renderer.swapchainResources[ renderer.frameIndex ].descriptorSets[ renderer.swapchainResources[ renderer.frameIndex ].setIndex ];
 
@@ -1634,7 +1634,7 @@ static void UpdateDescriptors( const Buffer& binding1, const Buffer& binding3, u
     sets[ 1 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 1 ].dstBinding = 1;
 
-    VkBufferView binding2View = BufferGetView( binding1 );
+    VkBufferView binding2View = BufferGetView( binding2 );
 
     sets[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 2 ].dstSet = dstSet;
@@ -1655,7 +1655,7 @@ static void UpdateDescriptors( const Buffer& binding1, const Buffer& binding3, u
     sets[ 3 ].pBufferInfo = &uboDesc;
     sets[ 3 ].dstBinding = 3;
 
-    VkBufferView binding4View = BufferGetView( binding3 );
+    VkBufferView binding4View = BufferGetView( binding4 );
 
     sets[ 4 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 4 ].dstSet = dstSet;
@@ -1740,7 +1740,7 @@ void teUnmapUiMemory()
     UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
 }
 
-void teUIDrawCall( int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
     VkRect2D scissor;
     scissor.offset.x = scissorX;
@@ -1748,6 +1748,19 @@ void teUIDrawCall( int scissorX, int scissorY, unsigned scissorW, unsigned sciss
     scissor.extent.width = scissorW;
     scissor.extent.height = scissorH;
     vkCmdSetScissor( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &scissor );
+
+    vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.uiIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
+
+    UpdateDescriptors( renderer.uiVertexBuffer, renderer.uiVertexBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
+
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, teTextureFormat::RGBA_sRGB, teTextureFormat::Depth32F ) ].pso;
+
+    if (renderer.boundPSO != pso)
+    {
+        renderer.boundPSO = pso;
+        vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
+    }
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
 }
