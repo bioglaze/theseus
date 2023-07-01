@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <libdecor.h>
 
 #define XDG_SURFACE_ACK_CONFIGURE 4
 #define XDG_SURFACE_GET_TOPLEVEL 1
@@ -18,7 +19,7 @@
 wl_display* wlDisplay;
 wl_surface* wlSurface;
 
-// TODO: move into state if possible
+// TODO: move into client_state if possible
 wl_seat* seat;
 wl_surface* cursor_surface;
 
@@ -92,65 +93,6 @@ void IncEventIndex()
 }
 
 static wl_buffer_listener wlBufferListener = {};
-
-static void randname( char* buf )
-{
-    struct timespec ts;
-    clock_gettime( CLOCK_REALTIME, &ts );
-    long r = ts.tv_nsec;
-
-    for (int i = 0; i < 6; ++i)
-    {
-        buf[ i ] = 'A' + (r & 15) + (r & 16) * 2;
-        r >>= 5;
-    }    
-}
-
-static int create_shm_file()
-{
-    int retries = 100;
-
-    do
-    {
-        char name[] = "/wl_shm-XXXXXX";
-        randname( name + sizeof( name ) - 7 );
-        --retries;
-        int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
-
-        if (fd >= 0)
-        {
-            shm_unlink( name );
-            return fd;
-        }
-    } while (retries > 0 && errno == EEXIST);
-
-    return -1;
-}
-
-static int allocate_shm_file( size_t size )
-{
-    int fd = create_shm_file();
-
-    if (fd < 0)
-    {
-        return -1;
-    }
-
-    int ret;
-    
-    do
-    {
-        ret = ftruncate(fd, size);
-    } while (ret < 0 && errno == EINTR);
-    
-    if (ret < 0)
-    {
-        close(fd);
-        return -1;
-    }
-    
-    return fd;
-}
 
 struct client_state
 {
@@ -387,7 +329,7 @@ static void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_f
     win.lastMouseY = win.events[ win.eventIndex ].y;
 }
 
-wl_pointer_listener pointer_listener = { &pointer_enter, &pointer_leave, &pointer_motion, &pointer_button, &pointer_axis };
+wl_pointer_listener pointer_listener = { &pointer_enter, &pointer_leave, &pointer_motion, &pointer_button, &pointer_axis, nullptr, nullptr, nullptr, nullptr, nullptr };
 
 client_state state = {};
 
@@ -444,7 +386,7 @@ static void seat_capabilities( void* data, wl_seat* theSeat, uint32_t capabiliti
     }
 }
 
-static wl_seat_listener seat_listener = {&seat_capabilities};
+static wl_seat_listener seat_listener = { &seat_capabilities, nullptr };
 
 static inline int xdg_wm_base_add_listener( xdg_wm_base* xdg_wm_base, const xdg_wm_base_listener* listener, void* data )
 {
@@ -485,6 +427,10 @@ static void registry_global( void* data, struct wl_registry* wl_registry,
         seat = static_cast< wl_seat* >(wl_registry_bind( wl_registry, name, &wl_seat_interface, 1 ) );
         wl_seat_add_listener( seat, &seat_listener, data );
     }
+    else if (strcmp( interface, "wl_output" ) == 0)
+    {
+        printf( "registry_global: wl_output\n" );
+    }
 }
 
 static int xdg_surface_add_listener( xdg_surface* xdg_surface,
@@ -506,6 +452,75 @@ static void wl_buffer_release( void* data, wl_buffer* wl_buffer )
 }
 
 static wl_registry_listener wl_registry_listener = {};
+
+void handle_error( libdecor* context, enum libdecor_error error, const char* message )
+{
+    printf( "libdecor error: %d: %s\n", error, message );
+	teAssert( !"libdecor error" );
+}
+
+static struct libdecor_interface libdecor_iface =
+{
+	handle_error,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
+};
+
+libdecor* decorContext;
+libdecor_frame_interface decorFrameInterface;
+libdecor_window_state decorWindowState;
+
+static void handle_configure( libdecor_frame* frame, libdecor_configuration* configuration, void* user_data )
+{
+    printf("handle_configure\n");
+    libdecor_window_state window_state = LIBDECOR_WINDOW_STATE_NONE;
+    
+    if (!libdecor_configuration_get_window_state( configuration, &window_state ) )
+    {
+		window_state = LIBDECOR_WINDOW_STATE_NONE;
+    }
+
+    int width, height;
+    
+    if (!libdecor_configuration_get_content_size( configuration, frame, &width, &height ))
+    {
+		//width = window->content_width;
+		//height = window->content_height;
+	}
+
+    printf( "handle_configure: width: %d, height %d\n", width, height );
+
+    libdecor_state* decState = libdecor_state_new( width, height );
+	libdecor_frame_commit( frame, decState, configuration );
+	libdecor_state_free( decState );
+
+	/*if (libdecor_frame_is_floating( window->frame ))
+    {
+		window->floating_width = width;
+		window->floating_height = height;
+	}
+
+    redraw(window);
+    */
+}
+
+static void handle_close( libdecor_frame* frame, void* user_data )
+{
+    exit(EXIT_SUCCESS);
+}
+
+void commit()
+{
+    wl_surface_commit( wlSurface );
+}
+
+static void handle_commit( libdecor_frame* frame, void* user_data )
+{
+    printf("handle_commit\n");
+}
+
+static void handle_dismiss_popup( libdecor_frame* frame, const char* seat_name, void* user_data )
+{
+}
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
@@ -534,11 +549,27 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     xdg_toplevel_set_title( state.xdg_toplevel, "Example client" );
     wl_surface_commit( wlSurface );
 
+    /*decorContext = libdecor_new( wlDisplay, &libdecor_iface );
+
+    decorFrameInterface.configure = handle_configure;
+    decorFrameInterface.close = handle_close;
+    decorFrameInterface.commit = handle_commit;
+    decorFrameInterface.dismiss_popup = handle_dismiss_popup;
+
+    libdecor_frame* decorFrame = libdecor_decorate( decorContext, wlSurface, &decorFrameInterface, nullptr );
+    libdecor_frame_set_app_id( decorFrame, "Theseus Engine");
+    libdecor_frame_set_title( decorFrame, title );
+    libdecor_frame_map( decorFrame );*/
+
     return nullptr;
 }
 
 void WaylandDispatch()
 {
+    int timeout = -1;
+    printf("libdecor_dispatch before\n");
+    //int res = libdecor_dispatch( decorContext, timeout );
+    //printf("libdecor_dispath res: %d\n", res);
     wl_display_dispatch( wlDisplay );
 }
 

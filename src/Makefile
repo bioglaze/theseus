@@ -1,11 +1,11 @@
-LINKER := -ldl -lvulkan -lwayland-client
-FLAGS := -std=c++17 -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -msse3 -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
+LINKER := -ldl -lvulkan -lwayland-client -lwayland-cursor -ldecor-0
+FLAGS := -I/usr/include/libdecor-0/ -std=c++17 -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
 DEFINES := -DVK_USE_PLATFORM_WAYLAND_KHR -D_DEBUG -DSIMD_SSE3 -DSURFACE_EXTENSION_NAME=VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Linux)
-CC := clang++
-CS := clang
+CC := g++
+CS := gcc
 else
 CC := clang++
 endif
