@@ -1754,7 +1754,7 @@ void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned 
     UpdateDescriptors( renderer.uiVertexBuffer, renderer.uiVertexBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, teTextureFormat::RGBA_sRGB, teTextureFormat::Depth32F ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ renderer.frameIndex ].colorFormat, teTextureFormat::Depth32F ) ].pso;
 
     if (renderer.boundPSO != pso)
     {

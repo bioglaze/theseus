@@ -424,7 +424,7 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        //RenderImGUIDrawData( unlitShader );
+        RenderImGUIDrawData( unlitShader );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 
