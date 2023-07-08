@@ -76,6 +76,11 @@ struct Renderer
     Buffer staticMeshUVStagingBuffer;
     Buffer staticMeshUVBuffer;
     
+    Buffer uiVertexBuffer;
+    Buffer uiIndexBuffer;
+    float* uiVertices = nullptr;
+    uint16_t* uiIndices = nullptr;
+
     teTexture2D defaultTexture2D;
 };
 
@@ -203,7 +208,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     gCommandQueue = renderer.commandQueue;
     renderer.renderPassDescriptorFBO = [MTLRenderPassDescriptor renderPassDescriptor];
     
-    const unsigned bufferBytes = 1024 * 1024 * 500;
+    const unsigned bufferBytes = 1024 * 1024 * 250;
     
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, bufferBytes, false );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
@@ -212,6 +217,13 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false );
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
     
+    const unsigned uiBufferBytes = 1024 * 1024 * 8;
+    
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true );
+    renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
+    renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
+
     for (unsigned i = 0; i < 2; ++i)
     {
         constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -390,7 +402,7 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
 }
 
-static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat format )
+static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat format, bool isUI )
 {
     int psoIndex = -1;
     
@@ -422,6 +434,31 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
         pipelineStateDescriptor.colorAttachments[ 0 ].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
         pipelineStateDescriptor.colorAttachments[ 0 ].alphaBlendOperation = MTLBlendOperationAdd;
         pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+        
+        if (isUI)
+        {
+            MTLVertexDescriptor* vertexDesc = [MTLVertexDescriptor vertexDescriptor];
+            
+            // Position
+            vertexDesc.attributes[ 0 ].format = MTLVertexFormatFloat2;
+            vertexDesc.attributes[ 0 ].bufferIndex = 0;
+            vertexDesc.attributes[ 0 ].offset = 0;
+            
+            // Texcoord
+            vertexDesc.attributes[ 1 ].format = MTLVertexFormatFloat2;
+            vertexDesc.attributes[ 1 ].bufferIndex = 0;
+            vertexDesc.attributes[ 1 ].offset = 4 * 2;
+
+            // Color
+            vertexDesc.attributes[ 2 ].format = MTLVertexFormatUInt;
+            vertexDesc.attributes[ 2 ].bufferIndex = 0;
+            vertexDesc.attributes[ 2 ].offset = 4 * 4;
+
+            vertexDesc.layouts[ 0 ].stride = 4 * 4 + 4; // sizeof( ImDrawVert )
+            vertexDesc.layouts[ 0 ].stepFunction = MTLVertexStepFunctionPerVertex;
+            
+            pipelineStateDescriptor.vertexDescriptor = vertexDesc;
+        }
         
         NSError* error = nullptr;
         MTLPipelineOption option = MTLPipelineOptionNone;
@@ -466,7 +503,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     [renderer.renderEncoder setFragmentSamplerState:GetSampler( sampler ) atIndex:0];
 
     MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
-    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format );
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format, false );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
@@ -504,4 +541,39 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
     Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp );
+}
+
+void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
+{
+    *outVertexMemory = [BufferGetBuffer( renderer.uiVertexBuffer ) contents];
+    *outIndexMemory = [BufferGetBuffer( renderer.uiIndexBuffer ) contents];
+}
+
+void teUnmapUiMemory()
+{
+}
+
+void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+{
+    MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), teBlendMode::Alpha, teTopology::Triangles, format, true );
+    
+    MTLScissorRect scissor;
+    scissor.x = scissorX;
+    scissor.y = scissorY;
+    scissor.width = scissorW;
+    scissor.height = scissorH;
+    
+    [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
+    [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
+    [renderer.renderEncoder setCullMode:MTLCullModeNone];
+    [renderer.renderEncoder setScissorRect:scissor];
+    [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
+    [renderer.renderEncoder setTriangleFillMode:MTLTriangleFillModeFill];
+    [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:vertexOffset atIndex:0];
+    [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                              indexCount:elementCount
+                               indexType:MTLIndexTypeUInt16
+                             indexBuffer:BufferGetBuffer( renderer.uiIndexBuffer )
+                       indexBufferOffset:indexOffset];
 }

@@ -22,6 +22,16 @@
 		AB7EAE0629E04943003A182A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7EADD929E04943003A182A /* Assets.xcassets */; };
 		AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB91EFAA29F2C076009A7EEA /* skybox.metal */; };
 		AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB91EFAA29F2C076009A7EEA /* skybox.metal */; };
+		ABA068782A5966B400C3B5DC /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA0686E2A5966B400C3B5DC /* imgui_widgets.cpp */; };
+		ABA068792A5966B400C3B5DC /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA0686E2A5966B400C3B5DC /* imgui_widgets.cpp */; };
+		ABA0687A2A5966B400C3B5DC /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068712A5966B400C3B5DC /* imgui_draw.cpp */; };
+		ABA0687B2A5966B400C3B5DC /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068712A5966B400C3B5DC /* imgui_draw.cpp */; };
+		ABA0687C2A5966B400C3B5DC /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068722A5966B400C3B5DC /* imgui_tables.cpp */; };
+		ABA0687D2A5966B400C3B5DC /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068722A5966B400C3B5DC /* imgui_tables.cpp */; };
+		ABA0687E2A5966B400C3B5DC /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068772A5966B400C3B5DC /* imgui.cpp */; };
+		ABA0687F2A5966B400C3B5DC /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ABA068772A5966B400C3B5DC /* imgui.cpp */; };
+		ABA068812A59835A00C3B5DC /* ui.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA068802A59835A00C3B5DC /* ui.metal */; };
+		ABA068822A59835A00C3B5DC /* ui.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA068802A59835A00C3B5DC /* ui.metal */; };
 		ABA3ACA929E0624E008BAD89 /* theseus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; };
 		ABA3ACAA29E0624E008BAD89 /* theseus.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		ABA3ACB629E07DCD008BAD89 /* unlit.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB429E07DCD008BAD89 /* unlit.metal */; };
@@ -79,6 +89,17 @@
 		AB7EADFE29E04943003A182A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AB7EAE0029E04943003A182A /* hello_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hello_macOS.entitlements; sourceTree = "<group>"; };
 		AB91EFAA29F2C076009A7EEA /* skybox.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = skybox.metal; path = ../../shaders/metal/skybox.metal; sourceTree = "<group>"; };
+		ABA0686E2A5966B400C3B5DC /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_widgets.cpp; path = ../../../thirdparty/imgui/imgui_widgets.cpp; sourceTree = "<group>"; };
+		ABA0686F2A5966B400C3B5DC /* imstb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imstb_truetype.h; path = ../../../thirdparty/imgui/imstb_truetype.h; sourceTree = "<group>"; };
+		ABA068702A5966B400C3B5DC /* imstb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imstb_textedit.h; path = ../../../thirdparty/imgui/imstb_textedit.h; sourceTree = "<group>"; };
+		ABA068712A5966B400C3B5DC /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../thirdparty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
+		ABA068722A5966B400C3B5DC /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../thirdparty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
+		ABA068732A5966B400C3B5DC /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../thirdparty/imgui/imconfig.h; sourceTree = "<group>"; };
+		ABA068742A5966B400C3B5DC /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui_internal.h; path = ../../../thirdparty/imgui/imgui_internal.h; sourceTree = "<group>"; };
+		ABA068752A5966B400C3B5DC /* imstb_rectpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imstb_rectpack.h; path = ../../../thirdparty/imgui/imstb_rectpack.h; sourceTree = "<group>"; };
+		ABA068762A5966B400C3B5DC /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imgui.h; path = ../../../thirdparty/imgui/imgui.h; sourceTree = "<group>"; };
+		ABA068772A5966B400C3B5DC /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../thirdparty/imgui/imgui.cpp; sourceTree = "<group>"; };
+		ABA068802A59835A00C3B5DC /* ui.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = ui.metal; path = ../../shaders/metal/ui.metal; sourceTree = "<group>"; };
 		ABA3ACA829E0624E008BAD89 /* theseus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = theseus.framework; sourceTree = "<group>"; };
 		ABA3ACB329E07DCD008BAD89 /* ubo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ubo.h; path = ../../shaders/metal/ubo.h; sourceTree = "<group>"; };
 		ABA3ACB429E07DCD008BAD89 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
@@ -136,6 +157,16 @@
 		AB7EADD429E04942003A182A /* hello Shared */ = {
 			isa = PBXGroup;
 			children = (
+				ABA068732A5966B400C3B5DC /* imconfig.h */,
+				ABA068712A5966B400C3B5DC /* imgui_draw.cpp */,
+				ABA068742A5966B400C3B5DC /* imgui_internal.h */,
+				ABA068722A5966B400C3B5DC /* imgui_tables.cpp */,
+				ABA0686E2A5966B400C3B5DC /* imgui_widgets.cpp */,
+				ABA068772A5966B400C3B5DC /* imgui.cpp */,
+				ABA068762A5966B400C3B5DC /* imgui.h */,
+				ABA068752A5966B400C3B5DC /* imstb_rectpack.h */,
+				ABA068702A5966B400C3B5DC /* imstb_textedit.h */,
+				ABA0686F2A5966B400C3B5DC /* imstb_truetype.h */,
 				AB74C0D429FD37E400A1B505 /* HelloShared.mm */,
 				ABBD223729EAD3C000847A91 /* assets */,
 				AB7EADD929E04943003A182A /* Assets.xcassets */,
@@ -191,6 +222,7 @@
 		ABA3ACB229E07DAD008BAD89 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				ABA068802A59835A00C3B5DC /* ui.metal */,
 				ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */,
 				AB91EFAA29F2C076009A7EEA /* skybox.metal */,
 				ABA3ACB329E07DCD008BAD89 /* ubo.h */,
@@ -327,10 +359,15 @@
 				ABA3ACB629E07DCD008BAD89 /* unlit.metal in Sources */,
 				AB7EADE629E04943003A182A /* GameViewController.mm in Sources */,
 				ABA3ACB829E07DCD008BAD89 /* fullscreen.metal in Sources */,
+				ABA0687A2A5966B400C3B5DC /* imgui_draw.cpp in Sources */,
+				ABA0687C2A5966B400C3B5DC /* imgui_tables.cpp in Sources */,
+				ABA0687E2A5966B400C3B5DC /* imgui.cpp in Sources */,
+				ABA068782A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */,
 				AB74C0D529FD37E400A1B505 /* HelloShared.mm in Sources */,
+				ABA068812A59835A00C3B5DC /* ui.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,10 +378,15 @@
 				ABA3ACB729E07DCD008BAD89 /* unlit.metal in Sources */,
 				AB7EADFA29E04943003A182A /* GameViewController.mm in Sources */,
 				ABA3ACB929E07DCD008BAD89 /* fullscreen.metal in Sources */,
+				ABA0687B2A5966B400C3B5DC /* imgui_draw.cpp in Sources */,
+				ABA0687D2A5966B400C3B5DC /* imgui_tables.cpp in Sources */,
+				ABA0687F2A5966B400C3B5DC /* imgui.cpp in Sources */,
+				ABA068792A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
 				AB7EADFF29E04943003A182A /* main.m in Sources */,
 				AB7EADF729E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */,
 				AB74C0D629FD37E400A1B505 /* HelloShared.mm in Sources */,
+				ABA068822A59835A00C3B5DC /* ui.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

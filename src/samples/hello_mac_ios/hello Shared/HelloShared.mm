@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
+#include "imgui.h"
 #include "material.h"
 #include "mesh.h"
 #include "renderer.h"
@@ -11,6 +12,13 @@
 #include "transform.h"
 #include "vec3.h"
 #include <stdint.h>
+
+struct ImGUIImplCustom
+{
+    int width = 0;
+    int height = 0;
+    const char* name = "jeejee";
+};
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -36,11 +44,96 @@ int Random100()
     return pcg32_random_r( &rng ) % 100;
 }
 
+void RenderImGUIDrawData( const teShader& shader )
+{
+    ImDrawData* drawData = ImGui::GetDrawData();
+
+    int fbWidth = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+    int fbHeight = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+    // Don't render when minimized.
+    if (fbWidth <= 0 || fbHeight <= 0)
+        return;
+
+    if (drawData->TotalVtxCount > 0)
+    {
+        //size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        //size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+
+        void* vertexMemory = nullptr;
+        void* indexMemory = nullptr;
+        teMapUiMemory( &vertexMemory, &indexMemory );
+        ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
+        ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
+
+        for (int n = 0; n < drawData->CmdListsCount; ++n)
+        {
+            const ImDrawList* cmd_list = drawData->CmdLists[ n ];
+            memcpy( vtxDst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
+            memcpy( idxDst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof( ImDrawIdx ) );
+            vtxDst += cmd_list->VtxBuffer.Size;
+            idxDst += cmd_list->IdxBuffer.Size;
+        }
+        
+        teUnmapUiMemory();
+    }
+
+    // Will project scissor/clipping rectangles into framebuffer space
+    ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+    int global_vtx_offset = 0;
+    int global_idx_offset = 0;
+
+    for (int n = 0; n < drawData->CmdListsCount; ++n)
+    {
+        const ImDrawList* cmd_list = drawData->CmdLists[ n ];
+
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
+        {
+            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[ cmd_i ];
+
+            if (pcmd->UserCallback != nullptr)
+            {
+                //printf( "UserCallback not implemented\n" );
+                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                {
+                    //printf( "ImDrawCallback_ResetRenderState not implemented\n" );
+                    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fb_width, fb_height );
+                }
+                else
+                {
+                    pcmd->UserCallback( cmd_list, pcmd );
+                }
+            }
+            else
+            {
+                // Project scissor/clipping rectangles into framebuffer space
+                ImVec2 clip_min( (pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y );
+                ImVec2 clip_max( (pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y );
+
+                // Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
+                if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
+                if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
+                if (clip_max.x > fbWidth) { clip_max.x = (float)fbWidth; }
+                if (clip_max.y > fbHeight) { clip_max.y = (float)fbHeight; }
+                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+                    continue;
+
+                teUIDrawCall( shader, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+            }
+        }
+
+        global_idx_offset += cmd_list->IdxBuffer.Size;
+        global_vtx_offset += cmd_list->VtxBuffer.Size;
+    }
+}
+
 struct AppResources
 {
     teShader unlitShader;
     teShader fullscreenShader;
     teShader skyboxShader;
+    teShader uiShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
@@ -53,6 +146,8 @@ struct AppResources
     teTexture2D bc3Tex;
     teTextureCube skyTex;
     teScene scene;
+    
+    ImGUIImplCustom impl;
 };
 
 AppResources app;
@@ -87,6 +182,7 @@ void InitApp( unsigned width, unsigned height )
     app.fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
     app.unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
     app.skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
+    app.uiShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "uiVS", "uiPS" );
     
     app.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
@@ -151,6 +247,16 @@ void InitApp( unsigned width, unsigned height )
 
     teFinalizeMeshBuffers();
 
+    ImGuiContext* imContext = ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = (float)width;
+    io.DisplaySize.y = (float)height;
+    ImGui::StyleColorsDark();
+    unsigned char* fontPixels;
+    int fontWidth, fontHeight;
+    io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
+    io.BackendRendererUserData = &app.impl;
+    io.BackendRendererName = "imgui_impl_vulkan";
 }
 
 void DrawApp()
@@ -162,9 +268,16 @@ void DrawApp()
     teTransformMoveUp( app.camera3d.index, moveDir.y * (float)dt * 0.5f );
 
     teBeginFrame();
-    //teSceneRender( scene, NULL, NULL, NULL );
+    ImGui::NewFrame();
     teSceneRender( app.scene, &app.skyboxShader, &app.skyTex, &app.cubeMesh );
+
+    ImGui::Begin( "ImGUI" );
+    ImGui::Text( "This is some useful text." );
+    ImGui::End();
+    ImGui::Render();
+
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
+    RenderImGUIDrawData( app.uiShader );
     teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ) );
     teEndSwapchainRendering();
 }
