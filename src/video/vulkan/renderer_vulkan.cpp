@@ -34,6 +34,17 @@ extern struct wl_surface* wlSurface;
 constexpr unsigned DescriptorEntryCount = 5;
 constexpr unsigned SamplerCount = 6;
 
+// Must match ubo.h shader header!
+struct PushConstants
+{
+    int textureIndex;
+    int shadowTextureIndex;
+    int normalMapIndex;
+    int unused;
+    float scale[ 2 ];
+    float translate[ 2 ];
+};
+
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
 {
     for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i)
@@ -60,6 +71,7 @@ struct PSO
     teTopology topology = teTopology::Triangles;
     teTextureFormat colorFormat = teTextureFormat::Invalid;
     teTextureFormat depthFormat = teTextureFormat::Invalid;
+    bool isUI = false;
 };
 
 struct PerObjectUboStruct
@@ -415,8 +427,37 @@ void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, 
     vkUnmapMemory( renderer.device, renderer.textureStagingMemories[ index ] );
 }
 
-static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
+static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat, bool isUI )
 {
+    VkVertexInputAttributeDescription attribute_desc[ 3 ] = {};
+    VkPipelineVertexInputStateCreateInfo vertex_info = {};
+    
+    VkVertexInputBindingDescription bindingDesc[ 1 ] = {};
+    bindingDesc[ 0 ].stride = 4 * 4 + 4; // sizeof( ImDrawVert );
+    bindingDesc[ 0 ].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    if (isUI)
+    {
+        attribute_desc[ 0 ].location = 0;
+        attribute_desc[ 0 ].binding = 0;
+        attribute_desc[ 0 ].format = VK_FORMAT_R32G32_SFLOAT;
+        attribute_desc[ 0 ].offset = 0;
+        attribute_desc[ 1 ].location = 1;
+        attribute_desc[ 1 ].binding = 0;
+        attribute_desc[ 1 ].format = VK_FORMAT_R32G32_SFLOAT;
+        attribute_desc[ 1 ].offset = 2 * 4;
+        attribute_desc[ 2 ].location = 2;
+        attribute_desc[ 2 ].binding = 0;
+        attribute_desc[ 2 ].format = VK_FORMAT_R8G8B8A8_UNORM;
+        attribute_desc[ 2 ].offset = 4 * 4;
+
+        vertex_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertex_info.vertexBindingDescriptionCount = 1;
+        vertex_info.pVertexBindingDescriptions = bindingDesc;
+        vertex_info.vertexAttributeDescriptionCount = 3;
+        vertex_info.pVertexAttributeDescriptions = attribute_desc;
+    }
+
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyState.topology = topology == teTopology::Triangles ? VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -544,6 +585,11 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     pipelineCreateInfo.pDynamicState = &dynamicState;
     pipelineCreateInfo.pNext = &info;
 
+    if (isUI)
+    {
+        pipelineCreateInfo.pVertexInputState = &vertex_info;
+    }
+
     VkPipeline pso;
 
     VK_CHECK( vkCreateGraphicsPipelines( renderer.device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pso ) );
@@ -560,7 +606,7 @@ void ClearPSOCache()
     renderer.boundPSO = VK_NULL_HANDLE;
 }
 
-static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
+static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat, bool isUI )
 {
     int psoIndex = -1;
 
@@ -571,6 +617,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
+            renderer.psos[ i ].isUI == isUI &&
             renderer.psos[ i ].colorFormat == colorFormat && renderer.psos[ i ].depthFormat == depthFormat &&
             renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module)
         {
@@ -599,7 +646,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         }
 
         psoIndex = nextFreePsoIndex;
-        renderer.psos[ psoIndex ].pso = CreatePipeline( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat );
+        renderer.psos[ psoIndex ].pso = CreatePipeline( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat, isUI );
         renderer.psos[ psoIndex ].blendMode = blendMode;
         renderer.psos[ psoIndex ].fillMode = fillMode;
         renderer.psos[ psoIndex ].topology = topology;
@@ -609,6 +656,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         renderer.psos[ psoIndex ].fragmentModule = fragmentInfo.module;
         renderer.psos[ psoIndex ].colorFormat = colorFormat;
         renderer.psos[ psoIndex ].depthFormat = depthFormat;
+        renderer.psos[ psoIndex ].isUI = isUI;
     }
 
     return psoIndex;
@@ -1173,7 +1221,7 @@ void CreateBuffers()
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 500, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
     renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "uiIndexBuffer" );
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
@@ -1369,7 +1417,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     VkPushConstantRange pushConstantRange = {};
     pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
-    pushConstantRange.size = sizeof( int ) * 4;
+    pushConstantRange.size = sizeof( PushConstants );
 
     createInfo.pushConstantRangeCount = 1;
     createInfo.pPushConstantRanges = &pushConstantRange;
@@ -1706,7 +1754,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat, false ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
@@ -1714,7 +1762,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
     }
 
-    int pushConstants[ 4 ] = { (int)textureIndex, 0, 0, 0 };
+    PushConstants pushConstants{};
+    pushConstants.textureIndex = (int)textureIndex;
+
     vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
@@ -1740,7 +1790,7 @@ void teUnmapUiMemory()
     UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
 }
 
-void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+void teUIDrawCall( const teShader& shader, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
     VkRect2D scissor;
     scissor.offset.x = scissorX;
@@ -1754,13 +1804,27 @@ void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned 
     UpdateDescriptors( renderer.uiVertexBuffer, renderer.uiVertexBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ renderer.frameIndex ].colorFormat, teTextureFormat::Depth32F ) ].pso;
+    VkDeviceSize offsets[ 1 ] = { 0 };
+    VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
+    vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
+
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, true ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
         renderer.boundPSO = pso;
         vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
     }
+
+    float displayPosX = 0; // TODO: Get from the application drawData
+    float displayPosY = 0;
+
+    PushConstants pushConstants{};
+    pushConstants.scale[ 0 ] = 2.0f / displaySizeX;
+    pushConstants.scale[ 1 ] = 2.0f / displaySizeY;
+    pushConstants.translate[ 0 ] = -1.0f - displayPosX * pushConstants.scale[ 0 ];
+    pushConstants.translate[ 1 ] = -1.0f - displayPosY * pushConstants.scale[ 1 ];
+    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
 }

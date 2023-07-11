@@ -9,6 +9,8 @@ struct PushConstants
     int shadowTextureIndex;
     int normalMapIndex;
     int unused;
+    float2 scale;
+    float2 translate;
 };
 
 #define S_LINEAR_REPEAT 0

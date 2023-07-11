@@ -146,7 +146,7 @@ void RenderImGUIDrawData( const teShader& shader )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -170,6 +170,10 @@ int main()
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
+
+    teFile uiVsFile = teLoadFile( "shaders/ui_vs.spv" );
+    teFile uiPsFile = teLoadFile( "shaders/ui_ps.spv" );
+    teShader uiShader = teCreateShader( uiVsFile, uiPsFile, "uiVS", "uiPS" );
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
@@ -424,7 +428,7 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        RenderImGUIDrawData( unlitShader );
+        //RenderImGUIDrawData( uiShader );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 
@@ -433,6 +437,8 @@ int main()
 
     free( unlitVsFile.data );
     free( unlitPsFile.data );
+    free( uiVsFile.data );
+    free( uiPsFile.data );
     free( fullscreenVsFile.data );
     free( fullscreenPsFile.data );
     free( skyboxVsFile.data );

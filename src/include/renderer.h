@@ -12,4 +12,4 @@ void teBeginSwapchainRendering( teTexture2D& color );
 void teEndSwapchainRendering();
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
 void teUnmapUiMemory();
-void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
+void teUIDrawCall( const teShader& shader, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
