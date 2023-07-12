@@ -339,6 +339,7 @@ int main()
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
             {
                 moveDir.x = 0.5f;
+                //io.AddKeyEvent( ImGuiKey_A, true );
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
             {
@@ -367,6 +368,30 @@ int main()
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
             {
                 moveDir.y = 0;
+            }
+            else if (event.type == teWindowEvent::Type::Mouse1Down)
+            {
+                x = event.x;
+                y = height - event.y;
+                //isRightMouseDown = true;
+                lastMouseX = x;
+                lastMouseY = y;
+                deltaX = 0;
+                deltaY = 0;
+
+                io.AddMouseButtonEvent( 0, true );
+            }
+            else if (event.type == teWindowEvent::Type::Mouse1Up)
+            {
+                x = event.x;
+                y = height - event.y;
+                //isRightMouseDown = false;
+                deltaX = 0;
+                deltaY = 0;
+                lastMouseX = x;
+                lastMouseY = y;
+
+                io.AddMouseButtonEvent( 0, false );
             }
             else if (event.type == teWindowEvent::Type::Mouse2Down)
             {
@@ -402,6 +427,8 @@ int main()
                     teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -deltaX / 100.0f * (float)dt );
                     teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f * (float)dt );
                 }
+
+                io.AddMousePosEvent( x, y );
             }
         }
 
@@ -428,7 +455,7 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        //RenderImGUIDrawData( uiShader );
+        RenderImGUIDrawData( uiShader );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 
