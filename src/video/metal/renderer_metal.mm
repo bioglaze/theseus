@@ -299,7 +299,7 @@ void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], 
     uboStruct.localToClip[ 1 ].InitFrom( localToClip1 );
     uboStruct.localToView[ 0 ].InitFrom( localToView0 );
     uboStruct.localToView[ 1 ].InitFrom( localToView1 );
-
+    
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
 
@@ -553,7 +553,7 @@ void teUnmapUiMemory()
 {
 }
 
-void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+void teUIDrawCall( const teShader& shader, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
     MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), teBlendMode::Alpha, teTopology::Triangles, format, true );
@@ -564,6 +564,22 @@ void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned 
     scissor.width = scissorW;
     scissor.height = scissorH;
     
+    float displayPosX = 0;
+    float displayPosY = 0;
+    float scale[ 2 ];
+    float translate[ 2 ];
+    scale[ 0 ] = 2.0f / displaySizeX;
+    scale[ 1 ] = 2.0f / displaySizeY;
+    translate[ 0 ] = -1.0f - displayPosX * scale[ 0 ];
+    translate[ 1 ] = -1.0f - displayPosY * scale[ 1 ];
+
+    Matrix parameters; // Reusing UBO localToClip to store UI scale and translate.
+    parameters.m[ 0 ] = scale[ 0 ];
+    parameters.m[ 1 ] = scale[ 1 ];
+    parameters.m[ 2 ] = translate[ 0 ];
+    parameters.m[ 3 ] = translate[ 1 ];
+    UpdateUBO( parameters.m, parameters.m, parameters.m, parameters.m );
+    
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
     [renderer.renderEncoder setCullMode:MTLCullModeNone];
@@ -571,9 +587,12 @@ void teUIDrawCall( const teShader& shader, int scissorX, int scissorY, unsigned 
     [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
     [renderer.renderEncoder setTriangleFillMode:MTLTriangleFillModeFill];
     [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:vertexOffset atIndex:0];
+    [renderer.renderEncoder setVertexBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:1];
     [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                               indexCount:elementCount
                                indexType:MTLIndexTypeUInt16
                              indexBuffer:BufferGetBuffer( renderer.uiIndexBuffer )
                        indexBufferOffset:indexOffset];
+    
+    renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
 }

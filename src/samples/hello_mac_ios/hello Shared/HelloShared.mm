@@ -119,7 +119,7 @@ void RenderImGUIDrawData( const teShader& shader )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -256,7 +256,7 @@ void InitApp( unsigned width, unsigned height )
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
     io.BackendRendererUserData = &app.impl;
-    io.BackendRendererName = "imgui_impl_vulkan";
+    io.BackendRendererName = "imgui_impl_metal";
 }
 
 void DrawApp()
