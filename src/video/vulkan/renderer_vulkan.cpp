@@ -18,7 +18,8 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
 teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags,
     VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer );
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties );
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties,
+                           void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
@@ -677,9 +678,10 @@ teTextureCube teCreateTextureCube( unsigned dimension, unsigned flags, teTexture
     return teCreateTextureCube( renderer.device, renderer.deviceMemoryProperties, dimension, flags, format, debugName );
 }
 
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags )
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
-    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties );
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties,
+                                            pixels, pixelsWidth, pixelsHeight, pixelsFormat );
     
     return outTexture;
 }
@@ -1790,8 +1792,23 @@ void teUnmapUiMemory()
     UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
 }
 
-void teUIDrawCall( const teShader& shader, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
+void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
+    int textureIndex = fontTex.index;
+
+    if (textureIndex != 0)
+    {
+        teTexture2D tex;
+        tex.index = textureIndex;
+
+        for (unsigned i = 0; i < TextureCount; ++i)
+        {
+            renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
+        }
+
+        //renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
+    }
+
     VkRect2D scissor;
     scissor.offset.x = scissorX;
     scissor.offset.y = scissorY;

@@ -532,7 +532,8 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
     }
 }
 
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties )
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties,
+                           void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
@@ -543,7 +544,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
 
-    if (file.data == nullptr)
+    if (file.data == nullptr && pixels == nullptr)
     {
         outTexture.index = 1;
         --textureCount;
@@ -565,6 +566,23 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         teAssert( tex.mipLevelCount <= 15 );
 
         UpdateStagingTexture( &file.data[ dataBeginOffset ], tex.width, tex.height, format, 0 );
+        CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, tex.mipLevelCount, file.path, cmdBuffer );
+        CreateMipLevels( tex, tex.mipLevelCount, device, graphicsQueue, cmdBuffer );
+    }
+    else if (pixels)
+    {
+        unsigned bitsPerPixel = 0;
+        GetFormatAndBPP( pixelsFormat, format, bitsPerPixel );
+
+        tex.width = pixelsWidth;
+        tex.height = pixelsHeight;
+
+        bytesPerPixel = bitsPerPixel == bitsPerPixel / 8;
+
+        tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
+        teAssert( tex.mipLevelCount <= 15 );
+
+        UpdateStagingTexture( (const uint8_t*)pixels, tex.width, tex.height, format, 0 );
         CreateBaseMip( tex, device, deviceMemoryProperties, graphicsQueue, &stagingBuffer, 1, format, tex.mipLevelCount, file.path, cmdBuffer );
         CreateMipLevels( tex, tex.mipLevelCount, device, graphicsQueue, cmdBuffer );
     }

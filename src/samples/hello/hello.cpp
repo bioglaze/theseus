@@ -71,7 +71,7 @@ struct ImGUIImplCustom
     const char* name = "jeejee";
 };
 
-void RenderImGUIDrawData( const teShader& shader )
+void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -146,7 +146,7 @@ void RenderImGUIDrawData( const teShader& shader )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -195,12 +195,12 @@ int main()
 
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
-    teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips );
+    teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teMaterial material = teCreateMaterial( unlitShader );
     teMaterialSetTexture2D( material, gliderTex, 0 );
 
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
-    teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips );
+    teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teMaterial materialTrans = teCreateMaterial( unlitShader );
     materialTrans.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTrans, transTex, 0 );
@@ -215,7 +215,7 @@ int main()
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
-    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips );
+    teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     bc1Tex.sampler = teTextureSampler::NearestRepeat;
     teMaterialSetTexture2D( material, bc1Tex, 0 );
 
@@ -273,9 +273,13 @@ int main()
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
     ImGui::StyleColorsDark();
+    
     unsigned char* fontPixels;
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
+    teFile nullFile;
+    teTexture2D fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
+
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";
     //io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
@@ -455,7 +459,7 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        RenderImGUIDrawData( uiShader );
+        RenderImGUIDrawData( uiShader, fontTex );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         teEndSwapchainRendering();
 

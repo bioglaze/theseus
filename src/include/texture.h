@@ -21,5 +21,8 @@ constexpr unsigned TextureCount = 80;
 
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight );
-teTexture2D teLoadTexture( const struct teFile& file, unsigned flags );
+
+// @param pixels Optional. If set, file is ignored and pixelsWidth, pixelsHeight and pixelsFormat must be provided.
+teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat );
+
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags );
