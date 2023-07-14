@@ -11,6 +11,7 @@ struct WindowImpl
     teWindowEvent events[ EventStackSize ];
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int eventIndex = -1;
+    unsigned windowWidthWithoutTitleBar = 0;
     unsigned windowHeightWithoutTitleBar = 0;
     unsigned width = 0;
     unsigned height = 0;
@@ -161,6 +162,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     RECT rect = {};
     GetClientRect( hwnd, &rect );
+    win.windowWidthWithoutTitleBar = rect.right;
     win.windowHeightWithoutTitleBar = rect.bottom;
 
     InitKeyMap();
@@ -193,6 +195,6 @@ const teWindowEvent& tePopWindowEvent()
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
 {
-    outWidth = win.width;
-    outHeight = win.height;
+    outWidth = win.windowWidthWithoutTitleBar;
+    outHeight = win.windowHeightWithoutTitleBar;
 }

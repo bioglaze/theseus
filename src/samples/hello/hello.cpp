@@ -165,6 +165,7 @@ int main()
     unsigned width = 1920 / 1;
     unsigned height = 1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
+    teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
 
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
@@ -459,8 +460,8 @@ int main()
         ImGui::Render();
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        RenderImGUIDrawData( uiShader, fontTex );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
+        RenderImGUIDrawData( uiShader, fontTex );
         teEndSwapchainRendering();
 
         teEndFrame();

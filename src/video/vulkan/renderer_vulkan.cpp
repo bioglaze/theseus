@@ -1794,20 +1794,12 @@ void teUnmapUiMemory()
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
-    int textureIndex = fontTex.index;
-
-    if (textureIndex != 0)
+    for (unsigned i = 0; i < TextureCount; ++i)
     {
-        teTexture2D tex;
-        tex.index = textureIndex;
-
-        for (unsigned i = 0; i < TextureCount; ++i)
-        {
-            renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
-        }
-
-        //renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
+        renderer.samplerInfos[ i ].imageView = TextureGetView( fontTex );
     }
+
+    renderer.samplerInfos[ fontTex.index ].sampler = renderer.samplerNearestRepeat;
 
     VkRect2D scissor;
     scissor.offset.x = scissorX;
