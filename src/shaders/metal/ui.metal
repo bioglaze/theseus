@@ -15,18 +15,20 @@ struct ImDrawVert
 {
     float2  pos;
     float2  uv;
-    uint   col;
+    uchar4  col;
 };
 
 vertex ColorInOut uiVS( uint vid [[ vertex_id ]], const device ImDrawVert* vertices [[ buffer(0) ]], constant Uniforms& uniforms [[ buffer(1) ]] )
 {
     ColorInOut out;
 
-    float4 scaleTrans = uniforms.localToClip[ 0 ][ 0 ];
+    //float4 scaleTrans = uniforms.localToClip[ 0 ][ 0 ];
     //float2 translate = float2( uniforms.localToClip[ 0 ][ 0 ], uniforms.localToClip[ 0 ][ 1 ] );
-    out.position = float4( vertices[ vid ].pos * scaleTrans.xy + scaleTrans.zw, 0, 1 );
+    //out.position = float4( vertices[ vid ].pos * scaleTrans.xy + scaleTrans.zw, 0, 1 );
+    
+    out.position = uniforms.localToClip[ 0 ] * float4( vertices[ vid ].pos, 0, 1 );
     out.uv = vertices[ vid ].uv;
-    out.color = vertices[ vid ].col;
+    out.color = float4( vertices[ vid ].col ) / float4( 255.0f );
     
     return out;
 }

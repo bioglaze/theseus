@@ -566,19 +566,23 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     float displayPosX = 0;
     float displayPosY = 0;
-    float scale[ 2 ];
-    float translate[ 2 ];
-    scale[ 0 ] = 2.0f / displaySizeX;
-    scale[ 1 ] = 2.0f / displaySizeY;
-    translate[ 0 ] = -1.0f - displayPosX * scale[ 0 ];
-    translate[ 1 ] = -1.0f - displayPosY * scale[ 1 ];
-
-    Matrix parameters; // Reusing UBO localToClip to store UI scale and translate.
-    parameters.m[ 0 ] = scale[ 0 ];
-    parameters.m[ 1 ] = scale[ 1 ];
-    parameters.m[ 2 ] = translate[ 0 ];
-    parameters.m[ 3 ] = translate[ 1 ];
-    UpdateUBO( parameters.m, parameters.m, parameters.m, parameters.m );
+    float L = displayPosX;
+    float R = displayPosX + displaySizeX;
+    float T = displayPosY;
+    float B = displayPosY + displaySizeY;
+    float N = 0;
+    float F = 1;
+    const float orthoProjection[4][4] =
+    {
+        { 2.0f/(R-L),   0.0f,           0.0f,   0.0f },
+        { 0.0f,         2.0f/(T-B),     0.0f,   0.0f },
+        { 0.0f,         0.0f,        1/(F-N),   0.0f },
+        { (R+L)/(L-R),  (T+B)/(B-T), N/(F-N),   1.0f },
+    };
+    
+    Matrix localToClip;
+    localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
+    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, localToClip.m );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
@@ -589,6 +593,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:vertexOffset atIndex:0];
     [renderer.renderEncoder setVertexBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:1];
     [renderer.renderEncoder setFragmentTexture:TextureGetMetalTexture( fontTex.index ) atIndex:0];
+    
     [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                               indexCount:elementCount
                                indexType:MTLIndexTypeUInt16
