@@ -44,7 +44,7 @@ int Random100()
     return pcg32_random_r( &rng ) % 100;
 }
 
-void RenderImGUIDrawData( const teShader& shader )
+void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -119,7 +119,7 @@ void RenderImGUIDrawData( const teShader& shader )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -145,6 +145,7 @@ struct AppResources
     teTexture2D bc2Tex;
     teTexture2D bc3Tex;
     teTextureCube skyTex;
+    teTexture2D fontTex;
     teScene scene;
     
     ImGUIImplCustom impl;
@@ -192,10 +193,10 @@ void InitApp( unsigned width, unsigned height )
     teCameraGetColorTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
     
-    app.gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips );
-    app.bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips );
-    app.bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips );
-    app.bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips );
+    app.gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    app.bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    app.bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    app.bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     
     app.material = teCreateMaterial( app.unlitShader );
     teMaterialSetTexture2D( app.material, app.bc1Tex, 0 );
@@ -255,6 +256,8 @@ void InitApp( unsigned width, unsigned height )
     unsigned char* fontPixels;
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
+    teFile nullFile;
+    app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
     io.BackendRendererUserData = &app.impl;
     io.BackendRendererName = "imgui_impl_metal";
 }
@@ -277,7 +280,7 @@ void DrawApp()
     ImGui::Render();
 
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
-    RenderImGUIDrawData( app.uiShader );
+    RenderImGUIDrawData( app.uiShader, app.fontTex );
     teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ) );
     teEndSwapchainRendering();
 }

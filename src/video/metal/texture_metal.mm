@@ -144,7 +144,7 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
     outHeight = textures[ texture.index ].height;
 }
 
-teTexture2D teLoadTexture( const teFile& file, unsigned flags )
+teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
     teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
@@ -156,7 +156,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags )
     tex.flags = flags;
     tex.format = MTLPixelFormatBGRA8Unorm_sRGB;
     
-    if (file.data == nullptr)
+    if (file.data == nullptr && pixels == nullptr)
     {
         outTexture.index = 1;
         --textureCount;
@@ -181,6 +181,48 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags )
 
         MTLRegion region = MTLRegionMake2D( 0, 0, tex.width, tex.height );
         [stagingTexture replaceRegion:region mipmapLevel:0 withBytes:&file.data[ offset ] bytesPerRow:tex.width * multiplier];
+
+        stagingDescriptor.usage = MTLTextureUsageShaderRead;
+        stagingDescriptor.storageMode = MTLStorageModePrivate;
+        tex.metalTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+        tex.metalTexture.label = [NSString stringWithUTF8String:file.path];
+
+        id<MTLCommandBuffer> cmdBuffer = [gCommandQueue commandBuffer];
+        id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
+        [blitEncoder copyFromTexture:stagingTexture
+                      sourceSlice:0
+                      sourceLevel:0
+                     sourceOrigin:MTLOriginMake( 0, 0, 0 )
+                       sourceSize:MTLSizeMake( tex.width, tex.height, 1 )
+                        toTexture:tex.metalTexture
+                 destinationSlice:0
+                 destinationLevel:0
+                destinationOrigin:MTLOriginMake( 0, 0, 0 ) ];
+        if ((flags & teTextureFlags::GenerateMips))
+        {
+            [blitEncoder generateMipmapsForTexture:tex.metalTexture];
+        }
+        [blitEncoder endEncoding];
+        [cmdBuffer commit];
+        [cmdBuffer waitUntilCompleted];
+    }
+    else if (pixels != nullptr)
+    {
+        tex.width = pixelsWidth;
+        tex.height = pixelsHeight;
+        tex.format = GetPixelFormat( pixelsFormat );
+        outTexture.format = pixelsFormat;
+        
+        MTLTextureDescriptor* stagingDescriptor =
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:tex.format
+                                                           width:tex.width
+                                                          height:tex.height
+                                                       mipmapped:(flags & teTextureFlags::GenerateMips ? YES : NO)];
+        id<MTLTexture> stagingTexture = [gDevice newTextureWithDescriptor:stagingDescriptor];
+
+        const unsigned multiplier = 4; // FIXME: Other than RGBA formats probably need to change this.
+        MTLRegion region = MTLRegionMake2D( 0, 0, tex.width, tex.height );
+        [stagingTexture replaceRegion:region mipmapLevel:0 withBytes:pixels bytesPerRow:tex.width * multiplier];
 
         stagingDescriptor.usage = MTLTextureUsageShaderRead;
         stagingDescriptor.storageMode = MTLStorageModePrivate;
