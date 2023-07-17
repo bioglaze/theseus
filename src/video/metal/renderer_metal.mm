@@ -582,6 +582,8 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
+    Matrix localToClip2;
+    localToClip.Transpose( localToClip2 );
     UpdateUBO( localToClip.m, localToClip.m, localToClip.m, localToClip.m );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
@@ -590,7 +592,8 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     [renderer.renderEncoder setScissorRect:scissor];
     [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
     [renderer.renderEncoder setTriangleFillMode:MTLTriangleFillModeFill];
-    [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:vertexOffset atIndex:0];
+    [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:0 atIndex:0];
+    [renderer.renderEncoder setVertexBufferOffset:vertexOffset atIndex:0];
     [renderer.renderEncoder setVertexBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:1];
     [renderer.renderEncoder setFragmentTexture:TextureGetMetalTexture( fontTex.index ) atIndex:0];
     

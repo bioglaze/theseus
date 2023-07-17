@@ -257,7 +257,7 @@ void InitApp( unsigned width, unsigned height )
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
     teFile nullFile;
-    app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
+    app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::BGRA_sRGB );
     io.BackendRendererUserData = &app.impl;
     io.BackendRendererName = "imgui_impl_metal";
 }
@@ -280,7 +280,7 @@ void DrawApp()
     ImGui::Render();
 
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
-    RenderImGUIDrawData( app.uiShader, app.fontTex );
     teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ) );
+    RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();
 }
