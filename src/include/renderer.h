@@ -1,3 +1,5 @@
+#pragma once
+
 // @param swapInterval Swap interval. 0 means VSync is off, 1 means that it's the display's frame rate.
 // @param windowHandle Opaque pointer to the window handle. Pass the value that's returned by teCreateWindow().
 // @param width Width of the swap chain in pixels.
@@ -13,3 +15,10 @@ void teEndSwapchainRendering();
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
 void teUnmapUiMemory();
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
+
+enum class teStat
+{
+    DrawCalls
+};
+
+float teRendererGetStat( teStat stat );

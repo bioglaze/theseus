@@ -132,8 +132,8 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
 
 static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
-    teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
-    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
+    const teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
     Matrix localToViews[ 2 ];
 
@@ -248,7 +248,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
     }
 }
 
-bool teScenePointInsideAABB( const teScene& scene, Vec3& point )
+bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
 {
     bool isInside = false;
 

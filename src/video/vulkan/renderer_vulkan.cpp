@@ -175,6 +175,8 @@ struct Renderer
     PFN_vkAcquireNextImageKHR acquireNextImageKHR;
     PFN_vkQueuePresentKHR queuePresentKHR;
 
+    unsigned statDrawCalls = 0;
+
     static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
 
@@ -1475,6 +1477,7 @@ void teBeginFrame()
 
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset = 0;
     renderer.boundPSO = VK_NULL_HANDLE;
+    renderer.statDrawCalls = 0;
 }
 
 void teEndFrame()
@@ -1773,6 +1776,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += sizeof( PerObjectUboStruct );
     teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
+
+    ++renderer.statDrawCalls;
 }
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
@@ -1836,4 +1841,16 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
+
+    ++renderer.statDrawCalls;
+}
+
+float teRendererGetStat( teStat stat )
+{
+    if (stat == teStat::DrawCalls)
+    {
+        return (float)renderer.statDrawCalls;
+    }
+
+    return 0;
 }

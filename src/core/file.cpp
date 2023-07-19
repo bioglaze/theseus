@@ -83,7 +83,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
 #if _MSC_VER
         tm timeinfo;
         localtime_s( &timeinfo, &inode.st_mtime );
-        tm* timeinfo2 = &timeinfo;
+        const tm* timeinfo2 = &timeinfo;
 #else
         const tm* timeinfo2 = localtime( &inode.st_mtime );
 #endif
@@ -106,7 +106,7 @@ void teHotReload()
 #if _MSC_VER
             tm timeinfo;
             localtime_s( &timeinfo, &inode.st_mtime );
-            tm* timeinfo2 = &timeinfo;
+            const tm* timeinfo2 = &timeinfo;
 #else
             const tm* timeinfo2 = localtime( &inode.st_mtime );
 #endif

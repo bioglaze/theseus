@@ -455,7 +455,7 @@ int main()
         }
 
         ImGui::Begin( "ImGUI" );
-        ImGui::Text( "This is some useful text." );
+        ImGui::Text( "draw calls: %.0f", teRendererGetStat( teStat::DrawCalls ) );
         ImGui::End();
         ImGui::Render();
 
