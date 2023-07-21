@@ -11,7 +11,7 @@ struct BufferImpl
 BufferImpl buffers[ 10000 ];
 unsigned bufferCount = 0;
 
-Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging )
+Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName )
 {
     Buffer outBuffer;
     outBuffer.index = ++bufferCount;
@@ -23,6 +23,7 @@ Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging )
     buffers[ outBuffer.index ].buffer = [device newBufferWithLength:dataBytesNextMultipleOf4
                       options:opt];
     buffers[ outBuffer.index ].sizeBytes = dataBytesNextMultipleOf4;
+    buffers[ outBuffer.index ].buffer.label = [NSString stringWithUTF8String:debugName];
     
     return outBuffer;
 }

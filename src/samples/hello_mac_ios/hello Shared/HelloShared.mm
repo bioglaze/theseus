@@ -257,7 +257,8 @@ void InitApp( unsigned width, unsigned height )
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
     teFile nullFile;
-    app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::BGRA_sRGB );
+    strcpy( nullFile.path, "fontTexture" );
+    app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
     io.BackendRendererUserData = &app.impl;
     io.BackendRendererName = "imgui_impl_metal";
 }
@@ -275,7 +276,7 @@ void DrawApp()
     teSceneRender( app.scene, &app.skyboxShader, &app.skyTex, &app.cubeMesh );
 
     ImGui::Begin( "ImGUI" );
-    ImGui::Text( "This is some useful text." );
+    ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
     ImGui::End();
     ImGui::Render();
 

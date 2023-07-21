@@ -88,7 +88,13 @@ static MTLPixelFormat GetPixelFormat( teTextureFormat aeFormat )
     {
         return MTLPixelFormatBGRA8Unorm_sRGB;
     }
+    else if (aeFormat == teTextureFormat::RGBA_sRGB)
+    {
+        return MTLPixelFormatRGBA8Unorm_sRGB;
+    }
 
+    teAssert( !"unhandled pixel format" );
+    
     return MTLPixelFormatRGBA8Unorm_sRGB;
 }
 

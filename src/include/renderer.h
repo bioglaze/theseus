@@ -18,7 +18,8 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
 
 enum class teStat
 {
-    DrawCalls
+    DrawCalls,
+    PSOBinds,
 };
 
 float teRendererGetStat( teStat stat );

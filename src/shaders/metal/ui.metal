@@ -25,13 +25,12 @@ vertex ColorInOut uiVS( ImDrawVert in [[stage_in]], constant Uniforms& uniforms 
     out.position = uniforms.localToClip[ 0 ] * float4( in.pos, 0, 1 );
     out.uv = in.uv;
     out.color = float4( in.col.abgr ) / float4( 255.0f );
-    
+
     return out;
 }
 
-fragment float4 uiPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]]/*, sampler sampler0 [[sampler(0)]]*/ )
+fragment float4 uiPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]] )
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
-    //return float4( 1, 0, 0, 1 );
+    constexpr sampler sampler0( coord::normalized, min_filter::linear, mag_filter::linear, mip_filter::linear );
     return in.color * textureMap.sample( sampler0, in.uv );
 }

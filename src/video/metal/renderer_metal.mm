@@ -9,7 +9,7 @@
 #include "texture.h"
 #include "te_stdlib.h"
 
-Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging );
+Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName );
 unsigned BufferGetSizeBytes( const Buffer& buffer );
 id<MTLBuffer> BufferGetBuffer( const Buffer& buffer );
 id<MTLFunction> teShaderGetVertexProgram( const teShader& shader );
@@ -82,6 +82,9 @@ struct Renderer
     uint16_t* uiIndices = nullptr;
 
     teTexture2D defaultTexture2D;
+    
+    unsigned statDrawCalls = 0;
+    unsigned statPSOBinds = 0;
 };
 
 Renderer renderer;
@@ -210,17 +213,17 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     
     const unsigned bufferBytes = 1024 * 1024 * 250;
     
-    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, bufferBytes, false );
-    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
-    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, bufferBytes, false );
-    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
-    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false );
-    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true );
+    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshIndexBuffer" );
+    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshIndexStagingBuffer" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshPositionStagingBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshUVBuffer" );
+    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshUVStagingBuffer" );
     
     const unsigned uiBufferBytes = 1024 * 1024 * 8;
     
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true );
-    renderer.uiIndexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true, "uiIndexBuffer" );
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
 
@@ -313,9 +316,11 @@ void teBeginFrame()
 {
     renderer.frameResources[ 0 ].commandBuffer = [renderer.commandQueue commandBuffer];
     renderer.frameResources[ 0 ].commandBuffer.label = @"MyCommand";
+    renderer.frameResources[ 0 ].uboOffset = 0;
     gCommandBuffer = renderer.frameResources[ 0 ].commandBuffer;
 
-    renderer.frameResources[ 0 ].uboOffset = 0;
+    renderer.statDrawCalls = 0;
+    renderer.statPSOBinds = 0;
 }
 
 void SetDrawable( id< CAMetalDrawable > drawable )
@@ -506,6 +511,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format, false );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
+    ++renderer.statPSOBinds;
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
     [renderer.renderEncoder setCullMode:(MTLCullMode)cullMode];
 
@@ -536,6 +542,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
                        indexBufferOffset:indexOffset];
 
     renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    ++renderer.statDrawCalls;
 }
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
@@ -551,6 +558,13 @@ void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
 
 void teUnmapUiMemory()
 {
+}
+
+float teRendererGetStat( teStat stat )
+{
+    if (stat == teStat::DrawCalls) return (float)renderer.statDrawCalls;
+    else if (stat == teStat::PSOBinds) return (float)renderer.statPSOBinds;
+    return 0;
 }
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
@@ -587,6 +601,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     UpdateUBO( localToClip.m, localToClip.m, localToClip.m, localToClip.m );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
+    ++renderer.statPSOBinds;
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
     [renderer.renderEncoder setCullMode:MTLCullModeNone];
     [renderer.renderEncoder setScissorRect:scissor];
@@ -604,4 +619,5 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
                        indexBufferOffset:indexOffset];
     
     renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    ++renderer.statDrawCalls;
 }
