@@ -273,8 +273,9 @@ int main()
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
+    io.FontGlobalScale = 2;
     ImGui::StyleColorsDark();
-    
+
     unsigned char* fontPixels;
     int fontWidth, fontHeight;
     io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
@@ -455,7 +456,7 @@ int main()
         }
 
         ImGui::Begin( "ImGUI" );
-        ImGui::Text( "draw calls: %.0f", teRendererGetStat( teStat::DrawCalls ) );
+        ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         ImGui::End();
         ImGui::Render();
 

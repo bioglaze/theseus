@@ -176,6 +176,7 @@ struct Renderer
     PFN_vkQueuePresentKHR queuePresentKHR;
 
     unsigned statDrawCalls = 0;
+    unsigned statPSOBinds = 0;
 
     static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
@@ -1478,6 +1479,7 @@ void teBeginFrame()
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset = 0;
     renderer.boundPSO = VK_NULL_HANDLE;
     renderer.statDrawCalls = 0;
+    renderer.statPSOBinds = 0;
 }
 
 void teEndFrame()
@@ -1765,6 +1767,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     {
         renderer.boundPSO = pso;
         vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
+        ++renderer.statPSOBinds;
     }
 
     PushConstants pushConstants{};
@@ -1828,6 +1831,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     {
         renderer.boundPSO = pso;
         vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
+        ++renderer.statPSOBinds;
     }
 
     float displayPosX = 0; // TODO: Get from the application drawData
@@ -1847,10 +1851,9 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
 
 float teRendererGetStat( teStat stat )
 {
-    if (stat == teStat::DrawCalls)
-    {
-        return (float)renderer.statDrawCalls;
-    }
+    if (stat == teStat::DrawCalls) return (float)renderer.statDrawCalls;
+    if (stat == teStat::PSOBinds) return (float)renderer.statPSOBinds;
+    
 
     return 0;
 }
