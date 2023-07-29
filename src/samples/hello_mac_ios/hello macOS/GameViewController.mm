@@ -18,8 +18,11 @@ void MoveForward( float amount );
 void MoveUp( float amount );
 void MoveRight( float amount );
 void RotateCamera( float x, float y );
-
+void MouseDown( int x, int y );
+void MouseUp( int x, int y );
+void MouseMove( int x, int y );
 void SetDrawable( id< CAMetalDrawable > drawable );
+
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 NSViewController* myViewController;
@@ -93,19 +96,23 @@ NSViewController* myViewController;
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    NSLog(@"mouse down\n");
-    //inputEvent.x = (int)theEvent.locationInWindow.x;
+    MouseDown( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    NSLog(@"mouse up\n");
-    //inputEvent.x = (int)theEvent.locationInWindow.x;
+    MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
     RotateCamera( theEvent.deltaX, theEvent.deltaY );
+    MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
 }
 
 - (void)keyDown:(NSEvent *)theEvent

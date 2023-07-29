@@ -24,7 +24,7 @@ vertex ColorInOut uiVS( ImDrawVert in [[stage_in]], constant Uniforms& uniforms 
 
     out.position = uniforms.localToClip[ 0 ] * float4( in.pos, 0, 1 );
     out.uv = in.uv;
-    out.color = float4( in.col.abgr ) / float4( 255.0f );
+    out.color = float4( in.col ) / float4( 255.0f );
 
     return out;
 }

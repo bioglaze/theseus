@@ -80,7 +80,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
     ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-
+    
     int global_vtx_offset = 0;
     int global_idx_offset = 0;
 
@@ -261,6 +261,24 @@ void InitApp( unsigned width, unsigned height )
     app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
     io.BackendRendererUserData = &app.impl;
     io.BackendRendererName = "imgui_impl_metal";
+}
+
+void MouseDown( int x, int y )
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, true );
+}
+
+void MouseUp( int x, int y )
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, false );
+}
+
+void MouseMove( int x, int y )
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent( x, y );
 }
 
 void DrawApp()

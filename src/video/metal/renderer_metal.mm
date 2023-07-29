@@ -455,12 +455,13 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
             vertexDesc.attributes[ 1 ].offset = 4 * 2;
 
             // Color
-            vertexDesc.attributes[ 2 ].format = MTLVertexFormatUInt;
+            vertexDesc.attributes[ 2 ].format = MTLVertexFormatUChar4;
             vertexDesc.attributes[ 2 ].bufferIndex = 0;
             vertexDesc.attributes[ 2 ].offset = 4 * 4;
 
             vertexDesc.layouts[ 0 ].stride = 4 * 4 + 4; // sizeof( ImDrawVert )
             vertexDesc.layouts[ 0 ].stepFunction = MTLVertexStepFunctionPerVertex;
+            vertexDesc.layouts[ 0 ].stepRate = 1;
             
             pipelineStateDescriptor.vertexDescriptor = vertexDesc;
         }
