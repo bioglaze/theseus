@@ -220,6 +220,9 @@ int main()
     bc1Tex.sampler = teTextureSampler::NearestRepeat;
     teMaterialSetTexture2D( material, bc1Tex, 0 );
 
+    teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
+    teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
@@ -434,7 +437,7 @@ int main()
                     teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f * (float)dt );
                 }
 
-                io.AddMousePosEvent( x, y );
+                io.AddMousePosEvent( (float)x, (float)y );
             }
         }
 
@@ -444,10 +447,6 @@ int main()
         teTransformMoveRight( camera3d.index, moveDir.x * (float)dt * 0.5f );
         teTransformMoveUp( camera3d.index, moveDir.y * (float)dt * 0.5f );
 
-        teBeginFrame();
-        ImGui::NewFrame();
-        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
-
         cameraPos = -teTransformGetLocalPosition( camera3d.index );
 
         if (teScenePointInsideAABB( scene, cameraPos ))
@@ -455,7 +454,11 @@ int main()
             teTransformSetLocalPosition( camera3d.index, oldCameraPos );
         }
 
-        ImGui::Begin( "ImGUI" );
+        teBeginFrame();
+        ImGui::NewFrame();
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
+
+        ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         ImGui::End();
         ImGui::Render();
