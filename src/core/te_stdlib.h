@@ -1,6 +1,6 @@
 #pragma once
 
-// TODO: Replace includes with own implementation of strstr, memcpy and malloc.
+// TODO: Replace includes with own implementation of memcpy and malloc.
 #include <string.h>
 #include <stdlib.h>
 
@@ -27,11 +27,6 @@ static int teStrcmp( const char* s1, const char* s2 )
     return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
-static const char* teStrstr( const char* s1, const char* s2 )
-{
-    return strstr( s1, s2 );
-}
-
 static unsigned teStrlen( const char* str )
 {
     unsigned len = 0;
@@ -42,6 +37,30 @@ static unsigned teStrlen( const char* str )
     }
 
     return len;
+}
+
+static const char* teStrstr( const char* s1, const char* s2 )
+{
+    int len = teStrlen( s2 );
+    const char* ref = s2;
+
+    while (*s1 && *ref)
+    {
+        if (*s1++ == *ref)
+        {
+            ref++;
+        }
+        if (!*ref)
+        {
+            return (s1 - len);
+        }
+        if (len == (ref - s2))
+        {
+            ref = s2;
+        }
+    }
+
+    return nullptr;
 }
 
 static void teMemcpy( void* dst, const void* src, size_t size )
