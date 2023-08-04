@@ -63,5 +63,8 @@
     <ClInclude Include="..\..\..\include\material.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\light.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

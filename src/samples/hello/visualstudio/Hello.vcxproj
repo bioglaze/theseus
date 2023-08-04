@@ -106,6 +106,7 @@
     <ClInclude Include="..\..\..\include\camera.h" />
     <ClInclude Include="..\..\..\include\file.h" />
     <ClInclude Include="..\..\..\include\gameobject.h" />
+    <ClInclude Include="..\..\..\include\light.h" />
     <ClInclude Include="..\..\..\include\material.h" />
     <ClInclude Include="..\..\..\include\mesh.h" />
     <ClInclude Include="..\..\..\include\quaternion.h" />

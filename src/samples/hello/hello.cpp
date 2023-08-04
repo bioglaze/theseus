@@ -2,6 +2,7 @@
 #include "file.h"
 #include "gameobject.h"
 #include "imgui.h"
+#include "light.h"
 #include "material.h"
 #include "mesh.h"
 #include "quaternion.h"
@@ -235,12 +236,18 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
+    teGameObject dirLight = teCreateGameObject( "dirLight", teComponent::Transform | teComponent::DirectionalLight );
+    teDirectionalLightSetColor( dirLight.index, Vec3( 1, 1, 1 ) );
+    teDirectionalLightSetCastShadow( dirLight.index, true, 2048 );
+    teTransformSetLocalPosition( dirLight.index, Vec3( 0, 20, 0 ) );
+
     teFinalizeMeshBuffers();
 
     teScene scene = teCreateScene();
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, dirLight.index );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;

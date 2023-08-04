@@ -115,6 +115,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\unity.cpp" />
+    <ClCompile Include="..\video\light.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\video\material.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -154,6 +158,7 @@
     <ClInclude Include="..\include\camera.h" />
     <ClInclude Include="..\include\file.h" />
     <ClInclude Include="..\include\gameobject.h" />
+    <ClInclude Include="..\include\light.h" />
     <ClInclude Include="..\include\material.h" />
     <ClInclude Include="..\include\matrix.h" />
     <ClInclude Include="..\include\mesh.h" />

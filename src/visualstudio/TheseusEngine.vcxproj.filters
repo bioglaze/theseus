@@ -61,6 +61,9 @@
     <ClCompile Include="..\video\textureloader.cpp">
       <Filter>video</Filter>
     </ClCompile>
+    <ClCompile Include="..\video\light.cpp">
+      <Filter>video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
@@ -113,6 +116,9 @@
     </ClInclude>
     <ClInclude Include="..\core\te_stdlib.h">
       <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\light.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

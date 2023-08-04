@@ -11,6 +11,7 @@
 #include "core/math.cpp"
 #include "core/scene.cpp"
 #include "core/transform.cpp"
+#include "video/light.cpp"
 #include "material.cpp"
 #include "mesh.cpp"
 #include "textureloader.cpp"
