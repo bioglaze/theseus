@@ -577,6 +577,12 @@ void tePushWindowEvents()
 {
 }
 
+void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
+{
+    outWidth = win.width;
+    outHeight = win.height;
+}
+
 const teWindowEvent& tePopWindowEvent()
 {
     if (win.eventIndex == -1)
