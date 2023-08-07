@@ -32,15 +32,25 @@ void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax 
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
+struct ShadowCaster
+{
+    teTexture2D color;
+    teTexture2D depth;
+    unsigned cameraIndex{ MAX_GAMEOBJECTS - 1 };
+    Vec3 lightColor;
+    Vec3 lightDirection;
+};
+
 struct SceneImpl
 {
     unsigned gameObjects[ MAX_GAMEOBJECTS ] = {};
+    ShadowCaster shadowCaster;
 };
 
 SceneImpl scenes[ 2 ];
 unsigned sceneIndex = 0;
 
-teScene teCreateScene()
+teScene teCreateScene( unsigned directonalShadowMapDimension )
 {
     teAssert( sceneIndex < 2 );
 
@@ -52,7 +62,19 @@ teScene teCreateScene()
         scenes[ outScene.index ].gameObjects[ i ] = 0;
     }
 
+    if (directonalShadowMapDimension != 0)
+    {
+        scenes[ outScene.index ].shadowCaster.color = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::R32G32F, "dir shadow color" );
+        scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "dir shadow depth" );
+    }
+
     return outScene;
+}
+
+void teSceneSetupDirectionalLight( const teScene& scene, const Vec3& color, const Vec3& direction )
+{
+    scenes[ scene.index ].shadowCaster.lightColor = color;
+    scenes[ scene.index ].shadowCaster.lightDirection = direction;
 }
 
 void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
