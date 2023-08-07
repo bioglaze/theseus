@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AB29F6F82A814C9D00167287 /* light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB29F6F72A814C9D00167287 /* light.cpp */; };
+		AB29F6FA2A814CB500167287 /* light.h in Headers */ = {isa = PBXBuildFile; fileRef = AB29F6F92A814CB500167287 /* light.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AB768C7029DA03BB00F97939 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AB768C6F29DA03BB00F97939 /* Metal.framework */; };
 		AB768C7A29DA04A200F97939 /* math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB768C7229DA04A200F97939 /* math.cpp */; };
 		AB768C7B29DA04A200F97939 /* gameobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB768C7329DA04A200F97939 /* gameobject.cpp */; };
@@ -42,6 +44,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AB29F6F72A814C9D00167287 /* light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = light.cpp; path = video/light.cpp; sourceTree = "<group>"; };
+		AB29F6F92A814CB500167287 /* light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = light.h; path = include/light.h; sourceTree = "<group>"; };
 		AB3F966C29DA03290086D65E /* theseus.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = theseus.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB768C6F29DA03BB00F97939 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS16.2.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		AB768C7229DA04A200F97939 /* math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = math.cpp; path = core/math.cpp; sourceTree = "<group>"; };
@@ -137,6 +141,7 @@
 			children = (
 				ABC288FB29DB1C2D00A5903F /* metal */,
 				AB768C8429DA050B00F97939 /* buffer.h */,
+				AB29F6F72A814C9D00167287 /* light.cpp */,
 				AB768C8629DA050B00F97939 /* material.cpp */,
 				AB768C8729DA050B00F97939 /* mesh.cpp */,
 				AB768C8529DA050B00F97939 /* textureloader.cpp */,
@@ -150,6 +155,7 @@
 				AB768C9329DA055F00F97939 /* camera.h */,
 				AB768C8F29DA055F00F97939 /* file.h */,
 				AB768C9A29DA055F00F97939 /* gameobject.h */,
+				AB29F6F92A814CB500167287 /* light.h */,
 				AB768C9229DA055F00F97939 /* material.h */,
 				AB768C9629DA055F00F97939 /* matrix.h */,
 				AB768C9429DA055F00F97939 /* mesh.h */,
@@ -197,6 +203,7 @@
 				AB768CA529DA055F00F97939 /* shader.h in Headers */,
 				AB768CA029DA055F00F97939 /* material.h in Headers */,
 				AB768CA129DA055F00F97939 /* camera.h in Headers */,
+				AB29F6FA2A814CB500167287 /* light.h in Headers */,
 				AB768C8829DA050B00F97939 /* buffer.h in Headers */,
 				AB768C7C29DA04A200F97939 /* frustum.h in Headers */,
 				ABC288FA29DB0E9600A5903F /* te_stdlib.h in Headers */,
@@ -279,6 +286,7 @@
 				ABA3ACB129E06A55008BAD89 /* texture_metal.mm in Sources */,
 				AB768C7A29DA04A200F97939 /* math.cpp in Sources */,
 				AB768C7E29DA04A200F97939 /* frustum.cpp in Sources */,
+				AB29F6F82A814C9D00167287 /* light.cpp in Sources */,
 				AB768C7D29DA04A200F97939 /* file.cpp in Sources */,
 				AB768C8029DA04A200F97939 /* scene.cpp in Sources */,
 				ABA3ACB029E06A55008BAD89 /* shader_metal.mm in Sources */,

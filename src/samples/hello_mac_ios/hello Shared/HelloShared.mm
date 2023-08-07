@@ -216,7 +216,7 @@ void InitApp( unsigned width, unsigned height )
     
     app.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
-    app.scene = teCreateScene();
+    app.scene = teCreateScene( 2048 );
     teSceneAdd( app.scene, app.camera3d.index );
     teSceneAdd( app.scene, app.cubeGo.index );
     
