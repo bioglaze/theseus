@@ -1,6 +1,8 @@
 struct UniformData
 {
     matrix localToClip[ 2 ];
+    matrix localToView[ 2 ];
+    matrix localToShadowClip;
 };
 
 struct PushConstants

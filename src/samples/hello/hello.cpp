@@ -185,6 +185,10 @@ int main()
     teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
     teShader skyboxShader = teCreateShader( skyboxVsFile, skyboxPsFile, "skyboxVS", "skyboxPS" );
 
+    teFile standardVsFile = teLoadFile( "shaders/standard_vs.spv" );
+    teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
+    teShader standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
+
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
