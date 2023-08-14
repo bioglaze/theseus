@@ -135,6 +135,7 @@ struct AppResources
     teShader fullscreenShader;
     teShader skyboxShader;
     teShader uiShader;
+    teShader standardShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
@@ -185,6 +186,7 @@ void InitApp( unsigned width, unsigned height )
     app.unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
     app.skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
     app.uiShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "uiVS", "uiPS" );
+    app.standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
     
     app.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
@@ -199,7 +201,7 @@ void InitApp( unsigned width, unsigned height )
     app.bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     
-    app.material = teCreateMaterial( app.unlitShader );
+    app.material = teCreateMaterial( app.standardShader );
     teMaterialSetTexture2D( app.material, app.bc1Tex, 0 );
     
     app.cubeMesh = teCreateCubeMesh();
