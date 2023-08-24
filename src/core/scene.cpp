@@ -250,8 +250,29 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     EndRendering();
 }
 
+static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned& outShadowMapIndex )
+{
+    const bool castShadowMap = scenes[ scene.index ].shadowCaster.color.index != 0;
+
+    if (castShadowMap)
+    {
+        //teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, teTransformGetLocalPosition( dirLightIndex ), aeTransformGetLocalPosition( dirLightIndex ) + aeTransformGetViewDirection( dirLightIndex ), { 0, 1, 0 } );
+        teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
+
+        PushGroupMarker( "Shadow Map" );
+        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr );
+        PopGroupMarker();
+    }
+
+    outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
+}
+
 void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
+    Vec3 dirLightColor{ 1, 1, 1 };
+    unsigned shadowMapIndex = 0;
+    //RenderDirLightShadow( scene, dirLightColor, shadowMapIndex );
+
     int cameraIndex = -1;
 
     for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
