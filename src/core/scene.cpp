@@ -64,8 +64,13 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
 
     if (directonalShadowMapDimension != 0)
     {
+        const unsigned cameraGOIndex = scenes[ outScene.index ].gameObjects[ scenes[ outScene.index ].shadowCaster.cameraIndex ];
+
         scenes[ outScene.index ].shadowCaster.color = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::R32G32F, "dir shadow color" );
         scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "dir shadow depth" );
+
+        teCameraGetColorTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.color;
+        teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;
     }
 
     return outScene;
@@ -256,7 +261,8 @@ static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned
 
     if (castShadowMap)
     {
-        //teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, teTransformGetLocalPosition( dirLightIndex ), aeTransformGetLocalPosition( dirLightIndex ) + aeTransformGetViewDirection( dirLightIndex ), { 0, 1, 0 } );
+        Vec3 tempDirLightPosition = Vec3( 1, 10, 1 );
+        teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, /*teTransformGetLocalPosition(dirLightIndex)*/tempDirLightPosition, tempDirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
 
         PushGroupMarker( "Shadow Map" );
@@ -271,7 +277,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 {
     Vec3 dirLightColor{ 1, 1, 1 };
     unsigned shadowMapIndex = 0;
-    //RenderDirLightShadow( scene, dirLightColor, shadowMapIndex );
+    RenderDirLightShadow( scene, dirLightColor, shadowMapIndex );
 
     int cameraIndex = -1;
 

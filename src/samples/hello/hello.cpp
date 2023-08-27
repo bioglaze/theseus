@@ -205,6 +205,9 @@ int main()
     teMaterial material = teCreateMaterial( unlitShader );
     teMaterialSetTexture2D( material, gliderTex, 0 );
 
+    teMaterial standardMaterial = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
+
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
     teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teMaterial materialTrans = teCreateMaterial( unlitShader );
@@ -231,7 +234,7 @@ int main()
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
-    teMeshRendererSetMaterial( cubeGo.index, material, 0 );
+    teMeshRendererSetMaterial( cubeGo.index, standardMaterial, 0 );
 
     teMesh cubeMesh2 = teCreateCubeMesh();
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
@@ -242,7 +245,7 @@ int main()
 
     teFinalizeMeshBuffers();
 
-    teScene scene = teCreateScene( 2048 );
+    teScene scene = teCreateScene( 0 );
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
