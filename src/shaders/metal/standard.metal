@@ -8,7 +8,33 @@ struct ColorInOut
 {
     float4 position [[position]];
     float2 uv;
+    float4 projCoord;
 };
+
+float linstep( float low, float high, float v )
+{
+    return saturate( (v - low) / (high - low) );
+}
+
+float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shadowMap [[texture(1)]] )
+{
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+    
+    float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
+    float2 moments = shadowMap.sample( sampler0, uv ).rg;
+    if (moments.x > depth)
+        return 0.2f;
+    return 1.0f;
+
+/*    float variance = max( moments.y - moments.x * moments.x, -0.001f );
+
+    float delta = depth - moments.x;
+    float p = smoothstep( depth - 0.02f, depth, moments.x );
+    float minAmbient = 0.2f;
+    float pMax = linstep( minAmbient, 1.0f, variance / (variance + delta * delta) );
+
+    return saturate( max( p, pMax ) );*/
+}
 
 vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
                            constant Uniforms & uniforms [[ buffer(0) ]],
@@ -19,12 +45,18 @@ vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
 
     out.position = uniforms.localToClip[ 0 ] * float4( positions[ vid ], 1 );
     out.uv = float2( uvs[ vid ] );
+    out.projCoord = uniforms.localToShadowClip * float4( positions[ vid ], 1 );
     
     return out;
 }
 
-fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]]/*, sampler sampler0 [[sampler(0)]]*/ )
+fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
+                            texture2d<float, access::sample> shadowMap [[texture(1)]])
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
-    return textureMap.sample( sampler0, in.uv );
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
+    
+    float depth = (in.projCoord.z + 0.0001f) / in.projCoord.w;
+    float shadow = max( 0.2f, VSM( depth, in.projCoord, shadowMap ) );
+
+    return textureMap.sample( sampler0, in.uv ) * shadow;
 }

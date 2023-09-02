@@ -22,6 +22,7 @@ struct PerObjectUboStruct
 {
     Matrix localToClip[ 2 ];
     Matrix localToView[ 2 ];
+    Matrix localToShadowClip;
 };
 
 struct FrameResource

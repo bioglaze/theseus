@@ -141,6 +141,7 @@ struct AppResources
     teGameObject cubeGo;
     teGameObject cubes[ 16 * 4 ];
     teMaterial material;
+    teMaterial standardMaterial;
     teMesh cubeMesh;
     teTexture2D gliderTex;
     teTexture2D bc1Tex;
@@ -201,13 +202,16 @@ void InitApp( unsigned width, unsigned height )
     app.bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     
-    app.material = teCreateMaterial( app.standardShader );
+    app.material = teCreateMaterial( app.unlitShader );
     teMaterialSetTexture2D( app.material, app.bc1Tex, 0 );
-    
+
+    app.standardMaterial = teCreateMaterial( app.standardShader );
+    teMaterialSetTexture2D( app.standardMaterial, app.bc1Tex, 0 );
+
     app.cubeMesh = teCreateCubeMesh();
     app.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( app.cubeGo.index, &app.cubeMesh );
-    teMeshRendererSetMaterial( app.cubeGo.index, app.material, 0 );
+    teMeshRendererSetMaterial( app.cubeGo.index, app.standardMaterial, 0 );
 
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
@@ -251,7 +255,7 @@ void InitApp( unsigned width, unsigned height )
 
     teFinalizeMeshBuffers();
 
-    ImGuiContext* imContext = ImGui::CreateContext();
+    /*ImGuiContext* imContext =*/ ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
