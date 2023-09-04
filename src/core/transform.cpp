@@ -7,10 +7,8 @@ struct TransformImpl
 {
     // TODO: Maybe move some of these matrixes into camera?
     Matrix localMatrix;
-    Matrix localToClipLeftEye;
-    Matrix localToClipRightEye;
-    Matrix localToViewLeftEye;
-    Matrix localToViewRightEye;
+    Matrix localToClip;
+    Matrix localToView;
     Matrix localToShadowClip;
 
     Quaternion localRotation;
@@ -60,16 +58,14 @@ void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix
     transforms[ index ].localToShadowClip = localToShadowClip;
 }
 
-void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye )
+void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip )
 {
-    outLocalToClipLeftEye = transforms[ index ].localToClipLeftEye;
-    outLocalToClipRightEye = transforms[ index ].localToClipRightEye;
+    outLocalToClip = transforms[ index ].localToClip;
 }
 
-void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye )
+void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView )
 {
-    outLocalToViewLeftEye = transforms[ index ].localToViewLeftEye;
-    outLocalToViewRightEye = transforms[ index ].localToViewRightEye;
+    outLocalToView = transforms[ index ].localToView;
 }
 
 void TransformSolveLocalMatrix( unsigned index, bool isCamera )
@@ -97,16 +93,14 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera )
     }
 }
 
-void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye )
+void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip )
 {
-    transforms[ index ].localToClipLeftEye = localToClipLeftEye;
-    transforms[ index ].localToClipRightEye = localToClipRightEye;
+    transforms[ index ].localToClip = localToClip;
 }
 
-void TransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye )
+void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView )
 {
-    transforms[ index ].localToViewLeftEye = localToViewLeftEye;
-    transforms[ index ].localToViewRightEye = localToViewRightEye;
+    transforms[ index ].localToView = localToView;
 }
 
 Vec3 teTransformGetViewDirection( unsigned index )

@@ -1,7 +1,7 @@
 struct UniformData
 {
-    matrix localToClip[ 2 ];
-    matrix localToView[ 2 ];
+    matrix localToClip;
+    matrix localToView;
     matrix localToShadowClip;
 };
 

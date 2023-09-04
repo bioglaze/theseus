@@ -9,7 +9,7 @@ struct VSOutput
 VSOutput unlitVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
-    vsOut.pos = mul( uniforms.localToClip[ 0 ], float4( positions[ vertexId ], 1 ) );
+    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
     vsOut.uv = uvs[ vertexId ];
 
     return vsOut;
@@ -17,5 +17,5 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 
 float4 unlitPS( VSOutput vsOut ) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.textureIndex ], vsOut.uv);
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.textureIndex ], vsOut.uv );
 }

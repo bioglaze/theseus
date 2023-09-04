@@ -77,8 +77,8 @@ struct PSO
 
 struct PerObjectUboStruct
 {
-    Matrix localToClip[ 2 ];
-    Matrix localToView[ 2 ];
+    Matrix localToClip;
+    Matrix localToView;
     Matrix localToShadowClip;
 };
 
@@ -1660,13 +1660,12 @@ void teEndSwapchainRendering()
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
 }
 
-void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] )
 {
     PerObjectUboStruct uboStruct = {};
-    uboStruct.localToClip[ 0 ].InitFrom( localToClip0 );
-    uboStruct.localToClip[ 1 ].InitFrom( localToClip1 );
-    uboStruct.localToView[ 0 ].InitFrom( localToView0 );
-    uboStruct.localToView[ 1 ].InitFrom( localToView1 );
+    uboStruct.localToClip.InitFrom( localToClip );
+    uboStruct.localToView.InitFrom( localToView );
+    uboStruct.localToShadowClip.InitFrom( localToShadowClip );
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }

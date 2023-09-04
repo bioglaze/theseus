@@ -21,12 +21,12 @@ void PopGroupMarker();
 void MeshRendererSetCulled( unsigned gameObjectIndex, unsigned subMeshIndex, bool isCulled );
 bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
-void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClipLeftEye, Matrix& outLocalToClipRightEye );
-void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToViewLeftEye, Matrix& outLocalToViewRightEye );
-void UpdateUBO( const float localToClip0[ 16 ], const float localToClip1[ 16 ], const float localToView0[ 16 ], const float localToView1[ 16 ] );
+void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
+void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler );
-void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClipLeftEye, const Matrix& localToClipRightEye );
-void TransformSetComputedLocalToView( unsigned index, const Matrix& localToViewLeftEye, const Matrix& localToViewRightEye );
+void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
+void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
 
@@ -130,8 +130,8 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
         Matrix::Multiply( localToWorld, teTransformGetMatrix( cameraGOIndex ), localToView );
         Matrix::Multiply( localToView, teCameraGetProjection( cameraGOIndex ), localToClip );
 
-        TransformSetComputedLocalToClip( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip, localToClip );
-        TransformSetComputedLocalToView( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView, localToView );
+        TransformSetComputedLocalToClip( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip );
+        TransformSetComputedLocalToView( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView );
 
         const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[ gameObjectIndex ] );
 
@@ -162,7 +162,8 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     const teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
-    Matrix localToViews[ 2 ];
+    Matrix localToView;
+    Matrix localToShadowClip;
 
     Matrix localToClip;
     Matrix view;
@@ -170,7 +171,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     cameraRot.GetMatrix( view );
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
-    UpdateUBO( localToClip.m, localToClip.m, localToViews[ 0 ].m, localToViews[ 1 ].m );
+    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -193,11 +194,14 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
             continue;
         }
 
-        Matrix localToClipLeft, localToClipRight;
-        teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClipLeft, localToClipRight );
+        Matrix localToClip;
+        teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip );
 
-        Matrix localToViewLeft, localToViewRight;
-        teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToViewLeft, localToViewRight );
+        Matrix localToView;
+        teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView );
+
+        // TODO: get from transform/camera.
+        Matrix localToShadowClip;
 
         const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
@@ -210,7 +214,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
                 continue;
             }
 
-            UpdateUBO( localToClipLeft.m, localToClipRight.m, localToViewLeft.m, localToViewRight.m );
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m );
 
             teShader shader = teMaterialGetShader( material );
 

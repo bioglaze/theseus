@@ -10,7 +10,7 @@ VSOutput skyboxVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
     vsOut.uv = positions[ vertexId ];
-    vsOut.pos = mul( uniforms.localToClip[ 0 ], float4( positions[ vertexId ], 1 ) );
+    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
 
     return vsOut;
 }
