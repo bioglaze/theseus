@@ -1651,11 +1651,14 @@ void teBeginSwapchainRendering( teTexture2D& color )
     vkCmdSetScissor( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &scissor );
 
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
+
+    PushGroupMarker( "Swap chain" );
 }
 
 void teEndSwapchainRendering()
 {
     EndRendering();
+    PopGroupMarker();
 
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
 }

@@ -248,6 +248,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
     BeginRendering( color, depth, clearFlag, &clearColor.x );
 
+    PushGroupMarker( "Camera" );
+
     if (skyboxShader && skyboxTexture && skyboxMesh)
     {
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
@@ -255,6 +257,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
 
     RenderMeshes( scene, teBlendMode::Off, color.format, depth.format );
     RenderMeshes( scene, teBlendMode::Alpha, color.format, depth.format );
+
+    PopGroupMarker();
 
     EndRendering();
 }
