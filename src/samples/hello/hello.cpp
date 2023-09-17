@@ -245,7 +245,7 @@ int main()
 
     teFinalizeMeshBuffers();
 
-    teScene scene = teCreateScene( 0 );
+    teScene scene = teCreateScene( 2048 );
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
@@ -467,13 +467,14 @@ int main()
         ImGui::NewFrame();
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
 
+        teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
+        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
+
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         ImGui::End();
         ImGui::Render();
 
-        teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
         RenderImGUIDrawData( uiShader, fontTex );
         teEndSwapchainRendering();
 

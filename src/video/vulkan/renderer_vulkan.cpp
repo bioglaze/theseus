@@ -1481,10 +1481,16 @@ void teBeginFrame()
     renderer.boundPSO = VK_NULL_HANDLE;
     renderer.statDrawCalls = 0;
     renderer.statPSOBinds = 0;
+
+    VkCommandBufferBeginInfo cmdBufInfo = {};
+    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 }
 
 void teEndFrame()
 {
+    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
+
     VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submitInfo = {};
@@ -1560,10 +1566,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     renderInfo.pColorAttachments = &colorAtt;
     renderInfo.pDepthAttachment = &depthAtt;
     renderInfo.renderArea = { { 0, 0 }, { width, height } };
-
-    VkCommandBufferBeginInfo cmdBufInfo = {};
-    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
     VkImageMemoryBarrier imageMemoryBarrier = {};
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1659,8 +1661,6 @@ void teEndSwapchainRendering()
 {
     EndRendering();
     PopGroupMarker();
-
-    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
 }
 
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] )
