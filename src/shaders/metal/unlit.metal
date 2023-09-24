@@ -17,7 +17,7 @@ vertex ColorInOut unlitVS( uint vid [[ vertex_id ]],
 {
     ColorInOut out;
 
-    out.position = uniforms.localToClip[ 0 ] * float4( positions[ vid ], 1 );
+    out.position = uniforms.localToClip * float4( positions[ vid ], 1 );
     out.uv = float2( uvs[ vid ] );
     
     return out;
