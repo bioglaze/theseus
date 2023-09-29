@@ -24,7 +24,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] );
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler );
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
@@ -179,12 +179,12 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     unsigned positionOffset = teMeshGetPositionOffset( *skyboxMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( *skyboxMesh, 0 );
     
-    Draw( *skyboxShader, positionOffset, uvOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, skyboxTexture->index, teTextureSampler::LinearRepeat );
+    Draw( *skyboxShader, positionOffset, uvOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, skyboxTexture->index, teTextureSampler::LinearRepeat, 0 );
 
     PopGroupMarker();
 }
 
-static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTextureFormat colorFormat, teTextureFormat depthFormat )
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned shadowMapIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
     {
@@ -225,12 +225,12 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
 
             teTexture2D texture = teMaterialGetTexture2D( material, 0 );
 
-            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, colorFormat, depthFormat, texture.index, texture.sampler );
+            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, colorFormat, depthFormat, texture.index, texture.sampler, shadowMapIndex );
         }
     }
 }
 
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex )
 {
     const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
 
@@ -255,8 +255,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 
-    RenderMeshes( scene, teBlendMode::Off, color.format, depth.format );
-    RenderMeshes( scene, teBlendMode::Alpha, color.format, depth.format );
+    RenderMeshes( scene, teBlendMode::Off, color.format, depth.format, shadowMapindex );
+    RenderMeshes( scene, teBlendMode::Alpha, color.format, depth.format, shadowMapindex );
 
     PopGroupMarker();
 
@@ -274,7 +274,7 @@ static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned
         teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
 
         PushGroupMarker( "Shadow Map" );
-        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr );
+        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0 );
         PopGroupMarker();
     }
 
@@ -301,7 +301,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh );
+        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex );
     }
 }
 

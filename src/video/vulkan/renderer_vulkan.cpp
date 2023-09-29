@@ -1746,7 +1746,7 @@ static VkSampler GetSampler( teTextureSampler sampler )
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler )
+           teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
 {
     if (textureIndex != 0)
     {
@@ -1759,6 +1759,15 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         }
 
         renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
+    }
+
+    if (shadowMapIndex != 0)
+    {
+        teTexture2D tex;
+        tex.index = shadowMapIndex;
+
+        //renderer.samplerInfos[ shadowMapIndex ].imageView = TextureGetView( tex );
+        //renderer.samplerInfos[ shadowMapIndex ].sampler = GetSampler( sampler ); // FIXME: We probably want some hardcoded sampler here, not the one used for drawing.
     }
 
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
@@ -1788,7 +1797,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
