@@ -212,7 +212,9 @@ void InitApp( unsigned width, unsigned height )
     app.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( app.cubeGo.index, &app.cubeMesh );
     teMeshRendererSetMaterial( app.cubeGo.index, app.standardMaterial, 0 );
-
+    teTransformSetLocalScale( app.cubeGo.index, 4 );
+    teTransformSetLocalPosition( app.cubeGo.index, Vec3( 0, -4, 0 ) );
+    
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
     teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );

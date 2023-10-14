@@ -230,7 +230,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
     }
 }
 
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex )
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker )
 {
     const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
 
@@ -248,7 +248,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
     BeginRendering( color, depth, clearFlag, &clearColor.x );
 
-    PushGroupMarker( "Camera" );
+    PushGroupMarker( profileMarker );
 
     if (skyboxShader && skyboxTexture && skyboxMesh)
     {
@@ -273,9 +273,7 @@ static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned
         teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, /*teTransformGetLocalPosition(dirLightIndex)*/tempDirLightPosition, tempDirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
 
-        PushGroupMarker( "Shadow Map" );
-        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0 );
-        PopGroupMarker();
+        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0, "Shadow Map" );
     }
 
     outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
@@ -301,7 +299,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex );
+        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera" );
     }
 }
 

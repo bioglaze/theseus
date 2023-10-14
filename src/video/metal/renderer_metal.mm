@@ -359,7 +359,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderPassDescriptor.depthAttachment.clearDepth = 0;
         
         renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-        renderer.renderEncoder.label = @"RenderEncoderFBO";
+        renderer.renderEncoder.label = @"RenderEncoder";
     }
 }
 
@@ -499,7 +499,7 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex,
-          teTextureSampler sampler )
+          teTextureSampler sampler, unsigned shadowMapIndex )
 {
     id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
     NSRange range = { 0, 3 };
@@ -547,7 +547,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
 {
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp );
+    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
