@@ -14,7 +14,7 @@
 #include "vec3.h"
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor );
-void EndRendering();
+void EndRendering( teTexture2D& color );
 void PushGroupMarker( const char* name );
 void PopGroupMarker();
 
@@ -260,7 +260,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
 
     PopGroupMarker();
 
-    EndRendering();
+    EndRendering( color );
 }
 
 static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned& outShadowMapIndex )
