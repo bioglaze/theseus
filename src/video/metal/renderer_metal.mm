@@ -363,7 +363,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     }
 }
 
-void EndRendering()
+void EndRendering( teTexture2D& color )
 {
     [renderer.renderEncoder endEncoding];
 }
