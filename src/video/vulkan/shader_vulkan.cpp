@@ -11,9 +11,12 @@ struct teShaderImpl
 {
     VkPipelineShaderStageCreateInfo vertexInfo = {};
     VkPipelineShaderStageCreateInfo fragmentInfo = {};
-    VkShaderModule vertexShaderModule = VK_NULL_HANDLE;
+    VkShaderModule vertexShaderModule = VK_NULL_HANDLE;    
     VkShaderModule fragmentShaderModule = VK_NULL_HANDLE;
-    VkPipeline pso = {};
+
+    VkPipelineShaderStageCreateInfo computeInfo = {};
+    VkShaderModule computeShaderModule = VK_NULL_HANDLE;
+    VkPipeline computePso = {};
 };
 
 constexpr unsigned MaxShaders = 40;
@@ -26,6 +29,8 @@ struct ShaderCacheEntry
     char fragmentPath[ 260 ] = {};
     char vertexName[ 260 ] = {};
     char fragmentName[ 260 ] = {};
+    char computePath[ 260 ] = {};
+    char computeName[ 260 ] = {};
     unsigned shaderIndex = 0;
     inline static VkDevice device;
 };
@@ -76,6 +81,24 @@ void ReloadShader( const char* path )
                 shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.module = shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentShaderModule;
                 shaders[ shaderCacheEntries[ i ].shaderIndex ].fragmentInfo.pName = shaderCacheEntries[ i ].fragmentName;
             }
+        }
+
+        if (!teStrcmp( shaderCacheEntries[ i ].computePath, path ))
+        {
+            teFile file = teLoadFile( shaderCacheEntries[ i ].computePath );
+
+            VkShaderModuleCreateInfo moduleCreateInfo = {};
+            moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            moduleCreateInfo.codeSize = file.size;
+            moduleCreateInfo.pCode = (const uint32_t*)file.data;
+
+            VK_CHECK( vkCreateShaderModule( ShaderCacheEntry::device, &moduleCreateInfo, nullptr, &shaders[ shaderCacheEntries[ i ].shaderIndex ].computeShaderModule ) );
+            SetObjectName( ShaderCacheEntry::device, (uint64_t)shaders[ shaderCacheEntries[ i ].shaderIndex ].computeShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, file.path );
+
+            shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+            shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.module = shaders[ shaderCacheEntries[ i ].shaderIndex ].computeShaderModule;
+            shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.pName = shaderCacheEntries[ i ].computeName;
         }
     }
 
@@ -133,6 +156,44 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
             teMemcpy( shaderCacheEntries[ i ].fragmentName, fragmentName, teStrlen( fragmentName ) + 1 );
             teMemcpy( shaderCacheEntries[ i ].vertexPath, vertexFile.path, teStrlen( vertexFile.path ) + 1 );
             teMemcpy( shaderCacheEntries[ i ].fragmentPath, fragmentFile.path, teStrlen( fragmentFile.path ) + 1 );
+            break;
+        }
+    }
+
+    return outShader;
+}
+
+teShader teCreateComputeShader( VkDevice device, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ )
+{
+    teAssert( nextShaderIndex < MaxShaders );
+
+    ShaderCacheEntry::device = device;
+
+    teShader outShader;
+    outShader.index = nextShaderIndex++;
+
+    VkShaderModuleCreateInfo moduleCreateInfo = {};
+    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    moduleCreateInfo.codeSize = file.size;
+    moduleCreateInfo.pCode = (const uint32_t*)file.data;
+
+    VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].vertexShaderModule ) );
+    SetObjectName( device, (uint64_t)shaders[ outShader.index ].vertexShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, file.path );
+
+    shaders[ outShader.index ].computeInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaders[ outShader.index ].computeInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    shaders[ outShader.index ].computeInfo.module = shaders[ outShader.index ].vertexShaderModule;
+    shaders[ outShader.index ].computeInfo.pName = name;
+
+    RegisterFileForModifications( file, ReloadShader );
+
+    for (unsigned i = 0; i < MaxShaders; ++i)
+    {
+        if (shaderCacheEntries[ i ].shaderIndex == 0)
+        {
+            shaderCacheEntries[ i ].shaderIndex = outShader.index;
+            teMemcpy( shaderCacheEntries[ i ].computeName, name, teStrlen( name ) + 1 );
+            teMemcpy( shaderCacheEntries[ i ].computePath, file.path, teStrlen( file.path ) + 1 );
             break;
         }
     }

@@ -12,6 +12,7 @@
 #include "shader.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
+teShader teCreateComputeShader( VkDevice device, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
@@ -670,6 +671,11 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
 teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName )
 {
     return teCreateShader( renderer.device, vertexFile, fragmentFile, vertexName, fragmentName );
+}
+
+teShader teCreateComputeShader( const teFile& file, const char* name, unsigned threadsPerThreadgroupX, unsigned threadsPerThreadgroupY )
+{
+    return teCreateComputeShader( renderer.device, file, name, threadsPerThreadgroupX, threadsPerThreadgroupY );
 }
 
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )

@@ -12,8 +12,6 @@ VSOutput fullscreenVS( uint vertexId : SV_VertexID )
     vsOut.uv = float2( (vertexId << 1) & 2, vertexId & 2 );
     vsOut.pos = float4( vsOut.uv * 2.0f + -1.0f, 0.0f, 1.0f );
     
-    vsOut.uv.y = vsOut.uv.y;
-
     return vsOut;
 }
 
