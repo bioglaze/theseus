@@ -43,6 +43,13 @@ void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& o
     outFragmentInfo = shaders[ shader.index ].fragmentInfo;
 }
 
+VkPipeline shaderGetComputePSO( const teShader& shader )
+{
+    teAssert( shader.index != 0 );
+
+    return shaders[ shader.index ].computePso;
+}
+
 void ReloadShader( const char* path )
 {
     for (unsigned i = 0; i < MaxShaders; ++i)

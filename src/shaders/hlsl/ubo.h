@@ -3,6 +3,8 @@ struct UniformData
     matrix localToClip;
     matrix localToView;
     matrix localToShadowClip;
+    float4 bloomParams;
+    float4 tilesXY;
 };
 
 struct PushConstants
@@ -32,6 +34,6 @@ struct PushConstants
 [[vk::binding(4)]] Buffer<float2> uvs;
 //[[vk::binding(6)]] Buffer<float4> tangents;
 //[[vk::binding(7)]] Buffer<float3> normals;
-//[[vk::binding(8)]] RWTexture2D<float4> rwTexture2d;
+[[vk::binding(5)]] RWTexture2D<float4> rwTexture2d;
 //[[vk::binding(9)]] Buffer<float4> pointLightBufferCenterAndRadius;
 

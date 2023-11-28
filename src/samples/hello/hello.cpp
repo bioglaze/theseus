@@ -189,6 +189,9 @@ int main()
     teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
     teShader standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
 
+    teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
+    teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 16, 16 );
+
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
@@ -309,6 +312,8 @@ int main()
     Vec3 moveDir;
 
     double theTime = GetMilliseconds();
+
+    ShaderParams shaderParams{};
 
     while (!shouldQuit)
     {
@@ -466,6 +471,10 @@ int main()
         teBeginFrame();
         ImGui::NewFrame();
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
+
+        shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
+        //shaderParams.writeTexture = bloomTex.index;
+        //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
