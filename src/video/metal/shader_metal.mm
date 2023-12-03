@@ -7,6 +7,7 @@ extern id <MTLCommandQueue> gCommandQueue;
 extern id<MTLDevice> gDevice;
 
 id<MTLTexture> TextureGetMetalTexture( unsigned index );
+id<MTLBuffer> GetUniformBufferAndOffset( unsigned& outOffset );
 
 struct ShaderImpl
 {
@@ -108,11 +109,15 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     [commandEncoder setTexture:TextureGetMetalTexture( params.readTexture ) atIndex:0];
     [commandEncoder setTexture:TextureGetMetalTexture( params.writeTexture ) atIndex:1];
 
-    //[commandEncoder setBuffer:GetCurrentUBO() offset:0 atIndex:0];
+    unsigned uboOffset = 0;
+    id<MTLBuffer> ubo = GetUniformBufferAndOffset( uboOffset );
+    [commandEncoder setBuffer:ubo offset:uboOffset atIndex:0];
     [commandEncoder setComputePipelineState:shaders[ shader.index ].computePipeline];
 
     [commandEncoder dispatchThreadgroups:threadgroups threadsPerThreadgroup:shaders[ shader.index ].threadgroupCounts];
     [commandEncoder endEncoding];
     
     [commandBuffer commit];
+    
+    // TODO: bump uboOffset
 }

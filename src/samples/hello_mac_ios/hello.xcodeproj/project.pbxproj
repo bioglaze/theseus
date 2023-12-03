@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AB38A7C62B1CC2C5008F9FD4 /* bloom.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB38A7C52B1CC2C5008F9FD4 /* bloom.metal */; };
+		AB38A7C72B1CC2C5008F9FD4 /* bloom.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB38A7C52B1CC2C5008F9FD4 /* bloom.metal */; };
 		AB3EF5BB2A8A9EE500FB9806 /* standard.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB3EF5BA2A8A9EE500FB9806 /* standard.metal */; };
 		AB3EF5BC2A8A9EE500FB9806 /* standard.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB3EF5BA2A8A9EE500FB9806 /* standard.metal */; };
 		AB74C0D529FD37E400A1B505 /* HelloShared.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB74C0D429FD37E400A1B505 /* HelloShared.mm */; };
@@ -72,6 +74,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AB38A7C52B1CC2C5008F9FD4 /* bloom.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = bloom.metal; path = ../../shaders/metal/bloom.metal; sourceTree = "<group>"; };
 		AB3EF5BA2A8A9EE500FB9806 /* standard.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = standard.metal; path = ../../shaders/metal/standard.metal; sourceTree = "<group>"; };
 		AB74C0D429FD37E400A1B505 /* HelloShared.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloShared.mm; sourceTree = "<group>"; };
 		AB7EADD929E04943003A182A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -225,6 +228,7 @@
 		ABA3ACB229E07DAD008BAD89 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				AB38A7C52B1CC2C5008F9FD4 /* bloom.metal */,
 				ABA068802A59835A00C3B5DC /* ui.metal */,
 				ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */,
 				AB91EFAA29F2C076009A7EEA /* skybox.metal */,
@@ -367,6 +371,7 @@
 				ABA0687A2A5966B400C3B5DC /* imgui_draw.cpp in Sources */,
 				ABA0687C2A5966B400C3B5DC /* imgui_tables.cpp in Sources */,
 				ABA0687E2A5966B400C3B5DC /* imgui.cpp in Sources */,
+				AB38A7C62B1CC2C5008F9FD4 /* bloom.metal in Sources */,
 				ABA068782A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
@@ -387,6 +392,7 @@
 				ABA0687B2A5966B400C3B5DC /* imgui_draw.cpp in Sources */,
 				ABA0687D2A5966B400C3B5DC /* imgui_tables.cpp in Sources */,
 				ABA0687F2A5966B400C3B5DC /* imgui.cpp in Sources */,
+				AB38A7C72B1CC2C5008F9FD4 /* bloom.metal in Sources */,
 				ABA068792A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
 				AB7EADFF29E04943003A182A /* main.m in Sources */,
 				AB7EADF729E04943003A182A /* AppDelegate.m in Sources */,

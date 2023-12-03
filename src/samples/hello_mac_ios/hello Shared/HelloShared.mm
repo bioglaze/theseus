@@ -136,6 +136,8 @@ struct AppResources
     teShader skyboxShader;
     teShader uiShader;
     teShader standardShader;
+    teShader bloomThresholdShader;
+    teShader bloomBlurShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
@@ -149,6 +151,7 @@ struct AppResources
     teTexture2D bc3Tex;
     teTextureCube skyTex;
     teTexture2D fontTex;
+    teTexture2D bloomTarget;
     teScene scene;
     
     ImGUIImplCustom impl;
@@ -196,6 +199,8 @@ void InitApp( unsigned width, unsigned height )
     teCameraSetClear( app.camera3d.index, teClearFlag::DepthAndColor, Vec4( 1, 0, 0, 1 ) );
     teCameraGetColorTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
+    // TODO: float instead of RGBA
+    app.bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::RGBA_sRGB, "bloom target" );
     
     app.gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -222,6 +227,10 @@ void InitApp( unsigned width, unsigned height )
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     
+    teFile emptyFile;
+    app.bloomThresholdShader = teCreateComputeShader( emptyFile, "bloomThreshold", 16, 16 );
+    app.bloomBlurShader = teCreateComputeShader( emptyFile, "bloomBlur", 16, 16 );
+
     app.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     app.scene = teCreateScene( 2048 );
@@ -294,7 +303,9 @@ void MouseMove( int x, int y )
 void DrawApp()
 {
     float dt = 1;
-    
+
+    ShaderParams shaderParams;
+
     teTransformMoveForward( app.camera3d.index, moveDir.z * (float)dt * 0.5f );
     teTransformMoveRight( app.camera3d.index, moveDir.x * (float)dt * 0.5f );
     teTransformMoveUp( app.camera3d.index, moveDir.y * (float)dt * 0.5f );
@@ -302,6 +313,12 @@ void DrawApp()
     teBeginFrame();
     ImGui::NewFrame();
     teSceneRender( app.scene, &app.skyboxShader, &app.skyTex, &app.cubeMesh );
+
+    unsigned width, height;
+    teTextureGetDimension( app.bloomTarget, width, height );
+    shaderParams.readTexture = teCameraGetColorTexture( app.camera3d.index ).index;
+    shaderParams.writeTexture = app.bloomTarget.index;
+    teShaderDispatch( app.bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
     ImGui::Begin( "ImGUI" );
     ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

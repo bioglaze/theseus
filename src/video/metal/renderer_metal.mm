@@ -8,6 +8,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "te_stdlib.h"
+#include "vec3.h"
 
 Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName );
 unsigned BufferGetSizeBytes( const Buffer& buffer );
@@ -23,6 +24,8 @@ struct PerObjectUboStruct
     Matrix localToClip;
     Matrix localToView;
     Matrix localToShadowClip;
+    Vec4 bloomParams;
+    Vec4 tilesXY;
 };
 
 struct FrameResource
@@ -96,6 +99,13 @@ id<MTLDevice> gDevice;
 id<MTLCommandQueue> gCommandQueue;
 MTLRenderPassDescriptor* renderPassDescriptor; // This comes from the application
 id<MTLCommandBuffer> gCommandBuffer; // This is used by the application.
+
+id<MTLBuffer> GetUniformBufferAndOffset( unsigned& outOffset )
+{
+    outOffset = renderer.frameResources[ 0 ].uboOffset;
+    
+    return renderer.frameResources[ 0 ].uniformBuffer;
+}
 
 // TODO: Move into a better place.
 const char* GetFullPath( const char* fileName )
