@@ -170,7 +170,7 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
     return outShader;
 }
 
-teShader teCreateComputeShader( VkDevice device, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ )
+teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ )
 {
     teAssert( nextShaderIndex < MaxShaders );
 
@@ -191,6 +191,14 @@ teShader teCreateComputeShader( VkDevice device, const teFile& file, const char*
     shaders[ outShader.index ].computeInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
     shaders[ outShader.index ].computeInfo.module = shaders[ outShader.index ].vertexShaderModule;
     shaders[ outShader.index ].computeInfo.pName = name;
+
+    VkComputePipelineCreateInfo psoInfo = {};
+    psoInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    psoInfo.layout = pipelineLayout;
+    psoInfo.stage = shaders[ outShader.index ].computeInfo;
+
+    VK_CHECK( vkCreateComputePipelines( device, VK_NULL_HANDLE, 1, &psoInfo, nullptr, &shaders[ outShader.index ].computePso ) );
+    SetObjectName( device, (uint64_t)shaders[ outShader.index ].computePso, VK_OBJECT_TYPE_PIPELINE, file.path );
 
     RegisterFileForModifications( file, ReloadShader );
 

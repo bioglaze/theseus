@@ -226,6 +226,8 @@ int main()
     
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
+    teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
+
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     bc1Tex.sampler = teTextureSampler::NearestRepeat;
@@ -473,7 +475,7 @@ int main()
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
-        //shaderParams.writeTexture = bloomTex.index;
+        shaderParams.writeTexture = bloomTarget.index;
         //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );

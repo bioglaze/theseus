@@ -13,7 +13,7 @@
 #include "vec3.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
-teShader teCreateComputeShader( VkDevice device, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
+teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkPipeline shaderGetComputePSO( const teShader& shader );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
@@ -146,6 +146,7 @@ struct Renderer
     teTexture2D defaultTexture2D;
     teTextureCube defaultTextureCube;
     teTexture2D nullUAV;
+    Buffer nullBuffer;
     VkSampler samplerLinearRepeat;
     VkSampler samplerLinearClamp;
     VkSampler samplerAnisotropic8Repeat;
@@ -682,7 +683,7 @@ teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& f
 
 teShader teCreateComputeShader( const teFile& file, const char* name, unsigned threadsPerThreadgroupX, unsigned threadsPerThreadgroupY )
 {
-    return teCreateComputeShader( renderer.device, file, name, threadsPerThreadgroupX, threadsPerThreadgroupY );
+    return teCreateComputeShader( renderer.device, renderer.pipelineLayout, file, name, threadsPerThreadgroupX, threadsPerThreadgroupY );
 }
 
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
@@ -1417,6 +1418,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
     renderer.defaultTextureCube = teCreateTextureCube( 32, 0, teTextureFormat::RGBA_sRGB, "default texture Cube" );
     renderer.nullUAV = teCreateTexture2D( 16, 16, teTextureFlags::UAV, teTextureFormat::R32F, "nullUAV" );
+    renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Ushort, "nullBuffer" );;
 
     for (unsigned i = 0; i < TextureCount; ++i)
     {
@@ -1785,19 +1787,15 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
     }
 
-    Buffer positions, uvs;
-    positions.index = 2; // FIXME: These should probably point to some default resources.
-    uvs.index = 3;
-
     teTexture2D uav;
     uav.index = (params.writeTexture != 0) ? params.writeTexture : renderer.nullUAV.index;
 
-    UpdateDescriptors( positions, uvs, uav, renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    UpdateDescriptors( renderer.nullBuffer, renderer.nullBuffer, uav, renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
     int pushConstants[ 5 ] = { textureIndex, textureIndex, textureIndex, 0, 0 };
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shaderGetComputePSO( shader ) );
     vkCmdDispatch( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, groupsX, groupsY, groupsZ );
