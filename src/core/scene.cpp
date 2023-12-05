@@ -23,7 +23,7 @@ bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
@@ -171,7 +171,8 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     cameraRot.GetMatrix( view );
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
-    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m );
+    ShaderParams shaderParams{};
+    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -214,7 +215,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
                 continue;
             }
 
-            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m );
+            ShaderParams shaderParams{};
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams );
 
             teShader shader = teMaterialGetShader( material );
 

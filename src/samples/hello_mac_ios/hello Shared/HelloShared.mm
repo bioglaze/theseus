@@ -199,19 +199,18 @@ void InitApp( unsigned width, unsigned height )
     teCameraSetClear( app.camera3d.index, teClearFlag::DepthAndColor, Vec4( 1, 0, 0, 1 ) );
     teCameraGetColorTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( app.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
-    // TODO: float instead of RGBA
-    app.bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::RGBA_sRGB, "bloom target" );
+    app.bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloom target" );
     
     app.gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc1Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt1.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc2Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt3.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     app.bc3Tex = teLoadTexture( teLoadFile( "assets/textures/test/test_dxt5.dds" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-    
+
     app.material = teCreateMaterial( app.unlitShader );
     teMaterialSetTexture2D( app.material, app.bc1Tex, 0 );
 
     app.standardMaterial = teCreateMaterial( app.standardShader );
-    teMaterialSetTexture2D( app.standardMaterial, app.bc1Tex, 0 );
+    teMaterialSetTexture2D( app.standardMaterial, app.gliderTex, 0 );
 
     app.cubeMesh = teCreateCubeMesh();
     app.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
@@ -318,8 +317,9 @@ void DrawApp()
     teTextureGetDimension( app.bloomTarget, width, height );
     shaderParams.readTexture = teCameraGetColorTexture( app.camera3d.index ).index;
     shaderParams.writeTexture = app.bloomTarget.index;
+    shaderParams.bloomThreshold = 0.9f;
     teShaderDispatch( app.bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
-
+    
     ImGui::Begin( "ImGUI" );
     ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
     ImGui::End();
@@ -327,6 +327,8 @@ void DrawApp()
 
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
     teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ) );
+    //teDrawFullscreenTriangle( app.fullscreenShader, app.bloomTarget );
+
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();
 }

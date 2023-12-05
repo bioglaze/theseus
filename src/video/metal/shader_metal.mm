@@ -2,6 +2,9 @@
 #include "shader.h"
 #include "te_stdlib.h"
 
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams );
+void MoveToNextUboOffset();
+
 extern id <MTLLibrary> defaultLibrary;
 extern id <MTLCommandQueue> gCommandQueue;
 extern id<MTLDevice> gDevice;
@@ -98,6 +101,9 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     teAssert( shader.index != 0 );
     teAssert( shaders[ shader.index ].computeProgram != nil );
 
+    float m[ 16 ];
+    UpdateUBO( m, m, m, params );
+    
     MTLSize threadgroups = MTLSizeMake( groupsX, groupsY, groupsZ );
 
     id<MTLCommandBuffer> commandBuffer = [gCommandQueue commandBuffer];
@@ -119,5 +125,5 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     
     [commandBuffer commit];
     
-    // TODO: bump uboOffset
+    MoveToNextUboOffset();
 }

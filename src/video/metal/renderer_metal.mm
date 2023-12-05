@@ -306,12 +306,13 @@ unsigned AddPositions( const float* positions, unsigned bytes )
     return renderer.positionCounter - bytes;
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
     uboStruct.localToView.InitFrom( localToView );
-
+    uboStruct.bloomParams.w = shaderParams.bloomThreshold;
+    
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
 
@@ -508,6 +509,11 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
     return psoIndex;
 }
 
+void MoveToNextUboOffset()
+{
+    renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+}
+
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex,
           teTextureSampler sampler, unsigned shadowMapIndex )
 {
@@ -608,7 +614,8 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
     Matrix localToClip2;
     localToClip.Transpose( localToClip2 );
-    UpdateUBO( localToClip.m, localToClip.m, localToClip.m );
+    ShaderParams shaderParams;
+    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     ++renderer.statPSOBinds;

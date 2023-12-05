@@ -9,6 +9,7 @@ struct ShaderParams
 {
     unsigned readTexture;
     unsigned writeTexture;
+    float bloomThreshold;
 };
 
 /*
