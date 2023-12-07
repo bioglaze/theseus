@@ -927,7 +927,7 @@ void CreateDevice()
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, nullptr );
 
     printf( "GPU: %s\n", renderer.properties.deviceName );
-
+    
     VkQueueFamilyProperties* queueProps = (VkQueueFamilyProperties*)teMalloc( sizeof( VkQueueFamilyProperties ) * queueCount );
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, queueProps );
 
@@ -1680,12 +1680,13 @@ void teEndSwapchainRendering()
     PopGroupMarker();
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ] )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
     uboStruct.localToView.InitFrom( localToView );
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
+    uboStruct.bloomParams.w = shaderParams.bloomThreshold;
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
@@ -1761,6 +1762,14 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
     renderer.swapchainResources[ renderer.frameIndex ].setIndex = (renderer.swapchainResources[ renderer.frameIndex ].setIndex + 1) % renderer.swapchainResources[ renderer.frameIndex ].SetCount;
 }
 
+void MoveToNextUboOffset()
+{
+    size_t offset = sizeof( PerObjectUboStruct );
+    size_t offsetAligned = (offset + renderer.properties.limits.minUniformBufferOffsetAlignment) & ~renderer.properties.limits.minUniformBufferOffsetAlignment;
+    renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += offsetAligned;
+    teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
+}
+
 void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groupsY, unsigned groupsZ, const ShaderParams& params, const char* debugName )
 {
     renderer.shaderParams = params;
@@ -1802,7 +1811,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     EndRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
 
-    renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += sizeof( PerObjectUboStruct );
+    MoveToNextUboOffset();
+
     teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
 }
 
@@ -1865,8 +1875,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
 
-    renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += sizeof( PerObjectUboStruct );
-    teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
+    MoveToNextUboOffset();
 
     ++renderer.statDrawCalls;
 }
