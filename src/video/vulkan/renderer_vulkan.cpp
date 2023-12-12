@@ -1764,8 +1764,8 @@ static void BindDescriptors( VkPipelineBindPoint bindPoint )
 
 void MoveToNextUboOffset()
 {
-    size_t offset = sizeof( PerObjectUboStruct );
-    size_t offsetAligned = (offset + renderer.properties.limits.minUniformBufferOffsetAlignment) & ~renderer.properties.limits.minUniformBufferOffsetAlignment;
+    constexpr size_t offset = sizeof( PerObjectUboStruct );
+    const size_t offsetAligned = (offset + renderer.properties.limits.minUniformBufferOffsetAlignment - 1) & ~(renderer.properties.limits.minUniformBufferOffsetAlignment - 1);
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += offsetAligned;
     teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
 }
