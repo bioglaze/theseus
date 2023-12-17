@@ -326,8 +326,14 @@ void DrawApp()
     ImGui::Render();
 
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
-    teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ) );
-    //teDrawFullscreenTriangle( app.fullscreenShader, app.bloomTarget );
+    
+    shaderParams.tilesXY[ 0 ] = 1;
+    shaderParams.tilesXY[ 1 ] = 1;
+    teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams );
+
+    shaderParams.tilesXY[ 0 ] = 0.5f;
+    shaderParams.tilesXY[ 1 ] = 0.5f;
+    //teDrawFullscreenTriangle( app.fullscreenShader, app.bloomTarget, shaderParams );
 
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();

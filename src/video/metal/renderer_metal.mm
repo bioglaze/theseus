@@ -312,6 +312,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.localToClip.InitFrom( localToClip );
     uboStruct.localToView.InitFrom( localToView );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
+    uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
+    uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
     
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
@@ -561,8 +563,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     ++renderer.statDrawCalls;
 }
 
-void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
+void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams )
 {
+    float m[ 16 ];
+    UpdateUBO( m, m, m, shaderParams );
+
     Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp, 0 );
 }
 
