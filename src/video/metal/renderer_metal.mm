@@ -563,12 +563,12 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     ++renderer.statDrawCalls;
 }
 
-void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams )
+void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     float m[ 16 ];
     UpdateUBO( m, m, m, shaderParams );
 
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp, 0 );
+    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestClamp, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )

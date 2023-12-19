@@ -479,7 +479,10 @@ int main()
         //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
-        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ) );
+        ShaderParams shaderParams;
+        shaderParams.tilesXY[ 0 ] = 1;
+        shaderParams.tilesXY[ 1 ] = 1;
+        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

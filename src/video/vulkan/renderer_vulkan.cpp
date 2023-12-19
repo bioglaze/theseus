@@ -1687,6 +1687,10 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.localToView.InitFrom( localToView );
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
+    uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
+    uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
+    uboStruct.tilesXY.z = shaderParams.tilesXY[ 2 ];
+    uboStruct.tilesXY.w = shaderParams.tilesXY[ 3 ];
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
@@ -1880,9 +1884,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     ++renderer.statDrawCalls;
 }
 
-void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture )
+void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
-    Draw( shader, 0, 0, 3, 0, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
+    Matrix identity;
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams );
+    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
