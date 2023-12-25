@@ -133,6 +133,7 @@ struct AppResources
 {
     teShader unlitShader;
     teShader fullscreenShader;
+    teShader fullscreenAdditiveShader;
     teShader skyboxShader;
     teShader uiShader;
     teShader standardShader;
@@ -187,6 +188,7 @@ void InitApp( unsigned width, unsigned height )
     teCreateRenderer( 1, nullptr, width, height );
 
     app.fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
+    app.fullscreenAdditiveShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenAdditivePS" );
     app.unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
     app.skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
     app.uiShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "uiVS", "uiPS" );
@@ -327,13 +329,11 @@ void DrawApp()
 
     teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
     
-    shaderParams.tilesXY[ 0 ] = 1;
-    shaderParams.tilesXY[ 1 ] = 1;
-    teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams );
+    teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off );
 
     shaderParams.tilesXY[ 0 ] = 0.5f;
     shaderParams.tilesXY[ 1 ] = 0.5f;
-    //teDrawFullscreenTriangle( app.fullscreenShader, app.bloomTarget, shaderParams );
+    teDrawFullscreenTriangle( app.fullscreenAdditiveShader, app.bloomTarget, shaderParams, teBlendMode::Additive );
 
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();

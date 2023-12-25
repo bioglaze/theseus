@@ -25,5 +25,15 @@ fragment float4 fullscreenPS( ColorInOut in [[stage_in]],
 {
     constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
 
-    return textureMap.sample( mysampler, float2( in.texCoords.x * uniforms.tilesXY.x, in.texCoords.y * uniforms.tilesXY.y ) );
+    return textureMap.sample( mysampler, in.texCoords );
 }
+
+fragment float4 fullscreenAdditivePS( ColorInOut in [[stage_in]],
+                                      texture2d<float, access::sample> textureMap [[texture(0)]],
+                                      constant Uniforms& uniforms [[ buffer(0) ]])
+{
+    constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
+
+    return textureMap.sample( mysampler, float2( in.texCoords.x * uniforms.tilesXY.x, in.texCoords.y * uniforms.tilesXY.y ) ).rrrr;
+}
+
