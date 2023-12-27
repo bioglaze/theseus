@@ -478,7 +478,7 @@ int main()
         shaderParams.writeTexture = bloomTarget.index;
         //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
-        teBeginSwapchainRendering( teCameraGetColorTexture( camera3d.index ) );
+        teBeginSwapchainRendering();
         ShaderParams shaderParams;
         shaderParams.tilesXY[ 0 ] = 1;
         shaderParams.tilesXY[ 1 ] = 1;

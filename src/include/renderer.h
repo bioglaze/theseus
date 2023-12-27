@@ -10,7 +10,7 @@ void teEndFrame();
 // This must be called after loading all the meshes and before rendering them.
 void teFinalizeMeshBuffers();
 void teDrawFullscreenTriangle( struct teShader& shader, struct teTexture2D& texture, const struct ShaderParams& shaderParams, teBlendMode blendMode );
-void teBeginSwapchainRendering( teTexture2D& color );
+void teBeginSwapchainRendering();
 void teEndSwapchainRendering();
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
 void teUnmapUiMemory();

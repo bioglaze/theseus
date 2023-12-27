@@ -327,7 +327,7 @@ void DrawApp()
     ImGui::End();
     ImGui::Render();
 
-    teBeginSwapchainRendering( teCameraGetColorTexture( app.camera3d.index ) );
+    teBeginSwapchainRendering();
     
     teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off );
 

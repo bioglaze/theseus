@@ -381,7 +381,7 @@ void EndRendering( teTexture2D& color )
     [renderer.renderEncoder endEncoding];
 }
 
-void teBeginSwapchainRendering( teTexture2D& color )
+void teBeginSwapchainRendering()
 {
     teTexture2D nullColor, nullDepth;
     nullColor.index = -1;

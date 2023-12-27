@@ -1636,7 +1636,7 @@ void EndRendering( teTexture2D& color )
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 }
 
-void teBeginSwapchainRendering( teTexture2D& color )
+void teBeginSwapchainRendering()
 {
     VkRenderingAttachmentInfo colorAtt{};
     colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
