@@ -156,6 +156,17 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     }
 }
 
+struct InputState
+{
+    int x = 0;
+    int y = 0;
+    float deltaX = 0;
+    float deltaY = 0;
+    int lastMouseX = 0;
+    int lastMouseY = 0;
+    Vec3 moveDir;
+};
+
 int main()
 {
 #ifdef _WIN32
@@ -305,13 +316,7 @@ int main()
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;
-    int x = 0;
-    int y = 0;
-    float deltaX = 0;
-    float deltaY = 0;
-    int lastMouseX = 0;
-    int lastMouseY = 0;
-    Vec3 moveDir;
+    InputState inputParams;
 
     double theTime = GetMilliseconds();
 
@@ -347,121 +352,121 @@ int main()
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
             {
-                moveDir.z = -0.5f;
+                inputParams.moveDir.z = -0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
             {
-                moveDir.z = 0;
+                inputParams.moveDir.z = 0;
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
             {
-                moveDir.z = 0.5f;
+                inputParams.moveDir.z = 0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
             {
-                moveDir.z = 0;
+                inputParams.moveDir.z = 0;
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
             {
-                moveDir.x = 0.5f;
+                inputParams.moveDir.x = 0.5f;
                 //io.AddKeyEvent( ImGuiKey_A, true );
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
             {
-                moveDir.x = 0;
+                inputParams.moveDir.x = 0;
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
             {
-                moveDir.x = -0.5f;
+                inputParams.moveDir.x = -0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
             {
-                moveDir.x = 0;
+                inputParams.moveDir.x = 0;
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
             {
-                moveDir.y = 0.5f;
+                inputParams.moveDir.y = 0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
             {
-                moveDir.y = 0;
+                inputParams.moveDir.y = 0;
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
             {
-                moveDir.y = -0.5f;
+                inputParams.moveDir.y = -0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
             {
-                moveDir.y = 0;
+                inputParams.moveDir.y = 0;
             }
             else if (event.type == teWindowEvent::Type::Mouse1Down)
             {
-                x = event.x;
-                y = height - event.y;
+                inputParams.x = event.x;
+                inputParams.y = height - event.y;
                 //isRightMouseDown = true;
-                lastMouseX = x;
-                lastMouseY = y;
-                deltaX = 0;
-                deltaY = 0;
+                inputParams.lastMouseX = inputParams.x;
+                inputParams.lastMouseY = inputParams.y;
+                inputParams.deltaX = 0;
+                inputParams.deltaY = 0;
 
                 io.AddMouseButtonEvent( 0, true );
             }
             else if (event.type == teWindowEvent::Type::Mouse1Up)
             {
-                x = event.x;
-                y = height - event.y;
+                inputParams.x = event.x;
+                inputParams.y = height - event.y;
                 //isRightMouseDown = false;
-                deltaX = 0;
-                deltaY = 0;
-                lastMouseX = x;
-                lastMouseY = y;
+                inputParams.deltaX = 0;
+                inputParams.deltaY = 0;
+                inputParams.lastMouseX = inputParams.x;
+                inputParams.lastMouseY = inputParams.y;
 
                 io.AddMouseButtonEvent( 0, false );
             }
             else if (event.type == teWindowEvent::Type::Mouse2Down)
             {
-                x = event.x;
-                y = height - event.y;
+                inputParams.x = event.x;
+                inputParams.y = height - event.y;
                 isRightMouseDown = true;
-                lastMouseX = x;
-                lastMouseY = y;
-                deltaX = 0;
-                deltaY = 0;
+                inputParams.lastMouseX = inputParams.x;
+                inputParams.lastMouseY = inputParams.y;
+                inputParams.deltaX = 0;
+                inputParams.deltaY = 0;
             }
             else if (event.type == teWindowEvent::Type::Mouse2Up)
             {
-                x = event.x;
-                y = height - event.y;
+                inputParams.x = event.x;
+                inputParams.y = height - event.y;
                 isRightMouseDown = false;
-                deltaX = 0;
-                deltaY = 0;
-                lastMouseX = x;
-                lastMouseY = y;
+                inputParams.deltaX = 0;
+                inputParams.deltaY = 0;
+                inputParams.lastMouseX = inputParams.x;
+                inputParams.lastMouseY = inputParams.y;
             }
             else if (event.type == teWindowEvent::Type::MouseMove)
             {
-                x = event.x;
-                y = height - event.y;
-                deltaX = float( x - lastMouseX );
-                deltaY = float( y - lastMouseY );
-                lastMouseX = x;
-                lastMouseY = y;
+                inputParams.x = event.x;
+                inputParams.y = height - event.y;
+                inputParams.deltaX = float( inputParams.x - inputParams.lastMouseX );
+                inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
+                inputParams.lastMouseX = inputParams.x;
+                inputParams.lastMouseY = inputParams.y;
 
                 if (isRightMouseDown)
                 {
-                    teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -deltaX / 100.0f * (float)dt );
-                    teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -deltaY / 100.0f * (float)dt );
+                    teTransformOffsetRotate( camera3d.index, Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
+                    teTransformOffsetRotate( camera3d.index, Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
                 }
 
-                io.AddMousePosEvent( (float)x, (float)y );
+                io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
             }
         }
 
         Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
 
-        teTransformMoveForward( camera3d.index, moveDir.z * (float)dt * 0.5f );
-        teTransformMoveRight( camera3d.index, moveDir.x * (float)dt * 0.5f );
-        teTransformMoveUp( camera3d.index, moveDir.y * (float)dt * 0.5f );
+        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f );
+        teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * 0.5f );
+        teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * 0.5f );
 
         cameraPos = -teTransformGetLocalPosition( camera3d.index );
 
@@ -479,7 +484,6 @@ int main()
         //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering();
-        ShaderParams shaderParams;
         shaderParams.tilesXY[ 0 ] = 1;
         shaderParams.tilesXY[ 1 ] = 1;
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
@@ -503,6 +507,7 @@ int main()
     free( fullscreenPsFile.data );
     free( skyboxVsFile.data );
     free( skyboxPsFile.data );
+    free( bloomThresholdFile.data );
     free( gliderFile.data );
     free( backFile.data );
     free( frontFile.data );

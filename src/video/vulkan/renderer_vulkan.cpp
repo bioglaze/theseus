@@ -15,7 +15,7 @@
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
-VkPipeline shaderGetComputePSO( const teShader& shader );
+VkPipeline ShaderGetComputePSO( const teShader& shader );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
 teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName );
@@ -1780,22 +1780,28 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 
-    if (params.writeTexture != -1 && params.writeTexture != 0)
+    if (params.writeTexture != 0)
     {
         teTexture2D tex;
         tex.index = params.writeTexture;
-        //SetTextureLayout( tex, VK_IMAGE_LAYOUT_GENERAL, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
+        
+        SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
+            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
+        
+        renderer.samplerInfos[ params.writeTexture ].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         renderer.samplerInfos[ tex.index ].imageView = TextureGetView( tex );
     }
 
     int textureIndex = 0;
 
-    if (params.readTexture != -1 && params.readTexture != 0)
+    if (params.readTexture != 0)
     {
         teTexture2D tex;
         tex.index = params.readTexture;
         textureIndex = (int)params.readTexture;
-        //SetTextureLayout( tex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        
+        //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
+        //    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
         renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
     }
@@ -1810,7 +1816,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     int pushConstants[ 5 ] = { textureIndex, textureIndex, textureIndex, 0, 0 };
     vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
-    vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shaderGetComputePSO( shader ) );
+    vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ShaderGetComputePSO( shader ) );
     vkCmdDispatch( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, groupsX, groupsY, groupsZ );
 
     EndRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
