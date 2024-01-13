@@ -28,6 +28,8 @@ struct PerObjectUboStruct
     Vec4 tilesXY;
 };
 
+constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
+
 struct FrameResource
 {
     id<MTLCommandBuffer> commandBuffer;
@@ -240,8 +242,6 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     for (unsigned i = 0; i < 2; ++i)
     {
-        constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
-
 #if !TARGET_OS_IPHONE
         renderer.frameResources[ i ].uniformBuffer = [renderer.device newBufferWithLength:UniformBufferSize options:MTLResourceStorageModeManaged];
 #else
@@ -514,6 +514,7 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
 void MoveToNextUboOffset()
 {
     renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    teAssert( renderer.frameResources[ 0 ].uboOffset < UniformBufferSize );
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex,
@@ -559,7 +560,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
                              indexBuffer:BufferGetBuffer( renderer.staticMeshIndexBuffer )
                        indexBufferOffset:indexOffset];
 
-    renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    MoveToNextUboOffset();
     ++renderer.statDrawCalls;
 }
 
@@ -640,6 +641,6 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
                              indexBuffer:BufferGetBuffer( renderer.uiIndexBuffer )
                        indexBufferOffset:indexOffset];
     
-    renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    MoveToNextUboOffset();
     ++renderer.statDrawCalls;
 }
