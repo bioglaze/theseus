@@ -17,5 +17,10 @@ VSOutput fullscreenVS( uint vertexId : SV_VertexID )
 
 float4 fullscreenPS( VSOutput vsOut ) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv * uniforms.tilesXY.xy );
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv );
+}
+
+float4 fullscreenAdditivePS(VSOutput vsOut) : SV_Target
+{
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv * uniforms.tilesXY.xy ).rrrr;
 }

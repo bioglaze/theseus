@@ -190,7 +190,9 @@ int main()
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
+    teFile fullscreenAdditivePsFile = teLoadFile( "shaders/fullscreen_additive_ps.spv" );
     teShader fullscreenShader = teCreateShader( fullscreenVsFile, fullscreenPsFile, "fullscreenVS", "fullscreenPS" );
+    teShader fullscreenAdditiveShader = teCreateShader( fullscreenVsFile, fullscreenAdditivePsFile, "fullscreenVS", "fullscreenAdditivePS" );
 
     teFile skyboxVsFile = teLoadFile( "shaders/skybox_vs.spv" );
     teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
@@ -481,12 +483,13 @@ int main()
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
-        //teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
+        teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering();
-        shaderParams.tilesXY[ 0 ] = 1;
-        shaderParams.tilesXY[ 1 ] = 1;
+        shaderParams.tilesXY[ 0 ] = 0.5f;
+        shaderParams.tilesXY[ 1 ] = 0.5f;
         teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
+        //teDrawFullscreenTriangle( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
