@@ -1,5 +1,3 @@
-#include <wayland-client.h>
-#include <linux/input.h>
 #include "window.h"
 #include "te_stdlib.h"
 #include <stdio.h>
@@ -9,6 +7,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <libdecor.h>
+#include <wayland-client.h>
+#include <linux/input.h>
 
 #define XDG_SURFACE_ACK_CONFIGURE 4
 #define XDG_SURFACE_GET_TOPLEVEL 1
@@ -536,7 +536,13 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wlBufferListener.release = wl_buffer_release;
 
     wlDisplay = wl_display_connect( nullptr );
-    teAssert( wlDisplay );
+    
+    if (!wlDisplay)
+    {
+        printf( "Could not open Wayland display!\n" );
+        exit( 1 );
+    }
+
     state.wl_registry = wl_display_get_registry( wlDisplay );
     wl_registry_add_listener( state.wl_registry, &wl_registry_listener, &state );
     wl_display_roundtrip( wlDisplay );
