@@ -367,6 +367,11 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
     }
 
+    if (newImageLayout == VK_IMAGE_LAYOUT_GENERAL)
+    {
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    }
+
     VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
     if (imageMemoryBarrier.dstAccessMask == VK_ACCESS_TRANSFER_WRITE_BIT)
@@ -392,6 +397,11 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
     if (imageMemoryBarrier.dstAccessMask == VK_ACCESS_TRANSFER_READ_BIT)
     {
         destStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+
+    if (imageMemoryBarrier.dstAccessMask == VK_ACCESS_SHADER_WRITE_BIT)
+    {
+        destStageFlags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
     }
 
     vkCmdPipelineBarrier( cmdbuffer, srcStageFlags, destStageFlags, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
@@ -1787,9 +1797,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         
         SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
-        
-        renderer.samplerInfos[ params.writeTexture ].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        renderer.samplerInfos[ params.writeTexture ].imageView = TextureGetView( tex );
     }
 
     int textureIndex = 0;
@@ -1832,8 +1839,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         teTexture2D tex;
         tex.index = params.writeTexture;
 
-        SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
-                        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
+        //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
+        //                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
     }
 
     if (params.readTexture != 0)
