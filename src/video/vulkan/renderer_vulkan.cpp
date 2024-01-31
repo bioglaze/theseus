@@ -659,6 +659,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
             if (renderer.psos[ i ].pso == VK_NULL_HANDLE)
             {
                 nextFreePsoIndex = i;
+                break;
             }
         }
 
