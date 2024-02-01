@@ -9,5 +9,6 @@ dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E uiPS -all-resources-bound -T ps_6_
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E skyboxVS -all-resources-bound -T vs_6_5 shaders/hlsl/skybox.hlsl -Fo ../build/shaders/skybox_vs.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E skyboxPS -all-resources-bound -T ps_6_5 shaders/hlsl/skybox.hlsl -Fo ../build/shaders/skybox_ps.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E standardVS -all-resources-bound -T vs_6_5 shaders/hlsl/standard.hlsl -Fo ../build/shaders/standard_vs.spv
+dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E standardPS -all-resources-bound -T ps_6_5 shaders/hlsl/standard.hlsl -Fo ../build/shaders/standard_ps.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E bloomThreshold -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/bloom_threshold.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E bloomBlur -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/bloom_blur.spv
