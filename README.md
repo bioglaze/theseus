@@ -13,7 +13,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Fast compile times
   - Loads .tga and .dds textures
   - OBJ mesh converter
-  - Shader hot-reloading
+  - Shader hot-reloadingg
   
 # Platforms
 
