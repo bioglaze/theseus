@@ -520,6 +520,7 @@ int main()
     free( bottomFile.data );
     free( bc1File.data );
 
+    io.BackendRendererUserData = nullptr;
     ImGui::DestroyContext( imContext );
 
     return 0;
