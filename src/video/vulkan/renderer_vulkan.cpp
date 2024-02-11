@@ -242,7 +242,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
     if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
         printf( "ERROR: %s\n", callbackData->pMessage );
-        teAssert( !"Vulkan debug message" );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
@@ -268,14 +267,21 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
 
     if (callbackData->objectCount > 0)
     {
-        //printf( "Objects: %u\n", callbackData->objectCount );
+        for (uint32_t l = 0; l < callbackData->cmdBufLabelCount; ++l)
+        {
+            printf( "Command Buffer label: %s\n", callbackData->pCmdBufLabels[ l ].pLabelName );
+        }
 
-        // TODO: callbackData has more information, like context marker name.
         for (uint32_t i = 0; i < callbackData->objectCount; ++i)
         {
-            //const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
-            //printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
+            const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
+            printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
         }
+    }
+    
+    if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+    {
+        teAssert( !"Vulkan debug message" );
     }
 
     return VK_FALSE;
