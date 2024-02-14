@@ -1834,8 +1834,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         tex.index = params.writeTexture;
         
         SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
-            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
-        //DebugBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL );
+            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
     }
 
     int textureIndex = 0;
@@ -1880,7 +1879,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
         SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
                         VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
-        //DebugBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
     }
 
     if (params.readTexture != 0)
