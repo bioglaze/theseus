@@ -1826,6 +1826,9 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 {
     renderer.shaderParams = params;
 
+    Matrix identity;
+    UpdateUBO( identity.m, identity.m, identity.m, params );
+
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 
     if (params.writeTexture != 0)

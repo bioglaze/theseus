@@ -6,6 +6,7 @@ struct teMesh
 };
 
 teMesh teCreateCubeMesh();
+teMesh teCreateQuadMesh();
 teMesh teLoadMesh( const struct teFile& file );
 unsigned teMeshGetSubMeshCount( const teMesh& mesh );
 teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex );

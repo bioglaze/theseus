@@ -84,6 +84,49 @@ teMesh teCreateCubeMesh()
     return outMesh;
 }
 
+teMesh teCreateQuadMesh()
+{
+    teAssert( meshIndex < MaxMeshes );
+
+    teMesh outMesh;
+    outMesh.index = ++meshIndex;
+
+    const float positions[] =
+    {
+        0, 0, 0,
+        1, 0, 0,
+        1, 1, 0,
+        0, 1, 0
+    };
+
+    const float uvs[] =
+    {
+        0, 0,
+        1, 0,
+        1, 1,
+        0, 1
+    };
+
+    const unsigned short indices[] =
+    {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    meshes[ outMesh.index ].subMeshCount = 1;
+    meshes[ outMesh.index ].subMeshes = new SubMesh[ 1 ]();
+    meshes[ outMesh.index ].subMeshes[ 0 ].positionOffset = AddPositions( positions, sizeof( positions ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].positionCount = 4;
+    meshes[ outMesh.index ].subMeshes[ 0 ].uvOffset = AddUVs( uvs, sizeof( uvs ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].uvCount = 4;
+    meshes[ outMesh.index ].subMeshes[ 0 ].indicesOffset = AddIndices( indices, sizeof( indices ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 2;
+    meshes[ outMesh.index ].subMeshes[ 0 ].aabbMin = Vec3( -1, -1, -1 );
+    meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
+
+    return outMesh;
+}
+
 teMesh teLoadMesh( const teFile& file )
 {
     teAssert( meshIndex < MaxMeshes );

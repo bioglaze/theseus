@@ -49,6 +49,7 @@ struct SceneImpl
 
 SceneImpl scenes[ 2 ];
 unsigned sceneIndex = 0;
+teMesh quadMesh;
 
 teScene teCreateScene( unsigned directonalShadowMapDimension )
 {
@@ -72,6 +73,8 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
         teCameraGetColorTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.color;
         teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;
     }
+
+    quadMesh = teCreateQuadMesh();
 
     return outScene;
 }
@@ -181,6 +184,25 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     unsigned uvOffset = teMeshGetUVOffset( *skyboxMesh, 0 );
     
     Draw( *skyboxShader, positionOffset, uvOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, skyboxTexture->index, teTextureSampler::LinearRepeat, 0 );
+
+    PopGroupMarker();
+}
+
+void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode, unsigned cameraGOIndex )
+{
+    const teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
+
+    Matrix identity;
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams );
+
+    PushGroupMarker( "Fullscreen Quad" );
+    unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
+    unsigned indexCount = teMeshGetIndexCount( quadMesh, 0 );
+    unsigned positionOffset = teMeshGetPositionOffset( quadMesh, 0 );
+    unsigned uvOffset = teMeshGetUVOffset( quadMesh, 0 );
+
+    Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, texture.index, teTextureSampler::LinearRepeat, 0 );
 
     PopGroupMarker();
 }

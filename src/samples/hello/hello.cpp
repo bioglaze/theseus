@@ -254,16 +254,16 @@ int main()
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, standardMaterial, 0 );
 
-    teMesh cubeMesh2 = teCreateCubeMesh();
+    //teMesh cubeMesh2 = teCreateCubeMesh();
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( cubeGo2.index, Vec3( 0, 20, 0 ) );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
-    teMeshRendererSetMesh( cubeGo2.index, &cubeMesh2 );
+    teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
+    teScene scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
 
-    teScene scene = teCreateScene( 2048 );
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
@@ -483,13 +483,18 @@ int main()
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
+        shaderParams.bloomThreshold = 0.9f;// 0.9f;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         teBeginSwapchainRendering();
-        shaderParams.tilesXY[ 0 ] = 0.5f;
-        shaderParams.tilesXY[ 1 ] = 0.5f;
-        teDrawFullscreenTriangle( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
-        //teDrawFullscreenTriangle( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
+        shaderParams.tilesXY[ 0 ] = 2.0f;
+        shaderParams.tilesXY[ 1 ] = 2.0f;
+        shaderParams.tilesXY[ 2 ] = -1.0f;
+        shaderParams.tilesXY[ 3 ] = -1.0f;
+        teDrawQuad( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off, camera3d.index );
+        shaderParams.tilesXY[ 0 ] = 4.0f;
+        shaderParams.tilesXY[ 1 ] = 4.0f;
+        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive, camera3d.index );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

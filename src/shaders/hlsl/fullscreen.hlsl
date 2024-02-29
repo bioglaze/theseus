@@ -9,8 +9,10 @@ struct VSOutput
 VSOutput fullscreenVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
-    vsOut.uv = float2( (vertexId << 1) & 2, vertexId & 2 );
-    vsOut.pos = float4( vsOut.uv * 2.0f + -1.0f, 0.0f, 1.0f );
+    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
+    vsOut.pos.xy *= uniforms.tilesXY.xy;
+    vsOut.pos.xy += uniforms.tilesXY.wz;
+    vsOut.uv = uvs[ vertexId ];
     
     return vsOut;
 }
@@ -22,5 +24,5 @@ float4 fullscreenPS( VSOutput vsOut ) : SV_Target
 
 float4 fullscreenAdditivePS(VSOutput vsOut) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv * uniforms.tilesXY.xy ).rrrr;
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ).rrrr;
 }
