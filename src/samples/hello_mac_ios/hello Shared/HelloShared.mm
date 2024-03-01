@@ -319,7 +319,7 @@ void DrawApp()
     teTextureGetDimension( app.bloomTarget, width, height );
     shaderParams.readTexture = teCameraGetColorTexture( app.camera3d.index ).index;
     shaderParams.writeTexture = app.bloomTarget.index;
-    shaderParams.bloomThreshold = 0.9f;
+    shaderParams.bloomThreshold = 0.8f;
     teShaderDispatch( app.bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
     
     ImGui::Begin( "ImGUI" );
@@ -329,12 +329,20 @@ void DrawApp()
 
     teBeginSwapchainRendering();
     
-    teDrawFullscreenTriangle( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off );
-
-    shaderParams.tilesXY[ 0 ] = 0.5f;
-    shaderParams.tilesXY[ 1 ] = 0.5f;
-    teDrawFullscreenTriangle( app.fullscreenAdditiveShader, app.bloomTarget, shaderParams, teBlendMode::Additive );
+    shaderParams.tilesXY[ 0 ] = 2.0f;
+    shaderParams.tilesXY[ 1 ] = 2.0f;
+    shaderParams.tilesXY[ 2 ] = -1.0f;
+    shaderParams.tilesXY[ 3 ] = -1.0f;
+    teDrawQuad( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off, app.camera3d.index );
+    
+    shaderParams.tilesXY[ 0 ] = 4.0f;
+    shaderParams.tilesXY[ 1 ] = 4.0f;
+    shaderParams.tilesXY[ 2 ] = -1.0f;
+    shaderParams.tilesXY[ 3 ] = -1.0f;
+    teDrawQuad( app.fullscreenAdditiveShader, app.bloomTarget, shaderParams, teBlendMode::Additive, app.camera3d.index );
 
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();
+    
+    RotateCamera( -2, -2 );
 }
