@@ -205,6 +205,9 @@ int main()
     teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
     teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 16, 16 );
 
+    teFile bloomBlurFile = teLoadFile( "shaders/bloom_blur.spv" );
+    teShader bloomBlurShader = teCreateComputeShader( bloomBlurFile, "bloomBlur", 16, 16 );
+
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
@@ -240,6 +243,7 @@ int main()
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
+    teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -485,6 +489,21 @@ int main()
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.bloomThreshold = 0.9f;// 0.9f;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
+
+        // TODO UAV barrier here
+        shaderParams.readTexture = bloomTarget.index;
+        shaderParams.writeTexture = blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur h" );
+
+        // TODO UAV barrier here
+        shaderParams.readTexture = blurTarget.index;
+        shaderParams.writeTexture = bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur v" );
+        // TODO UAV barrier here
 
         teBeginSwapchainRendering();
         shaderParams.tilesXY[ 0 ] = 2.0f;
