@@ -998,7 +998,8 @@ void CreateDevice()
 
     const char* enabledExtensions[] =
     {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_EXT_MESH_SHADER_EXTENSION_NAME
     };
     
     vkGetPhysicalDeviceFeatures( renderer.physicalDevice, &renderer.features );
@@ -1013,7 +1014,7 @@ void CreateDevice()
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.pEnabledFeatures = &renderer.features;
-    deviceCreateInfo.enabledExtensionCount = 1;
+    deviceCreateInfo.enabledExtensionCount = 2;
     deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions;
     VK_CHECK( vkCreateDevice( renderer.physicalDevice, &deviceCreateInfo, nullptr, &renderer.device ) );
 
