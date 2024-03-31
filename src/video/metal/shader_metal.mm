@@ -1,9 +1,11 @@
 #import <Metal/Metal.h>
 #include "shader.h"
+#include "texture.h"
 #include "te_stdlib.h"
 
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams );
 void MoveToNextUboOffset();
+unsigned TextureGetFlags( unsigned index );
 
 extern id <MTLLibrary> defaultLibrary;
 extern id <MTLCommandQueue> gCommandQueue;
@@ -100,7 +102,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 {
     teAssert( shader.index != 0 );
     teAssert( shaders[ shader.index ].computeProgram != nil );
-
+    teAssert( !params.writeTexture || (TextureGetFlags( params.writeTexture ) & teTextureFlags::UAV ) );
+    
     float m[ 16 ];
     UpdateUBO( m, m, m, params );
     

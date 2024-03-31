@@ -103,6 +103,11 @@ id<MTLTexture> TextureGetMetalTexture( unsigned index )
     return textures[ index ].metalTexture;
 }
 
+unsigned TextureGetFlags( unsigned index )
+{
+    return textures[ index ].flags;
+}
+
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     teAssert( textureCount < 100 );
