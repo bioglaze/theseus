@@ -29,6 +29,7 @@ void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip 
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
+teTextureFormat GetSwapchainColorFormat();
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -190,7 +191,6 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode, unsigned cameraGOIndex )
 {
-    const teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
     Matrix identity;
@@ -202,7 +202,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     unsigned positionOffset = teMeshGetPositionOffset( quadMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( quadMesh, 0 );
 
-    Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, color.format, depth.format, texture.index, teTextureSampler::LinearRepeat, 0 );
+    Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, GetSwapchainColorFormat(), depth.format, texture.index, teTextureSampler::LinearRepeat, 0);
 
     PopGroupMarker();
 }

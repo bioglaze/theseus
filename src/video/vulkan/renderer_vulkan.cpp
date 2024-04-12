@@ -193,6 +193,11 @@ struct Renderer
 
 Renderer renderer;
 
+teTextureFormat GetSwapchainColorFormat()
+{
+    return renderer.swapchainResources[ 0 ].colorFormat;
+}
+
 const char* getObjectType( VkObjectType type )
 {
     switch (type)
