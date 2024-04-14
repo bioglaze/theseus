@@ -337,6 +337,11 @@ void teBeginFrame()
     renderer.statPSOBinds = 0;
 }
 
+teTextureFormat GetSwapchainColorFormat()
+{
+    return renderer.colorFormat;
+}
+
 void SetDrawable( id< CAMetalDrawable > drawable )
 {
     gDrawable = drawable;
