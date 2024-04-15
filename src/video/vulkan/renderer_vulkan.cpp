@@ -142,6 +142,7 @@ struct Renderer
     unsigned indexCounter = 0;
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
+    teTextureFormat currentColorFormat = teTextureFormat::Invalid;
 
     teTexture2D defaultTexture2D;
     teTextureCube defaultTextureCube;
@@ -171,17 +172,17 @@ struct Renderer
     VkPipeline boundPSO = VK_NULL_HANDLE;
 
     VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
-    PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
-    PFN_vkCmdBeginDebugUtilsLabelEXT CmdBeginDebugUtilsLabelEXT;
-    PFN_vkCmdEndDebugUtilsLabelEXT CmdEndDebugUtilsLabelEXT;
-    PFN_vkCreateSwapchainKHR createSwapchainKHR;
-    PFN_vkGetSwapchainImagesKHR getSwapchainImagesKHR;
-    PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilitiesKHR;
-    PFN_vkGetPhysicalDeviceSurfacePresentModesKHR getPhysicalDeviceSurfacePresentModesKHR;
-    PFN_vkGetPhysicalDeviceSurfaceSupportKHR getPhysicalDeviceSurfaceSupportKHR;
-    PFN_vkGetPhysicalDeviceSurfaceFormatsKHR getPhysicalDeviceSurfaceFormatsKHR;
-    PFN_vkAcquireNextImageKHR acquireNextImageKHR;
-    PFN_vkQueuePresentKHR queuePresentKHR;
+    PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT = VK_NULL_HANDLE;
+    PFN_vkCmdBeginDebugUtilsLabelEXT CmdBeginDebugUtilsLabelEXT = VK_NULL_HANDLE;
+    PFN_vkCmdEndDebugUtilsLabelEXT CmdEndDebugUtilsLabelEXT = VK_NULL_HANDLE;
+    PFN_vkCreateSwapchainKHR createSwapchainKHR = VK_NULL_HANDLE;
+    PFN_vkGetSwapchainImagesKHR getSwapchainImagesKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilitiesKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfacePresentModesKHR getPhysicalDeviceSurfacePresentModesKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfaceSupportKHR getPhysicalDeviceSurfaceSupportKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfaceFormatsKHR getPhysicalDeviceSurfaceFormatsKHR = VK_NULL_HANDLE;
+    PFN_vkAcquireNextImageKHR acquireNextImageKHR = VK_NULL_HANDLE;
+    PFN_vkQueuePresentKHR queuePresentKHR = VK_NULL_HANDLE;
 
     ShaderParams shaderParams;
 
@@ -192,11 +193,6 @@ struct Renderer
 };
 
 Renderer renderer;
-
-teTextureFormat GetSwapchainColorFormat()
-{
-    return renderer.swapchainResources[ 0 ].colorFormat;
-}
 
 const char* getObjectType( VkObjectType type )
 {
@@ -1666,6 +1662,8 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     vkCmdSetScissor( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &scissor );
 
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
+
+    renderer.currentColorFormat = color.format;
 }
 
 void EndRendering( teTexture2D& color )
@@ -1726,6 +1724,8 @@ void teBeginSwapchainRendering()
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 
     PushGroupMarker( "Swap chain" );
+
+    renderer.currentColorFormat = renderer.swapchainResources[ 0 ].colorFormat;
 }
 
 void teEndSwapchainRendering()
@@ -1914,7 +1914,7 @@ static VkSampler GetSampler( teTextureSampler sampler )
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           teTextureFormat colorFormat, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
+           teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
 {
     if (textureIndex != 0)
     {
@@ -1944,7 +1944,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat, false ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, depthFormat, false ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
@@ -1969,7 +1969,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams );
-    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
+    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
@@ -2012,7 +2012,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
     vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.swapchainResources[ 0 ].colorFormat, teTextureFormat::Depth32F, true ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, teTextureFormat::Depth32F, true ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
