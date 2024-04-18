@@ -107,6 +107,7 @@ struct SwapchainResource
     VkImageView depthStencilView = VK_NULL_HANDLE;
     Ubo ubo;
     teTextureFormat colorFormat = teTextureFormat::Invalid;
+    teTextureFormat depthFormat = teTextureFormat::Depth32F;
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
@@ -143,6 +144,7 @@ struct Renderer
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
     teTextureFormat currentColorFormat = teTextureFormat::Invalid;
+    teTextureFormat currentDepthFormat = teTextureFormat::Depth32F;
 
     teTexture2D defaultTexture2D;
     teTextureCube defaultTextureCube;
@@ -809,6 +811,10 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
 
     for (unsigned i = 0; i < renderer.swapchainImageCount; ++i)
     {
+        // FIXME: If we care about stencil in the future, Depth32F should be renamed. On Metal Depth32F is really Depth32F but here on Vulkan it can vary which could lead to bugs.
+        // Also the depthFormat here could be 24-bit which would make the following line wrong.
+        renderer.swapchainResources[ i ].depthFormat = teTextureFormat::Depth32F;
+
         VK_CHECK( vkCreateImage( renderer.device, &image, nullptr, &renderer.swapchainResources[ i ].depthStencilImage ) );
         SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ i ].depthStencilImage, VK_OBJECT_TYPE_IMAGE, "depthstencil" );
 
@@ -1664,6 +1670,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     vkCmdBindIndexBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, BufferGetBuffer( renderer.staticMeshIndexBuffer ), 0, VK_INDEX_TYPE_UINT16 );
 
     renderer.currentColorFormat = color.format;
+    renderer.currentDepthFormat = depth.format;
 }
 
 void EndRendering( teTexture2D& color )
@@ -1726,6 +1733,7 @@ void teBeginSwapchainRendering()
     PushGroupMarker( "Swap chain" );
 
     renderer.currentColorFormat = renderer.swapchainResources[ 0 ].colorFormat;
+    renderer.currentDepthFormat = renderer.swapchainResources[ 0 ].depthFormat;
 }
 
 void teEndSwapchainRendering()
@@ -1914,7 +1922,7 @@ static VkSampler GetSampler( teTextureSampler sampler )
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
+           unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
 {
     if (textureIndex != 0)
     {
@@ -1944,7 +1952,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, depthFormat, false ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, renderer.currentDepthFormat, false ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
@@ -1969,7 +1977,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams );
-    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, teTextureFormat::Depth32F, texture.index, teTextureSampler::NearestRepeat, 0 );
+    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )

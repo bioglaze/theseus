@@ -510,10 +510,10 @@ int main()
         shaderParams.tilesXY[ 1 ] = 2.0f;
         shaderParams.tilesXY[ 2 ] = -1.0f;
         shaderParams.tilesXY[ 3 ] = -1.0f;
-        teDrawQuad( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off, camera3d.index );
+        teDrawQuad( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive, camera3d.index );
+        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
