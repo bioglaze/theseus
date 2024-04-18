@@ -107,7 +107,7 @@ struct SwapchainResource
     VkImageView depthStencilView = VK_NULL_HANDLE;
     Ubo ubo;
     teTextureFormat colorFormat = teTextureFormat::Invalid;
-    teTextureFormat depthFormat = teTextureFormat::Depth32F;
+    teTextureFormat depthFormat = teTextureFormat::Invalid;
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
@@ -144,7 +144,7 @@ struct Renderer
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
     teTextureFormat currentColorFormat = teTextureFormat::Invalid;
-    teTextureFormat currentDepthFormat = teTextureFormat::Depth32F;
+    teTextureFormat currentDepthFormat = teTextureFormat::Invalid;
 
     teTexture2D defaultTexture2D;
     teTextureCube defaultTextureCube;
@@ -778,7 +778,10 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
 void CreateDepthStencil( uint32_t width, uint32_t height )
 {
     const VkFormat depthFormats[ 4 ] = { VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM };
+    const teTextureFormat depthTexFormats[ 4 ] = { teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8 }; // FIXME: Implement missing formats.
     VkFormat depthFormat = VK_FORMAT_UNDEFINED;
+
+    int depthIndex = 0;
 
     for (int i = 0; i < 4; ++i)
     {
@@ -788,6 +791,7 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
         if ((formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) && depthFormat == VK_FORMAT_UNDEFINED)
         {
             depthFormat = depthFormats[ i ];
+            depthIndex = i;
         }
     }
 
@@ -811,9 +815,7 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
 
     for (unsigned i = 0; i < renderer.swapchainImageCount; ++i)
     {
-        // FIXME: If we care about stencil in the future, Depth32F should be renamed. On Metal Depth32F is really Depth32F but here on Vulkan it can vary which could lead to bugs.
-        // Also the depthFormat here could be 24-bit which would make the following line wrong.
-        renderer.swapchainResources[ i ].depthFormat = teTextureFormat::Depth32F;
+        renderer.swapchainResources[ i ].depthFormat = depthTexFormats[ depthIndex ];
 
         VK_CHECK( vkCreateImage( renderer.device, &image, nullptr, &renderer.swapchainResources[ i ].depthStencilImage ) );
         SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ i ].depthStencilImage, VK_OBJECT_TYPE_IMAGE, "depthstencil" );
@@ -1624,7 +1626,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     depthAtt.imageView = TextureGetView( depth );
     depthAtt.loadOp = clearFlag == teClearFlag::DontClear ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depthAtt.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAtt.imageLayout = depth.format == teTextureFormat::Depth32F_S8 ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     depthAtt.clearValue.depthStencil.depth = 0;
 
     unsigned width = 0, height = 0;
@@ -1656,8 +1658,9 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
-    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+    const VkImageAspectFlags depthAspect = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), depthAspect,
+        VK_IMAGE_LAYOUT_UNDEFINED, depthAtt.imageLayout, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );
 
@@ -2020,7 +2023,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
     vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, teTextureFormat::Depth32F, true ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, renderer.currentDepthFormat, true ) ].pso;
 
     if (renderer.boundPSO != pso)
     {

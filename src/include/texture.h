@@ -1,6 +1,6 @@
 #pragma once
 
-enum class teTextureFormat { Invalid, BC1, BC1_SRGB, BC2, BC2_SRGB, BC3, BC3_SRGB, BC4U, BC4S, BC5U, BC5S, R32F, R32G32F, Depth32F, BGRA_sRGB, RGBA_sRGB, BGRA };
+enum class teTextureFormat { Invalid, BC1, BC1_SRGB, BC2, BC2_SRGB, BC3, BC3_SRGB, BC4U, BC4S, BC5U, BC5S, R32F, R32G32F, Depth32F, Depth32F_S8, BGRA_sRGB, RGBA_sRGB, BGRA };
 enum teTextureFlags { Empty = 0, GenerateMips = 1, RenderTexture = 2, UAV = 4 };
 enum teTextureSampler { LinearClamp, LinearRepeat, NearestClamp, NearestRepeat, Anisotropic8Clamp, Anisotropic8Repeat };
 

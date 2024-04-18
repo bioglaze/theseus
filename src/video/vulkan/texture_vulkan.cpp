@@ -136,6 +136,11 @@ void GetFormatAndBPP( teTextureFormat format, VkFormat& outFormat, unsigned& out
     }
     else if (format == teTextureFormat::Depth32F)
     {
+        outFormat = VK_FORMAT_D32_SFLOAT;
+        outBytesPerPixel = 4;
+    }
+    else if (format == teTextureFormat::Depth32F_S8)
+    {
         outFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
         outBytesPerPixel = 4;
     }
@@ -202,7 +207,9 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     imageCreateInfo.extent = { (uint32_t)tex.width, (uint32_t)tex.height, 1 };
     imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 
-    if ((flags & teTextureFlags::RenderTexture) && format == teTextureFormat::Depth32F)
+    const bool isDepthFormat = (format == teTextureFormat::Depth32F_S8 || format == teTextureFormat::Depth32F);
+
+    if ((flags & teTextureFlags::RenderTexture) && isDepthFormat)
     {
         imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     }
@@ -236,7 +243,7 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format = imageCreateInfo.format;
-    viewInfo.subresourceRange.aspectMask = format == teTextureFormat::Depth32F ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.aspectMask = isDepthFormat ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
     viewInfo.subresourceRange.layerCount = 1;
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.image = tex.image;
@@ -277,7 +284,9 @@ teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemory
     imageCreateInfo.extent = { (uint32_t)tex.width, (uint32_t)tex.height, 1 };
     imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 
-    if ((flags & teTextureFlags::RenderTexture) && format == teTextureFormat::Depth32F)
+    const bool isDepthFormat = (format == teTextureFormat::Depth32F_S8 || format == teTextureFormat::Depth32F);
+
+    if ((flags & teTextureFlags::RenderTexture) && isDepthFormat)
     {
         imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     }
@@ -311,7 +320,7 @@ teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemory
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
     viewInfo.format = imageCreateInfo.format;
-    viewInfo.subresourceRange.aspectMask = format == teTextureFormat::Depth32F ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.aspectMask = isDepthFormat ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
     viewInfo.subresourceRange.layerCount = 6;
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.image = tex.image;
