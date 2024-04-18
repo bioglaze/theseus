@@ -68,7 +68,7 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
         const unsigned cameraGOIndex = scenes[ outScene.index ].gameObjects[ scenes[ outScene.index ].shadowCaster.cameraIndex ];
 
         scenes[ outScene.index ].shadowCaster.color = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::R32G32F, "dir shadow color" );
-        scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "dir shadow depth" );
+        scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "dir shadow depth" );
 
         teCameraGetColorTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.color;
         teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;

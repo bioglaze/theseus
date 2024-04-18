@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "light.h"
 #include "material.h"
@@ -216,7 +217,7 @@ int main()
     teCameraSetProjection( camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
     teCameraSetClear( camera3d.index, clearFlag, clearColor );
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
-    teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
+    teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "camera3d depth" );
 
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
