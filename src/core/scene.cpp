@@ -24,7 +24,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams );
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, teTextureFormat depthFormat, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
@@ -162,8 +162,6 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
 
 static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
 {
-    const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
-
     Matrix localToView;
     Matrix localToShadowClip;
 
@@ -182,15 +180,13 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     unsigned positionOffset = teMeshGetPositionOffset( *skyboxMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( *skyboxMesh, 0 );
     
-    Draw( *skyboxShader, positionOffset, uvOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, depth.format, skyboxTexture->index, teTextureSampler::LinearRepeat, 0 );
+    Draw( *skyboxShader, positionOffset, uvOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, skyboxTexture->index, teTextureSampler::LinearRepeat, 0 );
 
     PopGroupMarker();
 }
 
-void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode, unsigned cameraGOIndex )
+void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
-    const teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
-
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams );
 
@@ -200,12 +196,12 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     unsigned positionOffset = teMeshGetPositionOffset( quadMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( quadMesh, 0 );
 
-    Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, depth.format, texture.index, teTextureSampler::LinearRepeat, 0);
+    Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::LinearRepeat, 0);
 
     PopGroupMarker();
 }
 
-static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTextureFormat depthFormat, unsigned shadowMapIndex )
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
     {
@@ -247,7 +243,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, teTexture
 
             teTexture2D texture = teMaterialGetTexture2D( material, 0 );
 
-            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, depthFormat, texture.index, texture.sampler, shadowMapIndex );
+            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, texture.index, texture.sampler, shadowMapIndex );
         }
     }
 }
@@ -277,8 +273,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 
-    RenderMeshes( scene, teBlendMode::Off, depth.format, shadowMapindex );
-    RenderMeshes( scene, teBlendMode::Alpha, depth.format, shadowMapindex );
+    RenderMeshes( scene, teBlendMode::Off, shadowMapindex );
+    RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex );
 
     PopGroupMarker();
 

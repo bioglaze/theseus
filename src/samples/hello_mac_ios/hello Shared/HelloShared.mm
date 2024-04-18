@@ -333,13 +333,13 @@ void DrawApp()
     shaderParams.tilesXY[ 1 ] = 2.0f;
     shaderParams.tilesXY[ 2 ] = -1.0f;
     shaderParams.tilesXY[ 3 ] = -1.0f;
-    teDrawQuad( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off, app.camera3d.index );
+    teDrawQuad( app.fullscreenShader, teCameraGetColorTexture( app.camera3d.index ), shaderParams, teBlendMode::Off );
     
     shaderParams.tilesXY[ 0 ] = 4.0f;
     shaderParams.tilesXY[ 1 ] = 4.0f;
     shaderParams.tilesXY[ 2 ] = -1.0f;
     shaderParams.tilesXY[ 3 ] = -1.0f;
-    teDrawQuad( app.fullscreenAdditiveShader, app.bloomTarget, shaderParams, teBlendMode::Additive, app.camera3d.index );
+    teDrawQuad( app.fullscreenAdditiveShader, app.bloomTarget, shaderParams, teBlendMode::Additive );
 
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();
