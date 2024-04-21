@@ -20,5 +20,5 @@ engine:
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello
 
 toolz:
-	$(CC) $(FLAGS) $(SANITIZERS) tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
+	$(CC) $(FLAGS) $(SANITIZERS) -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
 
