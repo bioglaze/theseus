@@ -1,6 +1,6 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2023-05-06
+// Modified: 2024-04-21
 // Limitations:
 //   - Only triangulated meshes currently work.
 //   - Face indices are 16-bit.
@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "vec3.h"
+#include "meshoptimizer.h"
 
 struct UV
 {
@@ -36,6 +37,8 @@ struct Mesh
     UV* finalUVs = nullptr;
     Vec3* finalNormals = nullptr;
     VertexInd* finalFaces = nullptr;
+    unsigned int* meshletVertices = nullptr;
+    unsigned int* meshletTriangles = nullptr;
     unsigned finalVertexCount = 0;
     unsigned finalFaceCount = 0;
     
@@ -100,6 +103,22 @@ bool AlmostEquals( const Vec3& v1, const Vec3& v2 )
 bool AlmostEquals( const UV& uv1, const UV& uv2 )
 {
     return fabs( uv1.u - uv2.u ) < 0.0001f && fabs( uv1.v - uv2.v ) < 0.0001f;
+}
+
+void BuildMeshlets( Mesh& mesh )
+{
+    const size_t maxVertices = 64;
+    const size_t maxTriangles = 124;
+    const float coneWeight = 0.0f;
+
+    const size_t maxMeshlets = meshopt_buildMeshletsBound( mesh.finalFaceCount * 3, maxVertices, maxTriangles );
+    meshopt_Meshlet* meshlets = new meshopt_Meshlet[ maxMeshlets ];
+    mesh.meshletVertices = new unsigned int[ maxVertices * maxMeshlets ];
+    mesh.meshletTriangles = new unsigned int[ maxTriangles * maxMeshlets * 3 ];
+
+    const size_t meshletCount = meshopt_buildMeshlets( meshlets, mesh.meshletVertices, (unsigned char*)mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
+        mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof(Vec3), maxVertices, maxTriangles, coneWeight );
+
 }
 
 void CreateFinalGeometry( Mesh& mesh )
@@ -445,6 +464,7 @@ int main( int argc, char* argv[] )
     for (unsigned m = 0; m < meshCount; ++m)
     {
         CreateFinalGeometry( meshes[ m ] );
+        BuildMeshlets( meshes[ m ] );
     }
     
     WriteT3d( outPath );
