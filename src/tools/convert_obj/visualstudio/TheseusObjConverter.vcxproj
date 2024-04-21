@@ -94,7 +94,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\allocator.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\clusterizer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexcodec.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexgenerator.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawanalyzer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawoptimizer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\quantization.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\simplifier.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\spatialorder.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\stripifier.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vcacheanalyzer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vcacheoptimizer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vertexcodec.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vertexfilter.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vfetchanalyzer.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vfetchoptimizer.cpp" />
     <ClCompile Include="..\convert_obj.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\thirdparty\meshoptimizer\meshoptimizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
