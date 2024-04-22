@@ -39,6 +39,8 @@ struct Mesh
     VertexInd* finalFaces = nullptr;
     unsigned int* meshletVertices = nullptr;
     unsigned int* meshletTriangles = nullptr;
+    meshopt_Meshlet* meshlets = nullptr;
+    size_t meshletCount = 0;
     unsigned finalVertexCount = 0;
     unsigned finalFaceCount = 0;
     
@@ -112,12 +114,12 @@ void BuildMeshlets( Mesh& mesh )
     const float coneWeight = 0.0f;
 
     const size_t maxMeshlets = meshopt_buildMeshletsBound( mesh.finalFaceCount * 3, maxVertices, maxTriangles );
-    meshopt_Meshlet* meshlets = new meshopt_Meshlet[ maxMeshlets ];
+    mesh.meshlets = new meshopt_Meshlet[ maxMeshlets ];
     mesh.meshletVertices = new unsigned int[ maxVertices * maxMeshlets ];
     mesh.meshletTriangles = new unsigned int[ maxTriangles * maxMeshlets * 3 ];
 
-    const size_t meshletCount = meshopt_buildMeshlets( meshlets, mesh.meshletVertices, (unsigned char*)mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
-        mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof(Vec3), maxVertices, maxTriangles, coneWeight );
+    mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, (unsigned char*)mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
+        mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
 
 }
 
@@ -410,8 +412,6 @@ int main( int argc, char* argv[] )
             
             if (isQuad)
             {
-                printf( "fourth face: %d, %d, %d\n", face2.posInd[ 1 ], face2.uvInd[ 1 ], face2.normInd[ 1 ]);
-                
                 face2.posInd[ 0 ] = face.posInd[ 2 ];
                 face2.uvInd[ 0 ] = face.uvInd[ 2 ];
                 face2.normInd[ 0 ] = face.normInd[ 2 ];

@@ -81,7 +81,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
     for (unsigned i = 0; i < fileEntryCount; ++i)
     {
 #if _MSC_VER
-        tm timeinfo;
+        tm timeinfo = {};
         localtime_s( &timeinfo, &inode.st_mtime );
         const tm* timeinfo2 = &timeinfo;
 #else
@@ -104,7 +104,7 @@ void teHotReload()
         if (stat( fileEntries[ i ].path, &inode ) != -1)
         {
 #if _MSC_VER
-            tm timeinfo;
+            tm timeinfo = {};
             localtime_s( &timeinfo, &inode.st_mtime );
             const tm* timeinfo2 = &timeinfo;
 #else
