@@ -92,7 +92,11 @@ static MTLPixelFormat GetPixelFormat( teTextureFormat aeFormat )
     {
         return MTLPixelFormatRGBA8Unorm_sRGB;
     }
-
+    else if (aeFormat == teTextureFormat::Depth32F_S8)
+    {
+        return MTLPixelFormatDepth32Float_Stencil8;
+    }
+    
     teAssert( !"unhandled pixel format" );
     
     return MTLPixelFormatRGBA8Unorm_sRGB;

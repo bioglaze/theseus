@@ -29,6 +29,9 @@ void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip 
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
+unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -243,7 +246,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
             teTexture2D texture = teMaterialGetTexture2D( material, 0 );
 
-            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, material.topology, material.fillMode, texture.index, texture.sampler, shadowMapIndex );
+            Draw( shader, positionOffset, uvOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh.topology, material.fillMode, texture.index, texture.sampler, shadowMapIndex );
         }
     }
 }

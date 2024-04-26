@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "material.h"
 #include "matrix.h"
+#include "mesh.h"
 #include "renderer.h"
 #include "shader.h"
 #include "texture.h"
@@ -42,7 +43,8 @@ struct PSO
     id<MTLRenderPipelineState> pso;
     id<MTLFunction> vertexFunction;
     id<MTLFunction> pixelFunction;
-    MTLPixelFormat format = MTLPixelFormatBGRA8Unorm_sRGB;
+    MTLPixelFormat colorFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    MTLPixelFormat depthFormat = MTLPixelFormatBGRA8Unorm_sRGB;
     teBlendMode blendMode = teBlendMode::Off;
     teTopology topology = teTopology::Triangles;
 };
@@ -426,7 +428,7 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
 }
 
-static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat format, bool isUI )
+static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat colorFormat, MTLPixelFormat depthFormat, bool isUI )
 {
     int psoIndex = -1;
     
@@ -434,7 +436,8 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[ i ].topology == topology &&
             renderer.psos[ i ].vertexFunction == vertexProgram && renderer.psos[ i ].pixelFunction == pixelProgram &&
-            renderer.psos[ i ].format == format )
+            renderer.psos[ i ].colorFormat == colorFormat &&
+            renderer.psos[ i ].depthFormat == depthFormat)
         {
             return i;
         }
@@ -449,7 +452,7 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
 #if !TARGET_OS_IPHONE
         pipelineStateDescriptor.inputPrimitiveTopology = topology == teTopology::Triangles ? MTLPrimitiveTopologyClassTriangle : MTLPrimitiveTopologyClassLine;
 #endif
-        pipelineStateDescriptor.colorAttachments[ 0 ].pixelFormat = format;
+        pipelineStateDescriptor.colorAttachments[ 0 ].pixelFormat = colorFormat;
         pipelineStateDescriptor.colorAttachments[ 0 ].blendingEnabled = blendMode != teBlendMode::Off;
         pipelineStateDescriptor.colorAttachments[ 0 ].sourceRGBBlendFactor = blendMode == teBlendMode::Alpha ? MTLBlendFactorSourceAlpha : MTLBlendFactorOne;
         pipelineStateDescriptor.colorAttachments[ 0 ].destinationRGBBlendFactor = blendMode == teBlendMode::Alpha ?  MTLBlendFactorOneMinusSourceAlpha : MTLBlendFactorOne;
@@ -457,7 +460,7 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
         pipelineStateDescriptor.colorAttachments[ 0 ].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
         pipelineStateDescriptor.colorAttachments[ 0 ].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
         pipelineStateDescriptor.colorAttachments[ 0 ].alphaBlendOperation = MTLBlendOperationAdd;
-        pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+        pipelineStateDescriptor.depthAttachmentPixelFormat = depthFormat;
         
         if (isUI)
         {
@@ -512,7 +515,8 @@ static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, 
         renderer.psos[ psoIndex ].vertexFunction = vertexProgram;
         renderer.psos[ psoIndex ].pixelFunction = pixelProgram;
         renderer.psos[ psoIndex ].topology = topology;
-        renderer.psos[ psoIndex ].format = format;
+        renderer.psos[ psoIndex ].colorFormat = colorFormat;
+        renderer.psos[ psoIndex ].depthFormat = depthFormat;
     }
 
     return psoIndex;
@@ -533,8 +537,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     
     [renderer.renderEncoder setFragmentSamplerState:GetSampler( sampler ) atIndex:0];
 
-    MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
-    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, format, false );
+    MTLPixelFormat colorFormat = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
+    MTLPixelFormat depthFormat = renderer.renderPassDescriptorFBO.depthAttachment.texture.pixelFormat;
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, colorFormat, depthFormat, false );
 
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     ++renderer.statPSOBinds;
@@ -598,8 +603,9 @@ float teRendererGetStat( teStat stat )
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
-    MTLPixelFormat format = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
-    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), teBlendMode::Alpha, teTopology::Triangles, format, true );
+    MTLPixelFormat colorFormat = renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].texture.pixelFormat;
+    MTLPixelFormat depthFormat = renderer.renderPassDescriptorFBO.depthAttachment.texture.pixelFormat;
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), teBlendMode::Alpha, teTopology::Triangles, colorFormat, depthFormat, true );
     
     MTLScissorRect scissor;
     scissor.x = scissorX;

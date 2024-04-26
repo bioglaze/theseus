@@ -18,7 +18,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 # Platforms
 
   - Windows (VS 2022 project files included)
-  - macOS/iOS
+  - macOS (Apple Silicon)/iOS
   - Linux support (requires Wayland)
 
 # Building
@@ -26,7 +26,8 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - macOS:
     - build theseus.xcodeproj and copy the resulting framework to src/samples/hello_mac_ios
     - build and run hello_mac_ios/hello.xcodeproj
-
+    - OBJ mesh converter can be build by running "make toolz" in src.
+    
   - Linux:
     - src/Makefile can be used to compile the engine. Build results are copied to theseus/build.
-    
+    - OBJ mesh converter can be build by running "make toolz" in src.
