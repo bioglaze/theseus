@@ -47,16 +47,6 @@ struct SceneView
 
 SceneView sceneView;
 
-struct InputState
-{
-    int x = 0;
-    int y = 0;
-    float deltaX = 0;
-    float deltaY = 0;
-    int lastMouseX = 0;
-    int lastMouseY = 0;
-    Vec3 moveDir;
-};
 
 struct ImGUIImplCustom
 {
@@ -149,10 +139,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     }
 }
 
-void InitSceneView( unsigned width, unsigned height )
+void InitSceneView( unsigned width, unsigned height, void* windowHandle )
 {
-    void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
-    teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
 
     sceneView.width = width;
@@ -235,171 +223,36 @@ void InitSceneView( unsigned width, unsigned height )
 
 void RenderSceneView()
 {
-    bool isRightMouseDown = false;
-    InputState inputParams;
-    bool shouldQuit = false;
+    teBeginFrame();
+    ImGui::NewFrame();
+    teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh );
+
+    teBeginSwapchainRendering();
+
     ShaderParams shaderParams{};
-    ImGuiIO& io = ImGui::GetIO();
+    shaderParams.tilesXY[ 0 ] = 2.0f;
+    shaderParams.tilesXY[ 1 ] = 2.0f;
+    shaderParams.tilesXY[ 2 ] = -1.0f;
+    shaderParams.tilesXY[ 3 ] = -1.0f;
+    teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
+    shaderParams.tilesXY[ 0 ] = 4.0f;
+    shaderParams.tilesXY[ 1 ] = 4.0f;
+    //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
-    while (!shouldQuit)
+    if (ImGui::Begin( "Inspector" ))
     {
-        tePushWindowEvents();
-
-        bool eventsHandled = false;
-
-        while (!eventsHandled)
-        {
-            const teWindowEvent& event = tePopWindowEvent();
-
-            if (event.type == teWindowEvent::Type::Empty)
-            {
-                eventsHandled = true;
-            }
-
-            if ((event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Escape) || event.type == teWindowEvent::Type::Close)
-            {
-                shouldQuit = true;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
-            {
-                inputParams.moveDir.z = -0.5f;
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
-            {
-                inputParams.moveDir.z = 0;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
-            {
-                inputParams.moveDir.z = 0.5f;
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
-            {
-                inputParams.moveDir.z = 0;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
-            {
-                inputParams.moveDir.x = 0.5f;
-                //io.AddKeyEvent( ImGuiKey_A, true );
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
-            {
-                inputParams.moveDir.x = 0;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
-            {
-                inputParams.moveDir.x = -0.5f;
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
-            {
-                inputParams.moveDir.x = 0;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
-            {
-                inputParams.moveDir.y = 0.5f;
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
-            {
-                inputParams.moveDir.y = 0;
-            }
-            else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
-            {
-                inputParams.moveDir.y = -0.5f;
-            }
-            else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
-            {
-                inputParams.moveDir.y = 0;
-            }
-            else if (event.type == teWindowEvent::Type::Mouse1Down)
-            {
-                inputParams.x = event.x;
-                inputParams.y = sceneView.height - event.y;
-                //isRightMouseDown = true;
-                inputParams.lastMouseX = inputParams.x;
-                inputParams.lastMouseY = inputParams.y;
-                inputParams.deltaX = 0;
-                inputParams.deltaY = 0;
-
-                io.AddMouseButtonEvent( 0, true );
-            }
-            else if (event.type == teWindowEvent::Type::Mouse1Up)
-            {
-                inputParams.x = event.x;
-                inputParams.y = sceneView.height - event.y;
-                //isRightMouseDown = false;
-                inputParams.deltaX = 0;
-                inputParams.deltaY = 0;
-                inputParams.lastMouseX = inputParams.x;
-                inputParams.lastMouseY = inputParams.y;
-
-                io.AddMouseButtonEvent( 0, false );
-            }
-            else if (event.type == teWindowEvent::Type::Mouse2Down)
-            {
-                inputParams.x = event.x;
-                inputParams.y = sceneView.height - event.y;
-                isRightMouseDown = true;
-                inputParams.lastMouseX = inputParams.x;
-                inputParams.lastMouseY = inputParams.y;
-                inputParams.deltaX = 0;
-                inputParams.deltaY = 0;
-            }
-            else if (event.type == teWindowEvent::Type::Mouse2Up)
-            {
-                inputParams.x = event.x;
-                inputParams.y = sceneView.height - event.y;
-                isRightMouseDown = false;
-                inputParams.deltaX = 0;
-                inputParams.deltaY = 0;
-                inputParams.lastMouseX = inputParams.x;
-                inputParams.lastMouseY = inputParams.y;
-            }
-            else if (event.type == teWindowEvent::Type::MouseMove)
-            {
-                inputParams.x = event.x;
-                inputParams.y = sceneView.height - event.y;
-                inputParams.deltaX = float( inputParams.x - inputParams.lastMouseX );
-                inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
-                inputParams.lastMouseX = inputParams.x;
-                inputParams.lastMouseY = inputParams.y;
-
-                if (isRightMouseDown)
-                {
-                    //teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
-                    //teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
-                }
-
-                io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
-            }
-        }
-
-        teBeginFrame();
-        ImGui::NewFrame();
-        teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh );
-
-        teBeginSwapchainRendering();
-
-        shaderParams.tilesXY[ 0 ] = 2.0f;
-        shaderParams.tilesXY[ 1 ] = 2.0f;
-        shaderParams.tilesXY[ 2 ] = -1.0f;
-        shaderParams.tilesXY[ 3 ] = -1.0f;
-        teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
-        shaderParams.tilesXY[ 0 ] = 4.0f;
-        shaderParams.tilesXY[ 1 ] = 4.0f;
-        //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
-
-        ImGui::Begin( "Inspector" );
         //ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         if (ImGui::Button( "Add Game object" ))
         {
             printf( "TODO: add game object\n" );
         }
-
-        ImGui::End();
-        ImGui::Render();
-
-        RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
-        teEndSwapchainRendering();
-
-        teEndFrame();
     }
+
+    ImGui::End();
+    ImGui::Render();
+
+    RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
+    teEndSwapchainRendering();
+
+    teEndFrame();
 }
