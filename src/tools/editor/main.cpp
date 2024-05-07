@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-05-05
+// Modified: 2024-05-07
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -9,13 +9,33 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "vec3.h"
+#include "transform.h"
 
 #if _WIN32
 #include <Windows.h>
+
+static LONGLONG PCFreq;
+
+double GetMilliseconds()
+{
+    LARGE_INTEGER li;
+    QueryPerformanceCounter( &li );
+    return (double)(li.QuadPart / (double)PCFreq);
+}
+#else
+#include <time.h>
+
+double GetMilliseconds()
+{
+    timespec spec;
+    clock_gettime( CLOCK_MONOTONIC, &spec );
+    return spec.tv_nsec / 1000000;
+}
 #endif
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle );
 void RenderSceneView();
+unsigned SceneViewGetCameraIndex();
 
 struct InputState
 {
@@ -93,7 +113,7 @@ void GetOpenPath( char* path, const char* extension )
 }
 #endif
 
-bool HandleInput( unsigned width, unsigned height )
+bool HandleInput( unsigned width, unsigned height, double dt )
 {
     InputState inputParams;
     bool isRightMouseDown = false;
@@ -221,8 +241,8 @@ bool HandleInput( unsigned width, unsigned height )
 
             if (isRightMouseDown)
             {
-                //teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
-                //teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3(0, 1, 0), -inputParams.deltaX / 100.0f * (float)dt);
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
             }
 
             io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
@@ -234,6 +254,12 @@ bool HandleInput( unsigned width, unsigned height )
 
 int main()
 {
+#ifdef _WIN32
+    LARGE_INTEGER li;
+    QueryPerformanceFrequency( &li );
+    PCFreq = li.QuadPart / 1000;
+#endif
+
     unsigned width = 1920 / 1;
     unsigned height = 1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
@@ -241,8 +267,16 @@ int main()
 
     InitSceneView( width, height, windowHandle );
 
-    while (HandleInput( width, height ))
+    double theTime = GetMilliseconds();
+    double dt = 0;
+
+    while (HandleInput( width, height, dt ))
     {
+        double lastTime = theTime;
+        theTime = GetMilliseconds();
+        dt = theTime - lastTime;
+        printf( "%f\n", dt );
+
         RenderSceneView();
     }
 

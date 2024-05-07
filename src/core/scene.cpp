@@ -54,6 +54,16 @@ SceneImpl scenes[ 2 ];
 unsigned sceneIndex = 0;
 teMesh quadMesh;
 
+unsigned teSceneGetMaxGameObjects( const teScene& scene )
+{
+    return MAX_GAMEOBJECTS;
+}
+
+unsigned teSceneGetGameObjectIndex( const teScene& scene, unsigned i )
+{
+    return scenes[ scene.index ].gameObjects[ i ];
+}
+
 teScene teCreateScene( unsigned directonalShadowMapDimension )
 {
     teAssert( sceneIndex < 2 );

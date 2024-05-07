@@ -4,7 +4,7 @@
 struct teGameObjectImpl
 {
     unsigned components = 0;
-    const char* name = nullptr;
+    const char* name = "unnamed";
 };
 
 constexpr unsigned MaxGameObjects = 1000;
@@ -29,4 +29,9 @@ unsigned teGameObjectGetComponents( unsigned index )
     teAssert( index < MaxGameObjects );
 
     return index < MaxGameObjects ? gameObjects[ index ].components : 0;
+}
+
+const char* teGameObjectGetName( unsigned index )
+{
+    return gameObjects[ index ].name;
 }

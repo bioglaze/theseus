@@ -19,6 +19,8 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 
+constexpr int MaxGameObjects = 100;
+
 struct SceneView
 {
     unsigned width;
@@ -41,12 +43,10 @@ struct SceneView
     teShader uiShader;
 
     teTextureCube skyTex;
-
     teGameObject camera3d;
 };
 
 SceneView sceneView;
-
 
 struct ImGUIImplCustom
 {
@@ -221,6 +221,11 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle )
     io.BackendRendererName = "imgui_impl_vulkan";
 }
 
+unsigned SceneViewGetCameraIndex()
+{
+    return sceneView.camera3d.index;
+}
+
 void RenderSceneView()
 {
     teBeginFrame();
@@ -244,7 +249,21 @@ void RenderSceneView()
         //ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         if (ImGui::Button( "Add Game object" ))
         {
-            printf( "TODO: add game object\n" );
+            teGameObject go = teCreateGameObject( "gameobject", teComponent::Transform );
+
+            teSceneAdd( sceneView.scene, go.index );
+        }
+
+        ImGui::Text( "Game objects:" );
+        
+        for (unsigned i = 0; i < teSceneGetMaxGameObjects( sceneView.scene ); ++i)
+        {
+            unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
+            
+            if (goIndex != 0)
+            {
+                ImGui::Text( "%s", teGameObjectGetName( goIndex ) );
+            }
         }
     }
 
