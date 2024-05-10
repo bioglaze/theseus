@@ -15,6 +15,8 @@
 #include "vec3.h"
 #include <stdint.h>
 
+void InitSceneView( unsigned width, unsigned height, void* windowHandle );
+
 @implementation GameViewController
 {
     MTKView* _view;
@@ -27,6 +29,8 @@
     [super viewDidLoad];
 
     _view = (MTKView *)self.view;
+    _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    _view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
 
     _view.device = MTLCreateSystemDefaultDevice();
 
@@ -42,10 +46,10 @@
     [_renderer mtkView:_view drawableSizeWillChange:_view.drawableSize];
 
     _view.delegate = _renderer;
-    
+
     const unsigned width = _view.bounds.size.width;
     const unsigned height = _view.bounds.size.height;
-    teCreateRenderer( 1, nullptr, width, height );
+    InitSceneView( width, height, nullptr );
 }
 
 @end

@@ -27,6 +27,10 @@
 		AB2DD0992BE55D2500113F09 /* unlit.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB2DD0932BE55D2500113F09 /* unlit.metal */; };
 		AB2DD09A2BE55D2500113F09 /* standard.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB2DD0942BE55D2500113F09 /* standard.metal */; };
 		AB2DD09B2BE55D2500113F09 /* ui.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB2DD0952BE55D2500113F09 /* ui.metal */; };
+		ABAD0F482BEE17CA00F8D98B /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F472BEE17CA00F8D98B /* MetalKit.framework */; };
+		ABAD0F4A2BEE181E00F8D98B /* ModelIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F492BEE181E00F8D98B /* ModelIO.framework */; };
+		ABAD0F4C2BEE184500F8D98B /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F4B2BEE184500F8D98B /* Metal.framework */; };
+		ABAD0F522BEE18EE00F8D98B /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F512BEE18EE00F8D98B /* AppKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -91,6 +95,12 @@
 		AB2DD0932BE55D2500113F09 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
 		AB2DD0942BE55D2500113F09 /* standard.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = standard.metal; path = ../../../shaders/metal/standard.metal; sourceTree = "<group>"; };
 		AB2DD0952BE55D2500113F09 /* ui.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = ui.metal; path = ../../../shaders/metal/ui.metal; sourceTree = "<group>"; };
+		ABAD0F472BEE17CA00F8D98B /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		ABAD0F492BEE181E00F8D98B /* ModelIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ModelIO.framework; path = System/Library/Frameworks/ModelIO.framework; sourceTree = SDKROOT; };
+		ABAD0F4B2BEE184500F8D98B /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		ABAD0F4D2BEE187500F8D98B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		ABAD0F4F2BEE189B00F8D98B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		ABAD0F512BEE18EE00F8D98B /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,7 +108,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABAD0F522BEE18EE00F8D98B /* AppKit.framework in Frameworks */,
+				ABAD0F4A2BEE181E00F8D98B /* ModelIO.framework in Frameworks */,
 				AB2DD07B2BE559F900113F09 /* theseus.framework in Frameworks */,
+				ABAD0F4C2BEE184500F8D98B /* Metal.framework in Frameworks */,
+				ABAD0F482BEE17CA00F8D98B /* MetalKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +179,12 @@
 		AB2DD0792BE559F900113F09 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ABAD0F512BEE18EE00F8D98B /* AppKit.framework */,
+				ABAD0F4F2BEE189B00F8D98B /* AVFoundation.framework */,
+				ABAD0F4D2BEE187500F8D98B /* Foundation.framework */,
+				ABAD0F4B2BEE184500F8D98B /* Metal.framework */,
+				ABAD0F492BEE181E00F8D98B /* ModelIO.framework */,
+				ABAD0F472BEE17CA00F8D98B /* MetalKit.framework */,
 				AB2DD07A2BE559F900113F09 /* theseus.framework */,
 			);
 			name = Frameworks;
@@ -434,6 +454,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = /Users/glaze/Documents/src/theseus/src/samples/hello_mac_ios;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
@@ -460,6 +481,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = /Users/glaze/Documents/src/theseus/src/samples/hello_mac_ios;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
