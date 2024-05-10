@@ -46,6 +46,7 @@ struct InputState
     int lastMouseX = 0;
     int lastMouseY = 0;
     Vec3 moveDir;
+    bool isRightMouseDown = false;
 };
 
 #if _MSC_VER
@@ -113,11 +114,10 @@ void GetOpenPath( char* path, const char* extension )
 }
 #endif
 
+InputState inputParams;
+
 bool HandleInput( unsigned width, unsigned height, double dt )
 {
-    InputState inputParams;
-    bool isRightMouseDown = false;
-
     ImGuiIO& io = ImGui::GetIO();
 
     tePushWindowEvents();
@@ -190,7 +190,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         {
             inputParams.x = event.x;
             inputParams.y = height - event.y;
-            //isRightMouseDown = true;
+            inputParams.isRightMouseDown = true;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             inputParams.deltaX = 0;
@@ -202,7 +202,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         {
             inputParams.x = event.x;
             inputParams.y = height - event.y;
-            //isRightMouseDown = false;
+            inputParams.isRightMouseDown = false;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
             inputParams.lastMouseX = inputParams.x;
@@ -214,7 +214,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         {
             inputParams.x = event.x;
             inputParams.y = height - event.y;
-            isRightMouseDown = true;
+            inputParams.isRightMouseDown = true;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             inputParams.deltaX = 0;
@@ -224,7 +224,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         {
             inputParams.x = event.x;
             inputParams.y = height - event.y;
-            isRightMouseDown = false;
+            inputParams.isRightMouseDown = false;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
             inputParams.lastMouseX = inputParams.x;
@@ -239,7 +239,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
 
-            if (isRightMouseDown)
+            if (inputParams.isRightMouseDown)
             {
                 teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3(0, 1, 0), -inputParams.deltaX / 100.0f * (float)dt);
                 teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
@@ -248,6 +248,10 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
         }
     }
+
+    teTransformMoveForward( SceneViewGetCameraIndex(), inputParams.moveDir.z* (float)dt * 0.5f );
+    teTransformMoveRight( SceneViewGetCameraIndex(), inputParams.moveDir.x* (float)dt * 0.5f );
+    teTransformMoveUp( SceneViewGetCameraIndex(), inputParams.moveDir.y* (float)dt * 0.5f );
 
     return true;
 }
@@ -275,7 +279,7 @@ int main()
         double lastTime = theTime;
         theTime = GetMilliseconds();
         dt = theTime - lastTime;
-        printf( "%f\n", dt );
+        //printf( "%f\n", dt );
 
         RenderSceneView();
     }

@@ -190,7 +190,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle )
 
     sceneView.cubeMesh = teCreateCubeMesh();
     sceneView.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-    teTransformSetLocalPosition( sceneView.cubeGo.index, Vec3( 0, 20, 0 ) );
+    teTransformSetLocalPosition( sceneView.cubeGo.index, Vec3( 0, 0, 0 ) );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( sceneView.cubeGo.index, &sceneView.cubeMesh );
     teMeshRendererSetMaterial( sceneView.cubeGo.index, sceneView.material, 0 );
