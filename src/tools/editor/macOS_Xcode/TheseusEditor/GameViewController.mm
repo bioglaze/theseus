@@ -15,7 +15,7 @@
 #include "vec3.h"
 #include <stdint.h>
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle );
+void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 
 @implementation GameViewController
 {
@@ -49,7 +49,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle );
 
     const unsigned width = _view.bounds.size.width;
     const unsigned height = _view.bounds.size.height;
-    InitSceneView( width, height, nullptr );
+    InitSceneView( width, height, nullptr, 2 );
 }
 
 @end

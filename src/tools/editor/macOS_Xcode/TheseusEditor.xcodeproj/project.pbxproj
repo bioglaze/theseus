@@ -31,6 +31,7 @@
 		ABAD0F4A2BEE181E00F8D98B /* ModelIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F492BEE181E00F8D98B /* ModelIO.framework */; };
 		ABAD0F4C2BEE184500F8D98B /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F4B2BEE184500F8D98B /* Metal.framework */; };
 		ABAD0F522BEE18EE00F8D98B /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F512BEE18EE00F8D98B /* AppKit.framework */; };
+		ABD44FA42BEFA7590066E2C4 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABD44FA32BEFA7590066E2C4 /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -101,6 +102,7 @@
 		ABAD0F4D2BEE187500F8D98B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		ABAD0F4F2BEE189B00F8D98B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		ABAD0F512BEE18EE00F8D98B /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		ABD44FA32BEFA7590066E2C4 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../../build/assets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 		AB04180A2BE5585A00FCCA61 = {
 			isa = PBXGroup;
 			children = (
+				ABD44FA32BEFA7590066E2C4 /* assets */,
 				AB2DD08E2BE55D0F00113F09 /* shaders */,
 				AB2DD07E2BE55A1200113F09 /* include */,
 				AB2DD0682BE5594800113F09 /* imgui */,
@@ -284,6 +287,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABD44FA42BEFA7590066E2C4 /* assets in Resources */,
 				AB0418232BE5585B00FCCA61 /* Assets.xcassets in Resources */,
 				AB0418262BE5585B00FCCA61 /* Main.storyboard in Resources */,
 			);

@@ -130,7 +130,14 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                // FIXME: This looks wrong, but Metal requires the index offset to be multiple of 2.
+                unsigned int idxOffs = pcmd->IdxOffset + global_idx_offset;
+                if (idxOffs & 2)
+                {
+                    ++idxOffs;
+                }
+                
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, idxOffs, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
@@ -139,7 +146,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     }
 }
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle )
+void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )
 {
     teCreateRenderer( 1, windowHandle, width, height );
 
@@ -206,8 +213,8 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle )
 
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = (float)width;
-    io.DisplaySize.y = (float)height;
+    io.DisplaySize.x = (float)width * uiScale;
+    io.DisplaySize.y = (float)height * uiScale;
     io.FontGlobalScale = 2;
     ImGui::StyleColorsDark();
 
