@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
+NSViewController* myViewController;
 
 @implementation GameViewController
 {
@@ -50,6 +51,93 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     const unsigned width = _view.bounds.size.width;
     const unsigned height = _view.bounds.size.height;
     InitSceneView( width, height, nullptr, 2 );
+    
+    myViewController = self;
+}
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    NSLog(@"mouseDown\n");
+    //MouseDown( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+    NSLog(@"mouseUp\n");
+    //MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    NSLog(@"mouseMove\n");
+    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+}
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+    NSLog(@"mouseDrag\n");
+    //RotateCamera( theEvent.deltaX, theEvent.deltaY );
+    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+}
+
+- (void)keyDown:(NSEvent *)theEvent
+{
+    NSLog(@"keyDown\n");
+    
+    if ([theEvent keyCode] == 0x00) // A
+    {
+        //MoveRight( 1 );
+    }
+    else if ([theEvent keyCode] == 0x02) // D
+    {
+        //MoveRight( -1 );
+    }
+    else if ([theEvent keyCode] == 0x0D) // W
+    {
+        //MoveForward( 1 );
+    }
+    else if ([theEvent keyCode] == 0x01) // S
+    {
+        //MoveForward( -1 );
+    }
+    else if ([theEvent keyCode] == 0x0C) // Q
+    {
+        //MoveUp( 1 );
+    }
+    else if ([theEvent keyCode] == 0x0E) // E
+    {
+        //MoveUp( -1 );
+    }
+}
+
+- (void)keyUp:(NSEvent *)theEvent
+{
+    NSLog(@"keyUp\n");
+    
+    if ([theEvent keyCode] == 0x00) // A
+    {
+        //MoveRight( 0 );
+    }
+    else if ([theEvent keyCode] == 0x02) // D
+    {
+        //MoveRight( 0 );
+    }
+    else if ([theEvent keyCode] == 0x0D) // W
+    {
+        //MoveForward( 0 );
+    }
+    else if ([theEvent keyCode] == 0x01) // S
+    {
+        //MoveForward( 0 );
+    }
+    else if ([theEvent keyCode] == 0x0C) // Q
+    {
+        //MoveUp( 0 );
+    }
+    else if ([theEvent keyCode] == 0x0E) // E
+    {
+        //MoveUp( 0 );
+    }
 }
 
 @end
