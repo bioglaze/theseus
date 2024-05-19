@@ -15,8 +15,28 @@
 #include "vec3.h"
 #include <stdint.h>
 
+const int uiScale = 2;
+
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
+void RotateEditorCamera( float x, float y );
 NSViewController* myViewController;
+
+Vec3 moveDir;
+
+void MoveForward( float amount )
+{
+    moveDir.z = 0.3f * amount;
+}
+
+void MoveRight( float amount )
+{
+    moveDir.x = 0.3f * amount;
+}
+
+void MoveUp( float amount )
+{
+    moveDir.y = 0.3f * amount;
+}
 
 @implementation GameViewController
 {
@@ -50,34 +70,37 @@ NSViewController* myViewController;
 
     const unsigned width = _view.bounds.size.width;
     const unsigned height = _view.bounds.size.height;
-    InitSceneView( width, height, nullptr, 2 );
+    InitSceneView( width, height, nullptr, uiScale );
     
     myViewController = self;
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    NSLog(@"mouseDown\n");
     //MouseDown( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, true );
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    NSLog(@"mouseUp\n");
     //MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, false );
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-    NSLog(@"mouseMove\n");
     //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (self.view.bounds.size.height - (int)theEvent.locationInWindow.y) * uiScale );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    NSLog(@"mouseDrag\n");
-    //RotateCamera( theEvent.deltaX, theEvent.deltaY );
-    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+    RotateEditorCamera( theEvent.deltaX, theEvent.deltaY );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (self.view.bounds.size.height - (int)theEvent.locationInWindow.y) * uiScale );
 }
 
 - (void)keyDown:(NSEvent *)theEvent

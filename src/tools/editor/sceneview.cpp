@@ -132,7 +132,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
                 // FIXME: This looks wrong, but Metal requires the index offset to be multiple of 2.
                 unsigned int idxOffs = pcmd->IdxOffset + global_idx_offset;
-                if (idxOffs & 2)
+                if (idxOffs % 2)
                 {
                     ++idxOffs;
                 }
@@ -282,3 +282,10 @@ void RenderSceneView()
 
     teEndFrame();
 }
+
+void RotateEditorCamera( float x, float y )
+{
+    teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 0, 1, 0 ), -x / 20 );
+    teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 1, 0, 0 ), -y / 20 );
+}
+
