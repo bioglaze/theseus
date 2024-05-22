@@ -137,34 +137,111 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         {
             return false;
         }
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Space)
+        {
+            io.AddInputCharacter( ' ' );
+        }
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Left)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, true );
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Left)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Right)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, true );
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Right)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Backspace)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, true );
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Backspace)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Delete)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Delete, true );
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Delete)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Delete, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N0)
+            io.AddInputCharacter( '0' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N1)
+            io.AddInputCharacter( '1' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N2)
+            io.AddInputCharacter( '2' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N3)
+            io.AddInputCharacter( '3' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N4)
+            io.AddInputCharacter( '4' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N5)
+            io.AddInputCharacter( '5' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N6)
+            io.AddInputCharacter( '6' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N7)
+            io.AddInputCharacter( '7' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N8)
+            io.AddInputCharacter( '8' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N9)
+            io.AddInputCharacter( '9' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::B)
+            io.AddInputCharacter( 'b' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::C)
+            io.AddInputCharacter( 'c' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::F)
+            io.AddInputCharacter( 'f' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::G)
+            io.AddInputCharacter( 'g' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::H)
+            io.AddInputCharacter( 'h' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::I)
+            io.AddInputCharacter( 'i' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::J)
+            io.AddInputCharacter( 'j' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::K)
+            io.AddInputCharacter( 'k' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::L)
+            io.AddInputCharacter( 'l' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::M)
+            io.AddInputCharacter( 'm' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N)
+            io.AddInputCharacter( 'n' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::O)
+            io.AddInputCharacter( 'o' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::P)
+            io.AddInputCharacter( 'p' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::R)
+            io.AddInputCharacter( 'r' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
         {
             inputParams.moveDir.z = -0.5f;
+            io.AddInputCharacter( 's' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
-        {
             inputParams.moveDir.z = 0;
-        }
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::T)
+            io.AddInputCharacter( 't' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::U)
+            io.AddInputCharacter( 'u' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::V)
+            io.AddInputCharacter( 'v' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::X)
+            io.AddInputCharacter( 'x' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Y)
+            io.AddInputCharacter( 'y' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Z)
+            io.AddInputCharacter( 'z' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
             inputParams.moveDir.z = 0.5f;
+            io.AddInputCharacter( 'w' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
-        {
             inputParams.moveDir.z = 0;
-        }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
         {
             inputParams.moveDir.x = 0.5f;
-            //io.AddKeyEvent( ImGuiKey_A, true );
+            io.AddInputCharacter( 'a' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
-        {
             inputParams.moveDir.x = 0;
-        }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
         {
             inputParams.moveDir.x = -0.5f;
+            io.AddInputCharacter( 'd' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
         {
@@ -173,6 +250,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
         {
             inputParams.moveDir.y = 0.5f;
+            io.AddInputCharacter( 'q' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
         {
@@ -181,6 +259,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
         {
             inputParams.moveDir.y = -0.5f;
+            io.AddInputCharacter( 'e' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
         {

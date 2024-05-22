@@ -233,6 +233,8 @@ unsigned SceneViewGetCameraIndex()
     return sceneView.camera3d.index;
 }
 
+char text[ 100 ];
+
 void RenderSceneView()
 {
     teBeginFrame();
@@ -262,7 +264,8 @@ void RenderSceneView()
         }
 
         ImGui::Text( "Game objects:" );
-        
+        ImGui::InputText( "text", text, 100 );
+
         for (unsigned i = 0; i < teSceneGetMaxGameObjects( sceneView.scene ); ++i)
         {
             unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );

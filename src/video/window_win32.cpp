@@ -33,6 +33,15 @@ static void InitKeyMap()
     win.keyMap[ VK_DOWN ] = teWindowEvent::KeyCode::Down;
     win.keyMap[ VK_ESCAPE ] = teWindowEvent::KeyCode::Escape;
     win.keyMap[ VK_SPACE ] = teWindowEvent::KeyCode::Space;
+    win.keyMap[ VK_BACK ] = teWindowEvent::KeyCode::Backspace;
+    win.keyMap[ VK_OEM_MINUS ] = teWindowEvent::KeyCode::Minus;
+    win.keyMap[ VK_OEM_PLUS ] = teWindowEvent::KeyCode::Plus;
+    win.keyMap[ VK_DELETE ] = teWindowEvent::KeyCode::Delete;
+    win.keyMap[ VK_OEM_PERIOD ] = teWindowEvent::KeyCode::Dot;
+    win.keyMap[ VK_HOME ] = teWindowEvent::KeyCode::Home;
+    win.keyMap[ VK_END ] = teWindowEvent::KeyCode::End;
+    win.keyMap[ VK_PRIOR ] = teWindowEvent::KeyCode::PageUp;
+    win.keyMap[ VK_NEXT ] = teWindowEvent::KeyCode::PageDown;
 
     win.keyMap[ 65 ] = teWindowEvent::KeyCode::A;
     win.keyMap[ 66 ] = teWindowEvent::KeyCode::B;
@@ -60,6 +69,17 @@ static void InitKeyMap()
     win.keyMap[ 88 ] = teWindowEvent::KeyCode::X;
     win.keyMap[ 89 ] = teWindowEvent::KeyCode::Y;
     win.keyMap[ 90 ] = teWindowEvent::KeyCode::Z;
+    
+    win.keyMap[48] = teWindowEvent::KeyCode::N0;
+    win.keyMap[ 49 ] = teWindowEvent::KeyCode::N1;
+    win.keyMap[ 50 ] = teWindowEvent::KeyCode::N2;
+    win.keyMap[ 51 ] = teWindowEvent::KeyCode::N3;
+    win.keyMap[ 52 ] = teWindowEvent::KeyCode::N4;
+    win.keyMap[ 53 ] = teWindowEvent::KeyCode::N5;
+    win.keyMap[ 54 ] = teWindowEvent::KeyCode::N6;
+    win.keyMap[ 55 ] = teWindowEvent::KeyCode::N7;
+    win.keyMap[ 56 ] = teWindowEvent::KeyCode::N8;
+    win.keyMap[ 57 ] = teWindowEvent::KeyCode::N9;
 }
 
 void IncEventIndex()
