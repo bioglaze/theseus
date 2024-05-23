@@ -17,19 +17,6 @@ static const NSUInteger kMaxBuffersInFlight = 3;
     dispatch_semaphore_t _inFlightSemaphore;
     id <MTLDevice> _device;
     id <MTLCommandQueue> _commandQueue;
-
-
-    uint32_t _uniformBufferOffset;
-
-    uint8_t _uniformBufferIndex;
-
-    void* _uniformBufferAddress;
-
-    matrix_float4x4 _projectionMatrix;
-
-    float _rotation;
-
-    MTKMesh *_mesh;
 }
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
@@ -54,26 +41,11 @@ static const NSUInteger kMaxBuffersInFlight = 3;
     view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
     view.sampleCount = 1;
 
-    id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
-
     _commandQueue = [_device newCommandQueue];
 }
 
 - (void)_updateGameState
 {
-    /// Update any game state before encoding renderint commands to our drawable
-
-    Uniforms * uniforms = (Uniforms*)_uniformBufferAddress;
-
-    uniforms->projectionMatrix = _projectionMatrix;
-
-    vector_float3 rotationAxis = {1, 1, 0};
-    matrix_float4x4 modelMatrix = matrix4x4_rotation(_rotation, rotationAxis);
-    matrix_float4x4 viewMatrix = matrix4x4_translation(0.0, 0.0, -8.0);
-
-    uniforms->modelViewMatrix = matrix_multiply(viewMatrix, modelMatrix);
-
-    _rotation += .01;
 }
 
 - (void)drawInMTKView:(nonnull MTKView *)view
@@ -81,8 +53,6 @@ static const NSUInteger kMaxBuffersInFlight = 3;
     /// Per frame updates here
 
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
-
-    renderPassDescriptor = view.currentRenderPassDescriptor;
 
     SetDrawable( view.currentDrawable );
 
@@ -95,19 +65,14 @@ static const NSUInteger kMaxBuffersInFlight = 3;
          dispatch_semaphore_signal(block_sema);
      }];
 
-    /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
-    ///   holding onto the drawable and blocking the display pipeline any longer than necessary
-    MTLRenderPassDescriptor* renderPassDescriptor = view.currentRenderPassDescriptor;
-    
+    renderPassDescriptor = view.currentRenderPassDescriptor;
+
     RenderSceneView();
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
     /// Respond to drawable size or orientation changes here
-
-    float aspect = size.width / (float)size.height;
-    _projectionMatrix = matrix_perspective_right_hand(65.0f * (M_PI / 180.0f), aspect, 0.1f, 100.0f);
 }
 
 #pragma mark Matrix Math Utilities
