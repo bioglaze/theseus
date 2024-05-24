@@ -59,9 +59,9 @@ void GetOpenPath( char* path, const char* extension )
     ofn.hwndOwner = GetActiveWindow();
     ofn.lpstrFile = szFile;
     ofn.nMaxFile = sizeof( szFile );
-    if (strstr( extension, "ae3d" ))
+    if (strstr( extension, "t3d" ))
     {
-        ofn.lpstrFilter = "Mesh\0*.ae3d\0All\0*.*\0";
+        ofn.lpstrFilter = "Mesh\0*.t3d\0All\0*.*\0";
     }
     else if (strstr( extension, "scene" ))
     {
@@ -69,7 +69,7 @@ void GetOpenPath( char* path, const char* extension )
     }
     else if (strstr( extension, "wav" ))
     {
-        ofn.lpstrFilter = "Audio\0*.wav;*.ogg\0All\0*.*\0";
+        ofn.lpstrFilter = "Audio\0*.wav\0All\0*.*\0";
     }
 
     ofn.nFilterIndex = 1;
@@ -205,9 +205,19 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             io.AddInputCharacter( 'p' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::R)
             io.AddInputCharacter( 'r' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Dot)
+            io.AddInputCharacter( '.' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Minus)
+            io.AddInputCharacter( '-' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Plus)
+            io.AddInputCharacter( '+' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Comma)
+            io.AddInputCharacter( ',' );
+
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
         {
-            inputParams.moveDir.z = -0.5f;
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.z = -0.5f;
             io.AddInputCharacter( 's' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
@@ -226,21 +236,24 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             io.AddInputCharacter( 'z' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
-            inputParams.moveDir.z = 0.5f;
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.z = 0.5f;
             io.AddInputCharacter( 'w' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
             inputParams.moveDir.z = 0;
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
         {
-            inputParams.moveDir.x = 0.5f;
-            io.AddInputCharacter( 'a' );
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.x = 0.5f;
+            io.AddInputCharacter( 'a' );            
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
             inputParams.moveDir.x = 0;
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
         {
-            inputParams.moveDir.x = -0.5f;
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.x = -0.5f;
             io.AddInputCharacter( 'd' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
@@ -249,7 +262,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
         {
-            inputParams.moveDir.y = 0.5f;
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.y = 0.5f;
             io.AddInputCharacter( 'q' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
@@ -258,7 +272,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
         {
-            inputParams.moveDir.y = -0.5f;
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.y = -0.5f;
             io.AddInputCharacter( 'e' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
@@ -318,9 +333,9 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
 
-            if (inputParams.isRightMouseDown)
+            if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
             {
-                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3(0, 1, 0), -inputParams.deltaX / 100.0f * (float)dt);
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
                 teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
             }
 

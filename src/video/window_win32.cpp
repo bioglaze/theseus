@@ -4,6 +4,8 @@
 #endif
 #include "window.h"
 
+#include <stdio.h>
+
 constexpr int EventStackSize = 100;
 
 struct WindowImpl
@@ -42,6 +44,7 @@ static void InitKeyMap()
     win.keyMap[ VK_END ] = teWindowEvent::KeyCode::End;
     win.keyMap[ VK_PRIOR ] = teWindowEvent::KeyCode::PageUp;
     win.keyMap[ VK_NEXT ] = teWindowEvent::KeyCode::PageDown;
+    win.keyMap[ VK_OEM_COMMA ] = teWindowEvent::KeyCode::Comma;
 
     win.keyMap[ 65 ] = teWindowEvent::KeyCode::A;
     win.keyMap[ 66 ] = teWindowEvent::KeyCode::B;
