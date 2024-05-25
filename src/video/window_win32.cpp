@@ -4,8 +4,6 @@
 #endif
 #include "window.h"
 
-#include <stdio.h>
-
 constexpr int EventStackSize = 100;
 
 struct WindowImpl
@@ -72,8 +70,11 @@ static void InitKeyMap()
     win.keyMap[ 88 ] = teWindowEvent::KeyCode::X;
     win.keyMap[ 89 ] = teWindowEvent::KeyCode::Y;
     win.keyMap[ 90 ] = teWindowEvent::KeyCode::Z;
+    win.keyMap[ 222 ] = teWindowEvent::KeyCode::AE;
+    win.keyMap[ 192 ] = teWindowEvent::KeyCode::OE;
+    win.keyMap[ 226 ] = teWindowEvent::KeyCode::Less;
     
-    win.keyMap[48] = teWindowEvent::KeyCode::N0;
+    win.keyMap[ 48 ] = teWindowEvent::KeyCode::N0;
     win.keyMap[ 49 ] = teWindowEvent::KeyCode::N1;
     win.keyMap[ 50 ] = teWindowEvent::KeyCode::N2;
     win.keyMap[ 51 ] = teWindowEvent::KeyCode::N3;

@@ -234,6 +234,10 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             io.AddInputCharacter( 'y' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Z)
             io.AddInputCharacter( 'z' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Less)
+            io.AddInputCharacter( '<' );
+        //else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::AE)
+        //    io.AddInputCharactersUTF8( "ä" );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
             if (!io.WantCaptureKeyboard)
