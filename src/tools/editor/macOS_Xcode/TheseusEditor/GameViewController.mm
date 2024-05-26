@@ -98,9 +98,10 @@ void MoveUp( float amount )
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    RotateEditorCamera( theEvent.deltaX, theEvent.deltaY );
     ImGuiIO& io = ImGui::GetIO();
     io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (self.view.bounds.size.height - (int)theEvent.locationInWindow.y) * uiScale );
+    if (!io.WantCaptureMouse)
+        RotateEditorCamera( theEvent.deltaX, theEvent.deltaY );
 }
 
 - (void)keyDown:(NSEvent *)theEvent
@@ -210,6 +211,8 @@ void MoveUp( float amount )
         io.AddInputCharacter( '-' );
     else if ([theEvent keyCode] == 27)
         io.AddInputCharacter( '+' );
+    else if ([theEvent keyCode] == 50)
+        io.AddInputCharacter( '<' );
 
     else if ([theEvent keyCode] == 123)
         io.AddKeyEvent( ImGuiKey_LeftArrow, true );

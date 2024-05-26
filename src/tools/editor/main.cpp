@@ -90,19 +90,19 @@ void GetOpenPath( char* path, const char* extension )
 
     if (strstr( extension, "scene" ))
     {
-        f = popen( "zenity --file-selection --file-filter=*.scene --title \"Load .scene or .ae3d file\"", "r" );
+        f = popen( "zenity --file-selection --file-filter=*.scene --title \"Load .scene file\"", "r" );
     }
-    else if (strstr( extension, "ae3d" ))
+    else if (strstr( extension, "t3d" ))
     {
-        f = popen( "zenity --file-selection --file-filter=*.ae3d --title \"Load .scene or .ae3d file\"", "r" );
+        f = popen( "zenity --file-selection --file-filter=*.ae3d --title \"Load .t3d file\"", "r" );
     }
     else if (strstr( extension, "wav" ))
     {
-        f = popen( "zenity --file-selection --file-filter=*.wav --title \"Load .scene or .ae3d file\"", "r" );
+        f = popen( "zenity --file-selection --file-filter=*.wav --title \"Load .wav file\"", "r" );
     }
     else
     {
-        f = popen( "zenity --file-selection --title \"Load .scene or .ae3d file\"", "r" );
+        f = popen( "zenity --file-selection --title \"Load .scene or .t3d file\"", "r" );
     }
 
     fgets( path, 1024, f );

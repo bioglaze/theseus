@@ -10,7 +10,6 @@
 		AB0418182BE5585A00FCCA61 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0418172BE5585A00FCCA61 /* AppDelegate.m */; };
 		AB04181B2BE5585A00FCCA61 /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = AB04181A2BE5585A00FCCA61 /* Renderer.m */; };
 		AB04181E2BE5585A00FCCA61 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB04181D2BE5585A00FCCA61 /* GameViewController.mm */; };
-		AB0418202BE5585A00FCCA61 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB04181F2BE5585A00FCCA61 /* Shaders.metal */; };
 		AB0418232BE5585B00FCCA61 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB0418222BE5585B00FCCA61 /* Assets.xcassets */; };
 		AB0418262BE5585B00FCCA61 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB0418242BE5585B00FCCA61 /* Main.storyboard */; };
 		AB0418282BE5585B00FCCA61 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0418272BE5585B00FCCA61 /* main.m */; };
@@ -28,7 +27,6 @@
 		AB2DD09A2BE55D2500113F09 /* standard.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB2DD0942BE55D2500113F09 /* standard.metal */; };
 		AB2DD09B2BE55D2500113F09 /* ui.metal in Sources */ = {isa = PBXBuildFile; fileRef = AB2DD0952BE55D2500113F09 /* ui.metal */; };
 		ABAD0F482BEE17CA00F8D98B /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F472BEE17CA00F8D98B /* MetalKit.framework */; };
-		ABAD0F4A2BEE181E00F8D98B /* ModelIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F492BEE181E00F8D98B /* ModelIO.framework */; };
 		ABAD0F4C2BEE184500F8D98B /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F4B2BEE184500F8D98B /* Metal.framework */; };
 		ABAD0F522BEE18EE00F8D98B /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABAD0F512BEE18EE00F8D98B /* AppKit.framework */; };
 		ABD44FA42BEFA7590066E2C4 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABD44FA32BEFA7590066E2C4 /* assets */; };
@@ -56,8 +54,6 @@
 		AB04181A2BE5585A00FCCA61 /* Renderer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Renderer.m; sourceTree = "<group>"; };
 		AB04181C2BE5585A00FCCA61 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		AB04181D2BE5585A00FCCA61 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
-		AB04181F2BE5585A00FCCA61 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
-		AB0418212BE5585A00FCCA61 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		AB0418222BE5585B00FCCA61 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB0418252BE5585B00FCCA61 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		AB0418272BE5585B00FCCA61 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -111,7 +107,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				ABAD0F522BEE18EE00F8D98B /* AppKit.framework in Frameworks */,
-				ABAD0F4A2BEE181E00F8D98B /* ModelIO.framework in Frameworks */,
 				AB2DD07B2BE559F900113F09 /* theseus.framework in Frameworks */,
 				ABAD0F4C2BEE184500F8D98B /* Metal.framework in Frameworks */,
 				ABAD0F482BEE17CA00F8D98B /* MetalKit.framework in Frameworks */,
@@ -152,8 +147,6 @@
 				AB04181A2BE5585A00FCCA61 /* Renderer.m */,
 				AB04181C2BE5585A00FCCA61 /* GameViewController.h */,
 				AB04181D2BE5585A00FCCA61 /* GameViewController.mm */,
-				AB04181F2BE5585A00FCCA61 /* Shaders.metal */,
-				AB0418212BE5585A00FCCA61 /* ShaderTypes.h */,
 				AB0418222BE5585B00FCCA61 /* Assets.xcassets */,
 				AB0418242BE5585B00FCCA61 /* Main.storyboard */,
 				AB0418272BE5585B00FCCA61 /* main.m */,
@@ -305,7 +298,6 @@
 				AB0418282BE5585B00FCCA61 /* main.m in Sources */,
 				AB2DD0782BE559A000113F09 /* sceneview.cpp in Sources */,
 				AB2DD0742BE5597C00113F09 /* imgui_draw.cpp in Sources */,
-				AB0418202BE5585A00FCCA61 /* Shaders.metal in Sources */,
 				AB2DD09A2BE55D2500113F09 /* standard.metal in Sources */,
 				AB2DD09B2BE55D2500113F09 /* ui.metal in Sources */,
 				AB04181B2BE5585A00FCCA61 /* Renderer.m in Sources */,
