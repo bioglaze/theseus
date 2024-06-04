@@ -16,6 +16,19 @@
 #define VK_CHECK( x ) x
 #endif
 
+#ifndef TE_ALLOCA
+#if defined( __APPLE__ ) || defined( __GLIBC__ )
+#include <alloca.h>
+#elif defined( _MSC_VER )
+#include <malloc.h>
+#ifndef alloca
+#define alloca _alloca
+#endif // alloca
+#else
+#include <stdlib.h>
+#endif // _MSC_VER
+#endif // TE_ALLOCA
+
 static int teStrcmp( const char* s1, const char* s2 )
 {
     while (*s1 && (*s1 == *s2))

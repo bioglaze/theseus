@@ -905,7 +905,7 @@ void CreateInstance()
 
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, nullptr );
-    VkExtensionProperties* extensions = (VkExtensionProperties* )teMalloc( extensionCount * sizeof( VkExtensionProperties ) );
+    VkExtensionProperties* extensions = (VkExtensionProperties* )alloca( extensionCount * sizeof( VkExtensionProperties ) );
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, extensions );
 
     bool hasDebugUtils = false;
@@ -966,8 +966,6 @@ void CreateInstance()
         renderer.CmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr( renderer.instance, "vkCmdEndDebugUtilsLabelEXT" );
     }
 #endif
-
-    teFree( extensions );
 }
 
 void CreateDevice()
