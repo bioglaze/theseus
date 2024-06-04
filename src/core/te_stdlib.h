@@ -27,6 +27,7 @@
 #else
 #include <stdlib.h>
 #endif // _MSC_VER
+#define TE_ALLOCA alloca
 #endif // TE_ALLOCA
 
 static int teStrcmp( const char* s1, const char* s2 )

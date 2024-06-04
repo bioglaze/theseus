@@ -905,7 +905,7 @@ void CreateInstance()
 
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, nullptr );
-    VkExtensionProperties* extensions = (VkExtensionProperties* )alloca( extensionCount * sizeof( VkExtensionProperties ) );
+    VkExtensionProperties* extensions = (VkExtensionProperties* )TE_ALLOCA( extensionCount * sizeof( VkExtensionProperties ) );
     vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, extensions );
 
     bool hasDebugUtils = false;
