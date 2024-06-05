@@ -199,6 +199,10 @@ int main()
     teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
     teShader skyboxShader = teCreateShader( skyboxVsFile, skyboxPsFile, "skyboxVS", "skyboxPS" );
 
+    teFile momentsVsFile = teLoadFile( "shaders/moments_vs.spv" );
+    teFile momentsPsFile = teLoadFile( "shaders/moments_ps.spv" );
+    teShader momentsShader = teCreateShader( momentsVsFile, momentsPsFile, "momentsVS", "momentsPS" );
+
     teFile standardVsFile = teLoadFile( "shaders/standard_vs.spv" );
     teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
     teShader standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
