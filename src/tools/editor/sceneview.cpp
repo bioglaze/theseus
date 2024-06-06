@@ -29,6 +29,7 @@ struct SceneView
     teShader unlitShader;
     teShader fullscreenShader;
     teShader fullscreenAdditiveShader;
+    teShader momentsShader;
     teGameObject cubeGo;
 
     teTexture2D fontTex;
@@ -171,6 +172,10 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teFile uiPsFile = teLoadFile( "shaders/ui_ps.spv" );
     sceneView.uiShader = teCreateShader( uiVsFile, uiPsFile, "uiVS", "uiPS" );
 
+    teFile momentsVsFile = teLoadFile( "shaders/moments_vs.spv" );
+    teFile momentsPsFile = teLoadFile( "shaders/moments_ps.spv" );
+    sceneView.momentsShader = teCreateShader( momentsVsFile, momentsPsFile, "momentsVS", "momentsPS" );
+    
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
     teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );
@@ -292,3 +297,9 @@ void RotateEditorCamera( float x, float y )
     teTransformOffsetRotate( sceneView.camera3d.index, Vec3( 1, 0, 0 ), -y / 20 );
 }
 
+void MoveEditorCamera( float right, float up, float forward )
+{
+    teTransformMoveForward( sceneView.camera3d.index, forward );
+    teTransformMoveUp( sceneView.camera3d.index, up );
+    teTransformMoveRight( sceneView.camera3d.index, right );
+}

@@ -113,32 +113,38 @@ void MoveUp( float amount )
     
     if ([theEvent keyCode] == 0x00) // A
     {
-        //MoveRight( 1 );
+        if (!io.WantTextInput)
+            MoveRight( 1 );
         io.AddInputCharacter( 'a' );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        //MoveRight( -1 );
+        if (!io.WantTextInput)
+            MoveRight( -1 );
         io.AddInputCharacter( 'd' );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
-        //MoveForward( 1 );
+        if (!io.WantTextInput)
+            MoveForward( 1 );
         io.AddInputCharacter( 'w' );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
-        //MoveForward( -1 );
+        if (!io.WantTextInput)
+            MoveForward( -1 );
         io.AddInputCharacter( 's' );
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
-        //MoveUp( 1 );
+        if (!io.WantTextInput)
+            MoveUp( 1 );
         io.AddInputCharacter( 'q' );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
-        //MoveUp( -1 );
+        if (!io.WantTextInput)
+            MoveUp( -1 );
         io.AddInputCharacter( 'e' );
     }
     else if ([theEvent keyCode] == 18)
@@ -234,27 +240,27 @@ void MoveUp( float amount )
     
     if ([theEvent keyCode] == 0x00) // A
     {
-        //MoveRight( 0 );
+        MoveRight( 0 );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        //MoveRight( 0 );
+        MoveRight( 0 );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
-        //MoveForward( 0 );
+        MoveForward( 0 );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
-        //MoveForward( 0 );
+        MoveForward( 0 );
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
-        //MoveUp( 0 );
+        MoveUp( 0 );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
-        //MoveUp( 0 );
+        MoveUp( 0 );
     }
     else if ([theEvent keyCode] == 123)
         io.AddKeyEvent( ImGuiKey_LeftArrow, false );

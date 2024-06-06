@@ -44,6 +44,8 @@
 		ABA3ACB929E07DCD008BAD89 /* fullscreen.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */; };
 		ABBD223829EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
 		ABBD223929EAD3C000847A91 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = ABBD223729EAD3C000847A91 /* assets */; };
+		ABC44B022C11EC5000A4D566 /* moments.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABC44B012C11EC4F00A4D566 /* moments.metal */; };
+		ABC44B032C11EC5000A4D566 /* moments.metal in Sources */ = {isa = PBXBuildFile; fileRef = ABC44B012C11EC4F00A4D566 /* moments.metal */; };
 		ABED5D332A1D30F500A85DB3 /* theseus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; };
 		ABED5D342A1D30F500A85DB3 /* theseus.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = ABA3ACA829E0624E008BAD89 /* theseus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -111,6 +113,7 @@
 		ABA3ACB429E07DCD008BAD89 /* unlit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = unlit.metal; path = ../../shaders/metal/unlit.metal; sourceTree = "<group>"; };
 		ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = fullscreen.metal; path = ../../shaders/metal/fullscreen.metal; sourceTree = "<group>"; };
 		ABBD223729EAD3C000847A91 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../../build/assets; sourceTree = "<group>"; };
+		ABC44B012C11EC4F00A4D566 /* moments.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = moments.metal; path = ../../shaders/metal/moments.metal; sourceTree = "<group>"; };
 		ABD7244829E1B37200A1578E /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = camera.h; path = ../../include/camera.h; sourceTree = "<group>"; };
 		ABD7244929E1B37200A1578E /* matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matrix.h; path = ../../include/matrix.h; sourceTree = "<group>"; };
 		ABD7244A29E1B37200A1578E /* quaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quaternion.h; path = ../../include/quaternion.h; sourceTree = "<group>"; };
@@ -228,6 +231,7 @@
 		ABA3ACB229E07DAD008BAD89 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				ABC44B012C11EC4F00A4D566 /* moments.metal */,
 				AB38A7C52B1CC2C5008F9FD4 /* bloom.metal */,
 				ABA068802A59835A00C3B5DC /* ui.metal */,
 				ABA3ACB529E07DCD008BAD89 /* fullscreen.metal */,
@@ -373,6 +377,7 @@
 				ABA0687E2A5966B400C3B5DC /* imgui.cpp in Sources */,
 				AB38A7C62B1CC2C5008F9FD4 /* bloom.metal in Sources */,
 				ABA068782A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
+				ABC44B022C11EC5000A4D566 /* moments.metal in Sources */,
 				AB7EADEE29E04943003A182A /* main.m in Sources */,
 				AB7EADE329E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAB29F2C076009A7EEA /* skybox.metal in Sources */,
@@ -394,6 +399,7 @@
 				ABA0687F2A5966B400C3B5DC /* imgui.cpp in Sources */,
 				AB38A7C72B1CC2C5008F9FD4 /* bloom.metal in Sources */,
 				ABA068792A5966B400C3B5DC /* imgui_widgets.cpp in Sources */,
+				ABC44B032C11EC5000A4D566 /* moments.metal in Sources */,
 				AB7EADFF29E04943003A182A /* main.m in Sources */,
 				AB7EADF729E04943003A182A /* AppDelegate.m in Sources */,
 				AB91EFAC29F2C076009A7EEA /* skybox.metal in Sources */,

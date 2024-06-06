@@ -1,9 +1,12 @@
 #import "RRenderer.h"
+#include "vec3.h"
 
 void RenderSceneView();
 void SetDrawable( id< CAMetalDrawable > drawable );
+void MoveEditorCamera( float right, float up, float forward );
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
+extern Vec3 moveDir;
 
 static const NSUInteger kMaxBuffersInFlight = 3;
 
@@ -54,6 +57,7 @@ static const NSUInteger kMaxBuffersInFlight = 3;
     renderPassDescriptor = view.currentRenderPassDescriptor;
 
     RenderSceneView();
+    MoveEditorCamera( moveDir.x, moveDir.y, moveDir.z );
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size

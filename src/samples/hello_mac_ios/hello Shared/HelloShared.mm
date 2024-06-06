@@ -139,6 +139,7 @@ struct AppResources
     teShader standardShader;
     teShader bloomThresholdShader;
     teShader bloomBlurShader;
+    teShader momentsShader;
     
     teGameObject camera3d;
     teGameObject cubeGo;
@@ -193,6 +194,7 @@ void InitApp( unsigned width, unsigned height )
     app.skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
     app.uiShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "uiVS", "uiPS" );
     app.standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
+    app.momentsShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "momentsVS", "momentsPS" );
     
     app.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
@@ -344,5 +346,5 @@ void DrawApp()
     RenderImGUIDrawData( app.uiShader, app.fontTex );
     teEndSwapchainRendering();
     
-    RotateCamera( -2, -2 );
+    //RotateCamera( -2, -2 );
 }
