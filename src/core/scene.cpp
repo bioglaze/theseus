@@ -214,7 +214,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     PopGroupMarker();
 }
 
-static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex )
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* momentsShader )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
     {
@@ -247,7 +247,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             ShaderParams shaderParams{};
             UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams );
 
-            teShader shader = teMaterialGetShader( material );
+            const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );
 
             unsigned indexOffset = teMeshGetIndexOffset( mesh, subMeshIndex );
             unsigned indexCount = teMeshGetIndexCount( mesh, subMeshIndex );
@@ -261,7 +261,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
     }
 }
 
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker )
+// \param momentsShader if not null, overrides material's shader
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, const teShader* momentsShader )
 {
     const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
 
@@ -286,15 +287,15 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 
-    RenderMeshes( scene, teBlendMode::Off, shadowMapindex );
-    RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex );
+    RenderMeshes( scene, teBlendMode::Off, shadowMapindex, momentsShader );
+    RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex, momentsShader );
 
     PopGroupMarker();
 
     EndRendering( color );
 }
 
-static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned& outShadowMapIndex )
+static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, Vec3& outColor, unsigned& outShadowMapIndex )
 {
     const bool castShadowMap = scenes[ scene.index ].shadowCaster.color.index != 0;
 
@@ -304,17 +305,17 @@ static void RenderDirLightShadow( const teScene& scene, Vec3& outColor, unsigned
         teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, /*teTransformGetLocalPosition(dirLightIndex)*/tempDirLightPosition, tempDirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
 
-        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0, "Shadow Map" );
+        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader );
     }
 
     outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
 }
 
-void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh )
+void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader )
 {
     Vec3 dirLightColor{ 1, 1, 1 };
     unsigned shadowMapIndex = 0;
-    RenderDirLightShadow( scene, dirLightColor, shadowMapIndex );
+    RenderDirLightShadow( scene, momentsShader, dirLightColor, shadowMapIndex );
 
     int cameraIndex = -1;
 
@@ -330,7 +331,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera" );
+        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera", nullptr );
     }
 }
 

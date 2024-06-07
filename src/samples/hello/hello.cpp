@@ -488,7 +488,7 @@ int main()
 
         teBeginFrame();
         ImGui::NewFrame();
-        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh );
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader );
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
