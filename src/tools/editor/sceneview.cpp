@@ -244,7 +244,8 @@ void RenderSceneView()
 {
     teBeginFrame();
     ImGui::NewFrame();
-    teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader );
+    Vec3 dirLightShadowCasterPosition;
+    teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition );
 
     teBeginSwapchainRendering();
 

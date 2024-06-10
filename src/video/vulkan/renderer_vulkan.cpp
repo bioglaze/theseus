@@ -1943,7 +1943,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         teTexture2D tex;
         tex.index = shadowMapIndex;
 
-        //renderer.samplerInfos[ shadowMapIndex ].imageView = TextureGetView( tex );
+        renderer.samplerInfos[ shadowMapIndex ].imageView = TextureGetView( tex );
         //renderer.samplerInfos[ shadowMapIndex ].sampler = GetSampler( sampler ); // FIXME: We probably want some hardcoded sampler here, not the one used for drawing.
     }
 
@@ -1964,6 +1964,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
     PushConstants pushConstants{};
     pushConstants.textureIndex = (int)textureIndex;
+    pushConstants.shadowTextureIndex = (int)shadowMapIndex;
 
     vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 

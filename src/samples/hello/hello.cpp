@@ -276,7 +276,8 @@ int main()
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
-    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0, 1, 0 ) );
+
+    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0, 0, 1 ) );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;
@@ -488,7 +489,8 @@ int main()
 
         teBeginFrame();
         ImGui::NewFrame();
-        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader );
+        const Vec3 dirLightShadowCasterPosition( 0, 0, -10 );
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;

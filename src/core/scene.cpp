@@ -295,14 +295,13 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, c
     EndRendering( color );
 }
 
-static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, Vec3& outColor, unsigned& outShadowMapIndex )
+static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, const Vec3& dirLightPosition, Vec3& outColor, unsigned& outShadowMapIndex )
 {
     const bool castShadowMap = scenes[ scene.index ].shadowCaster.color.index != 0;
 
     if (castShadowMap)
     {
-        Vec3 tempDirLightPosition = Vec3( 1, 10, 1 );
-        teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, /*teTransformGetLocalPosition(dirLightIndex)*/tempDirLightPosition, tempDirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
+        teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, dirLightPosition, dirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
 
         RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader );
@@ -311,11 +310,11 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
     outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
 }
 
-void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader )
+void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader, const Vec3& dirLightPosition )
 {
     Vec3 dirLightColor{ 1, 1, 1 };
     unsigned shadowMapIndex = 0;
-    RenderDirLightShadow( scene, momentsShader, dirLightColor, shadowMapIndex );
+    RenderDirLightShadow( scene, momentsShader, dirLightPosition, dirLightColor, shadowMapIndex );
 
     int cameraIndex = -1;
 
