@@ -315,7 +315,7 @@ void DrawApp()
 
     teBeginFrame();
     ImGui::NewFrame();
-    teSceneRender( app.scene, &app.skyboxShader, &app.skyTex, &app.cubeMesh );
+    teSceneRender( app.scene, &app.skyboxShader, &app.skyTex, &app.cubeMesh, app.momentsShader, Vec3( 0, 0, -10 ) );
 
     unsigned width, height;
     teTextureGetDimension( app.bloomTarget, width, height );
