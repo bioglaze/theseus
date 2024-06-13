@@ -239,6 +239,9 @@ unsigned SceneViewGetCameraIndex()
 }
 
 char text[ 100 ];
+int selectedGoIndex = -1;
+float pos[ 3 ];
+float scale = 1;
 
 void RenderSceneView()
 {
@@ -259,9 +262,8 @@ void RenderSceneView()
     shaderParams.tilesXY[ 1 ] = 4.0f;
     //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
-    if (ImGui::Begin( "Inspector" ))
+    if (ImGui::Begin( "Hierarchy" ))
     {
-        //ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         if (ImGui::Button( "Add Game object" ))
         {
             teGameObject go = teCreateGameObject( "gameobject", teComponent::Transform );
@@ -270,7 +272,6 @@ void RenderSceneView()
         }
 
         ImGui::Text( "Game objects:" );
-        ImGui::InputText( "text", text, 100 );
 
         for (unsigned i = 0; i < teSceneGetMaxGameObjects( sceneView.scene ); ++i)
         {
@@ -279,11 +280,35 @@ void RenderSceneView()
             if (goIndex != 0)
             {
                 ImGui::Text( "%s", teGameObjectGetName( goIndex ) );
+                
+                if (ImGui::IsItemClicked())
+                {
+                    printf( "clicked %s\n", teGameObjectGetName( goIndex ) );
+                    selectedGoIndex = goIndex;
+                }
             }
         }
     }
 
     ImGui::End();
+
+    if (ImGui::Begin( "Inspector" ))
+    {
+        if (selectedGoIndex != -1)
+        {
+            ImGui::Text( "%s", teGameObjectGetName( selectedGoIndex ) );
+            //if (ImGui::CollapsingHeader( "Transform" ))
+            ImGui::SeparatorText( "Transform" );
+            {
+                //ImGui::InputText( "text2", text, 100 );
+                ImGui::InputFloat3( "position", pos );
+                ImGui::InputFloat( "scale", &scale );
+            }
+        }
+    }
+
+    ImGui::End();
+
     ImGui::Render();
 
     RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
