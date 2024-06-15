@@ -61,7 +61,7 @@ void GetOpenPath( char* path, const char* extension )
     ofn.nMaxFile = sizeof( szFile );
     if (strstr( extension, "t3d" ))
     {
-        ofn.lpstrFilter = "Mesh\0*.t3d\0All\0*.*\0";
+        ofn.lpstrFilter = "Theseus Mesh (.t3d)\0*.t3d\0All\0*.*\0";
     }
     else if (strstr( extension, "scene" ))
     {

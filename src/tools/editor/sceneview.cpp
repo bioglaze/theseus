@@ -19,6 +19,8 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 
+void GetOpenPath( char* path, const char* extension );
+
 constexpr int MaxGameObjects = 100;
 
 struct SceneView
@@ -132,12 +134,14 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                     continue;
 
                 // FIXME: This looks wrong, but Metal requires the index offset to be multiple of 2.
+                //        On Vulkan this would produce garbage triangles in some cases, so only do the fixup on Metal.
                 unsigned int idxOffs = pcmd->IdxOffset + global_idx_offset;
+#if __APPLE__
                 if (idxOffs % 2)
                 {
                     ++idxOffs;
                 }
-                
+#endif   
                 teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, idxOffs, pcmd->VtxOffset + global_vtx_offset );
             }
         }
@@ -239,7 +243,8 @@ unsigned SceneViewGetCameraIndex()
 }
 
 char text[ 100 ];
-int selectedGoIndex = -1;
+char openFilePath[ 280 ];
+int selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
 float pos[ 3 ];
 float scale = 1;
 
@@ -277,7 +282,7 @@ void RenderSceneView()
         {
             unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
             
-            if (goIndex != 0)
+            if (goIndex != 0 && goIndex != 1)
             {
                 ImGui::Text( "%s", teGameObjectGetName( goIndex ) );
                 
@@ -294,15 +299,38 @@ void RenderSceneView()
 
     if (ImGui::Begin( "Inspector" ))
     {
-        if (selectedGoIndex != -1)
+        if (selectedGoIndex != 1)
         {
             ImGui::Text( "%s", teGameObjectGetName( selectedGoIndex ) );
-            //if (ImGui::CollapsingHeader( "Transform" ))
-            ImGui::SeparatorText( "Transform" );
+            if (ImGui::CollapsingHeader( "Transform" ))
+            //ImGui::SeparatorText( "Transform" );
             {
-                //ImGui::InputText( "text2", text, 100 );
                 ImGui::InputFloat3( "position", pos );
                 ImGui::InputFloat( "scale", &scale );
+            }
+
+            if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer)
+            {
+                if (ImGui::CollapsingHeader( "Mesh Renderer" ))
+                {
+                    ImGui::Text( "path" ); // TODO: tooltip shows full path, without tooltip shows only file name.
+                    ImGui::SameLine();
+                    
+                    if (ImGui::Button( "Load" ))
+                    {
+                        openFilePath[ 0 ] = 0;
+                        GetOpenPath( openFilePath, "t3d" );
+
+                        if (openFilePath[ 0 ] != 0)
+                        {
+                            //teMeshRendererSetMesh( selectedGoIndex, mesh );
+                        }
+                    }
+                }
+            }
+            else if (ImGui::Button( "Add Mesh Renderer" ))
+            {
+                printf( "added mesh renderer\n" );
             }
         }
     }
