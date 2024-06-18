@@ -23,6 +23,27 @@ NSViewController* myViewController;
 
 Vec3 moveDir;
 
+void GetOpenPath( char* path, const char* extension )
+{
+    NSMutableArray *types = [NSMutableArray new];
+    [types addObject: [NSString stringWithUTF8String: extension]];
+    //NSArray<UTType*>* types = [NSArray<UTType*> new];
+    
+    NSOpenPanel *op = [NSOpenPanel openPanel];
+    [op setAllowedFileTypes: types];
+    //[op allowedContentTypes:types];
+    
+    if ([op runModal] == NSModalResponseOK)
+    {
+        NSURL *nsurl = [[op URLs] objectAtIndex:0];
+        NSString *myString = [nsurl path];
+        const char* str = [myString UTF8String];
+        strcpy( path, str );
+    }
+    
+    path[ 0 ] = 0;
+}
+
 void MoveForward( float amount )
 {
     moveDir.z = 0.3f * amount;
