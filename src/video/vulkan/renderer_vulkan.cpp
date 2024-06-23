@@ -648,7 +648,7 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     pipelineCreateInfo.pStages = shaderStages;
     pipelineCreateInfo.pDynamicState = &dynamicState;
     pipelineCreateInfo.pNext = &info;
-
+    
     if (isUI)
     {
         pipelineCreateInfo.pVertexInputState = &vertex_info;

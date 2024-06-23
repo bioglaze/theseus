@@ -23,9 +23,19 @@ const Vec3& teTransformGetLocalPosition( unsigned index )
     return transforms[ index ].localPosition;
 }
 
+Vec3* teTransformAccessLocalPosition( unsigned index )
+{
+    return &transforms[ index ].localPosition;
+}
+
 void teTransformSetLocalScale( unsigned index, float scale )
 {
     transforms[ index ].localScale = scale;
+}
+
+float* teTransformAccessLocalScale( unsigned index )
+{
+    return &transforms[ index ].localScale;
 }
 
 const Matrix& teTransformGetMatrix( unsigned index )

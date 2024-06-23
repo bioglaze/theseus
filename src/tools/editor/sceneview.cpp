@@ -302,11 +302,12 @@ void RenderSceneView()
         if (selectedGoIndex != 1)
         {
             ImGui::Text( "%s", teGameObjectGetName( selectedGoIndex ) );
+         
             if (ImGui::CollapsingHeader( "Transform" ))
             //ImGui::SeparatorText( "Transform" );
             {
-                ImGui::InputFloat3( "position", pos );
-                ImGui::InputFloat( "scale", &scale );
+                ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ) );
+                ImGui::InputFloat( "scale", teTransformAccessLocalScale( selectedGoIndex ) );
             }
 
             if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer)
