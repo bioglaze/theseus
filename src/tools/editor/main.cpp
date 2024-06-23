@@ -317,6 +317,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.lastMouseY = inputParams.y;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
+            
+            io.AddMouseButtonEvent( 1, true );
         }
         else if (event.type == teWindowEvent::Type::Mouse2Up)
         {
@@ -327,6 +329,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.deltaY = 0;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
+
+            io.AddMouseButtonEvent( 1, false );
         }
         else if (event.type == teWindowEvent::Type::MouseMove)
         {
@@ -344,6 +348,14 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             }
 
             io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
+        }
+        else if (event.type == teWindowEvent::Type::MouseWheel)
+        {
+            inputParams.x = event.x;
+            inputParams.y = height - event.y;
+            inputParams.lastMouseX = inputParams.x;
+            inputParams.lastMouseY = inputParams.y;
+            printf( "wheel delta: %d\n", event.wheelDelta );
         }
     }
 

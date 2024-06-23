@@ -138,7 +138,13 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         win.events[ win.eventIndex ].x = LOWORD( lParam );
         win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
         break;
-
+    case WM_MOUSEWHEEL:
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+        win.events[ win.eventIndex ].x = LOWORD( lParam );
+        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
+        break;
     default:
         break;
     }

@@ -4,7 +4,7 @@ struct teWindowEvent
 {
     enum class Type
     {
-        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove
+        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove, MouseWheel
     };
 
     enum class KeyCode
@@ -19,6 +19,7 @@ struct teWindowEvent
     KeyCode keyCode = KeyCode::None;
     int x = 0;
     int y = 0;
+    int wheelDelta = 0;
 };
 
 // @param width Width in pixels. Pass 0 to width and height for fullscreen.
