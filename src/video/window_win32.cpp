@@ -120,7 +120,7 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        win.events[ win.eventIndex ].y = HIWORD(lParam);
     }
     break;
     case WM_RBUTTONDOWN:
@@ -129,20 +129,20 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        win.events[ win.eventIndex ].y = HIWORD(lParam);
     }
     break;
     case WM_MOUSEMOVE:
         IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        win.events[ win.eventIndex ].y = HIWORD(lParam);
         break;
     case WM_MOUSEWHEEL:
         IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = win.windowHeightWithoutTitleBar - HIWORD( lParam );
+        win.events[ win.eventIndex ].y = HIWORD( lParam );
         win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
         break;
     default:

@@ -414,7 +414,7 @@ int main()
             else if (event.type == teWindowEvent::Type::Mouse1Down)
             {
                 inputParams.x = event.x;
-                inputParams.y = height - event.y;
+                inputParams.y = event.y;
                 //isRightMouseDown = true;
                 inputParams.lastMouseX = inputParams.x;
                 inputParams.lastMouseY = inputParams.y;
@@ -426,7 +426,7 @@ int main()
             else if (event.type == teWindowEvent::Type::Mouse1Up)
             {
                 inputParams.x = event.x;
-                inputParams.y = height - event.y;
+                inputParams.y = event.y;
                 //isRightMouseDown = false;
                 inputParams.deltaX = 0;
                 inputParams.deltaY = 0;
@@ -438,7 +438,7 @@ int main()
             else if (event.type == teWindowEvent::Type::Mouse2Down)
             {
                 inputParams.x = event.x;
-                inputParams.y = height - event.y;
+                inputParams.y = event.y;
                 isRightMouseDown = true;
                 inputParams.lastMouseX = inputParams.x;
                 inputParams.lastMouseY = inputParams.y;
@@ -448,7 +448,7 @@ int main()
             else if (event.type == teWindowEvent::Type::Mouse2Up)
             {
                 inputParams.x = event.x;
-                inputParams.y = height - event.y;
+                inputParams.y = event.y;
                 isRightMouseDown = false;
                 inputParams.deltaX = 0;
                 inputParams.deltaY = 0;
@@ -458,7 +458,7 @@ int main()
             else if (event.type == teWindowEvent::Type::MouseMove)
             {
                 inputParams.x = event.x;
-                inputParams.y = height - event.y;
+                inputParams.y = event.y;
                 inputParams.deltaX = float( inputParams.x - inputParams.lastMouseX );
                 inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
                 inputParams.lastMouseX = inputParams.x;

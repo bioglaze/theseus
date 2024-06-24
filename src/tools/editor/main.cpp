@@ -287,7 +287,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::Mouse1Down)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.isRightMouseDown = true;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
@@ -299,7 +299,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::Mouse1Up)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.isRightMouseDown = false;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
@@ -311,7 +311,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::Mouse2Down)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.isRightMouseDown = true;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
@@ -323,7 +323,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::Mouse2Up)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.isRightMouseDown = false;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
@@ -335,7 +335,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::MouseMove)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.deltaX = float( inputParams.x - inputParams.lastMouseX );
             inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
             inputParams.lastMouseX = inputParams.x;
@@ -352,7 +352,7 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::MouseWheel)
         {
             inputParams.x = event.x;
-            inputParams.y = height - event.y;
+            inputParams.y = event.y;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             printf( "wheel delta: %d\n", event.wheelDelta );
