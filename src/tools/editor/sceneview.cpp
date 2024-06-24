@@ -33,11 +33,13 @@ struct SceneView
     teShader fullscreenAdditiveShader;
     teShader momentsShader;
     teGameObject cubeGo;
+    teGameObject translateGizmoGo;
 
     teTexture2D fontTex;
     teTexture2D gliderTex;
 
     teMesh cubeMesh;
+    teMesh translateGizmoMesh;
     teMaterial material;
     teScene scene;
 
@@ -211,10 +213,19 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teMeshRendererSetMesh( sceneView.cubeGo.index, &sceneView.cubeMesh );
     teMeshRendererSetMaterial( sceneView.cubeGo.index, sceneView.material, 0 );
 
+    teFile gizmoFile = teLoadFile( "assets/meshes/translation_gizmo.t3d" );
+    sceneView.translateGizmoMesh = teLoadMesh( gizmoFile );
+    sceneView.translateGizmoGo = teCreateGameObject( "translationGizmo", teComponent::Transform | teComponent::MeshRenderer );
+    teTransformSetLocalPosition( sceneView.translateGizmoGo.index, Vec3( 2, 0, 0 ) );
+    teTransformSetLocalScale( sceneView.translateGizmoGo.index, 0.25f );
+    teMeshRendererSetMesh( sceneView.translateGizmoGo.index, &sceneView.translateGizmoMesh );
+    teMeshRendererSetMaterial( sceneView.translateGizmoGo.index, sceneView.material, 0 );
+
     sceneView.scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
 
     teSceneAdd( sceneView.scene, sceneView.camera3d.index );
+    teSceneAdd( sceneView.scene, sceneView.translateGizmoGo.index );
     teSceneAdd( sceneView.scene, sceneView.cubeGo.index );
     teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( 0, 1, 0 ) );
 
@@ -278,11 +289,13 @@ void RenderSceneView()
 
         ImGui::Text( "Game objects:" );
 
-        for (unsigned i = 0; i < teSceneGetMaxGameObjects( sceneView.scene ); ++i)
+        unsigned goCount = teSceneGetMaxGameObjects( sceneView.scene );
+
+        for (unsigned i = 0; i < goCount; ++i)
         {
             unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
             
-            if (goIndex != 0 && goIndex != 1)
+            if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index)
             {
                 ImGui::Text( "%s", teGameObjectGetName( goIndex ) );
                 
@@ -299,15 +312,15 @@ void RenderSceneView()
 
     if (ImGui::Begin( "Inspector" ))
     {
-        if (selectedGoIndex != 1)
+        if (selectedGoIndex != sceneView.translateGizmoGo.index && selectedGoIndex != sceneView.camera3d.index)
         {
             ImGui::Text( "%s", teGameObjectGetName( selectedGoIndex ) );
          
             if (ImGui::CollapsingHeader( "Transform" ))
             //ImGui::SeparatorText( "Transform" );
             {
-                ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ) );
-                ImGui::InputFloat( "scale", teTransformAccessLocalScale( selectedGoIndex ) );
+                ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f", ImGuiInputTextFlags_CharsScientific );
+                ImGui::InputFloat( "scale", teTransformAccessLocalScale( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
             }
 
             if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer)
