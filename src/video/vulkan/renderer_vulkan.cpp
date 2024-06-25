@@ -191,6 +191,8 @@ struct Renderer
     unsigned statDrawCalls = 0;
     unsigned statPSOBinds = 0;
 
+    bool meshShaderSupported = false;
+    
     static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
 
@@ -982,7 +984,20 @@ void CreateDevice()
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, nullptr );
 
     printf( "GPU: %s\n", renderer.properties.deviceName );
+
+    uint32_t deviceExtensionCount = 0;
+    vkEnumerateDeviceExtensionProperties( renderer.physicalDevice, nullptr, &deviceExtensionCount, nullptr );
+
+    VkExtensionProperties* availableExtensions = (VkExtensionProperties*)TE_ALLOCA( deviceExtensionCount * sizeof( VkExtensionProperties ) );
     
+    for (uint32_t i = 0; i < deviceExtensionCount; ++i)
+    {
+        if (teStrstr( availableExtensions[ i ].extensionName, VK_EXT_MESH_SHADER_EXTENSION_NAME ))
+        {
+            renderer.meshShaderSupported = true;
+        }
+    }
+
     VkQueueFamilyProperties* queueProps = (VkQueueFamilyProperties*)teMalloc( sizeof( VkQueueFamilyProperties ) * queueCount );
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, queueProps );
 
@@ -1021,7 +1036,7 @@ void CreateDevice()
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.pEnabledFeatures = &renderer.features;
-    deviceCreateInfo.enabledExtensionCount = 2;
+    deviceCreateInfo.enabledExtensionCount = renderer.meshShaderSupported ? 2 : 1;
     deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions;
     VK_CHECK( vkCreateDevice( renderer.physicalDevice, &deviceCreateInfo, nullptr, &renderer.device ) );
 
@@ -1494,7 +1509,16 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     createInfo.pSetLayouts = &renderer.descriptorSetLayout;
 
     VkPushConstantRange pushConstantRange = {};
-    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+
+    if (renderer.meshShaderSupported)
+    {
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+    }
+    else
+    {
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+    }
+    
     pushConstantRange.size = sizeof( PushConstants );
 
     createInfo.pushConstantRangeCount = 1;
@@ -1877,8 +1901,15 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
     int pushConstants[ 5 ] = { textureIndex, textureIndex, textureIndex, 0, 0 };
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
-
+    if (renderer.meshShaderSupported)
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    else
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    
     vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, ShaderGetComputePSO( shader ) );
     vkCmdDispatch( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, groupsX, groupsY, groupsZ );
 
@@ -1966,8 +1997,15 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
 
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
-
+    if (renderer.meshShaderSupported)
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    else
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
 
     MoveToNextUboOffset();
@@ -2039,8 +2077,16 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     pushConstants.scale[ 1 ] = 2.0f / displaySizeY;
     pushConstants.translate[ 0 ] = -1.0f - displayPosX * pushConstants.scale[ 0 ];
     pushConstants.translate[ 1 ] = -1.0f - displayPosY * pushConstants.scale[ 1 ];
-    vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
 
+    if (renderer.meshShaderSupported)
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    else
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
 
     ++renderer.statDrawCalls;
