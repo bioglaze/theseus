@@ -631,11 +631,12 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
-    Matrix localToClip2;
-    localToClip.Transpose( localToClip2 );
     ShaderParams shaderParams;
     UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams );
 
+    const unsigned vertexStride = 20; // sizeof( ImDrawVert )
+    const unsigned indexStride = 2; // sizeof( ImDrawIdx )
+    
     [renderer.renderEncoder setRenderPipelineState:renderer.psos[ psoIndex ].pso];
     ++renderer.statPSOBinds;
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
@@ -644,7 +645,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
     [renderer.renderEncoder setTriangleFillMode:MTLTriangleFillModeFill];
     [renderer.renderEncoder setVertexBuffer:BufferGetBuffer( renderer.uiVertexBuffer ) offset:0 atIndex:0];
-    [renderer.renderEncoder setVertexBufferOffset:vertexOffset atIndex:0];
+    [renderer.renderEncoder setVertexBufferOffset:vertexOffset * vertexStride atIndex:0];
     [renderer.renderEncoder setVertexBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:1];
     [renderer.renderEncoder setFragmentTexture:TextureGetMetalTexture( fontTex.index ) atIndex:0];
     
@@ -652,7 +653,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
                               indexCount:elementCount
                                indexType:MTLIndexTypeUInt16
                              indexBuffer:BufferGetBuffer( renderer.uiIndexBuffer )
-                       indexBufferOffset:indexOffset];
+                       indexBufferOffset:indexOffset * indexStride];
     
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;

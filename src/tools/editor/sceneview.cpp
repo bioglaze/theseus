@@ -135,16 +135,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                // FIXME: This looks wrong, but Metal requires the index offset to be multiple of 2.
-                //        On Vulkan this would produce garbage triangles in some cases, so only do the fixup on Metal.
-                unsigned int idxOffs = pcmd->IdxOffset + global_idx_offset;
-#if __APPLE__
-                if (idxOffs % 2)
-                {
-                    ++idxOffs;
-                }
-#endif   
-                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, idxOffs, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
             }
         }
 
