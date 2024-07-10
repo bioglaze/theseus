@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 #include "gameobject.h"
 #include "light.h"
 #include "material.h"
+#include "matrix.h"
 #include "mesh.h"
 #include "quaternion.h"
 #include "renderer.h"
@@ -142,6 +144,36 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
         global_idx_offset += cmd_list->IdxBuffer.Size;
         global_vtx_offset += cmd_list->VtxBuffer.Size;
     }
+}
+
+void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screenHeight, teGameObject camera, Vec3& outRayOrigin, Vec3& outRayTarget )
+{
+    const float aspect = screenHeight / screenWidth;
+    const float halfWidth = screenWidth * 0.5f;
+    const float halfHeight = screenHeight * 0.5f;
+    const float fov = teCameraGetFovDegrees( camera.index ) * (3.1415926535f / 180.0f);
+
+    // Normalizes screen coordinates and scales them to the FOV.
+    const float dx = tanf( fov * 0.5f ) * (screenX / halfWidth - 1.0f) / aspect;
+    const float dy = tanf( fov * 0.5f ) * (screenY / halfHeight - 1.0f);
+    
+    Matrix view = teTransformGetMatrix( camera.index );
+    Vec3 pos = teTransformGetLocalPosition( camera.index );
+    
+    Matrix translation;
+    translation.SetTranslation( -pos );
+    Matrix::Multiply( translation, view, view );
+
+    Matrix invView;
+    // FIXME: does this need to be a proper invert or will a simpler function do?
+    //Matrix::Invert( view, invView );
+
+    const float farp = teCameraGetFar( camera.index );
+
+    outRayOrigin = pos;
+    outRayTarget = -Vec3( -dx * farp, dy * farp, farp );
+
+    Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
 }
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )

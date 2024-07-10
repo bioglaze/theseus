@@ -30,6 +30,20 @@ struct CameraImpl
 constexpr unsigned MaxCameras = 10000;
 CameraImpl cameras[ MaxCameras ];
 
+float teCameraGetFovDegrees( unsigned index )
+{
+    teAssert( index < MaxCameras );
+    
+    return cameras[ index ].fovDegrees;
+}
+
+float teCameraGetFar( unsigned index )
+{
+    teAssert( index < MaxCameras );
+    
+    return cameras[ index ].farDepth;
+}
+
 void teCameraSetClear( unsigned index, teClearFlag clearFlag, const Vec4& color )
 {
     teAssert( index < MaxCameras );

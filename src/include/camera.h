@@ -2,6 +2,9 @@
 
 enum class teProjectionType { Perspective, Orthographic };
 enum class teClearFlag { DepthAndColor, Depth, DontClear };
+
+float teCameraGetFovDegrees( unsigned index );
+float teCameraGetFar( unsigned index );
 void teCameraSetProjection( unsigned index, float fovDegrees, float aspect, float nearDepth, float farDepth );
 void teCameraSetProjection( unsigned index, float left, float right, float bottom, float top, float aNear, float aFar );
 void teCameraGetProjection( unsigned index, float& outFovDegrees, float& outAspect, float& outNearDepth, float& outFarDepth );
