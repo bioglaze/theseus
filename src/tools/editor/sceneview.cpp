@@ -62,6 +62,8 @@ struct ImGUIImplCustom
     const char* name = "jeejee";
 };
 
+ImGUIImplCustom impl;
+
 void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
@@ -166,7 +168,7 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
 
     Matrix invView;
     // FIXME: does this need to be a proper invert or will a simpler function do?
-    //Matrix::Invert( view, invView );
+    Matrix::Invert( view, invView );
 
     const float farp = teCameraGetFar( camera.index );
 
@@ -252,9 +254,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teSceneAdd( sceneView.scene, sceneView.cubeGo.index );
     teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( 0, 1, 0 ) );
 
-    ImGUIImplCustom impl;
-
-    ImGuiContext* imContext = ImGui::CreateContext();
+    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width * uiScale;
     io.DisplaySize.y = (float)height * uiScale;
@@ -278,7 +278,7 @@ unsigned SceneViewGetCameraIndex()
 
 char text[ 100 ];
 char openFilePath[ 280 ];
-int selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
+unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
 float pos[ 3 ];
 float scale = 1;
 
@@ -312,7 +312,7 @@ void RenderSceneView()
 
         ImGui::Text( "Game objects:" );
 
-        unsigned goCount = teSceneGetMaxGameObjects( sceneView.scene );
+        unsigned goCount = teSceneGetMaxGameObjects();
 
         for (unsigned i = 0; i < goCount; ++i)
         {

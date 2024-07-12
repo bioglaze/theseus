@@ -165,6 +165,98 @@ void Matrix::MakeLookAtLH( const Vec3& eye, const Vec3& center, const Vec3& up )
     m[ 12 ] = 0; m[ 13 ] = 0; m[ 14 ] = 0; m[ 15 ] = 1;
 }
 
+void Matrix::Invert( const Matrix& matrix, Matrix& out )
+{
+    float invTrans[ 16 ];
+    InverseTranspose( &matrix.m[ 0 ], &invTrans[ 0 ] );
+    Matrix iTrans;
+    iTrans.InitFrom( &invTrans[ 0 ] );
+    iTrans.Transpose( out );
+}
+
+void Matrix::InverseTranspose( const float m[ 16 ], float* out )
+{
+    float tmp[ 12 ];
+
+    // Calculates pairs for first 8 elements (cofactors)
+    tmp[ 0 ] = m[ 10 ] * m[ 15 ];
+    tmp[ 1 ] = m[ 11 ] * m[ 14 ];
+    tmp[ 2 ] = m[ 9 ] * m[ 15 ];
+    tmp[ 3 ] = m[ 11 ] * m[ 13 ];
+    tmp[ 4 ] = m[ 9 ] * m[ 14 ];
+    tmp[ 5 ] = m[ 10 ] * m[ 13 ];
+    tmp[ 6 ] = m[ 8 ] * m[ 15 ];
+    tmp[ 7 ] = m[ 11 ] * m[ 12 ];
+    tmp[ 8 ] = m[ 8 ] * m[ 14 ];
+    tmp[ 9 ] = m[ 10 ] * m[ 12 ];
+    tmp[ 10 ] = m[ 8 ] * m[ 13 ];
+    tmp[ 11 ] = m[ 9 ] * m[ 12 ];
+
+    // Calculates first 8 elements (cofactors)
+    out[ 0 ] = tmp[ 0 ] * m[ 5 ] + tmp[ 3 ] * m[ 6 ] + tmp[ 4 ] * m[ 7 ] - tmp[ 1 ] * m[ 5 ] - tmp[ 2 ] * m[ 6 ] - tmp[ 5 ] * m[ 7 ];
+    out[ 1 ] = tmp[ 1 ] * m[ 4 ] + tmp[ 6 ] * m[ 6 ] + tmp[ 9 ] * m[ 7 ] - tmp[ 0 ] * m[ 4 ] - tmp[ 7 ] * m[ 6 ] - tmp[ 8 ] * m[ 7 ];
+    out[ 2 ] = tmp[ 2 ] * m[ 4 ] + tmp[ 7 ] * m[ 5 ] + tmp[ 10 ] * m[ 7 ] - tmp[ 3 ] * m[ 4 ] - tmp[ 6 ] * m[ 5 ] - tmp[ 11 ] * m[ 7 ];
+    out[ 3 ] = tmp[ 5 ] * m[ 4 ] + tmp[ 8 ] * m[ 5 ] + tmp[ 11 ] * m[ 6 ] - tmp[ 4 ] * m[ 4 ] - tmp[ 9 ] * m[ 5 ] - tmp[ 10 ] * m[ 6 ];
+    out[ 4 ] = tmp[ 1 ] * m[ 1 ] + tmp[ 2 ] * m[ 2 ] + tmp[ 5 ] * m[ 3 ] - tmp[ 0 ] * m[ 1 ] - tmp[ 3 ] * m[ 2 ] - tmp[ 4 ] * m[ 3 ];
+    out[ 5 ] = tmp[ 0 ] * m[ 0 ] + tmp[ 7 ] * m[ 2 ] + tmp[ 8 ] * m[ 3 ] - tmp[ 1 ] * m[ 0 ] - tmp[ 6 ] * m[ 2 ] - tmp[ 9 ] * m[ 3 ];
+    out[ 6 ] = tmp[ 3 ] * m[ 0 ] + tmp[ 6 ] * m[ 1 ] + tmp[ 11 ] * m[ 3 ] - tmp[ 2 ] * m[ 0 ] - tmp[ 7 ] * m[ 1 ] - tmp[ 10 ] * m[ 3 ];
+    out[ 7 ] = tmp[ 4 ] * m[ 0 ] + tmp[ 9 ] * m[ 1 ] + tmp[ 10 ] * m[ 2 ] - tmp[ 5 ] * m[ 0 ] - tmp[ 8 ] * m[ 1 ] - tmp[ 11 ] * m[ 2 ];
+
+    // Calculates pairs for second 8 elements (cofactors)
+    tmp[ 0 ] = m[ 2 ] * m[ 7 ];
+    tmp[ 1 ] = m[ 3 ] * m[ 6 ];
+    tmp[ 2 ] = m[ 1 ] * m[ 7 ];
+    tmp[ 3 ] = m[ 3 ] * m[ 5 ];
+    tmp[ 4 ] = m[ 1 ] * m[ 6 ];
+    tmp[ 5 ] = m[ 2 ] * m[ 5 ];
+    tmp[ 6 ] = m[ 0 ] * m[ 7 ];
+    tmp[ 7 ] = m[ 3 ] * m[ 4 ];
+    tmp[ 8 ] = m[ 0 ] * m[ 6 ];
+    tmp[ 9 ] = m[ 2 ] * m[ 4 ];
+    tmp[ 10 ] = m[ 0 ] * m[ 5 ];
+    tmp[ 11 ] = m[ 1 ] * m[ 4 ];
+
+    // Calculates second 8 elements (cofactors)
+    out[ 8 ] = tmp[ 0 ] * m[ 13 ] + tmp[ 3 ] * m[ 14 ] + tmp[ 4 ] * m[ 15 ]
+        - tmp[ 1 ] * m[ 13 ] - tmp[ 2 ] * m[ 14 ] - tmp[ 5 ] * m[ 15 ];
+
+    out[ 9 ] = tmp[ 1 ] * m[ 12 ] + tmp[ 6 ] * m[ 14 ] + tmp[ 9 ] * m[ 15 ]
+        - tmp[ 0 ] * m[ 12 ] - tmp[ 7 ] * m[ 14 ] - tmp[ 8 ] * m[ 15 ];
+
+    out[ 10 ] = tmp[ 2 ] * m[ 12 ] + tmp[ 7 ] * m[ 13 ] + tmp[ 10 ] * m[ 15 ]
+        - tmp[ 3 ] * m[ 12 ] - tmp[ 6 ] * m[ 13 ] - tmp[ 11 ] * m[ 15 ];
+
+    out[ 11 ] = tmp[ 5 ] * m[ 12 ] + tmp[ 8 ] * m[ 13 ] + tmp[ 11 ] * m[ 14 ]
+        - tmp[ 4 ] * m[ 12 ] - tmp[ 9 ] * m[ 13 ] - tmp[ 10 ] * m[ 14 ];
+
+    out[ 12 ] = tmp[ 2 ] * m[ 10 ] + tmp[ 5 ] * m[ 11 ] + tmp[ 1 ] * m[ 9 ]
+        - tmp[ 4 ] * m[ 11 ] - tmp[ 0 ] * m[ 9 ] - tmp[ 3 ] * m[ 10 ];
+
+    out[ 13 ] = tmp[ 8 ] * m[ 11 ] + tmp[ 0 ] * m[ 8 ] + tmp[ 7 ] * m[ 10 ]
+        - tmp[ 6 ] * m[ 10 ] - tmp[ 9 ] * m[ 11 ] - tmp[ 1 ] * m[ 8 ];
+
+    out[ 14 ] = tmp[ 6 ] * m[ 9 ] + tmp[ 11 ] * m[ 11 ] + tmp[ 3 ] * m[ 8 ]
+        - tmp[ 10 ] * m[ 11 ] - tmp[ 2 ] * m[ 8 ] - tmp[ 7 ] * m[ 9 ];
+
+    out[ 15 ] = tmp[ 10 ] * m[ 10 ] + tmp[ 4 ] * m[ 8 ] + tmp[ 9 ] * m[ 9 ]
+        - tmp[ 8 ] * m[ 9 ] - tmp[ 11 ] * m[ 10 ] - tmp[ 5 ] * m[ 8 ];
+
+    // Calculates the determinant.
+    const float det = m[ 0 ] * out[ 0 ] + m[ 1 ] * out[ 1 ] + m[ 2 ] * out[ 2 ] + m[ 3 ] * out[ 3 ];
+    const float acceptableDelta = 0.0001f;
+
+    if (fabs( det ) < acceptableDelta)
+    {
+        Matrix identity;
+        teMemcpy( out, &identity.m[ 0 ], sizeof( Matrix ) );
+        return;
+    }
+    for (int i = 0; i < 16; ++i)
+    {
+        out[ i ] /= det;
+    }
+}
+
 void Matrix::MakeIdentity()
 {
     for (int i = 0; i < 15; ++i)

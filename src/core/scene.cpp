@@ -54,7 +54,7 @@ SceneImpl scenes[ 2 ];
 unsigned sceneIndex = 0;
 teMesh quadMesh;
 
-unsigned teSceneGetMaxGameObjects( const teScene& scene )
+unsigned teSceneGetMaxGameObjects()
 {
     return MAX_GAMEOBJECTS;
 }
