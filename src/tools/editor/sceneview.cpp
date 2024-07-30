@@ -22,8 +22,10 @@
 #include "imgui.h"
 
 void GetOpenPath( char* path, const char* extension );
+void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 
 constexpr int MaxGameObjects = 100;
+constexpr unsigned MaxSelectedObjects = 10;
 
 struct SceneView
 {
@@ -51,6 +53,7 @@ struct SceneView
 
     teTextureCube skyTex;
     teGameObject camera3d;
+    teGameObject selectedGos[ MaxSelectedObjects ];
 };
 
 SceneView sceneView;
@@ -176,6 +179,85 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     outRayTarget = -Vec3( -dx * farp, dy * farp, farp );
 
     Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
+}
+
+static void GetMinMax( const Vec3* points, int count, Vec3& outMin, Vec3& outMax )
+{
+    outMin = points[ 0 ];
+    outMax = points[ 0 ];
+
+    for (int i = 1, s = count; i < s; ++i)
+    {
+        const Vec3& point = points[ i ];
+
+        if (point.x < outMin.x)
+        {
+            outMin.x = point.x;
+        }
+
+        if (point.y < outMin.y)
+        {
+            outMin.y = point.y;
+        }
+
+        if (point.z < outMin.z)
+        {
+            outMin.z = point.z;
+        }
+
+        if (point.x > outMax.x)
+        {
+            outMax.x = point.x;
+        }
+
+        if (point.y > outMax.y)
+        {
+            outMax.y = point.y;
+        }
+
+        if (point.z > outMax.z)
+        {
+            outMax.z = point.z;
+        }
+    }
+}
+
+void GetColliders( unsigned screenX, unsigned screenY )
+{
+    Vec3 rayOrigin, rayTarget;
+    ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d, rayOrigin, rayTarget );
+
+    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    {
+        if ((teGameObjectGetComponents( go ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        Vec3 oMin, oMax;
+
+        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( go ) ); ++subMesh)
+        {
+            Vec3 mMin, mMax;
+            Vec3 mAABB[ 8 ];
+
+            teMeshGetSubMeshLocalAABB( teMeshRendererGetMesh( go ), subMesh, mMin, mMax );
+            teGetCorners( mMin, mMax, mAABB );
+
+            for (int v = 0; v < 8; ++v)
+            {
+                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( go ), mAABB[ v ] );
+            }
+
+            GetMinMax( mAABB, 8, oMin, oMax );
+        }
+    }
+}
+
+void SelectObject( unsigned x, unsigned y )
+{
+    GetColliders( x, y );
+    sceneView.selectedGos[ 0 ].index = 0;
 }
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )

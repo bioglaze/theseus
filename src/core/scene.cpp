@@ -27,7 +27,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
-void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
+void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
 unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
@@ -157,7 +157,7 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
             teMeshGetSubMeshLocalAABB( mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
 
             Vec3 meshAabbWorld[ 8 ];
-            GetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
+            teGetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
 
             for (unsigned v = 0; v < 8; ++v)
             {
@@ -355,7 +355,7 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
 
                 // TODO: This could use the results of updateFrustumsAndCull() instead of calculating this again.
                 Vec3 meshAabbWorld[ 8 ];
-                GetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
+                teGetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
 
                 for (unsigned v = 0; v < 8; ++v)
                 {

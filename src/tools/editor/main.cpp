@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-05-07
+// Modified: 2024-07-21
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -36,6 +36,7 @@ double GetMilliseconds()
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 void RenderSceneView();
 unsigned SceneViewGetCameraIndex();
+void SelectObject( unsigned x, unsigned y );
 
 struct InputState
 {
@@ -307,6 +308,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.lastMouseY = inputParams.y;
 
             io.AddMouseButtonEvent( 0, false );
+
+            SelectObject( event.x, event.y );
         }
         else if (event.type == teWindowEvent::Type::Mouse2Down)
         {

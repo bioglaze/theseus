@@ -563,7 +563,7 @@ void Quaternion::GetMatrix( Matrix& outMatrix ) const
     outMatrix.m[ 15 ] = 1;
 }
 
-void GetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] )
+void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] )
 {
     outCorners[ 0 ] = Vec3( min.x, min.y, min.z );
     outCorners[ 1 ] = Vec3( max.x, min.y, min.z );
