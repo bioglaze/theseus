@@ -7,7 +7,7 @@ struct teGameObjectImpl
     const char* name = "unnamed";
 };
 
-constexpr unsigned MaxGameObjects = 1000;
+constexpr unsigned MaxGameObjects = 10000;
 teGameObjectImpl gameObjects[ MaxGameObjects ];
 unsigned gameObjectCount = 0;
 

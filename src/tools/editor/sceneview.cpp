@@ -24,7 +24,6 @@
 void GetOpenPath( char* path, const char* extension );
 void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 
-constexpr int MaxGameObjects = 100;
 constexpr unsigned MaxSelectedObjects = 10;
 
 struct SceneView
@@ -222,34 +221,87 @@ static void GetMinMax( const Vec3* points, int count, Vec3& outMin, Vec3& outMax
     }
 }
 
+static float Min2( float a, float b )
+{
+    return a < b ? a : b;
+}
+
+static float Max2( float a, float b )
+{
+    return a < b ? b : a;
+}
+
+float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min, const Vec3& max )
+{
+    const Vec3 dir = (origin - target).Normalized(); // NOTE: This was "target - origin" in Aether3D Editor.
+    const Vec3 dirfrac{ 1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z };
+
+    const float t1 = (min.x - origin.x) * dirfrac.x;
+    const float t2 = (max.x - origin.x) * dirfrac.x;
+    const float t3 = (min.y - origin.y) * dirfrac.y;
+    const float t4 = (max.y - origin.y) * dirfrac.y;
+    const float t5 = (min.z - origin.z) * dirfrac.z;
+    const float t6 = (max.z - origin.z) * dirfrac.z;
+
+    const float tmin = Max2( Max2( Min2( t1, t2 ), Min2( t3, t4 ) ), Min2( t5, t6 ) );
+    const float tmax = Min2( Min2( Max2( t1, t2 ), Max2( t3, t4 ) ), Max2( t5, t6 ) );
+
+    // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+    if (tmax < 0)
+    {
+        return -1.0f;
+    }
+
+    // if tmin > tmax, ray doesn't intersect AABB
+    if (tmin > tmax)
+    {
+        return -1.0f;
+    }
+
+    return tmin;
+}
+
 void GetColliders( unsigned screenX, unsigned screenY )
 {
     Vec3 rayOrigin, rayTarget;
     ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d, rayOrigin, rayTarget );
 
+    printf( "max gos: %d\n", teSceneGetMaxGameObjects() );
+
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
-        if ((teGameObjectGetComponents( go ) & teComponent::MeshRenderer) == 0)
+        unsigned sceneGo = teSceneGetGameObjectIndex( sceneView.scene, go );
+
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
         {
             continue;
         }
 
-        Vec3 oMin, oMax;
+        printf( "gameobject %s:\n", teGameObjectGetName( sceneGo ) );
 
-        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( go ) ); ++subMesh)
+        if (sceneGo == 2)
         {
-            Vec3 mMin, mMax;
+            printf( "break\n" );
+        }
+
+        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++subMesh)
+        {
+            Vec3 mMinLocal, mMaxLocal;
+            Vec3 mMinWorld, mMaxWorld;
             Vec3 mAABB[ 8 ];
 
-            teMeshGetSubMeshLocalAABB( teMeshRendererGetMesh( go ), subMesh, mMin, mMax );
-            teGetCorners( mMin, mMax, mAABB );
+            teMeshGetSubMeshLocalAABB( teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
+            teGetCorners( mMinLocal, mMaxLocal, mAABB );
 
             for (int v = 0; v < 8; ++v)
             {
-                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( go ), mAABB[ v ] );
+                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( sceneGo ), mAABB[ v ] );
             }
 
-            GetMinMax( mAABB, 8, oMin, oMax );
+            GetMinMax( mAABB, 8, mMinWorld, mMaxWorld );
+
+            const float meshDistance = IntersectRayAABB( rayOrigin, rayTarget, mMinWorld, mMaxWorld );
+            printf( "  meshDistance: %f\n", meshDistance );
         }
     }
 }
