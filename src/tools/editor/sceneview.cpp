@@ -26,6 +26,12 @@ void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 
+char text[ 100 ];
+char openFilePath[ 280 ];
+unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
+float pos[ 3 ];
+float scale = 1;
+
 struct SceneView
 {
     unsigned width;
@@ -266,7 +272,8 @@ void GetColliders( unsigned screenX, unsigned screenY )
     Vec3 rayOrigin, rayTarget;
     ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d, rayOrigin, rayTarget );
 
-    printf( "max gos: %d\n", teSceneGetMaxGameObjects() );
+    int closestSceneGo = -1;
+    float closestDistance = 99999.0f;
 
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
@@ -275,13 +282,6 @@ void GetColliders( unsigned screenX, unsigned screenY )
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
         {
             continue;
-        }
-
-        printf( "gameobject %s:\n", teGameObjectGetName( sceneGo ) );
-
-        if (sceneGo == 2)
-        {
-            printf( "break\n" );
         }
 
         for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++subMesh)
@@ -301,8 +301,20 @@ void GetColliders( unsigned screenX, unsigned screenY )
             GetMinMax( mAABB, 8, mMinWorld, mMaxWorld );
 
             const float meshDistance = IntersectRayAABB( rayOrigin, rayTarget, mMinWorld, mMaxWorld );
-            printf( "  meshDistance: %f\n", meshDistance );
+            
+            if (meshDistance > 0 && meshDistance < closestDistance)
+            {
+                closestDistance = meshDistance;
+                closestSceneGo = sceneGo;
+            }
         }
+    }
+
+    if (closestSceneGo != -1)
+    {
+        selectedGoIndex = closestSceneGo;
+
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
 }
 
@@ -409,12 +421,6 @@ unsigned SceneViewGetCameraIndex()
 {
     return sceneView.camera3d.index;
 }
-
-char text[ 100 ];
-char openFilePath[ 280 ];
-unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
-float pos[ 3 ];
-float scale = 1;
 
 void RenderSceneView()
 {
