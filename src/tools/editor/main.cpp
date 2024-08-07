@@ -308,8 +308,11 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.lastMouseY = inputParams.y;
 
             io.AddMouseButtonEvent( 0, false );
-
-            SelectObject( event.x, event.y );
+            
+            if (!io.WantCaptureKeyboard)
+            {
+                SelectObject( event.x, event.y );
+            }
         }
         else if (event.type == teWindowEvent::Type::Mouse2Down)
         {

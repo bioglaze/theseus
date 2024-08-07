@@ -46,10 +46,16 @@ struct SceneView
 
     teTexture2D fontTex;
     teTexture2D gliderTex;
+    teTexture2D redTex;
+    teTexture2D greenTex;
+    teTexture2D blueTex;
 
     teMesh cubeMesh;
     teMesh translateGizmoMesh;
     teMaterial material;
+    teMaterial redMaterial;
+    teMaterial greenMaterial;
+    teMaterial blueMaterial;
     teScene scene;
 
     teShader skyboxShader;
@@ -320,6 +326,7 @@ void GetColliders( unsigned screenX, unsigned screenY )
 
 void SelectObject( unsigned x, unsigned y )
 {
+    selectedGoIndex = 1;
     GetColliders( x, y );
     sceneView.selectedGos[ 0 ].index = 0;
 }
@@ -377,6 +384,21 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.material = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 0 );
 
+    teFile redFile = teLoadFile( "assets/textures/red.tga" );
+    teFile greenFile = teLoadFile( "assets/textures/green.tga" );
+    teFile blueFile = teLoadFile( "assets/textures/blue.tga" );
+
+    sceneView.redTex = teLoadTexture( redFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    sceneView.greenTex = teLoadTexture( greenFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    sceneView.blueTex = teLoadTexture( blueFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    sceneView.redMaterial = teCreateMaterial( sceneView.unlitShader );
+    teMaterialSetTexture2D( sceneView.redMaterial, sceneView.redTex, 0 );
+    sceneView.greenMaterial = teCreateMaterial( sceneView.unlitShader );
+    teMaterialSetTexture2D( sceneView.greenMaterial, sceneView.greenTex, 0 );
+    sceneView.blueMaterial = teCreateMaterial( sceneView.unlitShader );
+    teMaterialSetTexture2D( sceneView.blueMaterial, sceneView.blueTex, 0 );
+
     sceneView.cubeMesh = teCreateCubeMesh();
     sceneView.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( sceneView.cubeGo.index, Vec3( 0, 0, 0 ) );
@@ -390,7 +412,9 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, Vec3( 2, 0, 0 ) );
     teTransformSetLocalScale( sceneView.translateGizmoGo.index, 0.25f );
     teMeshRendererSetMesh( sceneView.translateGizmoGo.index, &sceneView.translateGizmoMesh );
-    teMeshRendererSetMaterial( sceneView.translateGizmoGo.index, sceneView.material, 0 );
+    teMeshRendererSetMaterial( sceneView.translateGizmoGo.index, sceneView.greenMaterial, 0 );
+    teMeshRendererSetMaterial( sceneView.translateGizmoGo.index, sceneView.blueMaterial, 1 );
+    teMeshRendererSetMaterial( sceneView.translateGizmoGo.index, sceneView.redMaterial, 2 );
 
     sceneView.scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
@@ -466,6 +490,7 @@ void RenderSceneView()
                 {
                     printf( "clicked %s\n", teGameObjectGetName( goIndex ) );
                     selectedGoIndex = goIndex;
+                    teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
                 }
             }
         }
