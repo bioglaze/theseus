@@ -458,6 +458,7 @@
 				FRAMEWORK_SEARCH_PATHS = /Users/glaze/Documents/src/theseus/src/samples/hello_mac_ios;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TheseusEditor/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -487,6 +488,7 @@
 				FRAMEWORK_SEARCH_PATHS = /Users/glaze/Documents/src/theseus/src/samples/hello_mac_ios;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TheseusEditor/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

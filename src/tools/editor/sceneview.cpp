@@ -507,7 +507,12 @@ void RenderSceneView()
             if (ImGui::CollapsingHeader( "Transform" ))
             //ImGui::SeparatorText( "Transform" );
             {
-                ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f", ImGuiInputTextFlags_CharsScientific );
+                const bool positionChanged = ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f", ImGuiInputTextFlags_CharsScientific );
+                if (positionChanged)
+                {
+                    teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+                }
+                
                 ImGui::InputFloat( "scale", teTransformAccessLocalScale( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
             }
 
@@ -532,7 +537,7 @@ void RenderSceneView()
             }
             else if (ImGui::Button( "Add Mesh Renderer" ))
             {
-                printf( "added mesh renderer\n" );
+                printf( "TODO: add mesh renderer\n" );
             }
         }
     }
