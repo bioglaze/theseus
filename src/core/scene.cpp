@@ -224,6 +224,11 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             continue;
         }
 
+        if (!teMeshRendererIsEnabled( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ))
+        {
+            continue;
+        }
+        
         Matrix localToClip;
         teTransformGetComputedLocalToClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip );
 

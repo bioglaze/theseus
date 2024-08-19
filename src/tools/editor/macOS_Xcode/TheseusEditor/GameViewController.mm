@@ -19,6 +19,7 @@ const int uiScale = 2;
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 void RotateEditorCamera( float x, float y );
+void SelectObject( unsigned x, unsigned y );
 NSViewController* myViewController;
 
 Vec3 moveDir;
@@ -108,6 +109,11 @@ void MoveUp( float amount )
     //MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
     ImGuiIO& io = ImGui::GetIO();
     io.AddMouseButtonEvent( 0, false );
+    
+    if (!io.WantCaptureKeyboard)
+    {
+        SelectObject( (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale );
+    }
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent

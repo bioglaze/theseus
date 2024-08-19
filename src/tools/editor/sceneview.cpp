@@ -281,6 +281,8 @@ void GetColliders( unsigned screenX, unsigned screenY )
     int closestSceneGo = -1;
     float closestDistance = 99999.0f;
 
+    printf("getcolliders\n");
+
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
         unsigned sceneGo = teSceneGetGameObjectIndex( sceneView.scene, go );
@@ -322,6 +324,10 @@ void GetColliders( unsigned screenX, unsigned screenY )
 
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
+    else
+        printf("hiding gizmo\n");
+    
+    teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, closestSceneGo != -1 );
 }
 
 void SelectObject( unsigned x, unsigned y )
@@ -490,6 +496,7 @@ void RenderSceneView()
                 {
                     printf( "clicked %s\n", teGameObjectGetName( goIndex ) );
                     selectedGoIndex = goIndex;
+                    teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
                     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
                 }
             }

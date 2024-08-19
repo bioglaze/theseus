@@ -35,6 +35,7 @@ struct MeshRenderer
     teMesh* mesh = nullptr;
     teMaterial materials[ MaxMaterials ];
     bool isSubMeshCulled[ MaxMaterials ];
+    bool enabled = true;
 };
 
 static MeshImpl meshes[ MaxMeshes ];
@@ -225,6 +226,18 @@ void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh )
 {
     teAssert( gameObjectIndex < MaxMeshes );
     meshRenderers[ gameObjectIndex ].mesh = mesh;
+}
+
+void teMeshRendererSetEnabled( unsigned gameObjectIndex, bool enable )
+{
+    teAssert( gameObjectIndex < MaxMeshes );
+    meshRenderers[ gameObjectIndex ].enabled = enable;
+}
+
+bool teMeshRendererIsEnabled( unsigned gameObjectIndex )
+{
+    teAssert( gameObjectIndex < MaxMeshes );
+    return meshRenderers[ gameObjectIndex ].enabled;
 }
 
 const teMaterial& teMeshRendererGetMaterial( unsigned gameObjectIndex, unsigned subMeshIndex )

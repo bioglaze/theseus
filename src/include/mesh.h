@@ -15,6 +15,8 @@ unsigned teMeshGetSubMeshCount( const teMesh& mesh );
 teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex );
 void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh );
 void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMaterial& material, unsigned subMeshIndex );
+void teMeshRendererSetEnabled( unsigned gameObjectIndex, bool enable );
+bool teMeshRendererIsEnabled( unsigned gameObjectIndex );
 const teMaterial& teMeshRendererGetMaterial( unsigned gameObjectIndex, unsigned subMeshIndex );
 unsigned teMeshGetIndexCount( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVCount( const teMesh& mesh, unsigned subMeshIndex );
