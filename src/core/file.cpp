@@ -17,7 +17,7 @@ teFile teLoadFile( const char* path )
 {
     teFile outFile;
     
-    if (path && *path == 0)
+    if (!path || (path && *path == 0))
     {
         return outFile;
     }

@@ -112,7 +112,8 @@ void MoveUp( float amount )
     
     if (!io.WantCaptureKeyboard)
     {
-        SelectObject( (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale );
+        printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
+        SelectObject( (int)theEvent.locationInWindow.x * uiScale, (int)(theEvent.locationInWindow.y) * uiScale );
     }
 }
 

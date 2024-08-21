@@ -631,7 +631,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
-    ShaderParams shaderParams;
+    ShaderParams shaderParams = {};
     UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams );
 
     const unsigned vertexStride = 20; // sizeof( ImDrawVert )

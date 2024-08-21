@@ -540,6 +540,13 @@ void RenderSceneView()
                             //teMeshRendererSetMesh( selectedGoIndex, mesh );
                         }
                     }
+                    
+                    teMesh& mesh = teMeshRendererGetMesh( selectedGoIndex );
+                    
+                    for (int i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
+                    {
+                        ImGui::Text( "submesh" );
+                    }
                 }
             }
             else if (ImGui::Button( "Add Mesh Renderer" ))
