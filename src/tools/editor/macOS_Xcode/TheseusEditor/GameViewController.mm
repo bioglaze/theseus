@@ -136,8 +136,13 @@ void MoveUp( float amount )
 {
     //NSLog(@"keyDown\n");
     NSLog(@"%d", [theEvent keyCode]);
+    bool isCmdDown = [theEvent modifierFlags] & NSEventModifierFlagCommand;
+    bool isShiftDown = [theEvent modifierFlags] & NSEventModifierFlagShift;
+    bool isCtrlDown = [theEvent modifierFlags] & NSEventModifierFlagControl;
     
     ImGuiIO& io = ImGui::GetIO();
+    io.KeyShift = isShiftDown;
+    io.KeySuper = isCmdDown;
     
     if ([theEvent keyCode] == 0x00) // A
     {
@@ -147,6 +152,19 @@ void MoveUp( float amount )
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
+        if (isCmdDown)
+        {
+            printf("cmd-d\n");
+        }
+        if (isCtrlDown)
+        {
+            printf("ctrl-d\n");
+        }
+        if (isShiftDown)
+        {
+            printf("shift-d\n");
+        }
+
         if (!io.WantTextInput)
             MoveRight( -1 );
         io.AddInputCharacter( 'd' );
@@ -258,7 +276,6 @@ void MoveUp( float amount )
         io.AddKeyEvent( ImGuiKey_DownArrow, true );
     else if ([theEvent keyCode] == 51)
         io.AddKeyEvent( ImGuiKey_Backspace, true );
-
 }
 
 - (void)keyUp:(NSEvent *)theEvent
