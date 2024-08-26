@@ -325,6 +325,8 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.deltaY = 0;
             
             io.AddMouseButtonEvent( 1, true );
+
+            //printf( "mouse 2 down. want capture mouse: %d\n", io.WantCaptureMouse );
         }
         else if (event.type == teWindowEvent::Type::Mouse2Up)
         {
