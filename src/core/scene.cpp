@@ -127,6 +127,19 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
     teAssert( !"Too many game objects!" );
 }
 
+void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
+{
+    teAssert( scene.index < 2 );
+
+    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    {
+        if (scenes[ scene.index ].gameObjects[ i ] == gameObjectIndex)
+        {
+            scenes[ scene.index ].gameObjects[ i ] = 0;
+        }
+    }
+}
+
 static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)

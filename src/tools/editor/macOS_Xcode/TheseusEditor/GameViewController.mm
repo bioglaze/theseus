@@ -20,6 +20,7 @@ const int uiScale = 2;
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 void RotateEditorCamera( float x, float y );
 void SelectObject( unsigned x, unsigned y );
+void DeleteSelectedObject();
 NSViewController* myViewController;
 
 Vec3 moveDir;
@@ -191,6 +192,12 @@ void MoveUp( float amount )
     {
         if (!io.WantTextInput)
             MoveUp( -1 );
+        io.AddInputCharacter( 'e' );
+    }
+    else if ([theEvent keyCode] == 51) // Delete
+    {
+        if (!io.WantTextInput && isCmdDown)
+            DeleteSelectedObject();
         io.AddInputCharacter( 'e' );
     }
     else if ([theEvent keyCode] == 18)

@@ -330,7 +330,19 @@ void SelectObject( unsigned x, unsigned y )
 {
     selectedGoIndex = 1;
     GetColliders( x, y );
-    sceneView.selectedGos[ 0 ].index = 0;
+    sceneView.selectedGos[ 0 ].index = selectedGoIndex;
+}
+
+void DeleteSelectedObject()
+{
+    if (selectedGoIndex != 1)
+    {
+        teSceneRemove( sceneView.scene, selectedGoIndex );
+    }
+    
+    selectedGoIndex = 1;
+    sceneView.selectedGos[ 0 ].index = selectedGoIndex;
+    teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, false );
 }
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )
