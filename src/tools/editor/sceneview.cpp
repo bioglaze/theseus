@@ -174,10 +174,10 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     const float dy = tanf( fov * 0.5f ) * (screenY / halfHeight - 1.0f);
     
     Matrix view = teTransformGetMatrix( camera.index );
-    Vec3 pos = teTransformGetLocalPosition( camera.index );
+    Vec3 locPos = teTransformGetLocalPosition( camera.index );
     
     Matrix translation;
-    translation.SetTranslation( -pos );
+    translation.SetTranslation( -locPos );
     Matrix::Multiply( translation, view, view );
 
     Matrix invView;
@@ -186,7 +186,7 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
 
     const float farp = teCameraGetFar( camera.index );
 
-    outRayOrigin = pos;
+    outRayOrigin = locPos;
     outRayTarget = -Vec3( -dx * farp, dy * farp, farp );
 
     Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
@@ -551,7 +551,7 @@ void RenderSceneView()
                     
                     teMesh& mesh = teMeshRendererGetMesh( selectedGoIndex );
                     
-                    for (int i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
+                    for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                     {
                         ImGui::Text( "submesh" );
                     }

@@ -15,8 +15,17 @@ struct teWindowEvent
         Less, None
     };
 
+    enum class KeyModifier : unsigned
+    {
+        Empty = 0,
+        Control = 1,
+        Alt = 2,
+        Shift = 4
+    };
+
     Type type = Type::Empty;
     KeyCode keyCode = KeyCode::None;
+    unsigned keyModifiers = 0;
     int x = 0;
     int y = 0;
     int wheelDelta = 0;

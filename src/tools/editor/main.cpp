@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-07-21
+// Modified: 2024-09-01
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -37,6 +37,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RenderSceneView();
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
+void DeleteSelectedObject();
 
 struct InputState
 {
@@ -117,7 +118,7 @@ void GetOpenPath( char* path, const char* extension )
 
 InputState inputParams;
 
-bool HandleInput( unsigned width, unsigned height, double dt )
+bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -155,9 +156,18 @@ bool HandleInput( unsigned width, unsigned height, double dt )
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Backspace)
             io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, false );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Delete)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                DeleteSelectedObject();
+                continue;
+            }
             io.AddKeyEvent( ImGuiKey::ImGuiKey_Delete, true );
+        }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Delete)
+        {
             io.AddKeyEvent( ImGuiKey::ImGuiKey_Delete, false );
+        }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N0)
             io.AddInputCharacter( '0' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::N1)
@@ -257,7 +267,11 @@ bool HandleInput( unsigned width, unsigned height, double dt )
             inputParams.moveDir.x = 0;
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
         {
-            if (!io.WantCaptureKeyboard)
+            if (!io.WantCaptureKeyboard && (event.keyModifiers & (unsigned)teWindowEvent::KeyModifier::Control))
+            {
+                printf( "TODO: duplicate\n" );
+            }
+            else if (!io.WantCaptureKeyboard)
                 inputParams.moveDir.x = -0.5f;
             io.AddInputCharacter( 'd' );
         }

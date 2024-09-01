@@ -86,38 +86,43 @@ static void InitKeyMap()
     win.keyMap[ 57 ] = teWindowEvent::KeyCode::N9;
 }
 
-void IncEventIndex()
+bool IncEventIndex()
 {
     if (win.eventIndex < EventStackSize - 1)
     {
         ++win.eventIndex;
+        return true;
     }
+
+    return false;
 }
 
 LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+    bool wasHandled = false;
+
     switch( message )
     {
     case WM_KEYUP:
     case WM_SYSKEYUP:
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
         break;
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
         break;
     case WM_CLOSE:
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Close;
         break;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     {
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
         win.events[ win.eventIndex ].y = HIWORD(lParam);
@@ -126,20 +131,20 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP:
     {
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
         win.events[ win.eventIndex ].y = HIWORD(lParam);
     }
     break;
     case WM_MOUSEMOVE:
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
         win.events[ win.eventIndex ].y = HIWORD(lParam);
         break;
     case WM_MOUSEWHEEL:
-        IncEventIndex();
+        wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
         win.events[ win.eventIndex ].y = HIWORD( lParam );
@@ -147,6 +152,24 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         break;
     default:
         break;
+    }
+
+    if (wasHandled)
+    {
+        win.events[ win.eventIndex ].keyModifiers = 0;
+
+        if ((GetKeyState( VK_CONTROL ) & 0x8000) != 0)
+        {
+            win.events[ win.eventIndex ].keyModifiers = (unsigned)teWindowEvent::KeyModifier::Control;
+        }
+        if ((GetKeyState( VK_SHIFT ) & 0x8000) != 0)
+        {
+            win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
+        }
+        if ((GetKeyState( VK_MENU ) & 0x8000) != 0)
+        {
+            win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Alt;
+        }
     }
 
     return DefWindowProc( hWnd, message, wParam, lParam );
