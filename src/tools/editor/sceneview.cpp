@@ -545,7 +545,12 @@ void RenderSceneView()
 
                         if (openFilePath[ 0 ] != 0)
                         {
-                            //teMeshRendererSetMesh( selectedGoIndex, mesh );
+                            teFile meshFile = teLoadFile( openFilePath );
+
+                            teMesh* mesh = new teMesh; // TODO: better place to store the created meshes than the heap.
+                            *mesh = teLoadMesh( meshFile );
+                            teMeshRendererSetMesh( selectedGoIndex, mesh );
+                            teMeshRendererSetMaterial( selectedGoIndex, sceneView.material, 0 );
                         }
                     }
                     

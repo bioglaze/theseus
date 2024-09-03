@@ -82,7 +82,7 @@ void GetOpenPath( char* path, const char* extension )
 
     if (GetOpenFileName( &ofn ) != FALSE)
     {
-        strncpy( path, ofn.lpstrFile, 1024 );
+        strncpy( path, ofn.lpstrFile, 280 ); // 280 comes from sceneview.cpp: openFilePath
     }
 }
 #else
