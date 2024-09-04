@@ -13,7 +13,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Fast compile times
   - Loads .tga and .dds textures
   - OBJ mesh converter
-  - Shader hot-reloadingg
+  - Shader hot-reloading
   
 # Platforms
 
@@ -31,4 +31,4 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Linux:
     - src/Makefile can be used to compile the engine. Build results are copied to theseus/build.
     - Shaders can be compiled by running compile_deploy_vulkan_shaders.sh
-    - OBJ mesh converter can be build by running "make toolz" in src.
+    - OBJ mesh converter can be built by running "make toolz" in src.

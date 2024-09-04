@@ -142,38 +142,38 @@ static const struct wl_interface *xdg_shell_types[] = {
 };
 
 static const struct wl_message xdg_wm_base_requests[] = {
-	{ "destroy", "", xdg_shell_types + 0 },
-	{ "create_positioner", "n", xdg_shell_types + 4 },
-	{ "get_xdg_surface", "no", xdg_shell_types + 5 },
-	{ "pong", "u", xdg_shell_types + 0 },
+    { "destroy", "", xdg_shell_types + 0 },
+    { "create_positioner", "n", xdg_shell_types + 4 },
+    { "get_xdg_surface", "no", xdg_shell_types + 5 },
+    { "pong", "u", xdg_shell_types + 0 },
 };
 
 static const struct wl_message xdg_wm_base_events[] = {
-	{ "ping", "u", xdg_shell_types + 0 },
+    { "ping", "u", xdg_shell_types + 0 },
 };
 
 const struct wl_interface xdg_wm_base_interface = {
-	"xdg_wm_base", 4,
-	4, xdg_wm_base_requests,
-	1, xdg_wm_base_events,
+    "xdg_wm_base", 4,
+    4, xdg_wm_base_requests,
+    1, xdg_wm_base_events,
 };
 
 static const struct wl_message xdg_surface_requests[] = {
-	{ "destroy", "", xdg_shell_types + 0 },
-	{ "get_toplevel", "n", xdg_shell_types + 7 },
-	{ "get_popup", "n?oo", xdg_shell_types + 8 },
-	{ "set_window_geometry", "iiii", xdg_shell_types + 0 },
-	{ "ack_configure", "u", xdg_shell_types + 0 },
+    { "destroy", "", xdg_shell_types + 0 },
+    { "get_toplevel", "n", xdg_shell_types + 7 },
+    { "get_popup", "n?oo", xdg_shell_types + 8 },
+    { "set_window_geometry", "iiii", xdg_shell_types + 0 },
+    { "ack_configure", "u", xdg_shell_types + 0 },
 };
 
 static const struct wl_message xdg_surface_events[] = {
-	{ "configure", "u", xdg_shell_types + 0 },
+    { "configure", "u", xdg_shell_types + 0 },
 };
 
 const struct wl_interface xdg_surface_interface = {
-	"xdg_surface", 4,
-	5, xdg_surface_requests,
-	1, xdg_surface_events,
+    "xdg_surface", 4,
+    5, xdg_surface_requests,
+    1, xdg_surface_events,
 };
 
 static const struct wl_message xdg_positioner_requests[] = {
@@ -195,10 +195,11 @@ const struct wl_interface xdg_positioner_interface = {
 	0, NULL,
 };
 
-struct xdg_surface_listener {
-	void (*configure)(void *data,
-			  struct xdg_surface *xdg_surface,
-			  uint32_t serial);
+struct xdg_surface_listener
+{
+    void (*configure)(void *data,
+          struct xdg_surface *xdg_surface,
+          uint32_t serial);
 };
 
 static void xdg_wm_base_pong( xdg_wm_base* xdg_wm_base, uint32_t serial )
@@ -245,9 +246,9 @@ static const wl_message xdg_toplevel_requests[] = {
 };
 
 static const wl_message xdg_toplevel_events[] = {
-	{ "configure", "iia", xdg_shell_types + 0 },
-	{ "close", "", xdg_shell_types + 0 },
-	{ "configure_bounds", "4ii", xdg_shell_types + 0 },
+    { "configure", "iia", xdg_shell_types + 0 },
+    { "close", "", xdg_shell_types + 0 },
+    { "configure_bounds", "4ii", xdg_shell_types + 0 },
 };
 
 const wl_interface xdg_toplevel_interface = {
@@ -286,7 +287,7 @@ static void xdg_wm_base_ping( void* data, xdg_wm_base* xdg_wm_base, uint32_t ser
 
 struct xdg_wm_base_listener
 {
-	void (*ping)( void* data, xdg_wm_base* xdg_wm_base, uint32_t serial );
+    void (*ping)( void* data, xdg_wm_base* xdg_wm_base, uint32_t serial );
 };
 
 static void pointer_enter( void* data, wl_pointer* pointer, uint32_t serial, struct wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y )
@@ -323,7 +324,7 @@ static void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_f
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
     win.events[ win.eventIndex ].x = (float)wl_fixed_to_double( x );
-    win.events[ win.eventIndex ].y = win.height - (float)wl_fixed_to_double( y );
+    win.events[ win.eventIndex ].y = (float)wl_fixed_to_double( y );
     
     win.lastMouseX = win.events[ win.eventIndex ].x;
     win.lastMouseY = win.events[ win.eventIndex ].y;
@@ -390,16 +391,16 @@ static wl_seat_listener seat_listener = { &seat_capabilities, nullptr };
 
 static inline int xdg_wm_base_add_listener( xdg_wm_base* xdg_wm_base, const xdg_wm_base_listener* listener, void* data )
 {
-	return wl_proxy_add_listener( (struct wl_proxy*) xdg_wm_base,
-				     (void (**)(void)) listener, data );
+    return wl_proxy_add_listener( (struct wl_proxy*) xdg_wm_base,
+                                  (void (**)(void)) listener, data );
 }
 
 static xdg_surface* xdg_wm_base_get_xdg_surface( xdg_wm_base* xdg_wm_base, struct wl_surface* surface )
 {
-	wl_proxy* id = wl_proxy_marshal_flags((struct wl_proxy *) xdg_wm_base,
+    wl_proxy* id = wl_proxy_marshal_flags((struct wl_proxy *) xdg_wm_base,
 			 XDG_WM_BASE_GET_XDG_SURFACE, &xdg_surface_interface, wl_proxy_get_version( (struct wl_proxy *) xdg_wm_base), 0, nullptr, surface );
 
-	return (struct xdg_surface *) id;
+    return (struct xdg_surface *) id;
 }
 
 static xdg_wm_base_listener xdg_wm_base_listener = {};
@@ -442,8 +443,8 @@ static int xdg_surface_add_listener( xdg_surface* xdg_surface,
 
 static inline void xdg_toplevel_set_title( xdg_toplevel* xdg_toplevel, const char* title )
 {
-	wl_proxy_marshal_flags((struct wl_proxy *) xdg_toplevel,
-			 XDG_TOPLEVEL_SET_TITLE, NULL, wl_proxy_get_version((struct wl_proxy *) xdg_toplevel), 0, title);
+    wl_proxy_marshal_flags((struct wl_proxy *) xdg_toplevel,
+                           XDG_TOPLEVEL_SET_TITLE, NULL, wl_proxy_get_version((struct wl_proxy *) xdg_toplevel), 0, title);
 }
 
 static void wl_buffer_release( void* data, wl_buffer* wl_buffer )
@@ -456,12 +457,12 @@ static wl_registry_listener wl_registry_listener = {};
 void handle_error( libdecor* context, enum libdecor_error error, const char* message )
 {
     printf( "libdecor error: %d: %s\n", error, message );
-	teAssert( !"libdecor error" );
+    teAssert( !"libdecor error" );
 }
 
 static struct libdecor_interface libdecor_iface =
 {
-	handle_error,
+    handle_error,
     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr
 };
 
@@ -476,16 +477,16 @@ static void handle_configure( libdecor_frame* frame, libdecor_configuration* con
     
     if (!libdecor_configuration_get_window_state( configuration, &window_state ) )
     {
-		window_state = LIBDECOR_WINDOW_STATE_NONE;
+        window_state = LIBDECOR_WINDOW_STATE_NONE;
     }
 
     int width, height;
     
     if (!libdecor_configuration_get_content_size( configuration, frame, &width, &height ))
     {
-		//width = window->content_width;
-		//height = window->content_height;
-	}
+        //width = window->content_width;
+        //height = window->content_height;
+    }
 
     printf( "handle_configure: width: %d, height %d\n", width, height );
 
@@ -493,11 +494,11 @@ static void handle_configure( libdecor_frame* frame, libdecor_configuration* con
 	libdecor_frame_commit( frame, decState, configuration );
 	libdecor_state_free( decState );
 
-	/*if (libdecor_frame_is_floating( window->frame ))
+    /*if (libdecor_frame_is_floating( window->frame ))
     {
-		window->floating_width = width;
-		window->floating_height = height;
-	}
+        window->floating_width = width;
+        window->floating_height = height;
+    }
 
     redraw(window);
     */
