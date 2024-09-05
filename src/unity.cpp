@@ -15,7 +15,9 @@
 #include "material.cpp"
 #include "mesh.cpp"
 #include "textureloader.cpp"
+#if VK_USE_PLATFORM_WIN32_KHR || VK_USE_PLATFORM_WAYLAND_KHR
 #include "vulkan/buffer_vulkan.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
+#endif
