@@ -144,8 +144,10 @@ struct AppResources
     teGameObject camera3d;
     teGameObject cubeGo;
     teGameObject cubes[ 16 * 4 ];
+    teGameObject cubeTrans;
     teMaterial material;
     teMaterial standardMaterial;
+    teMaterial materialTrans;
     teMesh cubeMesh;
     teTexture2D gliderTex;
     teTexture2D bc1Tex;
@@ -267,8 +269,6 @@ void InitApp( unsigned width, unsigned height )
         }
     }
 
-    teFinalizeMeshBuffers();
-
     /*ImGuiContext* imContext =*/ ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
@@ -283,6 +283,19 @@ void InitApp( unsigned width, unsigned height )
     app.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
     io.BackendRendererUserData = &app.impl;
     io.BackendRendererName = "imgui_impl_metal";
+    
+    app.materialTrans = teCreateMaterial( app.unlitShader );
+    app.materialTrans.blendMode = teBlendMode::Alpha;
+    teMaterialSetTexture2D( app.materialTrans, app.fontTex, 0 );
+    
+    app.cubeTrans = teCreateGameObject( "cubeTrans", teComponent::Transform | teComponent::MeshRenderer );
+    teMeshRendererSetMesh( app.cubeTrans.index, &app.cubeMesh );
+    teMeshRendererSetMaterial( app.cubeTrans.index, app.materialTrans, 0 );
+    teTransformSetLocalScale( app.cubeTrans.index, 2 );
+    teTransformSetLocalPosition( app.cubeTrans.index, Vec3( 0, 8, 0 ) );
+    teSceneAdd( app.scene, app.cubeTrans.index );
+    
+    teFinalizeMeshBuffers();
 }
 
 void MouseDown( int x, int y )
