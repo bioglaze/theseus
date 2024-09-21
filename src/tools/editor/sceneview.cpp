@@ -549,6 +549,7 @@ void RenderSceneView()
 
                             teMesh* mesh = new teMesh; // TODO: better place to store the created meshes than the heap.
                             *mesh = teLoadMesh( meshFile );
+                            teFinalizeMeshBuffers();
                             teMeshRendererSetMesh( selectedGoIndex, mesh );
                             teMeshRendererSetMaterial( selectedGoIndex, sceneView.material, 0 );
                         }
