@@ -273,7 +273,7 @@ float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min,
     return tmin;
 }
 
-void GetColliders( unsigned screenX, unsigned screenY )
+void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
 {
     Vec3 rayOrigin, rayTarget;
     ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d, rayOrigin, rayTarget );
@@ -286,6 +286,11 @@ void GetColliders( unsigned screenX, unsigned screenY )
         unsigned sceneGo = teSceneGetGameObjectIndex( sceneView.scene, go );
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        if (skipGizmo && sceneGo == sceneView.translateGizmoGo.index)
         {
             continue;
         }
@@ -329,7 +334,7 @@ void GetColliders( unsigned screenX, unsigned screenY )
 void SelectObject( unsigned x, unsigned y )
 {
     selectedGoIndex = 1;
-    GetColliders( x, y );
+    GetColliders( x, y, true );
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
@@ -491,6 +496,7 @@ void RenderSceneView()
         ImGui::Text( "Game objects:" );
 
         unsigned goCount = teSceneGetMaxGameObjects();
+        bool selected = false;
 
         for (unsigned i = 0; i < goCount; ++i)
         {
@@ -498,15 +504,16 @@ void RenderSceneView()
             
             if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index)
             {
-                ImGui::Text( "%s", teGameObjectGetName( goIndex ) );
-                
-                if (ImGui::IsItemClicked())
+                ImGui::PushID( i );
+
+                if (ImGui::Selectable( teGameObjectGetName( goIndex ), &selected ))
                 {
-                    printf( "clicked %s\n", teGameObjectGetName( goIndex ) );
                     selectedGoIndex = goIndex;
                     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
                     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
                 }
+
+                ImGui::PopID();
             }
         }
     }
