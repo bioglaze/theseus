@@ -19,7 +19,11 @@ SANITIZERS := -fsanitize=address,undefined
 
 engine:
 	mkdir -p ../build
+ifeq ($(UNAME), Darwin)
+	clang video/metal/*.mm video/textureloader.cpp core/math.cpp -Iinclude -Icore -Ivideo -std=gnu++20 -framework Metal -framework Foundation -lc++
+else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
+endif
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello
 
 toolz:
