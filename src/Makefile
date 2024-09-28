@@ -20,11 +20,12 @@ SANITIZERS := -fsanitize=address,undefined
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	clang video/metal/*.mm video/textureloader.cpp core/math.cpp -Iinclude -Icore -Ivideo -std=gnu++20 -framework Metal -framework Foundation -lc++
+	clang -c video/metal/*.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
+	clang++ samples/hello/hello.cpp thirdparty/imgui/*.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -lc++ -o ../build/hello
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
-endif
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello
+endif
 
 toolz:
 	$(CC) $(FLAGS) $(SANITIZERS) -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
