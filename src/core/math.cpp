@@ -76,7 +76,7 @@ void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
     out.y = tmp[ 1 ];
     out.z = tmp[ 2 ];
 }
-#elif __APPLE__
+#elif SIMD_NEON
 #include <arm_neon.h>
 
 void Matrix::Multiply( const Matrix& ma, const Matrix& mb, Matrix& out )
