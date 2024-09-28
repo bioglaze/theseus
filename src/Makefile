@@ -4,7 +4,11 @@ ARCH := $(shell uname -m)
 ifeq ($(ARCH), aarch64)
 SIMD := -DSIMD_NEON
 else
-SIMD := SIMD_SSE3
+ifeq ($(ARCH), arm64)
+SIMD := -DSIMD_NEON
+else
+SIMD := -DSIMD_SSE3
+endif
 endif
 
 ifeq ($(UNAME), Linux)
@@ -15,20 +19,18 @@ LINKER := -ldl -lvulkan -lwayland-client -lwayland-cursor -ldecor-0
 FLAGS := -I/usr/include/libdecor-0/ -std=c++17 -g -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
 else
 CC := clang++
-DEFINES := -DAPI_METAL=1 -DAPI_VULKAN=0 -DSIMD_NEON
+DEFINES := -DAPI_METAL=1 -DAPI_VULKAN=0 $(SIMD)
 LINKER := -ldl
-FLAGS := -std=c++17 -g -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
 endif
 
 SANITIZERS := -fsanitize=address,undefined
-# SANITIZERS := -g -O3 -DNDEBUG
-#SANITIZERS := -g -O3 -DNDEBUG
+# SANITIZERS := -O3 -DNDEBUG
 
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	clang -DSIMD_NEON -c video/metal/*.mm video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
-	clang++ samples/hello/hello.cpp thirdparty/imgui/*.cpp *.o -DSIMD_NEON -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -o ../build/hello
+	clang $(SIMD) -g -c video/metal/*.mm video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
+	clang++ $(SIMD) -g samples/hello/hello.cpp thirdparty/imgui/*.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -framework Cocoa -o ../build/hello
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello

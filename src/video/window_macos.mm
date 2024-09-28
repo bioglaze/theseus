@@ -18,11 +18,24 @@ WindowImpl win;
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
+    NSRect frame = NSMakeRect( 0, 0, width, height );
+    NSWindow* window = [[[NSWindow alloc] initWithContentRect:frame
+                    styleMask:NSWindowStyleMaskBorderless
+                    backing:NSBackingStoreBuffered
+                    defer:NO] autorelease];
+    [window setBackgroundColor:[NSColor blueColor]];
+    [window makeKeyAndOrderFront:NSApp];
+
+    win.width = width;
+    win.height = height;
+    
     return nullptr;
 }
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
 {
+    outWidth = win.width;
+    outHeight = win.height;
 }
 
 void tePushWindowEvents()
@@ -32,5 +45,12 @@ void tePushWindowEvents()
 
 const teWindowEvent& tePopWindowEvent()
 {
-    return win.events[ 0 ];
+    if (win.eventIndex == -1)
+    {
+        win.events[ 0 ].type = teWindowEvent::Type::Empty;
+        return win.events[ 0 ];
+    }
+
+    --win.eventIndex;
+    return win.events[ win.eventIndex + 1 ];
 }
