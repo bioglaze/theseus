@@ -2100,3 +2100,8 @@ float teRendererGetStat( teStat stat )
 
     return 0;
 }
+
+void teLoadMetalShaderLibrary()
+{
+
+}

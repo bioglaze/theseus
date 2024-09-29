@@ -100,15 +100,13 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
             outShader.index = 0;
         }
     }
-    else
+
+    NSError *error = nil;
+    shaders[ outShader.index ].computePipeline = [gDevice newComputePipelineStateWithFunction:shaders[ outShader.index ].computeProgram error:&error];
+    
+    if (!shaders[ outShader.index ].computePipeline)
     {
-        NSError *error = nil;
-        shaders[ outShader.index ].computePipeline = [gDevice newComputePipelineStateWithFunction:shaders[ outShader.index ].computeProgram error:&error];
-        
-        if (!shaders[ outShader.index ].computePipeline)
-        {
-            NSLog( @"Error occurred when building compute pipeline for function %s: %@", name, [error localizedDescription] );
-        }
+        NSLog( @"Error occurred when building compute pipeline for function %s: %@", name, [error localizedDescription] );
     }
     
     return outShader;
