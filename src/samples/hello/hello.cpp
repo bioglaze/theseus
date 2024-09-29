@@ -180,6 +180,7 @@ int main()
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
+    teLoadMetalShaderLibrary();
 
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );

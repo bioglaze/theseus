@@ -97,7 +97,8 @@ struct Renderer
 
 Renderer renderer;
 
-id<MTLLibrary> defaultLibrary;
+id<MTLLibrary> defaultLibrary; // Shaders from Xcode project
+id<MTLLibrary> shaderLibrary; // Shaders from shaders.metallib, must be loaded with teLoadMetalShaderLibrary().
 id<CAMetalDrawable> gDrawable;
 id<MTLDevice> gDevice;
 id<MTLCommandQueue> gCommandQueue;
@@ -132,6 +133,18 @@ static id<MTLSamplerState> GetSampler( teTextureSampler sampler )
     
     teAssert( !"Unhandled sampler!" );
     return renderer.linearClamp;
+}
+
+void teLoadMetalShaderLibrary()
+{
+    NSError *error = nil;
+
+    shaderLibrary = [renderer.device newLibraryWithFile: @"shaders.metallib" error:&error];
+
+    if (!shaderLibrary)
+    {
+        NSLog(@"Failed to load (shaders.metallib)library. error ===== %@", error);
+    }
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )

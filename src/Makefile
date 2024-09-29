@@ -31,6 +31,7 @@ engine:
 ifeq ($(UNAME), Darwin)
 	clang $(SIMD) -g -c video/metal/*.mm video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
 	clang++ $(SIMD) -g samples/hello/hello.cpp thirdparty/imgui/*.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -framework Cocoa -o ../build/hello
+	xcrun -sdk macosx metal shaders/metal/*.metal -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello

@@ -8,6 +8,7 @@ void MoveToNextUboOffset();
 unsigned TextureGetFlags( unsigned index );
 
 extern id <MTLLibrary> defaultLibrary;
+extern id <MTLLibrary> shaderLibrary;
 extern id <MTLCommandQueue> gCommandQueue;
 extern id<MTLDevice> gDevice;
 
@@ -51,9 +52,14 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     
     if (shaders[ outShader.index ].vertexProgram == nullptr)
     {
-        NSLog( @"Shader: Could not load %s!\n", vertexName );
-        outShader.index = 0;
-        return outShader;
+        shaders[ outShader.index ].vertexProgram = [shaderLibrary newFunctionWithName:vertexShaderName];
+
+        if (shaders[ outShader.index ].vertexProgram == nullptr)
+        {
+            NSLog( @"Shader: Could not load %s!\n", vertexName );
+            outShader.index = 0;
+            return outShader;
+        }
     }
     
     NSString* pixelShaderName = [NSString stringWithUTF8String:pixelName ];
@@ -61,8 +67,13 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     
     if (shaders[ outShader.index ].pixelProgram == nullptr)
     {
-        NSLog( @"Shader: Could not load %s!\n", pixelName );
-        outShader.index = -1;
+        shaders[ outShader.index ].pixelProgram = [shaderLibrary newFunctionWithName:pixelShaderName];
+
+        if (shaders[ outShader.index ].pixelProgram == nullptr)
+        {
+            NSLog( @"Shader: Could not load %s!\n", pixelName );
+            outShader.index = 0;
+        }
     }
 
     return outShader;
@@ -81,8 +92,13 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
     
     if (shaders[ outShader.index ].computeProgram == nullptr)
     {
-        NSLog( @"Shader: Could not load %s!\n", name );
-        outShader.index = 0;
+        shaders[ outShader.index ].computeProgram = [shaderLibrary newFunctionWithName:computeShaderName];
+
+        if (shaders[ outShader.index ].computeProgram == nullptr)
+        {
+            NSLog( @"Shader: Could not load %s!\n", name );
+            outShader.index = 0;
+        }
     }
     else
     {

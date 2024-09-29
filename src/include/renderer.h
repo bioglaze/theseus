@@ -16,6 +16,8 @@ void teEndSwapchainRendering();
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
 void teUnmapUiMemory();
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
+// This is needed if you don't use an Xcode project that includes shaders.
+void teLoadMetalShaderLibrary();
 
 enum class teStat
 {
