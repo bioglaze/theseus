@@ -23,7 +23,17 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 
 # Building
 
-  - macOS:
+  - Windows/Visual Studio
+    - compile shaders: src/compile_deploy_vulkan_shaders.cmd
+    - build src/visualstudio/TheseusEngine.vcxproj
+    - build and run src/samples/hello/visualstudio/Hello.vcxproj
+
+  - Windows/command line:
+    - compile shaders: src/compile_deploy_vulkan_shaders.cmd
+    - run src/build.bat
+    - run build/hello.exe
+    
+  - macOS/Xcode:
     - build theseus.xcodeproj and copy the resulting framework to src/samples/hello_mac_ios
     - build and run hello_mac_ios/hello.xcodeproj
     - OBJ mesh converter can be build by running "make toolz" in src.
