@@ -32,8 +32,8 @@ VkDeviceMemory BufferGetMemory( const Buffer& buffer );
 VkBuffer BufferGetBuffer( const Buffer& buffer );
 void WaylandDispatch();
 
-extern struct wl_display* wlDisplay;
-extern struct wl_surface* wlSurface;
+extern struct wl_display* gwlDisplay;
+extern struct wl_surface* gwlSurface;
 
 constexpr unsigned DescriptorEntryCount = 6;
 constexpr unsigned SamplerCount = 6;
@@ -1102,8 +1102,8 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 #else
     VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
     surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
-    surfaceCreateInfo.surface = wlSurface;
-    surfaceCreateInfo.display = wlDisplay;
+    surfaceCreateInfo.surface = gwlSurface;
+    surfaceCreateInfo.display = gwlDisplay;
     VK_CHECK( vkCreateWaylandSurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
 #endif
 
