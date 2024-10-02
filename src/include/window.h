@@ -4,7 +4,21 @@ struct teWindowEvent
 {
     enum class Type
     {
-        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove, MouseWheel
+        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove, MouseWheel,
+        GamePadButtonA,
+        GamePadButtonB,
+        GamePadButtonX,
+        GamePadButtonY,
+        GamePadButtonDPadUp,
+        GamePadButtonDPadDown,
+        GamePadButtonDPadLeft,
+        GamePadButtonDPadRight,
+        GamePadButtonStart,
+        GamePadButtonBack,
+        GamePadButtonLeftShoulder,
+        GamePadButtonRightShoulder,
+        GamePadLeftThumbState,
+        GamePadRightThumbState
     };
 
     enum class KeyCode
@@ -29,6 +43,10 @@ struct teWindowEvent
     int x = 0;
     int y = 0;
     int wheelDelta = 0;
+    /// Gamepad's thumb x in range [-1, 1]. Event type indicates left or right thumb.
+    float gamePadThumbX = 0;
+    /// Gamepad's thumb y in range [-1, 1]. Event type indicates left or right thumb.
+    float gamePadThumbY = 0;
 };
 
 // @param width Width in pixels. Pass 0 to width and height for fullscreen.

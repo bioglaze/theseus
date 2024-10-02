@@ -1,8 +1,27 @@
 #include <Windows.h>
+#include <xinput.h>
 #if _DEBUG
 #include <crtdbg.h>
 #endif
 #include "window.h"
+
+typedef DWORD WINAPI x_input_get_state( DWORD dwUserIndex, XINPUT_STATE* pState );
+
+DWORD WINAPI XInputGetStateStub( DWORD /*dwUserIndex*/, XINPUT_STATE* /*pState*/ )
+{
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+static x_input_get_state* XInputGetState_ = XInputGetStateStub;
+
+typedef DWORD WINAPI x_input_set_state( DWORD dwUserIndex, XINPUT_VIBRATION* pVibration );
+
+DWORD WINAPI XInputSetStateStub( DWORD /*dwUserIndex*/, XINPUT_VIBRATION* /*pVibration*/ )
+{
+    return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+static x_input_set_state* XInputSetState_ = XInputSetStateStub;
 
 constexpr int EventStackSize = 100;
 
@@ -15,9 +34,61 @@ struct WindowImpl
     unsigned windowHeightWithoutTitleBar = 0;
     unsigned width = 0;
     unsigned height = 0;
+    bool isGamePadConnected = false;
+    int gamePadIndex = 0;
 };
 
 WindowImpl win;
+
+void InitGamePad()
+{
+    HMODULE XInputLibrary = LoadLibraryA( "xinput1_4.dll" );
+
+    if (!XInputLibrary)
+    {
+        XInputLibrary = LoadLibraryA( "xinput9_1_0.dll" );
+    }
+
+    if (!XInputLibrary)
+    {
+        XInputLibrary = LoadLibraryA( "xinput1_3.dll" );
+    }
+
+    if (XInputLibrary)
+    {
+        XInputGetState_ = (x_input_get_state*)GetProcAddress( XInputLibrary, "XInputGetState" );
+        XInputSetState_ = (x_input_set_state*)GetProcAddress( XInputLibrary, "XInputSetState" );
+
+        XINPUT_STATE controllerState;
+
+        win.isGamePadConnected = XInputGetState_( 0, &controllerState ) == ERROR_SUCCESS;
+
+        if (!win.isGamePadConnected)
+        {
+            win.isGamePadConnected = XInputGetState_( 1, &controllerState ) == ERROR_SUCCESS;
+            win.gamePadIndex = 1;
+        }
+    }
+    else
+    {
+    }
+}
+
+static float ProcessGamePadStickValue( SHORT value, SHORT deadZoneThreshold )
+{
+    float result = 0;
+
+    if (value < -deadZoneThreshold)
+    {
+        result = (float)((value + deadZoneThreshold) / (32768.0f - deadZoneThreshold));
+    }
+    else if (value > deadZoneThreshold)
+    {
+        result = (float)((value - deadZoneThreshold) / (32767.0f - deadZoneThreshold));
+    }
+
+    return result;
+}
 
 static void InitKeyMap()
 {
@@ -219,8 +290,96 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.windowHeightWithoutTitleBar = rect.bottom;
 
     InitKeyMap();
+    InitGamePad();
 
     return hwnd;
+}
+
+void PumpGamePadEvents()
+{
+    XINPUT_STATE controllerState;
+
+    if (XInputGetState_( win.gamePadIndex, &controllerState ) == ERROR_SUCCESS)
+    {
+        XINPUT_GAMEPAD* pad = &controllerState.Gamepad;
+
+        float avgX = ProcessGamePadStickValue( pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE );
+        float avgY = ProcessGamePadStickValue( pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE );
+
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
+        win.events[ win.eventIndex ].gamePadThumbX = avgX;
+        win.events[ win.eventIndex ].gamePadThumbY = avgY;
+
+        avgX = ProcessGamePadStickValue( pad->sThumbRX, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE );
+        avgY = ProcessGamePadStickValue( pad->sThumbRY, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE );
+
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
+        win.events[ win.eventIndex ].gamePadThumbX = avgX;
+        win.events[ win.eventIndex ].gamePadThumbY = avgY;
+
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadUp;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadDown;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadLeft;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadRight;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_A) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonA;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_B) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonB;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_X) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonX;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_Y) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonY;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonLeftShoulder;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonRightShoulder;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_START) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonStart;
+        }
+        if ((pad->wButtons & XINPUT_GAMEPAD_BACK) != 0)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonBack;
+        }
+    }
 }
 
 void tePushWindowEvents()
@@ -231,6 +390,11 @@ void tePushWindowEvents()
     {
         TranslateMessage( &msg );
         DispatchMessage( &msg );
+    }
+
+    if (win.isGamePadConnected)
+    {
+        PumpGamePadEvents();
     }
 }
 

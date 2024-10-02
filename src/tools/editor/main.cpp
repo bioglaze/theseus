@@ -48,6 +48,7 @@ struct InputState
     int lastMouseX = 0;
     int lastMouseY = 0;
     Vec3 moveDir;
+    Vec3 gamepadMoveDir;
     bool isRightMouseDown = false;
 };
 
@@ -299,6 +300,20 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             inputParams.moveDir.y = 0;
         }
+        else if (event.type == teWindowEvent::Type::GamePadButtonA)
+        {
+            printf("gamepad button a\n");
+        }
+        else if (event.type == teWindowEvent::Type::GamePadLeftThumbState)
+        {
+            inputParams.gamepadMoveDir.z = event.gamePadThumbY;
+            inputParams.gamepadMoveDir.x = -event.gamePadThumbX;
+        }
+        else if (event.type == teWindowEvent::Type::GamePadRightThumbState)
+        {
+            teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -event.gamePadThumbX / 50.0f * (float)dt );
+            teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), event.gamePadThumbY / 50.0f * (float)dt );
+        }
         else if (event.type == teWindowEvent::Type::Mouse1Down)
         {
             inputParams.x = event.x;
@@ -381,9 +396,12 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         }
     }
 
-    teTransformMoveForward( SceneViewGetCameraIndex(), inputParams.moveDir.z* (float)dt * 0.5f );
-    teTransformMoveRight( SceneViewGetCameraIndex(), inputParams.moveDir.x* (float)dt * 0.5f );
-    teTransformMoveUp( SceneViewGetCameraIndex(), inputParams.moveDir.y* (float)dt * 0.5f );
+    Vec3 moveDir = inputParams.moveDir + inputParams.gamepadMoveDir * 0.005f;
+    inputParams.gamepadMoveDir = Vec3( 0, 0, 0 );
+
+    teTransformMoveForward( SceneViewGetCameraIndex(), moveDir.z * (float)dt * 0.5f );
+    teTransformMoveRight( SceneViewGetCameraIndex(), moveDir.x * (float)dt * 0.5f );
+    teTransformMoveUp( SceneViewGetCameraIndex(), moveDir.y * (float)dt * 0.5f );
 
     return true;
 }
