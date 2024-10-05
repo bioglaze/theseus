@@ -100,6 +100,7 @@ struct Window
     libdecor_frame* frame;
     wl_list outputs;
     int scale = 1;
+    bool isConfigured = false;
 };
 
 Window window;
@@ -693,10 +694,11 @@ void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
     updateScale( &window );
 }
 
+// FIXME: Got a random crash in this function on startup, maybe related to mouse position and something hasn't been initialized yet?
 void surfaceLeave( void *data, wl_surface* wlSurface, wl_output* wlOutput )
 {
-    Window *myWindow = (Window*)data;
-    WindowOutput *window_output;
+    Window* myWindow = (Window*)data;
+    WindowOutput* window_output;
 
     wl_list_for_each( window_output, &myWindow->outputs, link )
     {
@@ -817,11 +819,11 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
     
     if (!libdecor_configuration_get_content_size( configuration, frame, &width, &height ))
     {
-        printf( "handle_configure 1: width: %d, height %d\n", width, height );
+        printf( "handle_configure 1: width: %d, height %d. scale: %d\n", width, height, window.scale );
         //width = window->content_width;
         //height = window->content_height;
-        width = 1920 / 2;
-        height = 1080 / 2;
+        width = win.width;
+        height = win.height;
     }
 
     printf( "handle_configure 2: width: %d, height %d\n", width, height );
@@ -839,7 +841,8 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
     redraw(window);
     */
 
-    redraw();
+    //redraw();
+    window.isConfigured = true;
 }
 
 void handle_error( libdecor* context, enum libdecor_error error, const char* message )
@@ -957,13 +960,15 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     libdecor_frame_set_app_id( window.frame, "libdecor-demo" );
     libdecor_frame_set_title( window.frame, "Theseus Engine" );
     libdecor_frame_map( window.frame );
-    
-    /*int timeout = -1;
-    
-    while (libdecor_dispatch( decorContext, timeout ) >= 0)
-    {
 
-    }*/
+    while (!window.isConfigured)
+    {
+        if (libdecor_dispatch( decorContext, 0 ) < 0 )
+        {
+            printf( "Waiting for window configuration failed!\n" );
+            exit( 1 );
+        }
+    }
 
     return nullptr;
 }
@@ -992,10 +997,7 @@ const teWindowEvent& tePopWindowEvent()
 
 void WaylandDispatch()
 {
-    //wl_surface_commit( window.wlSurface );
     int timeout = -1;
-    printf("WaylandDispatch before\n");
-    int res = libdecor_dispatch( decorContext, timeout );
-    printf("libdecor_dispatch res: %d\n", res);
-    //wl_display_dispatch( gwlDisplay );
+    libdecor_dispatch( decorContext, timeout );
+    //printf("libdecor_dispatch res: %d\n", res);
 }
