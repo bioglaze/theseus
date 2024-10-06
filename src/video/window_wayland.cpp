@@ -1,11 +1,9 @@
 #include "window.h"
 #include "te_stdlib.h"
 #include <stdio.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <errno.h>
 #include <libdecor.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
@@ -17,16 +15,16 @@ constexpr int EventStackSize = 100;
 
 struct WindowImpl
 {
-    teWindowEvent events[ EventStackSize ];
+    teWindowEvent          events[ EventStackSize ];
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
-    int eventIndex = -1;
-    unsigned width = 0;
-    unsigned height = 0;
+    int                    eventIndex = -1;
+    unsigned               width = 0;
+    unsigned               height = 0;
 
     // FIXME: this is a hack to get mouse coordinate into mouse move event.
     //       A proper fix would be to read mouse coordinate when mouse move event is detected.
-    unsigned lastMouseX = 0;
-    unsigned lastMouseY = 0;
+    unsigned              lastMouseX = 0;
+    unsigned              lastMouseY = 0;
 };
 
 WindowImpl win;
@@ -44,63 +42,64 @@ wl_list seats;
 //wl_list gLink;
 wl_list outputs;
 wl_shm* wlShm;
-const char* proxy_tag = "libdecor-demo";
+const char* proxyTag = "theseus";
 struct xdg_wm_base* xdgWmBase;
 
 struct Output
 {
     wl_output* wlOutput;
-    uint32_t id;
-    int scale;
-    wl_list link;
+    uint32_t   id;
+    int        scale;
+    wl_list    link;
 };
 
 struct WindowOutput
 {
-    Output* output;
+    Output*        output;
     struct wl_list link;
 };
 
 struct pointer_output
 {
-    Output* output;
+    Output*        output;
     struct wl_list link;
 };
 
 struct WlBuffer
 {
     wl_buffer* wlBuffer;
-    void* data;
-    size_t dataSize;
+    void*      data;
+    size_t     dataSize;
 };
 
 struct Seat
 {
-    wl_seat* wlSeat;
-    wl_keyboard* wlKeyboard;
-    wl_pointer* wlPointer;
-    wl_list link;
-    wl_list pointer_outputs;
+    wl_seat*         wlSeat;
+    wl_keyboard*     wlKeyboard;
+    wl_pointer*      wlPointer;
+    wl_list          link;
+    wl_list          pointer_outputs;
     wl_cursor_theme* cursor_theme;
-    wl_cursor* left_ptr_cursor;
-    wl_surface* cursor_surface;
-    wl_surface* pointer_focus;
-    int pointer_scale;
-    uint32_t serial;
-    wl_fixed_t pointer_sx;
-    wl_fixed_t pointer_sy;
-    char *name;
+    wl_cursor*       left_ptr_cursor;
+    wl_surface*      cursor_surface;
+    wl_surface*      pointer_focus;
+    int              pointer_scale;
+    uint32_t         serial;
+    wl_fixed_t       pointer_sx;
+    wl_fixed_t       pointer_sy;
+    char*            name;
 };
 
 Seat seat;
 
 struct Window
 {
-    wl_surface* wlSurface;
+    wl_surface*     wlSurface;
     libdecor_frame* frame;
-    wl_list outputs;
-    int scale = 1;
-    bool isConfigured = false;
+    wl_list         outputs;
+    int             scale = 1;
+    bool            isConfigured = false;
+    int             outputScale = 1;
 };
 
 Window window;
@@ -108,7 +107,6 @@ Window window;
 wl_surface* gwlSurface;
 wl_display* gwlDisplay;
 
-void redraw();
 void updateScale( Window* windowa );
 
 extern const struct wl_interface wl_output_interface;
@@ -262,7 +260,7 @@ static struct wl_shm_listener shm_listener = { shm_format };
 
 bool ownProxy( wl_proxy* proxy )
 {
-    return wl_proxy_get_tag( proxy ) == &proxy_tag;
+    return wl_proxy_get_tag( proxy ) == &proxyTag;
 }
 
 bool ownOutput( wl_output* output )
@@ -361,12 +359,12 @@ static void setCursor( Seat* pseat )
                               wl_surface_commit( pseat->cursor_surface );
 }
 
-void pointer_enter( void *data,
-                    wl_pointer* wlPointer,
-                    uint32_t serial,
-                    wl_surface *surface,
-                    wl_fixed_t surface_x,
-                    wl_fixed_t surface_y )
+void pointerEnter( void*       data,
+                   wl_pointer* wlPointer,
+                   uint32_t    serial,
+                   wl_surface* surface,
+                   wl_fixed_t  surface_x,
+                   wl_fixed_t  surface_y )
 {
     Seat *dseat = (Seat*)data;
 
@@ -383,7 +381,7 @@ void pointer_enter( void *data,
     dseat->pointer_sy = surface_y;
 }
 
-void pointer_button( void* data, wl_pointer* pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t pointerState )
+void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t pointerState )
 {
     if (button == BTN_LEFT) // BTN_LEFT = 272, BTN_RIGHT: 273, BTN_MIDDLE: 274
     {
@@ -406,7 +404,7 @@ void pointer_button( void* data, wl_pointer* pointer, uint32_t serial, uint32_t 
     win.events[ win.eventIndex ].y = win.lastMouseY;
 }
 
-void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
+void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
 {
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
@@ -415,25 +413,25 @@ void pointer_motion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t 
     
     win.lastMouseX = win.events[ win.eventIndex ].x;
     win.lastMouseY = win.events[ win.eventIndex ].y;
-
 }
 
-void pointer_leave( void* data, wl_pointer* wlPointer, uint32_t serial, wl_surface* surface )
+void pointerLeave( void* data, wl_pointer* wlPointer, uint32_t serial, wl_surface* surface )
 {
     Seat* dseat = (Seat*)data;
+
     if (dseat->pointer_focus == surface)
         dseat->pointer_focus = nullptr;
 }
 
-static void pointer_axis( void* data,
-                          wl_pointer* wlPointer,
-                          uint32_t time,
-                          uint32_t axis,
-                          wl_fixed_t value)
+static void pointerAxis( void*       data,
+                         wl_pointer* wlPointer,
+                         uint32_t    time,
+                         uint32_t    axis,
+                         wl_fixed_t  value )
 {
 }
 
-static struct wl_pointer_listener pointerListener = { pointer_enter, pointer_leave, pointer_motion, pointer_button, pointer_axis, nullptr, nullptr, nullptr, nullptr, nullptr };
+static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr };
 
 void keyMap( void* data, wl_keyboard* wlKeyboard, uint format, int fd, uint size )
 {
@@ -458,7 +456,6 @@ void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint k
     IncEventIndex();
     win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
     win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
-
 }
 
 void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group )
@@ -511,18 +508,17 @@ static void seatName( void* data, wl_seat* wlSeat, const char* name )
 
 static wl_seat_listener seatListener = { seatCapabilities, seatName };
 
-static void outputGeometry(void *data,
+static void outputGeometry( void* data,
                             struct wl_output *wl_output,
                             int32_t x,
                             int32_t y,
                             int32_t physical_width,
                             int32_t physical_height,
                             int32_t subpixel,
-                            const char *make,
-                            const char *model,
-                            int32_t transform)
+                            const char* make,
+                            const char* model,
+                            int32_t transform )
 {
-    printf( "TODO: output_geometry\n");
 }
 
 static void outputMode( void* data, wl_output* wlOutput, uint32_t flags, int32_t width, int32_t height, int32_t refresh )
@@ -530,7 +526,7 @@ static void outputMode( void* data, wl_output* wlOutput, uint32_t flags, int32_t
     printf( "TODO: output_mode\n" );
 }
 
-static void outputDone( void *data, struct wl_output *wl_output )
+static void outputDone( void *data, struct wl_output* wl_output )
 {
     struct Output *output = (Output*)data;
     struct Seat *sseat;
@@ -555,7 +551,8 @@ static void outputScale( void *data, struct wl_output *wl_output, int32_t factor
 {
     Output* output = (Output*)data;
     output->scale = factor;
-    printf( "output_scale: %d\n", factor );
+    window.outputScale = factor;
+    printf( "outputScale: %d\n", factor );
 }
 
 static struct wl_output_listener output_listener = { outputGeometry, outputMode, outputDone, outputScale, nullptr, nullptr };
@@ -613,7 +610,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
         output->id = id;
         output->scale = 1;
         output->wlOutput = (wl_output*)wl_registry_bind( wl_registry, id, &wl_output_interface, 2 );
-        wl_proxy_set_tag( (wl_proxy*) output->wlOutput, &proxy_tag );
+        wl_proxy_set_tag( (wl_proxy*) output->wlOutput, &proxyTag );
         wl_output_add_listener( output->wlOutput, &output_listener, output );
         wl_list_insert( &outputs, &output->link );
     }
@@ -667,13 +664,11 @@ void updateScale( Window* windowa )
     if (scale != window.scale)
     {
         window.scale = scale;
-        redraw();
         }*/
 }
 
 void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
-    printf("surfaceEnter\n");
     //struct window *window = (window*)data;
 
     if (!ownOutput( wlOutput ))
@@ -684,7 +679,6 @@ void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
     if (outpu == nullptr)
 		return;
 
-    //window_output = zalloc(sizeof *window_output);
     WindowOutput* windowOutput = (WindowOutput*)malloc( sizeof( WindowOutput ) ); // FIXME: Does this need to be dynamically allocated?
     windowOutput->output = outpu;
 
@@ -695,7 +689,7 @@ void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 }
 
 // FIXME: Got a random crash in this function on startup, maybe related to mouse position and something hasn't been initialized yet?
-void surfaceLeave( void *data, wl_surface* wlSurface, wl_output* wlOutput )
+void surfaceLeave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
     Window* myWindow = (Window*)data;
     WindowOutput* window_output;
@@ -712,116 +706,20 @@ void surfaceLeave( void *data, wl_surface* wlSurface, wl_output* wlOutput )
     }
 }
 
-static void bufferRelease( void* userData, wl_buffer* wlBuffer )
-{
-    WlBuffer* buffer = (WlBuffer*)userData;
-
-    wl_buffer_destroy( buffer->wlBuffer );
-    munmap( buffer->data, buffer->dataSize );
-    free( buffer );
-}
-
-static const struct wl_buffer_listener bufferListener = { bufferRelease };
-
-static int create_anonymous_file( off_t size )
-{
-    int fd = memfd_create( "libdecor-demo", MFD_CLOEXEC | MFD_ALLOW_SEALING );
-
-    if (fd < 0)
-        return -1;
-
-    fcntl( fd, F_ADD_SEALS, F_SEAL_SHRINK );
-
-    int ret = 0;
-    
-    do
-    {
-        ret = posix_fallocate( fd, 0, size );
-    } while (ret == EINTR);
-    
-    if (ret != 0)
-    {
-        close( fd );
-        errno = ret;
-        return -1;
-    }
-
-    return fd;
-}
-
-static WlBuffer* create_shm_buffer( int width, int height, uint32_t format )
-{
-    wl_shm_pool *pool;
-
-    int stride = width * 4;
-    int size = stride * height;
-
-    int fd = create_anonymous_file( size );
-
-    if (fd < 0)
-    {
-        fprintf( stderr, "creating a buffer file for %d B failed: %s\n", size, strerror( errno ) );
-        return nullptr;
-    }
-
-    void* data = mmap( nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
-    
-    if (data == MAP_FAILED)
-    {
-        fprintf( stderr, "mmap failed: %s\n", strerror( errno ) );
-        close( fd );
-        return nullptr;
-    }
-
-    WlBuffer* buffer = (WlBuffer*)malloc( sizeof( WlBuffer ) );
-
-    pool = wl_shm_create_pool( wlShm, fd, size );
-    buffer->wlBuffer = wl_shm_pool_create_buffer( pool, 0,
-                                                  width, height,
-                                                  stride, format );
-    wl_buffer_add_listener( buffer->wlBuffer, &bufferListener, buffer );
-    wl_shm_pool_destroy( pool );
-    close( fd );
-
-    buffer->data = data;
-    buffer->dataSize = size;
-
-    return buffer;
-}
-
-void redraw()
-{
-    printf( "redraw\n" );
-
-    int width = 1920 / 2;
-    int height = 1080 / 2;
-
-    WlBuffer* buffer = create_shm_buffer( width * window.scale, height * window.scale, WL_SHM_FORMAT_XRGB8888 );
-    
-    wl_surface_attach( window.wlSurface, buffer->wlBuffer, 0, 0 );
-	wl_surface_set_buffer_scale( window.wlSurface, window.scale );
-	wl_surface_damage_buffer( window.wlSurface, 0, 0,
-				 width * window.scale,
-				 height * window.scale);
-    wl_surface_commit( window.wlSurface );
-}
-
 static void handleConfigure( libdecor_frame* frame, libdecor_configuration* configuration, void* user_data )
 {
-    libdecor_window_state window_state = LIBDECOR_WINDOW_STATE_NONE;
+    libdecor_window_state windowState = LIBDECOR_WINDOW_STATE_NONE;
     
-    if (!libdecor_configuration_get_window_state( configuration, &window_state ) )
+    if (!libdecor_configuration_get_window_state( configuration, &windowState ) )
     {
-        window_state = LIBDECOR_WINDOW_STATE_NONE;
+        windowState = LIBDECOR_WINDOW_STATE_NONE;
     }
 
     int width = 0, height = 0;
     
     if (!libdecor_configuration_get_content_size( configuration, frame, &width, &height ))
     {
-        printf( "handle_configure 1: width: %d, height %d. scale: %d\n", width, height, window.scale );
-        //width = window->content_width;
-        //height = window->content_height;
+        printf( "handle_configure 1: width: %d, height %d. scale: %d, output scale: %d\n", width, height, window.scale, window.outputScale );
         width = win.width;
         height = win.height;
     }
@@ -832,16 +730,6 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
 	libdecor_frame_commit( frame, decState, configuration );
 	libdecor_state_free( decState );
 
-    /*if (libdecor_frame_is_floating( window->frame ))
-    {
-        window->floating_width = width;
-        window->floating_height = height;
-    }
-
-    redraw(window);
-    */
-
-    //redraw();
     window.isConfigured = true;
 }
 
@@ -947,7 +835,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wl_list_for_each( output, &outputs, link )
     {
         //window->scale = MAX(window->scale, output->scale);
-        printf( "output scale: %d\n", output->scale );
+        printf( "output scale: %d, window scale: %d\n", output->scale, window.scale );
     }
 
     wl_list_init( &outputs );
@@ -957,7 +845,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     decorContext = libdecor_new( gwlDisplay, &libdecor_iface );
     window.frame = libdecor_decorate( decorContext, window.wlSurface, &decorFrameInterface, &window );
-    libdecor_frame_set_app_id( window.frame, "libdecor-demo" );
+    libdecor_frame_set_app_id( window.frame, "theseus" );
     libdecor_frame_set_title( window.frame, "Theseus Engine" );
     libdecor_frame_map( window.frame );
 
