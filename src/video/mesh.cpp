@@ -5,6 +5,7 @@
 #include "vec3.h"
 
 unsigned AddPositions( const float* positions, unsigned bytes );
+unsigned AddNormals( const float* normals, unsigned bytes );
 unsigned AddIndices( const unsigned short* indices, unsigned bytes );
 unsigned AddUVs( const float* uvs, unsigned bytes );
 
@@ -19,6 +20,8 @@ struct SubMesh
     unsigned uvCount = 0;
     unsigned positionOffset = 0;
     unsigned positionCount = 0;
+    unsigned normalOffset = 0;
+    unsigned normalCount = 0;
 
     Vec3 aabbMin;
     Vec3 aabbMax;
@@ -32,10 +35,10 @@ struct MeshImpl
 
 struct MeshRenderer
 {
-    teMesh* mesh = nullptr;
+    teMesh*    mesh = nullptr;
     teMaterial materials[ MaxMaterials ];
-    bool isSubMeshCulled[ MaxMaterials ];
-    bool enabled = true;
+    bool       isSubMeshCulled[ MaxMaterials ];
+    bool       enabled = true;
 };
 
 static MeshImpl meshes[ MaxMeshes ];
@@ -180,7 +183,8 @@ teMesh teLoadMesh( const teFile& file )
         meshes[ outMesh.index ].subMeshes[ m ].uvOffset = AddUVs( (float*)pointer, vertexCount * 2 * 4 );
         meshes[ outMesh.index ].subMeshes[ m ].uvCount = vertexCount;
         pointer += vertexCount * 2 * 4;
-        //meshes[ outMesh.index ].subMeshes[ m ].normals = AddNormals( (float*)pointer, vertexCount * 3 * 4 );
+        meshes[ outMesh.index ].subMeshes[ m ].normalOffset = AddNormals( (float*)pointer, vertexCount * 3 * 4 );
+        meshes[ outMesh.index ].subMeshes[ m ].normalCount = vertexCount;
         pointer += vertexCount * 3 * 4;
     }
 
@@ -260,6 +264,20 @@ unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex )
     teAssert( mesh.index != 0 );
     teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].positionOffset;
+}
+
+unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex )
+{
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].normalOffset;
+}
+
+unsigned teMeshGetNormalCount( const teMesh& mesh, unsigned subMeshIndex )
+{
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].normalCount;
 }
 
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex )
