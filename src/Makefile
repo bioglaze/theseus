@@ -12,8 +12,8 @@ endif
 endif
 
 ifeq ($(UNAME), Linux)
-CC := g++
-CS := gcc
+CC := clang++
+CS := clang
 DEFINES := -DAPI_METAL=0 -DAPI_VULKAN=1 -DVK_USE_PLATFORM_WAYLAND_KHR -D_DEBUG $(SIMD) -DSURFACE_EXTENSION_NAME=VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
 LINKER := -ldl -lvulkan -lwayland-client -lwayland-cursor -ldecor-0
 FLAGS := -I/usr/include/libdecor-0/ -std=c++17 -g -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
@@ -26,15 +26,18 @@ endif
 SANITIZERS := -fsanitize=address,undefined
 # SANITIZERS := -O3 -DNDEBUG
 
+imgui:
+	$(CC) -c -std=c++17 thirdparty/imgui/*.cpp
+
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
 	clang $(SIMD) -g -c video/metal/*.mm video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
-	clang++ $(SIMD) -g samples/hello/hello.cpp thirdparty/imgui/*.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -framework Cocoa -o ../build/hello
+	clang++ $(SIMD) -g samples/hello/hello.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -framework Cocoa -o ../build/hello
 	xcrun -sdk macosx metal shaders/metal/*.metal -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
-	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp thirdparty/imgui/*.cpp ../build/engine.o $(LINKER) -o ../build/hello
+	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) samples/hello/hello.cpp *.o ../build/engine.o $(LINKER) -o ../build/hello
 endif
 
 toolz:

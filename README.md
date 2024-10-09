@@ -39,6 +39,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
     - OBJ mesh converter can be build by running "make toolz" in src.
     
   - Linux:
-    - src/Makefile can be used to compile the engine. Build results are copied to theseus/build.
+    - First build ImGUI: `make imgui`. You only need to do this once, unless you want to modify ImGUI later.
+    - Then build the engine: `make engine`. Build artifacts are copied to theseus/build
     - Shaders can be compiled by running compile_deploy_vulkan_shaders.sh
     - OBJ mesh converter can be built by running "make toolz" in src.

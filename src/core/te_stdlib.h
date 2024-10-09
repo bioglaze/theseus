@@ -7,7 +7,8 @@
 #if _MSC_VER
 #define teAssert( c ) if (!(c)) __debugbreak()
 #else
-#define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
+//#define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
+#define teAssert( c ) if (!(c)) __builtin_trap()
 #endif
 
 #if _DEBUG
