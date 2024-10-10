@@ -8,6 +8,7 @@ struct ColorInOut
 {
     float4 position [[position]];
     float2 uv;
+    float3 normal;
     float4 projCoord;
 };
 
@@ -37,14 +38,16 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
 }
 
 vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
-                           constant Uniforms & uniforms [[ buffer(0) ]],
-                           const device packed_float3* positions [[ buffer(1) ]],
-                           const device packed_float2* uvs [[ buffer(2) ]])
+                              constant Uniforms & uniforms [[ buffer(0) ]],
+                              const device packed_float3* positions [[ buffer(1) ]],
+                              const device packed_float2* uvs [[ buffer(2) ]],
+                              const device packed_float3* normals [[ buffer(3) ]])
 {
     ColorInOut out;
 
     out.position = uniforms.localToClip * float4( positions[ vid ], 1 );
     out.uv = float2( uvs[ vid ] );
+    out.normal = (uniforms.localToView * float4( normals[ vid ], 1 )).xyz;
     out.projCoord = uniforms.localToShadowClip * float4( positions[ vid ], 1 );
     
     return out;

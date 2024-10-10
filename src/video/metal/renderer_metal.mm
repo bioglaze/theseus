@@ -25,8 +25,8 @@ struct PerObjectUboStruct
     Matrix localToClip;
     Matrix localToView;
     Matrix localToShadowClip;
-    Vec4 bloomParams;
-    Vec4 tilesXY;
+    Vec4   bloomParams;
+    Vec4   tilesXY;
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -41,22 +41,22 @@ struct FrameResource
 struct PSO
 {
     id<MTLRenderPipelineState> pso;
-    id<MTLFunction> vertexFunction;
-    id<MTLFunction> pixelFunction;
-    MTLPixelFormat colorFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-    MTLPixelFormat depthFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-    teBlendMode blendMode = teBlendMode::Off;
-    teTopology topology = teTopology::Triangles;
+    id<MTLFunction>            vertexFunction;
+    id<MTLFunction>            pixelFunction;
+    MTLPixelFormat             colorFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    MTLPixelFormat             depthFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    teBlendMode                blendMode = teBlendMode::Off;
+    teTopology                 topology = teTopology::Triangles;
 };
 
 struct Renderer
 {
-    id<MTLDevice> device;
+    id<MTLDevice>               device;
     id<MTLRenderCommandEncoder> renderEncoder;
-    id<MTLCommandQueue> commandQueue;
-    MTLRenderPassDescriptor* renderPassDescriptorFBO;
-    FrameResource frameResources[ 2 ];
-    teTextureFormat colorFormat = teTextureFormat::BGRA_sRGB;
+    id<MTLCommandQueue>         commandQueue;
+    MTLRenderPassDescriptor*    renderPassDescriptorFBO;
+    FrameResource               frameResources[ 2 ];
+    teTextureFormat             colorFormat = teTextureFormat::BGRA_sRGB;
     PSO psos[ MaxPSOs ];
     
     id<MTLDepthStencilState> depthStateGreaterWriteOn;
@@ -73,6 +73,7 @@ struct Renderer
     unsigned indexCounter = 0;
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
+    unsigned normalCounter = 0;
     
     unsigned width = 0;
     unsigned height = 0;
@@ -83,10 +84,12 @@ struct Renderer
     Buffer staticMeshPositionStagingBuffer;
     Buffer staticMeshUVStagingBuffer;
     Buffer staticMeshUVBuffer;
-    
-    Buffer uiVertexBuffer;
-    Buffer uiIndexBuffer;
-    float* uiVertices = nullptr;
+    Buffer staticMeshNormalBuffer;
+    Buffer staticMeshNormalStagingBuffer;
+
+    Buffer    uiVertexBuffer;
+    Buffer    uiIndexBuffer;
+    float*    uiVertices = nullptr;
     uint16_t* uiIndices = nullptr;
 
     teTexture2D defaultTexture2D;
@@ -247,7 +250,9 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshPositionStagingBuffer" );
     renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshUVBuffer" );
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshUVStagingBuffer" );
-    
+    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshNormalBuffer" );
+    renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshNormalStagingBuffer" );
+
     const unsigned uiBufferBytes = 1024 * 1024 * 8;
     
     renderer.uiVertexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true, "uiVertexBuffer" );
@@ -319,6 +324,17 @@ unsigned AddPositions( const float* positions, unsigned bytes )
 
     renderer.positionCounter += bytes;
     return renderer.positionCounter - bytes;
+}
+
+unsigned AddNormals( const float* normals, unsigned bytes )
+{
+    if (normals)
+    {
+        UpdateStagingBuffer( renderer.staticMeshNormalStagingBuffer, normals, bytes, renderer.normalCounter );
+    }
+
+    renderer.normalCounter += bytes;
+    return renderer.normalCounter - bytes;
 }
 
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams )
@@ -541,12 +557,12 @@ void MoveToNextUboOffset()
     teAssert( renderer.frameResources[ 0 ].uboOffset < UniformBufferSize );
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
           teTextureSampler sampler, unsigned shadowMapIndex )
 {
     id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
-    NSRange range = { 0, 3 };
-    [renderer.renderEncoder setFragmentTextures:textures withRange:range ];
+    NSRange rangeTextures = { 0, 3 };
+    [renderer.renderEncoder setFragmentTextures:textures withRange:rangeTextures ];
     
     [renderer.renderEncoder setFragmentSamplerState:GetSampler( sampler ) atIndex:0];
 
@@ -564,7 +580,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     {
         [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOn];
     }
-    if (depthMode == teDepthMode::LessOrEqualWriteOff)
+    else if (depthMode == teDepthMode::LessOrEqualWriteOff)
     {
         [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOff];
     }
@@ -573,12 +589,13 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
         [renderer.renderEncoder setDepthStencilState:renderer.depthStateNoneWriteOff];
     }
 
-    id< MTLBuffer > buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ) };
-    NSUInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset };
+    NSRange rangeOffsets = { 0, 4 };
+    id< MTLBuffer > buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ) };
+    NSUInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset, normalOffset };
     
     [renderer.renderEncoder setTriangleFillMode:fillMode == teFillMode::Solid ? MTLTriangleFillModeFill : MTLTriangleFillModeLines];
     [renderer.renderEncoder setFragmentBuffer:renderer.frameResources[ 0 ].uniformBuffer offset:renderer.frameResources[ 0 ].uboOffset atIndex:0];
-    [renderer.renderEncoder setVertexBuffers:buffers offsets:offsets withRange:range];
+    [renderer.renderEncoder setVertexBuffers:buffers offsets:offsets withRange:rangeOffsets];
     [renderer.renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
                               indexCount:indexCount * 3
                                indexType:MTLIndexTypeUInt16
@@ -594,7 +611,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     float m[ 16 ];
     UpdateUBO( m, m, m, shaderParams );
 
-    Draw( shader, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0 );
+    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
