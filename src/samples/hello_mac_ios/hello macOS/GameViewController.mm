@@ -38,7 +38,6 @@ NSViewController* myViewController;
     [super viewDidLoad];
 
     _view = (MTKView *)self.view;
-
     _view.device = MTLCreateSystemDefaultDevice();
 
     if(!_view.device)
@@ -48,7 +47,6 @@ NSViewController* myViewController;
         return;
     }
 
-    _view = (MTKView *)self.view;
     _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
     _view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
     _view.sampleCount = 1;

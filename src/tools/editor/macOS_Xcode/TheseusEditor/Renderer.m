@@ -29,11 +29,6 @@ static const NSUInteger kMaxBuffersInFlight = 3;
 
 - (void)_loadMetalWithView:(nonnull MTKView *)view;
 {
-    /// Load Metal state objects and initialize renderer dependent view properties
-
-    view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
-    view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-    view.sampleCount = 1;
 }
 
 - (void)_updateGameState
@@ -42,8 +37,6 @@ static const NSUInteger kMaxBuffersInFlight = 3;
 
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
-    /// Per frame updates here
-
     dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
 
     SetDrawable( view.currentDrawable );

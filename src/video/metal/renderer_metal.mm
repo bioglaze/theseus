@@ -455,6 +455,7 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshIndexStagingBuffer, renderer.staticMeshIndexBuffer );
     CopyBuffer( renderer.staticMeshUVStagingBuffer, renderer.staticMeshUVBuffer );
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
+    CopyBuffer( renderer.staticMeshNormalStagingBuffer, renderer.staticMeshNormalBuffer );
 }
 
 static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat colorFormat, MTLPixelFormat depthFormat, bool isUI )

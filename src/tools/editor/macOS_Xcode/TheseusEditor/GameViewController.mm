@@ -75,7 +75,7 @@ void MoveUp( float amount )
     _view = (MTKView *)self.view;
     _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
     _view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
-
+    _view.sampleCount = 1;
     _view.device = MTLCreateSystemDefaultDevice();
 
     if(!_view.device)
