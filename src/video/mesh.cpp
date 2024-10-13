@@ -147,7 +147,7 @@ teMesh teLoadMesh( const teFile& file )
     outMesh.index = ++meshIndex;
 
     // Header is something like "t3d0001" where the last numbers are version that is incremented when reading compatibility breaks.
-    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 7 ] != '1')
+    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '1')
     {
         printf( "%s has wrong version!\n", file.path );
         return outMesh;
