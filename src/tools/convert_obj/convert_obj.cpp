@@ -1,6 +1,6 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2024-04-21
+// Modified: 2024-10-13
 // Limitations:
 //   - Only triangulated meshes currently work.
 //   - Face indices are 16-bit.
@@ -11,9 +11,26 @@
 #include "vec3.h"
 #include "meshoptimizer.h"
 
+// FIXME: This is duplicated from Theseus math.cpp to avoid linking the engine to this converter.
+void NormalizeVec4( Vec4& v )
+{
+    const float invLen = 1.0f / sqrtf( v.x * v.x + v.y * v.y + v.z * v.z );
+    v.x *= invLen;
+    v.y *= invLen;
+    v.z *= invLen;
+}
+
 struct UV
 {
     float u, v;
+
+    UV() : u( 0 ), v( 0 ) {}
+    UV( float aU, float aV ) : u( aU ), v( aV ) {}
+
+    UV operator-( const UV& t ) const
+    {
+        return UV( u - t.u, v - t.v );
+    }
 };
 
 struct Face
@@ -30,22 +47,24 @@ struct VertexInd
 
 struct Mesh
 {
-    Face* faces = nullptr;
-    unsigned faceCount = 0;
-
-    Vec3* finalPositions = nullptr;
-    UV* finalUVs = nullptr;
-    Vec3* finalNormals = nullptr;
-    VertexInd* finalFaces = nullptr;
-    unsigned int* meshletVertices = nullptr;
-    unsigned int* meshletTriangles = nullptr;
+    Face*            faces = nullptr;
+    unsigned         faceCount = 0;
+    Vec3*            finalPositions = nullptr;
+    UV*              finalUVs = nullptr;
+    Vec3*            finalNormals = nullptr;
+    Vec4*            finalTangents = nullptr;
+    VertexInd*       finalFaces = nullptr;
+    unsigned         finalVertexCount = 0;
+    unsigned         finalFaceCount = 0;
+    unsigned int*    meshletVertices = nullptr;
+    unsigned int*    meshletTriangles = nullptr;
     meshopt_Meshlet* meshlets = nullptr;
-    size_t meshletCount = 0;
-    unsigned finalVertexCount = 0;
-    unsigned finalFaceCount = 0;
-    
-    Vec3 aabbMin{ 99999, 99999, 99999 };
-    Vec3 aabbMax{ -99999, -99999, -99999 };
+    size_t           meshletCount = 0;
+    Vec4*            tangents = nullptr; // Size of array is faceCount
+    Vec3*            bitangents = nullptr; // Size of array is faceCount
+
+    Vec3             aabbMin{ 99999, 99999, 99999 };
+    Vec3             aabbMax{ -99999, -99999, -99999 };
 };
 
 Mesh* meshes = nullptr;
@@ -68,8 +87,8 @@ void WriteT3d( const char* path )
         return;
     }
 
-    const char buffer[] = { "t3d0000" };
-    fwrite( buffer, sizeof( char ), sizeof( buffer ), file );
+    const char header[] = { "t3d0001" };
+    fwrite( header, sizeof( char ), sizeof( header ), file );
     fwrite( &meshCount, 1, 4, file );
 
     for (unsigned m = 0; m < meshCount; ++m)
@@ -90,6 +109,7 @@ void WriteT3d( const char* path )
         fwrite( meshes[ m ].finalPositions, 3 * 4, meshes[ m ].finalVertexCount, file );
         fwrite( meshes[ m ].finalUVs, 2 * 4, meshes[ m ].finalVertexCount, file );
         fwrite( meshes[ m ].finalNormals, 3 * 4, meshes[ m ].finalVertexCount, file );
+        fwrite( meshes[ m ].finalTangents, 4 * 4, meshes[ m ].finalVertexCount, file );
     }
 
     fclose( file );
@@ -120,7 +140,6 @@ void BuildMeshlets( Mesh& mesh )
 
     mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, (unsigned char*)mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
         mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
-
 }
 
 void CreateFinalGeometry( Mesh& mesh )
@@ -131,6 +150,7 @@ void CreateFinalGeometry( Mesh& mesh )
     mesh.finalPositions = new Vec3[ 153636 ];
     mesh.finalUVs = new UV[ 153636 ];
     mesh.finalNormals = new Vec3[ 153636 ];
+    mesh.finalTangents = new Vec4[ 153636 ];
     mesh.finalFaces = new VertexInd[ 128343 ];
     mesh.finalFaceCount = 0;
     
@@ -262,6 +282,105 @@ void CreateFinalGeometry( Mesh& mesh )
         {
             mesh.aabbMax.z = mesh.finalPositions[ i ].z;
         }
+    }
+}
+
+void SolveFaceTangents( Mesh& mesh )
+{
+    mesh.tangents = new Vec4[ mesh.faceCount ];
+    mesh.bitangents = new Vec3[ mesh.faceCount ];
+
+    bool degenerateFound = false;
+
+    // Algorithm source:
+    // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/#header-3
+    for (unsigned f = 0; f < mesh.faceCount; ++f)
+    {
+        const Vec3& p1 = mesh.finalPositions[ mesh.finalFaces[ f ].a ];
+        const Vec3& p2 = mesh.finalPositions[ mesh.finalFaces[ f ].b ];
+        const Vec3& p3 = mesh.finalPositions[ mesh.finalFaces[ f ].c ];
+
+        const UV& uv1 = mesh.finalUVs[ mesh.finalFaces[ f ].a ];
+        const UV& uv2 = mesh.finalUVs[ mesh.finalFaces[ f ].b ];
+        const UV& uv3 = mesh.finalUVs[ mesh.finalFaces[ f ].c ];
+
+        const UV deltaUV1 = uv2 - uv1;
+        const UV deltaUV2 = uv3 - uv1;
+
+        const float area = deltaUV1.u * deltaUV2.v - deltaUV1.v * deltaUV2.u;
+
+        Vec3 tangent;
+        Vec3 bitangent;
+
+        if (fabs( area ) > 0.00001f)
+        {
+            const Vec3 deltaP1 = p2 - p1;
+            const Vec3 deltaP2 = p3 - p1;
+
+            tangent = (deltaP1 * deltaUV2.v - deltaP2 * deltaUV1.v) / area;
+            bitangent = (deltaP2 * deltaUV1.u - deltaP1 * deltaUV2.u) / area;
+        }
+        else
+        {
+            degenerateFound = true;
+        }
+
+        const Vec4 tangent4( tangent.x, tangent.y, tangent.z, 0.0f );
+        mesh.tangents[ f ] = tangent4;
+        mesh.bitangents[ f ] = bitangent;
+    }
+
+    if (degenerateFound)
+    {
+        printf( "Warning: Degenerate UV map. Author needs to separate texture points.\n" );
+    }
+}
+
+void SolveVertexTangents( Mesh& mesh )
+{
+    assert( mesh.tangents );
+
+    for (size_t v = 0; v < mesh.finalVertexCount; ++v)
+    {
+        mesh.finalTangents[ v ] = Vec4( 0, 0, 0, 0 );
+    }
+
+    Vec3* vbitangents = new Vec3[ mesh.finalVertexCount ];
+
+    for (size_t vertInd = 0; vertInd < mesh.finalVertexCount; ++vertInd)
+    {
+        Vec4 tangent( 0.0f, 0.0f, 0.0f, 0.0f );
+        Vec3 bitangent;
+
+        for (size_t faceInd = 0; faceInd < mesh.faceCount; ++faceInd)
+        {
+            if (mesh.finalFaces[ faceInd ].a == vertInd ||
+                mesh.finalFaces[ faceInd ].b == vertInd ||
+                mesh.finalFaces[ faceInd ].c == vertInd)
+            {
+                tangent += mesh.tangents[ faceInd ];
+                bitangent += mesh.bitangents[ faceInd ];
+            }
+        }
+
+        mesh.finalTangents[ vertInd ] = tangent;
+        vbitangents[ vertInd ] = bitangent;
+    }
+
+    for (size_t v = 0; v < mesh.finalVertexCount; ++v)
+    {
+        Vec4& tangent = mesh.finalTangents[ v ];
+        const Vec3& normal = mesh.finalNormals[ v ];
+        const Vec4 normal4( normal.x, normal.y, normal.z, 0 );
+
+        // Gram-Schmidt orthonormalization.
+        tangent -= normal4 * Vec4::Dot( normal4, tangent );
+        NormalizeVec4( tangent );
+
+        // Handedness. TBN must form a right-handed coordinate system,
+        // i.e. cross(n,t) must have the same orientation as b.
+        const Vec3 cp = Vec3::Cross( normal, Vec3( tangent.x, tangent.y, tangent.z ) );
+        tangent.w = Vec3::Dot( cp, vbitangents[ v ] ) >= 0 ? 1.0f : -1.0f;
     }
 }
 
@@ -464,6 +583,8 @@ int main( int argc, char* argv[] )
     for (unsigned m = 0; m < meshCount; ++m)
     {
         CreateFinalGeometry( meshes[ m ] );
+        SolveFaceTangents( meshes[ m ] );
+        SolveVertexTangents( meshes[ m ] );
         BuildMeshlets( meshes[ m ] );
     }
     

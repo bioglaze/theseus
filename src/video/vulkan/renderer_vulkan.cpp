@@ -136,6 +136,8 @@ struct Renderer
     Buffer staticMeshUVStagingBuffer;
     Buffer staticMeshNormalBuffer;
     Buffer staticMeshNormalStagingBuffer;
+    Buffer staticMeshTangentBuffer;
+    Buffer staticMeshTangentStagingBuffer;
     Buffer staticMeshIndexBuffer;
     Buffer staticMeshIndexStagingBuffer;
     Buffer uiVertexBuffer;
@@ -146,6 +148,7 @@ struct Renderer
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
     unsigned normalCounter = 0;
+    unsigned tangentCounter = 0;
     teTextureFormat currentColorFormat = teTextureFormat::Invalid;
     teTextureFormat currentDepthFormat = teTextureFormat::Invalid;
 
@@ -1302,6 +1305,8 @@ void CreateBuffers()
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
     renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshNormalBuffer" );
     renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshNormalStagingBuffer" );
+    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float4, "staticMeshTangentBuffer" );
+    renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float4, "staticMeshTangentStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
     renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
@@ -1322,6 +1327,7 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshUVStagingBuffer, renderer.staticMeshUVBuffer );
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
     CopyBuffer( renderer.staticMeshNormalStagingBuffer, renderer.staticMeshNormalBuffer );
+    CopyBuffer( renderer.staticMeshTangentStagingBuffer, renderer.staticMeshTangentBuffer );
 }
 
 void CreateSamplers()
@@ -1474,6 +1480,17 @@ unsigned AddNormals( const float* normals, unsigned bytes )
 
     renderer.normalCounter += bytes;
     return renderer.normalCounter - bytes;
+}
+
+unsigned AddTangents( const float* tangents, unsigned bytes )
+{
+    if (tangents)
+    {
+        UpdateStagingBuffer( renderer.staticMeshTangentStagingBuffer, tangents, bytes, renderer.tangentCounter );
+    }
+
+    renderer.tangentCounter += bytes;
+    return renderer.tangentCounter - bytes;
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )

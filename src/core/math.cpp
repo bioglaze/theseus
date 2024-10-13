@@ -19,6 +19,14 @@ Vec3 Vec3::Normalized() const
     return res;
 }
 
+void Vec4::Normalize()
+{
+    const float invLen = 1.0f / sqrtf( x * x + y * y + z * z );
+    x *= invLen;
+    y *= invLen;
+    z *= invLen;
+}
+
 #ifdef SIMD_SSE3
 #include <pmmintrin.h>
 
