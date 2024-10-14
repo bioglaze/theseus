@@ -113,6 +113,7 @@
     <ClCompile Include="..\convert_obj.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\vec3.h" />
     <ClInclude Include="..\..\..\thirdparty\meshoptimizer\meshoptimizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

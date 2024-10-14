@@ -31,6 +31,13 @@
 #define TE_ALLOCA alloca
 #endif // TE_ALLOCA
 
+static void tePrint( const char* str )
+{
+#if _MSC_VER
+    OutputDebugStringA( str );
+#endif
+}
+
 static int teStrcmp( const char* s1, const char* s2 )
 {
     while (*s1 && (*s1 == *s2))

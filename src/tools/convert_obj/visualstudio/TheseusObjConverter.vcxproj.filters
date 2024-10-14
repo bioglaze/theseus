@@ -55,10 +55,16 @@
     <Filter Include="meshoptimizer">
       <UniqueIdentifier>{33512c98-4f62-43cd-94ac-e7266dec761a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{957c4566-df22-4880-bb59-5ba6583d02a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\thirdparty\meshoptimizer\meshoptimizer.h">
       <Filter>meshoptimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\vec3.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

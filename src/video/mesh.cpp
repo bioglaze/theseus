@@ -6,6 +6,7 @@
 
 unsigned AddPositions( const float* positions, unsigned bytes );
 unsigned AddNormals( const float* normals, unsigned bytes );
+unsigned AddTangents( const float* tangents, unsigned bytes );
 unsigned AddIndices( const unsigned short* indices, unsigned bytes );
 unsigned AddUVs( const float* uvs, unsigned bytes );
 
@@ -22,6 +23,8 @@ struct SubMesh
     unsigned positionCount = 0;
     unsigned normalOffset = 0;
     unsigned normalCount = 0;
+    unsigned tangentOffset = 0;
+    unsigned tangentCount = 0;
 
     Vec3 aabbMin;
     Vec3 aabbMax;
@@ -143,6 +146,13 @@ teMesh teLoadMesh( const teFile& file )
     teMesh outMesh;
     outMesh.index = ++meshIndex;
 
+    // Header is something like "t3d0001" where the last numbers are version that is incremented when reading compatibility breaks.
+    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '1')
+    {
+        printf( "%s has wrong version!\n", file.path );
+        return outMesh;
+    }
+
     unsigned char* pointer = &file.data[ 8 ];
     meshes[ outMesh.index ].subMeshCount = *((unsigned*)pointer);
     meshes[ outMesh.index ].subMeshes = new SubMesh[ meshes[ outMesh.index ].subMeshCount ]();
@@ -186,6 +196,9 @@ teMesh teLoadMesh( const teFile& file )
         meshes[ outMesh.index ].subMeshes[ m ].normalOffset = AddNormals( (float*)pointer, vertexCount * 3 * 4 );
         meshes[ outMesh.index ].subMeshes[ m ].normalCount = vertexCount;
         pointer += vertexCount * 3 * 4;
+        meshes[ outMesh.index ].subMeshes[ m ].tangentOffset = AddTangents( (float*)pointer, vertexCount * 4 * 4 );
+        meshes[ outMesh.index ].subMeshes[ m ].tangentCount = vertexCount;
+        pointer += vertexCount * 4 * 4;
     }
 
     return outMesh;
