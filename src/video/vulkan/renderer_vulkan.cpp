@@ -179,18 +179,18 @@ struct Renderer
     PSO psos[ MaxPSOs ];
     VkPipeline boundPSO = VK_NULL_HANDLE;
 
-    VkDebugUtilsMessengerEXT dbgMessenger = VK_NULL_HANDLE;
-    PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT = VK_NULL_HANDLE;
-    PFN_vkCmdBeginDebugUtilsLabelEXT CmdBeginDebugUtilsLabelEXT = VK_NULL_HANDLE;
-    PFN_vkCmdEndDebugUtilsLabelEXT CmdEndDebugUtilsLabelEXT = VK_NULL_HANDLE;
-    PFN_vkCreateSwapchainKHR createSwapchainKHR = VK_NULL_HANDLE;
-    PFN_vkGetSwapchainImagesKHR getSwapchainImagesKHR = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT                      dbgMessenger = VK_NULL_HANDLE;
+    PFN_vkSetDebugUtilsObjectNameEXT              SetDebugUtilsObjectNameEXT = VK_NULL_HANDLE;
+    PFN_vkCmdBeginDebugUtilsLabelEXT              CmdBeginDebugUtilsLabelEXT = VK_NULL_HANDLE;
+    PFN_vkCmdEndDebugUtilsLabelEXT                CmdEndDebugUtilsLabelEXT = VK_NULL_HANDLE;
+    PFN_vkCreateSwapchainKHR                      createSwapchainKHR = VK_NULL_HANDLE;
+    PFN_vkGetSwapchainImagesKHR                   getSwapchainImagesKHR = VK_NULL_HANDLE;
     PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilitiesKHR = VK_NULL_HANDLE;
     PFN_vkGetPhysicalDeviceSurfacePresentModesKHR getPhysicalDeviceSurfacePresentModesKHR = VK_NULL_HANDLE;
-    PFN_vkGetPhysicalDeviceSurfaceSupportKHR getPhysicalDeviceSurfaceSupportKHR = VK_NULL_HANDLE;
-    PFN_vkGetPhysicalDeviceSurfaceFormatsKHR getPhysicalDeviceSurfaceFormatsKHR = VK_NULL_HANDLE;
-    PFN_vkAcquireNextImageKHR acquireNextImageKHR = VK_NULL_HANDLE;
-    PFN_vkQueuePresentKHR queuePresentKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfaceSupportKHR      getPhysicalDeviceSurfaceSupportKHR = VK_NULL_HANDLE;
+    PFN_vkGetPhysicalDeviceSurfaceFormatsKHR      getPhysicalDeviceSurfaceFormatsKHR = VK_NULL_HANDLE;
+    PFN_vkAcquireNextImageKHR                     acquireNextImageKHR = VK_NULL_HANDLE;
+    PFN_vkQueuePresentKHR                         queuePresentKHR = VK_NULL_HANDLE;
 
     ShaderParams shaderParams;
 
@@ -1079,6 +1079,10 @@ void CreateCommandBuffers()
         {
             name = "drawCommandBuffer 2";
         }
+        else if (i == 3)
+        {
+            name = "drawCommandBuffer 3";
+        }
 
         SetObjectName( renderer.device, (uint64_t)drawCmdBuffers[ i ], VK_OBJECT_TYPE_COMMAND_BUFFER, name );
 
@@ -1497,10 +1501,13 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 {
 	CreateInstance();
     CreateDevice();
-    CreateCommandBuffers();
     LoadFunctionPointers();
+    CreateCommandBuffers();
     CreateBuffers();
     CreateSamplers();
+
+    SetObjectName( renderer.device, (uint64_t)renderer.instance, VK_OBJECT_TYPE_INSTANCE, "renderer.instance" );
+    SetObjectName( renderer.device, (uint64_t)renderer.graphicsQueue, VK_OBJECT_TYPE_QUEUE, "renderer.graphicsQueue" );
 
     for (unsigned i = 0; i < 6; ++i)
     {
