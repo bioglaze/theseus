@@ -249,7 +249,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Less)
             io.AddInputCharacter( '<' );
         //else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::AE)
-        //    io.AddInputCharactersUTF8( "ä" );
+        //    io.AddInputCharactersUTF8( "Ã¤" );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
             if (!io.WantCaptureKeyboard)
@@ -429,6 +429,12 @@ int main()
         double lastTime = theTime;
         theTime = GetMilliseconds();
         dt = theTime - lastTime;
+
+        if (dt < 0)
+        {
+            dt = 0;
+        }
+
         //printf( "%f\n", dt );
 
         RenderSceneView();
