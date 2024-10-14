@@ -811,9 +811,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     InitKeyMap();
     
-    win.width = width;
-    win.height = height;
-
     gwlDisplay = wl_display_connect( nullptr );
     
     if (!gwlDisplay)
@@ -836,7 +833,12 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     {
         //window->scale = MAX(window->scale, output->scale);
         printf( "output scale: %d, window scale: %d\n", output->scale, window.scale );
+        width /= output->scale;
+        height /= output->scale;
     }
+
+    win.width = width;
+    win.height = height;
 
     wl_list_init( &outputs );
     window.wlSurface = wl_compositor_create_surface( wlCompositor );

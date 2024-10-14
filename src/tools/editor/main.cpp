@@ -97,7 +97,7 @@ void GetOpenPath( char* path, const char* extension )
     }
     else if (strstr( extension, "t3d" ))
     {
-        f = popen( "zenity --file-selection --file-filter=*.ae3d --title \"Load .t3d file\"", "r" );
+        f = popen( "zenity --file-selection --file-filter=*.t3d --title \"Load .t3d file\"", "r" );
     }
     else if (strstr( extension, "wav" ))
     {
