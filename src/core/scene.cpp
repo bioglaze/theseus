@@ -283,6 +283,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
     }
 }
 
+// \param skyboxShader if not null, skybox is rendered using it, skyboxMesh and skyboxTexture.
 // \param momentsShader if not null, overrides material's shader
 static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, const teShader* momentsShader )
 {

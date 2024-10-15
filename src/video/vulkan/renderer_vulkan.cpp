@@ -1708,9 +1708,10 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
-    const VkImageAspectFlags depthAspect = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
-    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), depthAspect,
-        VK_IMAGE_LAYOUT_UNDEFINED, depthAtt.imageLayout, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+    // FIXME: This had to be commented out after updating to VulkanSDK 1.3.296.0 because it caused a synchronization validation write-after-write hazard. Maybe it's not needed at all?
+    //const VkImageAspectFlags depthAspect = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+    //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), depthAspect,
+     //   VK_IMAGE_LAYOUT_UNDEFINED, depthAtt.imageLayout, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );
 
