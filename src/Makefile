@@ -42,4 +42,4 @@ endif
 
 toolz:
 	$(CC) $(FLAGS) $(SANITIZERS) -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
-	$(CC) $(FLAGS) $(SANITIZERS) thirdparty/imgui/*.cpp tools/editor/*.cpp ../build/engine.o $(LINKER) -o ../build/editor
+	$(CC) $(FLAGS) $(SANITIZERS) tools/editor/*.cpp *.o ../build/engine.o $(LINKER) -o ../build/editor

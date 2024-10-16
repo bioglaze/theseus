@@ -1,6 +1,7 @@
 #include "window.h"
 #include "te_stdlib.h"
 #include <stdio.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -8,10 +9,37 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <linux/input.h>
+#include <linux/joystick.h>
 
 // TODO: rename link, conflicts with some header
 
 constexpr int EventStackSize = 100;
+
+struct GamePad
+{
+    bool isActive = false;
+    int fd;
+    int buttonA;
+    int buttonB;
+    int buttonX;
+    int buttonY;
+    int buttonBack;
+    int buttonStart;
+    int buttonLeftShoulder;
+    int buttonRightShoulder;
+    int dpadXaxis;
+    int dpadYaxis;
+    int leftThumbX;
+    int leftThumbY;
+    int rightThumbX;
+    int rightThumbY;
+    short deadZone;
+
+    float lastLeftThumbX = 0;
+    float lastLeftThumbY = 0;
+    float lastRightThumbX = 0;
+    float lastRightThumbY = 0;
+};
 
 struct WindowImpl
 {
@@ -25,6 +53,8 @@ struct WindowImpl
     //       A proper fix would be to read mouse coordinate when mouse move event is detected.
     unsigned              lastMouseX = 0;
     unsigned              lastMouseY = 0;
+
+    GamePad               gamePad;
 };
 
 WindowImpl win;
@@ -35,6 +65,22 @@ void IncEventIndex()
     {
         ++win.eventIndex;
     }
+}
+
+static float ProcessGamePadStickValue( short value, short deadZoneThreshold )
+{
+    float result = 0;
+        
+    if (value < -deadZoneThreshold)
+    {
+        result = (value + deadZoneThreshold) / (32768.0f - deadZoneThreshold);
+    }
+    else if (value > deadZoneThreshold)
+    {
+        result = (value - deadZoneThreshold) / (32767.0f - deadZoneThreshold);
+    }
+
+    return result;
 }
 
 wl_compositor* wlCompositor;
@@ -268,7 +314,7 @@ bool ownOutput( wl_output* output )
     return ownProxy( (wl_proxy*)output );
 }
 
-static void cursor_surface_enter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
+static void cursorSurfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
     Seat *seate = (Seat*)data;
     pointer_output* pointerOutput;
@@ -283,7 +329,7 @@ static void cursor_surface_enter( void* data, wl_surface* wlSurface, wl_output* 
     printf( "TODO: try_update_cursor()\n");
 }
 
-static void cursor_surface_leave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
+static void cursorSurfaceLeave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
     Seat* seate = (Seat*)data;
     pointer_output* pointerOutput, *tmp;
@@ -298,13 +344,12 @@ static void cursor_surface_leave( void* data, wl_surface* wlSurface, wl_output* 
     }
 }
 
-static wl_surface_listener cursor_surface_listener = { cursor_surface_enter, cursor_surface_leave };
+static wl_surface_listener cursorSurfaceListener = { cursorSurfaceEnter, cursorSurfaceLeave };
 
 static void initCursors( Seat *pseat )
 {
     char* name = nullptr;
     int size = 0;
-    wl_cursor_theme *theme;
 
     // FIXME: this method doesn't exist?
     //if (!libdecor_get_cursor_settings( &name, &size ))
@@ -314,7 +359,7 @@ static void initCursors( Seat *pseat )
     }
     size *= pseat->pointer_scale;
 
-    theme = wl_cursor_theme_load( name, size, wlShm );
+    wl_cursor_theme* theme = wl_cursor_theme_load( name, size, wlShm );
     free( name );
 
     if (theme != nullptr)
@@ -333,7 +378,7 @@ static void initCursors( Seat *pseat )
     if (!pseat->cursor_surface)
     {
         pseat->cursor_surface = wl_compositor_create_surface( wlCompositor );
-        wl_surface_add_listener( pseat->cursor_surface, &cursor_surface_listener, pseat );
+        wl_surface_add_listener( pseat->cursor_surface, &cursorSurfaceListener, pseat );
     }
 }
 
@@ -807,9 +852,74 @@ static void InitKeyMap()
     win.keyMap[ 44 ] = teWindowEvent::KeyCode::Z;
 }
 
+static void InitGamePad()
+{
+    DIR* dir = opendir( "/dev/input" );
+    dirent* result = readdir( dir );
+
+    while (result != nullptr)
+    {
+        dirent& entry = *result;
+        
+        if ((entry.d_name[0] == 'j') && (entry.d_name[1] == 's'))
+        {
+            char full_device_path[ 267 ];
+            snprintf( full_device_path, sizeof( full_device_path ), "%s/%s", "/dev/input", entry.d_name );
+            int fd = open( full_device_path, O_RDONLY );
+
+            if (fd < 0)
+            {
+                // Permissions could cause this code path.
+                continue;
+            }
+
+            char name[ 128 ];
+            ioctl( fd, JSIOCGNAME( 128 ), name);
+            /*if (!strstr(name, "Microsoft X-Box 360 pad"))
+            {
+                //close(fd);
+                std::cerr << "Not an xbox controller: " << std::string( name ) << std::endl;;
+                continue;
+                }*/
+
+            int version;
+            ioctl( fd, JSIOCGVERSION, &version );
+            uint8_t axes;
+            ioctl( fd, JSIOCGAXES, &axes );
+            uint8_t buttons;
+            ioctl( fd, JSIOCGBUTTONS, &buttons );
+            win.gamePad.fd = fd;
+            win.gamePad.isActive = true;
+            // XBox One Controller values. Should also work for 360 Controller.
+            win.gamePad.buttonA = 0;
+            win.gamePad.buttonB = 1;
+            win.gamePad.buttonX = 2;
+            win.gamePad.buttonY = 3;
+            win.gamePad.buttonStart = 7;
+            win.gamePad.buttonBack = 6;
+            win.gamePad.buttonLeftShoulder = 4;
+            win.gamePad.buttonRightShoulder = 5;
+            win.gamePad.dpadXaxis = 6;
+            win.gamePad.dpadYaxis = 7;
+            win.gamePad.leftThumbX = 0;
+            win.gamePad.leftThumbY = 1;
+            win.gamePad.rightThumbX = 3;
+            win.gamePad.rightThumbY = 4;
+            win.gamePad.deadZone = 7849;
+            
+            fcntl( fd, F_SETFL, O_NONBLOCK );
+        }
+
+        result = readdir( dir );
+    }
+
+    closedir( dir );
+}
+
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     InitKeyMap();
+    InitGamePad();
     
     gwlDisplay = wl_display_connect( nullptr );
     
@@ -865,6 +975,115 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
 void tePushWindowEvents()
 {
+    js_event j;
+
+    while (read( win.gamePad.fd, &j, sizeof( js_event ) ) == sizeof( js_event ))
+    {
+        // Don't care if init or afterwards
+        j.type &= ~JS_EVENT_INIT;
+            
+        if (j.type == JS_EVENT_BUTTON)
+        {
+            if (j.number == win.gamePad.buttonA && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonA;
+            }
+            else if (j.number == win.gamePad.buttonB && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonB;
+            }
+            else if (j.number == win.gamePad.buttonX && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonX;
+            }
+            else if (j.number == win.gamePad.buttonY && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonY;
+            }
+            else if (j.number == win.gamePad.buttonStart && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonStart;
+            }
+            else if (j.number == win.gamePad.buttonBack && j.value > 0)
+            {
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonBack;
+            }
+            else
+            {
+            }
+        }
+        else if (j.type == JS_EVENT_AXIS)
+        {
+            if (j.number == win.gamePad.leftThumbX)
+            {
+                const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
+                win.events[ win.eventIndex ].gamePadThumbX = x;
+                win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastLeftThumbY;
+                win.gamePad.lastLeftThumbX = x;
+            }
+            else if (j.number == win.gamePad.leftThumbY)
+            {
+                const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
+                win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastLeftThumbX;
+                win.events[ win.eventIndex ].gamePadThumbY = -y;
+                win.gamePad.lastLeftThumbY = -y;
+            }
+            else if (j.number == win.gamePad.rightThumbX)
+            {
+                const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
+                win.events[ win.eventIndex ].gamePadThumbX = x;
+                win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastRightThumbY;
+                win.gamePad.lastRightThumbX = x;
+            }
+            else if (j.number == win.gamePad.rightThumbY)
+            {
+                const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
+                IncEventIndex();
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
+                win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastRightThumbX;
+                win.events[ win.eventIndex ].gamePadThumbY = -y;
+                win.gamePad.lastRightThumbY = -y;
+            }
+            else if (j.number == win.gamePad.dpadXaxis)
+            {
+                if (j.value > 0)
+                {
+                    IncEventIndex();
+                    win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadRight;
+                }
+                if (j.value < 0)
+                {
+                    IncEventIndex();
+                    win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadLeft;
+                }
+            }
+            else if (j.number == win.gamePad.dpadYaxis)
+            {
+                if (j.value < 0)
+                {
+                    IncEventIndex();
+                    win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadUp;
+                }
+                if (j.value > 0)
+                {
+                    IncEventIndex();
+                    win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadDown;
+                }
+            }
+        }
+    }
 }
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
