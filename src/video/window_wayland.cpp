@@ -975,6 +975,11 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
 void tePushWindowEvents()
 {
+    if (!win.gamePad.isActive)
+    {
+        return;
+    }
+    
     js_event j;
 
     while (read( win.gamePad.fd, &j, sizeof( js_event ) ) == sizeof( js_event ))
