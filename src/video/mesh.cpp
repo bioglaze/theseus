@@ -3,6 +3,7 @@
 #include "file.h"
 #include "te_stdlib.h"
 #include "vec3.h"
+#include <stdio.h>
 
 unsigned AddPositions( const float* positions, unsigned bytes );
 unsigned AddNormals( const float* normals, unsigned bytes );

@@ -74,7 +74,8 @@ struct Renderer
     unsigned uvCounter = 0;
     unsigned positionCounter = 0;
     unsigned normalCounter = 0;
-    
+    unsigned tangentCounter = 0;
+
     unsigned width = 0;
     unsigned height = 0;
     
@@ -86,6 +87,8 @@ struct Renderer
     Buffer staticMeshUVBuffer;
     Buffer staticMeshNormalBuffer;
     Buffer staticMeshNormalStagingBuffer;
+    Buffer staticMeshTangentBuffer;
+    Buffer staticMeshTangentStagingBuffer;
 
     Buffer    uiVertexBuffer;
     Buffer    uiIndexBuffer;
@@ -252,6 +255,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshUVStagingBuffer" );
     renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshNormalBuffer" );
     renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshNormalStagingBuffer" );
+    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshTangentBuffer" );
+    renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshTangentStagingBuffer" );
 
     const unsigned uiBufferBytes = 1024 * 1024 * 8;
     
@@ -335,6 +340,17 @@ unsigned AddNormals( const float* normals, unsigned bytes )
 
     renderer.normalCounter += bytes;
     return renderer.normalCounter - bytes;
+}
+
+unsigned AddTangents( const float* tangents, unsigned bytes )
+{
+    if (tangents)
+    {
+        UpdateStagingBuffer( renderer.staticMeshTangentStagingBuffer, tangents, bytes, renderer.tangentCounter );
+    }
+
+    renderer.tangentCounter += bytes;
+    return renderer.tangentCounter - bytes;
 }
 
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams )
@@ -456,6 +472,7 @@ void teFinalizeMeshBuffers()
     CopyBuffer( renderer.staticMeshUVStagingBuffer, renderer.staticMeshUVBuffer );
     CopyBuffer( renderer.staticMeshPositionStagingBuffer, renderer.staticMeshPositionBuffer );
     CopyBuffer( renderer.staticMeshNormalStagingBuffer, renderer.staticMeshNormalBuffer );
+    CopyBuffer( renderer.staticMeshTangentStagingBuffer, renderer.staticMeshTangentBuffer );
 }
 
 static int GetPSO( id<MTLFunction> vertexProgram, id<MTLFunction> pixelProgram, teBlendMode blendMode, teTopology topology, MTLPixelFormat colorFormat, MTLPixelFormat depthFormat, bool isUI )

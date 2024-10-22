@@ -41,5 +41,5 @@ else
 endif
 
 toolz:
-	$(CC) $(FLAGS) $(SANITIZERS) -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
+	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 -Iinclude -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
 	$(CC) $(FLAGS) $(SANITIZERS) tools/editor/*.cpp *.o ../build/engine.o $(LINKER) -o ../build/editor
