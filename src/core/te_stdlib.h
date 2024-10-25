@@ -31,12 +31,7 @@
 #define TE_ALLOCA alloca
 #endif // TE_ALLOCA
 
-static void tePrint( const char* str )
-{
-#if _MSC_VER
-    OutputDebugStringA( str );
-#endif
-}
+void tePrint( const char* format, ... );
 
 static int teStrcmp( const char* s1, const char* s2 )
 {

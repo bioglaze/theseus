@@ -4,6 +4,7 @@
 #if VK_USE_PLATFORM_WAYLAND_KHR
 #include "video/window_wayland.cpp"
 #endif
+#include "core/te_stdlib.cpp"
 #include "core/camera.cpp"
 #include "core/file.cpp"
 #include "core/frustum.cpp"
