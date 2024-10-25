@@ -821,9 +821,19 @@ static void InitKeyMap()
     win.keyMap[ 103 ] = teWindowEvent::KeyCode::Up;
     win.keyMap[ 106 ] = teWindowEvent::KeyCode::Right;
     win.keyMap[ 108 ] = teWindowEvent::KeyCode::Down;
-    win.keyMap[ 1 ] = teWindowEvent::KeyCode::Escape;
+    win.keyMap[  1 ] = teWindowEvent::KeyCode::Escape;
     win.keyMap[ 57 ] = teWindowEvent::KeyCode::Space;
+    win.keyMap[ 14 ] = teWindowEvent::KeyCode::Backspace;
+    win.keyMap[ 111 ] = teWindowEvent::KeyCode::Delete;
+    win.keyMap[ 52 ] = teWindowEvent::KeyCode::Dot;
+    win.keyMap[ 102 ] = teWindowEvent::KeyCode::Home;
+    win.keyMap[ 107 ] = teWindowEvent::KeyCode::End;
+    win.keyMap[ 12 ] = teWindowEvent::KeyCode::Plus;
+    win.keyMap[ 53 ] = teWindowEvent::KeyCode::Minus;
+    win.keyMap[ 86 ] = teWindowEvent::KeyCode::Less;
 
+    win.keyMap[ 39 ] = teWindowEvent::KeyCode::OE;
+    win.keyMap[ 40 ] = teWindowEvent::KeyCode::AE;
     win.keyMap[ 30 ] = teWindowEvent::KeyCode::A;
     win.keyMap[ 48 ] = teWindowEvent::KeyCode::B;
     win.keyMap[ 46 ] = teWindowEvent::KeyCode::C;
@@ -850,6 +860,17 @@ static void InitKeyMap()
     win.keyMap[ 45 ] = teWindowEvent::KeyCode::X;
     win.keyMap[ 21 ] = teWindowEvent::KeyCode::Y;
     win.keyMap[ 44 ] = teWindowEvent::KeyCode::Z;
+
+    win.keyMap[ 2 ] = teWindowEvent::KeyCode::N1;
+    win.keyMap[ 3 ] = teWindowEvent::KeyCode::N2;
+    win.keyMap[ 4 ] = teWindowEvent::KeyCode::N3;
+    win.keyMap[ 5 ] = teWindowEvent::KeyCode::N4;
+    win.keyMap[ 6 ] = teWindowEvent::KeyCode::N5;
+    win.keyMap[ 7 ] = teWindowEvent::KeyCode::N6;
+    win.keyMap[ 8 ] = teWindowEvent::KeyCode::N7;
+    win.keyMap[ 9 ] = teWindowEvent::KeyCode::N8;
+    win.keyMap[10 ] = teWindowEvent::KeyCode::N9;
+    win.keyMap[11 ] = teWindowEvent::KeyCode::N0;
 }
 
 static void InitGamePad()
