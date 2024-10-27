@@ -1,5 +1,7 @@
 #include "te_stdlib.h"
+#if !defined( _MSC_VER )
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <stdarg.h>
 
