@@ -36,6 +36,7 @@
 		AB768CA629DA055F00F97939 /* scene.h in Headers */ = {isa = PBXBuildFile; fileRef = AB768C9829DA055F00F97939 /* scene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AB768CA729DA055F00F97939 /* texture.h in Headers */ = {isa = PBXBuildFile; fileRef = AB768C9929DA055F00F97939 /* texture.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AB768CA829DA055F00F97939 /* gameobject.h in Headers */ = {isa = PBXBuildFile; fileRef = AB768C9A29DA055F00F97939 /* gameobject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AB99F7EC2CCFC8ED002D7FBF /* te_stdlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB99F7EB2CCFC8ED002D7FBF /* te_stdlib.cpp */; };
 		ABA3ACAF29E06A55008BAD89 /* buffer_metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACAC29E06A55008BAD89 /* buffer_metal.mm */; };
 		ABA3ACB029E06A55008BAD89 /* shader_metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACAD29E06A55008BAD89 /* shader_metal.mm */; };
 		ABA3ACB129E06A55008BAD89 /* texture_metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = ABA3ACAE29E06A55008BAD89 /* texture_metal.mm */; };
@@ -74,6 +75,7 @@
 		AB768C9829DA055F00F97939 /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scene.h; path = include/scene.h; sourceTree = "<group>"; };
 		AB768C9929DA055F00F97939 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = texture.h; path = include/texture.h; sourceTree = "<group>"; };
 		AB768C9A29DA055F00F97939 /* gameobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gameobject.h; path = include/gameobject.h; sourceTree = "<group>"; };
+		AB99F7EB2CCFC8ED002D7FBF /* te_stdlib.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = te_stdlib.cpp; path = core/te_stdlib.cpp; sourceTree = "<group>"; };
 		ABA3ACAC29E06A55008BAD89 /* buffer_metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = buffer_metal.mm; path = video/metal/buffer_metal.mm; sourceTree = "<group>"; };
 		ABA3ACAD29E06A55008BAD89 /* shader_metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = shader_metal.mm; path = video/metal/shader_metal.mm; sourceTree = "<group>"; };
 		ABA3ACAE29E06A55008BAD89 /* texture_metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = texture_metal.mm; path = video/metal/texture_metal.mm; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 		AB768C8229DA04CA00F97939 /* core */ = {
 			isa = PBXGroup;
 			children = (
+				AB99F7EB2CCFC8ED002D7FBF /* te_stdlib.cpp */,
 				ABC288F929DB0E9600A5903F /* te_stdlib.h */,
 				AB768C7729DA04A200F97939 /* camera.cpp */,
 				AB768C7529DA04A200F97939 /* file.cpp */,
@@ -286,6 +289,7 @@
 				ABA3ACB129E06A55008BAD89 /* texture_metal.mm in Sources */,
 				AB768C7A29DA04A200F97939 /* math.cpp in Sources */,
 				AB768C7E29DA04A200F97939 /* frustum.cpp in Sources */,
+				AB99F7EC2CCFC8ED002D7FBF /* te_stdlib.cpp in Sources */,
 				AB29F6F82A814C9D00167287 /* light.cpp in Sources */,
 				AB768C7D29DA04A200F97939 /* file.cpp in Sources */,
 				AB768C8029DA04A200F97939 /* scene.cpp in Sources */,

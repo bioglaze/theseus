@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		AB0418182BE5585A00FCCA61 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0418172BE5585A00FCCA61 /* AppDelegate.m */; };
-		AB04181B2BE5585A00FCCA61 /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = AB04181A2BE5585A00FCCA61 /* Renderer.m */; };
 		AB04181E2BE5585A00FCCA61 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB04181D2BE5585A00FCCA61 /* GameViewController.mm */; };
 		AB0418232BE5585B00FCCA61 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB0418222BE5585B00FCCA61 /* Assets.xcassets */; };
 		AB0418262BE5585B00FCCA61 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AB0418242BE5585B00FCCA61 /* Main.storyboard */; };
@@ -51,8 +50,6 @@
 		AB0418132BE5585A00FCCA61 /* TheseusEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TheseusEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB0418162BE5585A00FCCA61 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		AB0418172BE5585A00FCCA61 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		AB0418192BE5585A00FCCA61 /* RRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RRenderer.h; sourceTree = "<group>"; };
-		AB04181A2BE5585A00FCCA61 /* Renderer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Renderer.m; sourceTree = "<group>"; };
 		AB04181C2BE5585A00FCCA61 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
 		AB04181D2BE5585A00FCCA61 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		AB0418222BE5585B00FCCA61 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -145,8 +142,6 @@
 				AB2DD0772BE559A000113F09 /* sceneview.cpp */,
 				AB0418162BE5585A00FCCA61 /* AppDelegate.h */,
 				AB0418172BE5585A00FCCA61 /* AppDelegate.m */,
-				AB0418192BE5585A00FCCA61 /* RRenderer.h */,
-				AB04181A2BE5585A00FCCA61 /* Renderer.m */,
 				AB04181C2BE5585A00FCCA61 /* GameViewController.h */,
 				AB04181D2BE5585A00FCCA61 /* GameViewController.mm */,
 				AB0418222BE5585B00FCCA61 /* Assets.xcassets */,
@@ -304,7 +299,6 @@
 				AB2DD0742BE5597C00113F09 /* imgui_draw.cpp in Sources */,
 				AB2DD09A2BE55D2500113F09 /* standard.metal in Sources */,
 				AB2DD09B2BE55D2500113F09 /* ui.metal in Sources */,
-				AB04181B2BE5585A00FCCA61 /* Renderer.m in Sources */,
 				AB2DD0972BE55D2500113F09 /* bloom.metal in Sources */,
 				AB04181E2BE5585A00FCCA61 /* GameViewController.mm in Sources */,
 				AB2DD0752BE5597C00113F09 /* imgui.cpp in Sources */,

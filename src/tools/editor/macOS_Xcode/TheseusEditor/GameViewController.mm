@@ -1,5 +1,4 @@
 #import "GameViewController.h"
-#import "RRenderer.h"
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
@@ -21,9 +20,16 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RotateEditorCamera( float x, float y );
 void SelectObject( unsigned x, unsigned y );
 void DeleteSelectedObject();
+void RenderSceneView();
+void SetDrawable( id< CAMetalDrawable > drawable );
+void MoveEditorCamera( float right, float up, float forward );
 NSViewController* myViewController;
 
 Vec3 moveDir;
+extern MTLRenderPassDescriptor* renderPassDescriptor;
+extern id<MTLCommandBuffer> gCommandBuffer;
+
+static const NSUInteger kMaxBuffersInFlight = 3;
 
 void GetOpenPath( char* path, const char* extension )
 {
@@ -64,8 +70,7 @@ void MoveUp( float amount )
 @implementation GameViewController
 {
     MTKView* _view;
-
-    Renderer* _renderer;
+    dispatch_semaphore_t _inFlightSemaphore;
 }
 
 - (void)viewDidLoad
@@ -85,17 +90,33 @@ void MoveUp( float amount )
         return;
     }
 
-    _renderer = [[Renderer alloc] initWithMetalKitView:_view];
+    _inFlightSemaphore = dispatch_semaphore_create(kMaxBuffersInFlight);
 
-    [_renderer mtkView:_view drawableSizeWillChange:_view.drawableSize];
-
-    _view.delegate = _renderer;
+    _view.delegate = self;
 
     const unsigned width = _view.bounds.size.width;
     const unsigned height = _view.bounds.size.height;
     InitSceneView( width, height, nullptr, uiScale );
     
     myViewController = self;
+}
+
+- (void)drawInMTKView:(nonnull MTKView *)view
+{
+    dispatch_semaphore_wait(_inFlightSemaphore, DISPATCH_TIME_FOREVER);
+
+    SetDrawable( view.currentDrawable );
+
+    __block dispatch_semaphore_t block_sema = _inFlightSemaphore;
+    [gCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
+     {
+         dispatch_semaphore_signal(block_sema);
+     }];
+
+    renderPassDescriptor = view.currentRenderPassDescriptor;
+
+    RenderSceneView();
+    MoveEditorCamera( moveDir.x, moveDir.y, moveDir.z );
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
