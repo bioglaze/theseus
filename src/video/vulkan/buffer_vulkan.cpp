@@ -32,6 +32,8 @@ VkDeviceMemory BufferGetMemory( const teBuffer& buffer )
 
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName )
 {
+    teAssert( bufferCount < 10000 );
+
     teBuffer outBuffer;
     outBuffer.index = ++bufferCount;
 
@@ -45,6 +47,8 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 
     VkMemoryRequirements memReqs;
     vkGetBufferMemoryRequirements( device, buffers[ outBuffer.index ].buffer, &memReqs );
+
+    outBuffer.memoryUsage = memReqs.size;
 
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -107,6 +111,7 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
     teAssert( source.stride == destination.stride );
+    teAssert( source.memoryUsage <= destination.memoryUsage );
 
     CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.count * source.stride );
 }

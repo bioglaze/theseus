@@ -26,10 +26,10 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
-Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
-VkBufferView BufferGetView( const Buffer& buffer );
-VkDeviceMemory BufferGetMemory( const Buffer& buffer );
-VkBuffer BufferGetBuffer( const Buffer& buffer );
+teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
+VkBufferView BufferGetView( const teBuffer& buffer );
+VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
+VkBuffer BufferGetBuffer( const teBuffer& buffer );
 void WaylandDispatch();
 
 extern struct wl_display* gwlDisplay;
@@ -90,7 +90,7 @@ struct PerObjectUboStruct
 struct Ubo
 {
     uint8_t* uboData = nullptr;
-    Buffer buffer;
+    teBuffer buffer;
     size_t offset = 0;
 };
 
@@ -1430,10 +1430,10 @@ void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSiz
     vkFreeCommandBuffers( renderer.device, cmdBufInfo.commandPool, 1, &copyCommandBuffer );
 }
 
-void UpdateStagingBuffer( const Buffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
+void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
 {
     teAssert( BufferGetMemory( buffer ) != VK_NULL_HANDLE );
-    // TODO: assert that buffer can be mapped.
+    teAssert( dataBytes + offset <= buffer.memoryUsage );
 
     void* bufferData = nullptr;
     VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( buffer ), offset, dataBytes, 0, &bufferData ) );
@@ -1806,7 +1806,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
 
-static void UpdateDescriptors( const Buffer& binding2, const Buffer& binding4, const Buffer& binding6, const teTexture2D& writeTexture, size_t uboOffset )
+static void UpdateDescriptors( const teBuffer& binding2, const teBuffer& binding4, const teBuffer& binding6, const teTexture2D& writeTexture, size_t uboOffset )
 {
     const VkDescriptorSet& dstSet = renderer.swapchainResources[ renderer.frameIndex ].descriptorSets[ renderer.swapchainResources[ renderer.frameIndex ].setIndex ];
 
