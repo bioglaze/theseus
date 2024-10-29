@@ -130,18 +130,18 @@ struct Renderer
     VkDescriptorImageInfo samplerInfos[ TextureCount ];
     VkPipelineLayout pipelineLayout;
 
-    Buffer staticMeshPositionBuffer;
-    Buffer staticMeshPositionStagingBuffer;
-    Buffer staticMeshUVBuffer;
-    Buffer staticMeshUVStagingBuffer;
-    Buffer staticMeshNormalBuffer;
-    Buffer staticMeshNormalStagingBuffer;
-    Buffer staticMeshTangentBuffer;
-    Buffer staticMeshTangentStagingBuffer;
-    Buffer staticMeshIndexBuffer;
-    Buffer staticMeshIndexStagingBuffer;
-    Buffer uiVertexBuffer;
-    Buffer uiIndexBuffer;
+    teBuffer staticMeshPositionBuffer;
+    teBuffer staticMeshPositionStagingBuffer;
+    teBuffer staticMeshUVBuffer;
+    teBuffer staticMeshUVStagingBuffer;
+    teBuffer staticMeshNormalBuffer;
+    teBuffer staticMeshNormalStagingBuffer;
+    teBuffer staticMeshTangentBuffer;
+    teBuffer staticMeshTangentStagingBuffer;
+    teBuffer staticMeshIndexBuffer;
+    teBuffer staticMeshIndexStagingBuffer;
+    teBuffer uiVertexBuffer;
+    teBuffer uiIndexBuffer;
     float* uiVertices = nullptr;
     uint16_t* uiIndices = nullptr;
     unsigned indexCounter = 0;
@@ -155,7 +155,7 @@ struct Renderer
     teTexture2D defaultTexture2D;
     teTextureCube defaultTextureCube;
     teTexture2D nullUAV;
-    Buffer nullBuffer;
+    teBuffer nullBuffer;
     VkSampler samplerLinearRepeat;
     VkSampler samplerLinearClamp;
     VkSampler samplerAnisotropic8Repeat;
@@ -1708,11 +1708,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
-    // FIXME: This had to be commented out after updating to VulkanSDK 1.3.296.0 because it caused a synchronization validation write-after-write hazard. Maybe it's not needed at all?
-    //const VkImageAspectFlags depthAspect = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
-    //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( depth ), depthAspect,
-     //   VK_IMAGE_LAYOUT_UNDEFINED, depthAtt.imageLayout, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
-
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );
 
     VkViewport viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
@@ -1924,9 +1919,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         teTexture2D tex;
         tex.index = params.readTexture;
         textureIndex = (int)params.readTexture;
-        
-        //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
-        //    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
         renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
     }
@@ -1973,9 +1965,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         teTexture2D tex;
         tex.index = params.readTexture;
         textureIndex = (int)params.readTexture;
-
-        //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
-        //    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
     }
 }
 

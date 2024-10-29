@@ -11,9 +11,9 @@ struct BufferImpl
 BufferImpl buffers[ 10000 ];
 unsigned bufferCount = 0;
 
-Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName )
+teBuffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName )
 {
-    Buffer outBuffer;
+    teBuffer outBuffer;
     outBuffer.index = ++bufferCount;
     
     const unsigned dataBytesNextMultipleOf4 = ((dataBytes + 3) / 4) * 4;
@@ -28,14 +28,14 @@ Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, c
     return outBuffer;
 }
 
-unsigned BufferGetSizeBytes( const Buffer& buffer )
+unsigned BufferGetSizeBytes( const teBuffer& buffer )
 {
     teAssert( buffer.index != 0 );
     
     return buffers[ buffer.index ].sizeBytes;
 }
 
-id<MTLBuffer> BufferGetBuffer( const Buffer& buffer )
+id<MTLBuffer> BufferGetBuffer( const teBuffer& buffer )
 {
     teAssert( buffer.index != 0 );
     

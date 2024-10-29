@@ -11,9 +11,9 @@
 #include "te_stdlib.h"
 #include "vec3.h"
 
-Buffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName );
-unsigned BufferGetSizeBytes( const Buffer& buffer );
-id<MTLBuffer> BufferGetBuffer( const Buffer& buffer );
+teBuffer CreateBuffer( id<MTLDevice> device, unsigned dataBytes, bool isStaging, const char* debugName );
+unsigned BufferGetSizeBytes( const teBuffer& buffer );
+id<MTLBuffer> BufferGetBuffer( const teBuffer& buffer );
 id<MTLFunction> teShaderGetVertexProgram( const teShader& shader );
 id<MTLFunction> teShaderGetPixelProgram( const teShader& shader );
 id<MTLTexture> TextureGetMetalTexture( unsigned index );
@@ -79,19 +79,19 @@ struct Renderer
     unsigned width = 0;
     unsigned height = 0;
     
-    Buffer staticMeshIndexBuffer;
-    Buffer staticMeshIndexStagingBuffer;
-    Buffer staticMeshPositionBuffer;
-    Buffer staticMeshPositionStagingBuffer;
-    Buffer staticMeshUVStagingBuffer;
-    Buffer staticMeshUVBuffer;
-    Buffer staticMeshNormalBuffer;
-    Buffer staticMeshNormalStagingBuffer;
-    Buffer staticMeshTangentBuffer;
-    Buffer staticMeshTangentStagingBuffer;
+    teBuffer staticMeshIndexBuffer;
+    teBuffer staticMeshIndexStagingBuffer;
+    teBuffer staticMeshPositionBuffer;
+    teBuffer staticMeshPositionStagingBuffer;
+    teBuffer staticMeshUVStagingBuffer;
+    teBuffer staticMeshUVBuffer;
+    teBuffer staticMeshNormalBuffer;
+    teBuffer staticMeshNormalStagingBuffer;
+    teBuffer staticMeshTangentBuffer;
+    teBuffer staticMeshTangentStagingBuffer;
 
-    Buffer    uiVertexBuffer;
-    Buffer    uiIndexBuffer;
+    teBuffer    uiVertexBuffer;
+    teBuffer    uiIndexBuffer;
     float*    uiVertices = nullptr;
     uint16_t* uiIndices = nullptr;
 
@@ -289,7 +289,7 @@ void PopGroupMarker()
     [renderer.renderEncoder popDebugGroup];
 }
 
-void UpdateStagingBuffer( const Buffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
+void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
 {
     const unsigned dataBytesNextMultipleOf4 = ((dataBytes + 3) / 4) * 4;
     
@@ -449,7 +449,7 @@ void teEndSwapchainRendering()
     [renderer.renderEncoder endEncoding];
 }
 
-void CopyBuffer( const Buffer& source, const Buffer& destination )
+void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
     teAssert( BufferGetSizeBytes( source ) <= BufferGetSizeBytes( destination ) );
     

@@ -15,24 +15,24 @@ struct BufferImpl
 BufferImpl buffers[ 10000 ];
 unsigned bufferCount = 0;
 
-VkBufferView BufferGetView( const Buffer& buffer )
+VkBufferView BufferGetView( const teBuffer& buffer )
 {
     return buffers[ buffer.index ].view;
 }
 
-VkBuffer BufferGetBuffer( const Buffer& buffer )
+VkBuffer BufferGetBuffer( const teBuffer& buffer )
 {
     return buffers[ buffer.index ].buffer;
 }
 
-VkDeviceMemory BufferGetMemory( const Buffer& buffer )
+VkDeviceMemory BufferGetMemory( const teBuffer& buffer )
 {
     return buffers[ buffer.index ].memory;
 }
 
-Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName )
+teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName )
 {
-    Buffer outBuffer;
+    teBuffer outBuffer;
     outBuffer.index = ++bufferCount;
 
     VkBufferCreateInfo bufferInfo = {};
@@ -104,7 +104,7 @@ Buffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& de
     return outBuffer;
 }
 
-void CopyBuffer( const Buffer& source, const Buffer& destination )
+void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
     teAssert( source.stride == destination.stride );
 
