@@ -37,6 +37,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RenderSceneView();
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
+void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
 
 struct InputState
@@ -325,6 +326,13 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.deltaY = 0;
 
             io.AddMouseButtonEvent( 0, true );
+
+            if (!io.WantCaptureKeyboard)
+            {
+                unsigned width, height;
+                teWindowGetSize( width, height );
+                SelectGizmo( width - event.x, height - event.y );
+            }
         }
         else if (event.type == teWindowEvent::Type::Mouse1Up)
         {
@@ -337,7 +345,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.lastMouseY = inputParams.y;
 
             io.AddMouseButtonEvent( 0, false );
-            
+
             if (!io.WantCaptureKeyboard)
             {
                 SelectObject( event.x, event.y );

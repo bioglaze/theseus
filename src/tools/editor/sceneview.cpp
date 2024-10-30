@@ -29,6 +29,7 @@ constexpr unsigned MaxSelectedObjects = 10;
 char text[ 100 ];
 char openFilePath[ 280 ];
 unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
+unsigned gizmoSelected = 0;
 float pos[ 3 ];
 float scale = 1;
 
@@ -280,6 +281,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
 
     int closestSceneGo = -1;
     float closestDistance = 99999.0f;
+    unsigned closestSubMesh = 666;
 
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
@@ -317,18 +319,29 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
             {
                 closestDistance = meshDistance;
                 closestSceneGo = sceneGo;
+                closestSubMesh = subMesh;
             }
         }
     }
 
     if (closestSceneGo != -1)
     {
-        selectedGoIndex = closestSceneGo;
-
-        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+        if (!skipGizmo && closestSceneGo == sceneView.translateGizmoGo.index)
+        {
+            gizmoSelected = 1;
+            printf( "submesh %d\n", closestSubMesh );
+        }
+        else
+        {
+            selectedGoIndex = closestSceneGo;
+            teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+        }
     }
     
-    teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, closestSceneGo != -1 );
+    if (skipGizmo)
+    {
+        teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, closestSceneGo != -1 );
+    }
 }
 
 void SelectObject( unsigned x, unsigned y )
@@ -336,6 +349,14 @@ void SelectObject( unsigned x, unsigned y )
     selectedGoIndex = 1;
     GetColliders( x, y, true );
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
+}
+
+void SelectGizmo( unsigned x, unsigned y )
+{
+    gizmoSelected = 0;
+    GetColliders( x, y, false );
+    printf("Gizmo selected: %d\n", gizmoSelected);
+    //sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
 void DeleteSelectedObject()
