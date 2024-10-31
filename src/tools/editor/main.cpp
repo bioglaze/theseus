@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-09-01
+// Modified: 2024-10-31
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -39,6 +39,7 @@ unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
+void SceneMouseMove( float dx, float dy );
 
 struct InputState
 {
@@ -51,6 +52,7 @@ struct InputState
     Vec3 moveDir;
     Vec3 gamepadMoveDir;
     bool isRightMouseDown = false;
+    bool isLeftMouseDown = false;
 };
 
 #if _MSC_VER
@@ -319,7 +321,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             inputParams.x = event.x;
             inputParams.y = event.y;
-            inputParams.isRightMouseDown = true;
+            inputParams.isRightMouseDown = false;
+            inputParams.isLeftMouseDown = true;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             inputParams.deltaX = 0;
@@ -343,6 +346,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.deltaY = 0;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
+            inputParams.isLeftMouseDown = false;
 
             io.AddMouseButtonEvent( 0, false );
 
@@ -385,6 +389,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
+
+            if (inputParams.isLeftMouseDown)
+            {
+                SceneMouseMove( inputParams.deltaX, inputParams.deltaY );
+            }
 
             if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
             {

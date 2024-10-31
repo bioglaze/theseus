@@ -29,7 +29,7 @@ constexpr unsigned MaxSelectedObjects = 10;
 char text[ 100 ];
 char openFilePath[ 280 ];
 unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
-unsigned gizmoSelected = 0;
+int gizmoAxisSelected = -1;
 float pos[ 3 ];
 float scale = 1;
 
@@ -328,7 +328,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
     {
         if (!skipGizmo && closestSceneGo == sceneView.translateGizmoGo.index)
         {
-            gizmoSelected = 1;
+            gizmoAxisSelected = closestSubMesh;
             printf( "submesh %d\n", closestSubMesh );
         }
         else
@@ -351,11 +351,30 @@ void SelectObject( unsigned x, unsigned y )
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
+void SceneMouseMove( float dx, float dy )
+{
+    if (gizmoAxisSelected == 0)
+    {
+        teTransformMoveUp( selectedGoIndex, -dy * 0.5f );
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    }
+    else if (gizmoAxisSelected == 1)
+    {
+        teTransformMoveForward( selectedGoIndex, dx * 0.5f );
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    }
+    else if (gizmoAxisSelected == 2)
+    {
+        teTransformMoveRight( selectedGoIndex, dx * 0.5f );
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    }
+}
+
 void SelectGizmo( unsigned x, unsigned y )
 {
-    gizmoSelected = 0;
+    gizmoAxisSelected = -1;
     GetColliders( x, y, false );
-    printf("Gizmo selected: %d\n", gizmoSelected);
+    printf("Gizmo axis selected: %d\n", gizmoAxisSelected );
     //sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
