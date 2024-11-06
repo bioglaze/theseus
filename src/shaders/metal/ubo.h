@@ -7,4 +7,5 @@ struct Uniforms
     matrix_float4x4 localToShadowClip;
     float4 bloomParams;
     float4 tilesXY;
+    float4 tint;
 };

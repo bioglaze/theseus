@@ -7,7 +7,7 @@ struct teBuffer
     unsigned index = 0;
     unsigned count = 0;
     unsigned stride = 0;
-    size_t memoryUsage = 0;
+    unsigned memoryUsage = 0;
 };
 
 void CopyBuffer( const teBuffer& source, const teBuffer& destination );

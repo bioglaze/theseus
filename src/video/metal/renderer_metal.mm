@@ -1,5 +1,4 @@
 #import <MetalKit/MetalKit.h>
-#import <Foundation/Foundation.h>
 #include "buffer.h"
 #include "camera.h"
 #include "material.h"
@@ -27,6 +26,7 @@ struct PerObjectUboStruct
     Matrix localToShadowClip;
     Vec4   bloomParams;
     Vec4   tilesXY;
+    Vec4   tint;
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -363,7 +363,11 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
     uboStruct.tilesXY.w = shaderParams.tilesXY[ 2 ];
     uboStruct.tilesXY.z = shaderParams.tilesXY[ 3 ];
-
+    uboStruct.tint.x = shaderParams.tint[ 0 ];
+    uboStruct.tint.y = shaderParams.tint[ 1 ];
+    uboStruct.tint.z = shaderParams.tint[ 2 ];
+    uboStruct.tint.w = shaderParams.tint[ 3 ];
+    
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
 
