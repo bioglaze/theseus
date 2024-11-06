@@ -1,11 +1,13 @@
 #include "material.h"
 #include "shader.h"
 #include "texture.h"
+#include "vec3.h"
 
 struct MaterialImpl
 {
     teTexture2D texture2Ds[ 3 ];
     teShader shader;
+    Vec4 tint{ 1, 1, 1, 1 };
 };
 
 static constexpr unsigned MaxMaterial = 500;
@@ -38,4 +40,14 @@ teShader& teMaterialGetShader( const teMaterial& material )
 teTexture2D teMaterialGetTexture2D( const teMaterial& material, unsigned slot )
 {
     return materials[ material.index ].texture2Ds[ slot ];
+}
+
+void teMaterialSetTint( const teMaterial& material, Vec4 tint )
+{
+    materials[ material.index ].tint = tint;
+}
+
+Vec4 teMaterialGetTint( const teMaterial& material )
+{
+    return materials[ material.index ].tint;
 }

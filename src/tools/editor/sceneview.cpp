@@ -326,7 +326,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
 
     if (closestSceneGo != -1)
     {
-        if (!skipGizmo && closestSceneGo == sceneView.translateGizmoGo.index)
+        if (!skipGizmo && closestSceneGo == (int)sceneView.translateGizmoGo.index)
         {
             gizmoAxisSelected = closestSubMesh;
             printf( "submesh %d\n", closestSubMesh );
@@ -355,16 +355,19 @@ void SceneMouseMove( float dx, float dy )
 {
     if (gizmoAxisSelected == 0)
     {
+        teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
         teTransformMoveUp( selectedGoIndex, -dy * 0.5f );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 1)
     {
+        teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
         teTransformMoveForward( selectedGoIndex, dx * 0.5f );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 2)
     {
+        teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
         teTransformMoveRight( selectedGoIndex, dx * 0.5f );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
@@ -373,6 +376,9 @@ void SceneMouseMove( float dx, float dy )
 void SelectGizmo( unsigned x, unsigned y )
 {
     gizmoAxisSelected = -1;
+    teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
+    teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
+    teMaterialSetTint( sceneView.blueMaterial, { 1, 1, 1, 1 } );
     GetColliders( x, y, false );
     printf("Gizmo axis selected: %d\n", gizmoAxisSelected );
     //sceneView.selectedGos[ 0 ].index = selectedGoIndex;

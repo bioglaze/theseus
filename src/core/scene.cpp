@@ -266,6 +266,11 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             }
 
             ShaderParams shaderParams{};
+            Vec4 tint = teMaterialGetTint( material );
+            shaderParams.tint[ 0 ] = tint.x;
+            shaderParams.tint[ 1 ] = tint.y;
+            shaderParams.tint[ 2 ] = tint.z;
+            shaderParams.tint[ 3 ] = tint.w;
             UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams );
 
             const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );

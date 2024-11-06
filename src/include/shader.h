@@ -11,6 +11,7 @@ struct ShaderParams
     unsigned writeTexture;
     float bloomThreshold;
     float tilesXY[ 4 ];
+    float tint[ 4 ];
 };
 
 /*

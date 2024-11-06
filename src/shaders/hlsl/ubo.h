@@ -5,6 +5,7 @@ struct UniformData
     matrix localToShadowClip;
     float4 bloomParams;
     float4 tilesXY;
+    float4 tint;
 };
 
 struct PushConstants

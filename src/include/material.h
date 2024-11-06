@@ -18,3 +18,5 @@ teMaterial teCreateMaterial( const struct teShader& shader );
 void teMaterialSetTexture2D( const teMaterial& material, const struct teTexture2D& tex, unsigned slot );
 teShader& teMaterialGetShader( const teMaterial& material );
 teTexture2D teMaterialGetTexture2D( const teMaterial& material, unsigned slot );
+void teMaterialSetTint( const teMaterial& material, struct Vec4 tint );
+Vec4 teMaterialGetTint( const teMaterial& material );

@@ -85,6 +85,7 @@ struct PerObjectUboStruct
     Matrix localToShadowClip;
     Vec4 bloomParams;
     Vec4 tilesXY;
+    Vec4 tint{ 1, 1, 1, 1 };
 };
 
 struct Ubo
@@ -1802,6 +1803,10 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
     uboStruct.tilesXY.z = shaderParams.tilesXY[ 2 ];
     uboStruct.tilesXY.w = shaderParams.tilesXY[ 3 ];
+    uboStruct.tint.x = shaderParams.tint[ 0 ];
+    uboStruct.tint.y = shaderParams.tint[ 1 ];
+    uboStruct.tint.z = shaderParams.tint[ 2 ];
+    uboStruct.tint.w = shaderParams.tint[ 3 ];
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
