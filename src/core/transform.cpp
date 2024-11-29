@@ -172,11 +172,17 @@ void teTransformLookAt( unsigned index, const Vec3& localPosition, const Vec3& c
     transforms[ index ].localPosition = localPosition;
 }
 
-void teTransformMoveForward( unsigned index, float amount )
+void teTransformMoveForward( unsigned index, float amount, bool ignoreY )
 {
     if (!IsAlmost( amount, 0 ))
     {
+        const float y = transforms[ index ].localPosition.y;
         transforms[ index ].localPosition += transforms[ index ].localRotation * Vec3( 0, 0, amount );
+        
+        if (ignoreY)
+        {
+            transforms[ index ].localPosition.y = y;
+        }
     }
 }
 

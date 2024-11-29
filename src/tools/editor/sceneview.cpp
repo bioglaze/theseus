@@ -362,7 +362,7 @@ void SceneMouseMove( float dx, float dy )
     else if (gizmoAxisSelected == 1)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveForward( selectedGoIndex, dx * 0.5f );
+        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 2)
@@ -641,7 +641,7 @@ void RotateEditorCamera( float x, float y )
 
 void MoveEditorCamera( float right, float up, float forward )
 {
-    teTransformMoveForward( sceneView.camera3d.index, forward );
+    teTransformMoveForward( sceneView.camera3d.index, forward, false );
     teTransformMoveUp( sceneView.camera3d.index, up );
     teTransformMoveRight( sceneView.camera3d.index, right );
 }

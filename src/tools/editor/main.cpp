@@ -416,7 +416,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
     Vec3 moveDir = inputParams.moveDir + inputParams.gamepadMoveDir * 0.005f;
     inputParams.gamepadMoveDir = Vec3( 0, 0, 0 );
 
-    teTransformMoveForward( SceneViewGetCameraIndex(), moveDir.z * (float)dt * 0.5f );
+    teTransformMoveForward( SceneViewGetCameraIndex(), moveDir.z * (float)dt * 0.5f, false );
     teTransformMoveRight( SceneViewGetCameraIndex(), moveDir.x * (float)dt * 0.5f );
     teTransformMoveUp( SceneViewGetCameraIndex(), moveDir.y * (float)dt * 0.5f );
 

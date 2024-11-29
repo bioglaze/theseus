@@ -48,7 +48,7 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
     VkMemoryRequirements memReqs;
     vkGetBufferMemoryRequirements( device, buffers[ outBuffer.index ].buffer, &memReqs );
 
-    outBuffer.memoryUsage = memReqs.size;
+    outBuffer.memoryUsage = (unsigned int)memReqs.size;
 
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

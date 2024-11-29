@@ -482,7 +482,7 @@ int main()
 
         Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
 
-        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f );
+        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f, true );
         teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * 0.5f );
         teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * 0.5f );
 
