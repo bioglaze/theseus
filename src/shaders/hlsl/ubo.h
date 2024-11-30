@@ -6,6 +6,7 @@ struct UniformData
     float4 bloomParams;
     float4 tilesXY;
     float4 tint;
+    float4 lightDirection;
 };
 
 struct PushConstants
