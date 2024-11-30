@@ -2,8 +2,9 @@
 #include "shader.h"
 #include "texture.h"
 #include "te_stdlib.h"
+#include "vec3.h"
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDir );
 void MoveToNextUboOffset();
 unsigned TextureGetFlags( unsigned index );
 
@@ -119,7 +120,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     teAssert( !params.writeTexture || (TextureGetFlags( params.writeTexture ) & teTextureFlags::UAV ) );
     
     float m[ 16 ];
-    UpdateUBO( m, m, m, params );
+    UpdateUBO( m, m, m, params, Vec4( 0, 0, 0, 1 ) );
     
     MTLSize threadgroups = MTLSizeMake( groupsX, groupsY, groupsZ );
 

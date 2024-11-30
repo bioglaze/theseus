@@ -322,7 +322,7 @@ void DrawApp()
 
     ShaderParams shaderParams;
 
-    teTransformMoveForward( app.camera3d.index, moveDir.z * (float)dt * 0.5f );
+    teTransformMoveForward( app.camera3d.index, moveDir.z * (float)dt * 0.5f, false );
     teTransformMoveRight( app.camera3d.index, moveDir.x * (float)dt * 0.5f );
     teTransformMoveUp( app.camera3d.index, moveDir.y * (float)dt * 0.5f );
 

@@ -27,6 +27,7 @@ struct PerObjectUboStruct
     Vec4   bloomParams;
     Vec4   tilesXY;
     Vec4   tint;
+    Vec4   lightDir;
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -353,7 +354,7 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
     return renderer.tangentCounter - bytes;
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDir )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
@@ -367,6 +368,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tint.y = shaderParams.tint[ 1 ];
     uboStruct.tint.z = shaderParams.tint[ 2 ];
     uboStruct.tint.w = shaderParams.tint[ 3 ];
+    uboStruct.lightDir = lightDir;
     
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
@@ -631,7 +633,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     float m[ 16 ];
-    UpdateUBO( m, m, m, shaderParams );
+    UpdateUBO( m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ) );
 
     Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0 );
 }
@@ -684,7 +686,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
     ShaderParams shaderParams = {};
-    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams );
+    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams, Vec4( 0, 0, 0, 1 ) );
 
     const unsigned vertexStride = 20; // sizeof( ImDrawVert )
     const unsigned indexStride = 2; // sizeof( ImDrawIdx )

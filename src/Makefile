@@ -32,8 +32,12 @@ imgui:
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	clang $(SIMD) -g -c video/metal/*.mm video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo -std=gnu++20
-	clang++ $(SIMD) -g samples/hello/hello.cpp *.o -std=gnu++20 -Ithirdparty/imgui -Iinclude -framework Metal -framework Foundation -framework Cocoa -o ../build/hello
+	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/buffer_metal.cpp -fno-objc-arc -o buffer.o
+	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/shader_metal.cpp -fno-objc-arc -o shader.o
+	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/renderer_metal.cpp -fno-objc-arc -o renderer.o
+	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/texture_metal.cpp -fno-objc-arc -o texture.o
+	clang -c -std=gnu++20 $(SIMD) -g video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo
+	clang++ $(SIMD) -std=c++17 -g -Ithirdparty/metal_cpp -Ithirdparty/metal_ext samples/hello/hello_mac.cpp *.o -Ithirdparty/imgui -Iinclude -framework Metal -framework MetalKit -framework Foundation -framework Cocoa -o ../build/hello_mac
 	xcrun -sdk macosx metal shaders/metal/*.metal -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
