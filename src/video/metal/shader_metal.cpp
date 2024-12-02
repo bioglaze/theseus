@@ -49,8 +49,11 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     outShader.index = ++shaderCount;
     
     NS::String* vertexShaderName = NS::String::string( vertexName, NS::StringEncoding::UTF8StringEncoding );
-    shaders[ outShader.index ].vertexProgram = defaultLibrary->newFunction( vertexShaderName );
-    
+    if (defaultLibrary != nullptr)
+    {
+        shaders[ outShader.index ].vertexProgram = defaultLibrary->newFunction( vertexShaderName );
+    }
+
     if (shaders[ outShader.index ].vertexProgram == nullptr)
     {
         shaders[ outShader.index ].vertexProgram = shaderLibrary->newFunction( vertexShaderName );
@@ -65,8 +68,12 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     }
     
     NS::String* pixelShaderName = NS::String::string( pixelName, NS::StringEncoding::UTF8StringEncoding );
-    shaders[ outShader.index ].pixelProgram = defaultLibrary->newFunction( pixelShaderName );
-    
+
+    if (defaultLibrary != nullptr)
+    {
+        shaders[ outShader.index ].pixelProgram = defaultLibrary->newFunction( pixelShaderName );
+    }
+
     if (shaders[ outShader.index ].pixelProgram == nullptr)
     {
         shaders[ outShader.index ].pixelProgram = shaderLibrary->newFunction( pixelShaderName );
@@ -90,7 +97,12 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
     outShader.index = ++shaderCount;
     
     NS::String* computeShaderName = NS::String::string( name, NS::StringEncoding::UTF8StringEncoding );
-    shaders[ outShader.index ].computeProgram = defaultLibrary->newFunction( computeShaderName );
+
+    if (defaultLibrary != nullptr)
+    {
+        shaders[ outShader.index ].computeProgram = defaultLibrary->newFunction( computeShaderName );
+    }
+    
     shaders[ outShader.index ].threadgroupCounts = MTL::Size::Make( threadsPerThreadgroupX, threadsPerThreadgroupY, 1 );
     
     if (shaders[ outShader.index ].computeProgram == nullptr)

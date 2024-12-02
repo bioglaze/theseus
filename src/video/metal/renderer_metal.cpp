@@ -478,8 +478,6 @@ void teFinalizeMeshBuffers()
 
 static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, teBlendMode blendMode, teTopology topology, MTL::PixelFormat colorFormat, MTL::PixelFormat depthFormat, bool isUI )
 {
-    int psoIndex = -1;
-    
     for (unsigned i = 0; i < MaxPSOs; ++i)
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[ i ].topology == topology &&
@@ -491,82 +489,79 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
         }
     }
     
-    if (psoIndex == -1)
-    {
-        MTL::RenderPipelineDescriptor* pipelineStateDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-        pipelineStateDescriptor->setRasterSampleCount( 1 );
-        pipelineStateDescriptor->setVertexFunction( vertexProgram );
-        pipelineStateDescriptor->setFragmentFunction( pixelProgram );
+    MTL::RenderPipelineDescriptor* pipelineStateDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+    pipelineStateDescriptor->setRasterSampleCount( 1 );
+    pipelineStateDescriptor->setVertexFunction( vertexProgram );
+    pipelineStateDescriptor->setFragmentFunction( pixelProgram );
 #if !TARGET_OS_IPHONE
-        pipelineStateDescriptor->setInputPrimitiveTopology( topology == teTopology::Triangles ? MTL::PrimitiveTopologyClassTriangle : MTL::PrimitiveTopologyClassLine );
+    pipelineStateDescriptor->setInputPrimitiveTopology( topology == teTopology::Triangles ? MTL::PrimitiveTopologyClassTriangle : MTL::PrimitiveTopologyClassLine );
 #endif
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setPixelFormat( colorFormat );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setBlendingEnabled( blendMode != teBlendMode::Off );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorSourceAlpha : MTL::BlendFactorOne );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorOneMinusSourceAlpha : MTL::BlendFactorOne );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setRgbBlendOperation( MTL::BlendOperationAdd );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceAlphaBlendFactor( MTL::BlendFactorOne );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationAlphaBlendFactor( MTL::BlendFactorOneMinusSourceAlpha );
-        pipelineStateDescriptor->colorAttachments()->object( 0 )->setAlphaBlendOperation( MTL::BlendOperationAdd );
-        pipelineStateDescriptor->setDepthAttachmentPixelFormat( depthFormat );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setPixelFormat( colorFormat );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setBlendingEnabled( blendMode != teBlendMode::Off );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorSourceAlpha : MTL::BlendFactorOne );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorOneMinusSourceAlpha : MTL::BlendFactorOne );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setRgbBlendOperation( MTL::BlendOperationAdd );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceAlphaBlendFactor( MTL::BlendFactorOne );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationAlphaBlendFactor( MTL::BlendFactorOneMinusSourceAlpha );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setAlphaBlendOperation( MTL::BlendOperationAdd );
+    pipelineStateDescriptor->setDepthAttachmentPixelFormat( depthFormat );
         
-        if (isUI)
-        {
-            // FIXME: Should this use alloc()::init()?
-            MTL::VertexDescriptor* vertexDesc = MTL::VertexDescriptor::vertexDescriptor();
+    if (isUI)
+    {
+        // FIXME: Should this use alloc()::init()?
+        MTL::VertexDescriptor* vertexDesc = MTL::VertexDescriptor::vertexDescriptor();
             
-            // Position
-            vertexDesc->attributes()->object( 0 )->setFormat( MTL::VertexFormatFloat2 );
-            vertexDesc->attributes()->object( 0 )->setBufferIndex( 0 );
-            vertexDesc->attributes()->object( 0 )->setOffset( 0 );
+        // Position
+        vertexDesc->attributes()->object( 0 )->setFormat( MTL::VertexFormatFloat2 );
+        vertexDesc->attributes()->object( 0 )->setBufferIndex( 0 );
+        vertexDesc->attributes()->object( 0 )->setOffset( 0 );
             
-            // Texcoord
-            vertexDesc->attributes()->object( 1 )->setFormat( MTL::VertexFormatFloat2 );
-            vertexDesc->attributes()->object( 1 )->setBufferIndex( 0 );
-            vertexDesc->attributes()->object( 1 )->setOffset( 4 * 2 );
+        // Texcoord
+        vertexDesc->attributes()->object( 1 )->setFormat( MTL::VertexFormatFloat2 );
+        vertexDesc->attributes()->object( 1 )->setBufferIndex( 0 );
+        vertexDesc->attributes()->object( 1 )->setOffset( 4 * 2 );
 
-            // Color
-            vertexDesc->attributes()->object( 2 )->setFormat( MTL::VertexFormatUChar4 );
-            vertexDesc->attributes()->object( 2 )->setBufferIndex( 0 );
-            vertexDesc->attributes()->object( 2 )->setOffset( 4 * 4 );
+        // Color
+        vertexDesc->attributes()->object( 2 )->setFormat( MTL::VertexFormatUChar4 );
+        vertexDesc->attributes()->object( 2 )->setBufferIndex( 0 );
+        vertexDesc->attributes()->object( 2 )->setOffset( 4 * 4 );
 
-            vertexDesc->layouts()->object( 0 )->setStride( 4 * 4 + 4 ); // sizeof( ImDrawVert )
-            vertexDesc->layouts()->object( 0 )->setStepFunction( MTL::VertexStepFunctionPerVertex );
-            vertexDesc->layouts()->object( 0 )->setStepRate( 1 );
+        vertexDesc->layouts()->object( 0 )->setStride( 4 * 4 + 4 ); // sizeof( ImDrawVert )
+        vertexDesc->layouts()->object( 0 )->setStepFunction( MTL::VertexStepFunctionPerVertex );
+        vertexDesc->layouts()->object( 0 )->setStepRate( 1 );
             
-            pipelineStateDescriptor->setVertexDescriptor( vertexDesc );
-        }
-        
-        NS::Error* error = nullptr;
-        MTL::PipelineOption option = MTL::PipelineOptionNone;
-        
-        int nextFreePsoIndex = -1;
-        
-        for (unsigned i = 0; i < MaxPSOs && nextFreePsoIndex == -1; ++i)
-        {
-            if (nextFreePsoIndex == -1 && renderer.psos[ i ].pso == nil)
-            {
-                nextFreePsoIndex = i;
-            }
-        }
-        
-        teAssert( nextFreePsoIndex != -1 );
-
-        renderer.psos[ nextFreePsoIndex ].pso = renderer.device->newRenderPipelineState( pipelineStateDescriptor, option, nullptr, &error );
-        
-        if (!renderer.psos[ nextFreePsoIndex ].pso)
-        {
-            printf( "Failed to create pipeline state, error %s\n", error->localizedDescription()->utf8String() );
-        }
-        
-        psoIndex = nextFreePsoIndex;
-        renderer.psos[ psoIndex ].blendMode = blendMode;
-        renderer.psos[ psoIndex ].vertexFunction = vertexProgram;
-        renderer.psos[ psoIndex ].pixelFunction = pixelProgram;
-        renderer.psos[ psoIndex ].topology = topology;
-        renderer.psos[ psoIndex ].colorFormat = colorFormat;
-        renderer.psos[ psoIndex ].depthFormat = depthFormat;
+        pipelineStateDescriptor->setVertexDescriptor( vertexDesc );
     }
+        
+    NS::Error* error = nullptr;
+    MTL::PipelineOption option = MTL::PipelineOptionNone;
+        
+    int nextFreePsoIndex = -1;
+        
+    for (unsigned i = 0; i < MaxPSOs && nextFreePsoIndex == -1; ++i)
+    {
+        if (nextFreePsoIndex == -1 && renderer.psos[ i ].pso == nil)
+        {
+            nextFreePsoIndex = i;
+        }
+    }
+        
+    teAssert( nextFreePsoIndex != -1 );
+
+    renderer.psos[ nextFreePsoIndex ].pso = renderer.device->newRenderPipelineState( pipelineStateDescriptor, option, nullptr, &error );
+        
+    if (!renderer.psos[ nextFreePsoIndex ].pso)
+    {
+        printf( "Failed to create pipeline state, error %s\n", error->localizedDescription()->utf8String() );
+    }
+        
+    unsigned psoIndex = nextFreePsoIndex;
+    renderer.psos[ psoIndex ].blendMode = blendMode;
+    renderer.psos[ psoIndex ].vertexFunction = vertexProgram;
+    renderer.psos[ psoIndex ].pixelFunction = pixelProgram;
+    renderer.psos[ psoIndex ].topology = topology;
+    renderer.psos[ psoIndex ].colorFormat = colorFormat;
+    renderer.psos[ psoIndex ].depthFormat = depthFormat;
 
     return psoIndex;
 }

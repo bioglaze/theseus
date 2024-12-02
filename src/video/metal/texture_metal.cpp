@@ -235,7 +235,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
                                                        (flags & teTextureFlags::GenerateMips ? true : false));
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
-        const unsigned multiplier = 4; // FIXME: Other than RGBA formats probably need to change this.
+        multiplier = 4; // FIXME: Other than RGBA formats probably need to change this.
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.height );
         stagingTexture->replaceRegion( region, 0, pixels, tex.width * multiplier );
 

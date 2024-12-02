@@ -21,4 +21,9 @@
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
+#else
+#include "metal/buffer_metal.cpp"
+#include "metal/renderer_metal.cpp"
+#include "metal/shader_metal.cpp"
+#include "metal/texture_metal.cpp"
 #endif

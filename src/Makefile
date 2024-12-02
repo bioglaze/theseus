@@ -32,12 +32,8 @@ imgui:
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/buffer_metal.cpp -fno-objc-arc -o buffer.o
-	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/shader_metal.cpp -fno-objc-arc -o shader.o
-	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/renderer_metal.cpp -fno-objc-arc -o renderer.o
-	clang++ -c -std=c++17 -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext video/metal/texture_metal.cpp -fno-objc-arc -o texture.o
-	clang -c -std=gnu++20 $(SIMD) -g video/window_macos.mm video/textureloader.cpp video/light.cpp video/material.cpp video/mesh.cpp core/*.cpp -Iinclude -Icore -Ivideo
-	clang++ $(SIMD) -std=c++17 -g -Ithirdparty/metal_cpp -Ithirdparty/metal_ext samples/hello/hello_mac.cpp *.o -Ithirdparty/imgui -Iinclude -framework Metal -framework MetalKit -framework Foundation -framework Cocoa -o ../build/hello_mac
+	$(CC) $(DEFINES) $(SANITIZERS) -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c unity.cpp -fno-objc-arc -o ../build/engine.o
+	$(CC) $(DEFINES) $(SANITIZERS) -std=c++17 -g -Iinclude -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit samples/hello/hello_mac.cpp *.o ../build/engine.o -fno-objc-arc $(LINKER) -o ../build/hello_mac
 	xcrun -sdk macosx metal shaders/metal/*.metal -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
