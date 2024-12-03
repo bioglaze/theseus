@@ -21,6 +21,7 @@ else
 CC := clang++
 DEFINES := -DAPI_METAL=1 -DAPI_VULKAN=0 $(SIMD)
 LINKER := -ldl
+FLAGS := -std=c++17 -framework MetalKit -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
 endif
 
 SANITIZERS := -fsanitize=address,undefined
