@@ -51,6 +51,7 @@ struct InputState
     int lastMouseY = 0;
     Vec3 moveDir;
     Vec3 gamepadMoveDir;
+    bool isMiddleMouseDown = false;
     bool isRightMouseDown = false;
     bool isLeftMouseDown = false;
 };
@@ -355,6 +356,27 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 SelectObject( event.x, event.y );
             }
         }
+        else if (event.type == teWindowEvent::Type::Mouse3Down)
+        {
+            inputParams.x = event.x;
+            inputParams.y = event.y;
+            inputParams.isMiddleMouseDown = true;
+            inputParams.lastMouseX = inputParams.x;
+            inputParams.lastMouseY = inputParams.y;
+            inputParams.deltaX = 0;
+            inputParams.deltaY = 0;
+        }
+        else if (event.type == teWindowEvent::Type::Mouse3Up)
+        {
+            inputParams.x = event.x;
+            inputParams.y = event.y;
+            inputParams.isMiddleMouseDown = false;
+            inputParams.lastMouseX = inputParams.x;
+            inputParams.lastMouseY = inputParams.y;
+            inputParams.deltaX = 0;
+            inputParams.deltaY = 0;
+            inputParams.moveDir.y = 0;
+            }
         else if (event.type == teWindowEvent::Type::Mouse2Down)
         {
             inputParams.x = event.x;
@@ -389,6 +411,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
+
+            if (inputParams.isMiddleMouseDown)
+            {
+                inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
+            }
 
             if (inputParams.isLeftMouseDown)
             {

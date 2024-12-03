@@ -4,7 +4,7 @@ struct teWindowEvent
 {
     enum class Type
     {
-        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, MouseMove, MouseWheel,
+        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, Mouse3Down, Mouse3Up, MouseMove, MouseWheel,
         GamePadButtonA,
         GamePadButtonB,
         GamePadButtonX,

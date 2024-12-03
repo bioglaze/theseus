@@ -233,6 +233,20 @@ int main()
     teMaterial standardMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
+    teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
+    teTexture2D brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    teMaterial brickMaterial = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
+
+    teFile floorFile = teLoadFile( "assets/textures/plaster_d.dds" );
+    teTexture2D floorTex = teLoadTexture( floorFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    teMaterial floorMaterial = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( floorMaterial, floorTex, 0 );
+
+    teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
+
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
     teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teMaterial materialTrans = teCreateMaterial( unlitShader );
@@ -259,6 +273,17 @@ int main()
     teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
     teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+    teFile roomFile = teLoadFile( "assets/meshes/room.t3d" );
+    teMesh roomMesh = teLoadMesh( roomFile );
+    teGameObject roomGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+    teMeshRendererSetMesh( roomGo.index, &roomMesh );
+    teMeshRendererSetMaterial( roomGo.index, floorMaterial, 0 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 1 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 2 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 3 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 4 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 5 );
+
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
@@ -271,14 +296,15 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
-    teScene scene = teCreateScene( 2048 );
+    teScene scene = teCreateScene( 0 );
     teFinalizeMeshBuffers();
 
     teSceneAdd( scene, camera3d.index );
-    teSceneAdd( scene, cubeGo.index );
-    teSceneAdd( scene, cubeGo2.index );
+    //teSceneAdd( scene, cubeGo.index );
+    //teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, roomGo.index );
 
-    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0, 0, 1 ) );
+    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 1, 1, 1 ).Normalized() );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;
@@ -294,7 +320,7 @@ int main()
                 teMeshRendererSetMesh( cubes[ g ].index, &cubeMesh );
                 teMeshRendererSetMaterial( cubes[ g ].index, material, 0 );
                 teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4.0f - 5.0f, j * 4.0f - 5.0f, -4.0f - k * 4.0f ) );
-                teSceneAdd( scene, cubes[ g ].index );
+                //teSceneAdd( scene, cubes[ g ].index );
 
                 float angle = Random100() / 100.0f * 90;
                 Vec3 axis{ 1, 1, 1 };
@@ -482,7 +508,7 @@ int main()
 
         Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
 
-        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f, true );
+        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f, false );
         teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * 0.5f );
         teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * 0.5f );
 

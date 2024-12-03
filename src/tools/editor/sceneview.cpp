@@ -32,6 +32,7 @@ unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as no
 int gizmoAxisSelected = -1;
 float pos[ 3 ];
 float scale = 1;
+float lightDir[ 3 ] = { 1, 1, 1 };
 
 struct SceneView
 {
@@ -39,6 +40,7 @@ struct SceneView
     unsigned height;
 
     teShader unlitShader;
+    teShader standardShader;
     teShader fullscreenShader;
     teShader fullscreenAdditiveShader;
     teShader momentsShader;
@@ -54,6 +56,7 @@ struct SceneView
     teMesh cubeMesh;
     teMesh translateGizmoMesh;
     teMaterial material;
+    teMaterial standardMaterial;
     teMaterial redMaterial;
     teMaterial greenMaterial;
     teMaterial blueMaterial;
@@ -407,6 +410,10 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     sceneView.unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
 
+    teFile standardVsFile = teLoadFile( "shaders/standard_vs.spv" );
+    teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
+    sceneView.standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
+
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
     teFile fullscreenAdditivePsFile = teLoadFile( "shaders/fullscreen_additive_ps.spv" );
@@ -448,6 +455,9 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     sceneView.material = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 0 );
+    
+    sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
+    teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
 
     teFile redFile = teLoadFile( "assets/textures/red.tga" );
     teFile greenFile = teLoadFile( "assets/textures/green.tga" );
@@ -604,7 +614,11 @@ void RenderSceneView()
                             *mesh = teLoadMesh( meshFile );
                             teFinalizeMeshBuffers();
                             teMeshRendererSetMesh( selectedGoIndex, mesh );
-                            teMeshRendererSetMaterial( selectedGoIndex, sceneView.material, 0 );
+                            
+                            for (unsigned i = 0; i < teMeshGetSubMeshCount( *mesh ); ++i)
+                            {
+                                teMeshRendererSetMaterial( selectedGoIndex, sceneView.standardMaterial, i );
+                            }
                         }
                     }
                     
@@ -619,6 +633,16 @@ void RenderSceneView()
             else if (ImGui::Button( "Add Mesh Renderer" ))
             {
                 printf( "TODO: add mesh renderer\n" );
+            }
+        }
+        else
+        {
+            ImGui::Text( "Light direction" );
+            const bool dirChanged = ImGui::InputFloat3( "dir", lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific );
+
+            if (dirChanged)
+            {
+                teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
             }
         }
     }

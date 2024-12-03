@@ -208,6 +208,15 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         win.events[ win.eventIndex ].y = HIWORD(lParam);
     }
     break;
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    {
+        wasHandled = IncEventIndex();
+        win.events[ win.eventIndex ].type = message == WM_MBUTTONDOWN ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
+        win.events[ win.eventIndex ].x = LOWORD( lParam );
+        win.events[ win.eventIndex ].y = HIWORD( lParam );
+    }
+    break;
     case WM_MOUSEMOVE:
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
