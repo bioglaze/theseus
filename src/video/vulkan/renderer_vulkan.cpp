@@ -87,6 +87,7 @@ struct PerObjectUboStruct
     Vec4 tilesXY;
     Vec4 tint{ 1, 1, 1, 1 };
     Vec4 lightDirection;
+    Vec4 lightColor;
 };
 
 struct Ubo
@@ -1611,6 +1612,31 @@ void teBeginFrame()
     VkCommandBufferBeginInfo cmdBufInfo = {};
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
+
+    VkClearColorValue clearValue{};
+    clearValue.float32[0] = 1000.0f;
+    clearValue.float32[ 1 ] = 1000.0f;
+    clearValue.float32[ 2 ] = 1000.0f;
+    clearValue.float32[ 3 ] = 1000.0f;
+
+    VkImageSubresourceRange range{};
+    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    range.levelCount = VK_REMAINING_MIP_LEVELS;
+    range.layerCount = 1;
+
+    vkCmdClearColorImage(
+        renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer,
+        TextureGetImage( renderer.defaultTexture2D ),
+        VK_IMAGE_LAYOUT_GENERAL,
+        &clearValue,
+        1,
+        &range );
+
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 }
 
 void teEndFrame()
@@ -1793,7 +1819,7 @@ void teEndSwapchainRendering()
     PopGroupMarker();
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
@@ -1809,6 +1835,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tint.z = shaderParams.tint[ 2 ];
     uboStruct.tint.w = shaderParams.tint[ 3 ];
     uboStruct.lightDirection = lightDirection;
+    uboStruct.lightColor = lightColor;
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
@@ -1906,7 +1933,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     renderer.shaderParams = params;
 
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 
@@ -2011,6 +2038,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         renderer.samplerInfos[ shadowMapIndex ].imageView = TextureGetView( tex );
         //renderer.samplerInfos[ shadowMapIndex ].sampler = GetSampler( sampler ); // FIXME: We probably want some hardcoded sampler here, not the one used for drawing.
     }
+    else
+    {
+        renderer.samplerInfos[ renderer.defaultTexture2D.index ].imageView = TextureGetView( renderer.defaultTexture2D );
+        shadowMapIndex = renderer.defaultTexture2D.index;
+    }
 
     teTexture2D nullUAV;
     nullUAV.index = renderer.nullUAV.index;
@@ -2050,7 +2082,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
     Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0 );
 }
 

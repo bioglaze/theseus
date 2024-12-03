@@ -5,14 +5,15 @@ struct VSOutput
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
     float4 projCoord : TANGENT;
+    float3 normalVS : NORMAL;
 };
 
 VSOutput standardVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
     vsOut.uv = uvs[ vertexId  ];
-    vsOut.pos = mul(uniforms.localToClip, float4( positions[ vertexId ], 1));
-
+    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
+    vsOut.normalVS = mul( uniforms.localToView, float4( normals[ vertexId ], 0 ) ).xyz;
     vsOut.projCoord = mul( uniforms.localToShadowClip, float4( positions[ vertexId ], 1 ) );
 
     return vsOut;
@@ -48,5 +49,11 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     //float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ 0 ], vsOut.uv ).xy;
     //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
 
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ) * shadow;
+    float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
+    const float3 surfaceToLightVS = mul( uniforms.localToView, uniforms.lightDirection ).xyz;
+    float3 normalVS = normalize( vsOut.normalVS );
+    float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
+    accumDiffuseAndSpecular *= dotNL;
+    
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ) * float4( accumDiffuseAndSpecular, 1 );
 }

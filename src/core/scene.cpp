@@ -23,7 +23,7 @@ bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
@@ -41,7 +41,6 @@ struct ShadowCaster
     teTexture2D color;
     teTexture2D depth;
     unsigned cameraIndex{ MAX_GAMEOBJECTS - 1 };
-    Vec3 lightColor;
     Vec3 lightDirection;
 };
 
@@ -49,6 +48,7 @@ struct SceneImpl
 {
     unsigned gameObjects[ MAX_GAMEOBJECTS ] = {};
     ShadowCaster shadowCaster;
+    Vec3 directionalLightColor;
     Vec3 directionalLightDirection;
 };
 
@@ -96,9 +96,9 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
 
 void teSceneSetupDirectionalLight( const teScene& scene, const Vec3& color, const Vec3& direction )
 {
-    scenes[ scene.index ].shadowCaster.lightColor = color;
     scenes[ scene.index ].shadowCaster.lightDirection = direction;
     scenes[ scene.index ].directionalLightDirection = direction;
+    scenes[ scene.index ].directionalLightColor = color;
 }
 
 void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
@@ -201,7 +201,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
     ShaderParams shaderParams{};
-    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, Vec4( 0, 0, 0, 1 ) );
+    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -218,7 +218,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Fullscreen Quad" );
     unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
@@ -277,8 +277,12 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             lightDir.x = scenes[ scene.index ].directionalLightDirection.x;
             lightDir.y = scenes[ scene.index ].directionalLightDirection.y;
             lightDir.z = scenes[ scene.index ].directionalLightDirection.z;
+            Vec4 lightColor;
+            lightColor.x = scenes[ scene.index ].directionalLightColor.x;
+            lightColor.y = scenes[ scene.index ].directionalLightColor.y;
+            lightColor.z = scenes[ scene.index ].directionalLightColor.z;
 
-            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, lightDir );
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, lightDir, lightColor );
 
             const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );
 

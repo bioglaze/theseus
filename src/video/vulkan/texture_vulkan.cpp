@@ -205,7 +205,8 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageCreateInfo.extent = { (uint32_t)tex.width, (uint32_t)tex.height, 1 };
-    imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+    // FIXME: Not all textures need TRANSFER_DST. Only those which are vkCmdCleared for now which is defaultTexture2D ATM.
+    imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
     const bool isDepthFormat = (format == teTextureFormat::Depth32F_S8 || format == teTextureFormat::Depth32F);
 
