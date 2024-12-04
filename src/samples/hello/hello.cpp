@@ -296,7 +296,7 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
-    teScene scene = teCreateScene( 0 );
+    teScene scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
 
     teSceneAdd( scene, camera3d.index );
@@ -521,12 +521,12 @@ int main()
 
         teBeginFrame();
         ImGui::NewFrame();
-        const Vec3 dirLightShadowCasterPosition( 0, 0, -10 );
+        const Vec3 dirLightShadowCasterPosition( 0, -15, 0 );
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
-        shaderParams.bloomThreshold = 0.9f;// 0.9f;
+        shaderParams.bloomThreshold = 0.9f;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         // TODO UAV barrier here

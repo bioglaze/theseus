@@ -26,7 +26,7 @@ float linstep( float low, float high, float v )
 
 float VSM( float depth, float4 projCoord )
 {
-    float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
+    float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f; // * 0.5f + 0.5f; // FIXME: Why was this scale/bias applied? Vulkan z-clip range is 0-1, not -1-1.
     float2 moments = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 ).rg;
     if (moments.x > depth)
         return 0.2f;
@@ -55,5 +55,5 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     accumDiffuseAndSpecular *= dotNL;
     
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ) * float4( accumDiffuseAndSpecular, 1 );
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ) * float4( accumDiffuseAndSpecular, 1 ) * shadow;
 }

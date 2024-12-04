@@ -23,6 +23,8 @@ bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
 void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
+void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
+const Matrix& teTransformGetComputedLocalToShadowClipMatrix( unsigned index );
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
@@ -165,6 +167,18 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
         TransformSetComputedLocalToClip( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToClip );
         TransformSetComputedLocalToView( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView );
 
+        Matrix localToShadowClip;
+
+        if (cameraGOIndex != scenes[ scene.index ].shadowCaster.cameraIndex)
+        {
+            unsigned goIndex = scenes[ scene.index ].gameObjects[ scenes[ scene.index ].shadowCaster.cameraIndex ];
+
+            Matrix::Multiply( localToWorld, teTransformGetMatrix( goIndex ), localToShadowClip );
+            Matrix::Multiply( localToShadowClip, teCameraGetProjection( goIndex ), localToShadowClip );
+        }
+
+        teTransformSetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToShadowClip );
+
         const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[ gameObjectIndex ] );
 
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
@@ -253,8 +267,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
         Matrix localToView;
         teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView );
 
-        // TODO: get from transform/camera.
-        Matrix localToShadowClip;
+        Matrix localToShadowClip = teTransformGetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
         const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
@@ -301,10 +314,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
 // \param skyboxShader if not null, skybox is rendered using it, skyboxMesh and skyboxTexture.
 // \param momentsShader if not null, overrides material's shader
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, const teShader* momentsShader )
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, const teShader* momentsShader )
 {
-    const unsigned cameraGOIndex = scenes[ scene.index ].gameObjects[ cameraIndex ];
-
     teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
@@ -340,10 +351,22 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
 
     if (castShadowMap)
     {
-        teTransformLookAt( scenes[ scene.index ].shadowCaster.cameraIndex, dirLightPosition, dirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
-        teCameraSetProjection( scenes[ scene.index ].shadowCaster.cameraIndex, 45, 1, 0.1f, 400.0f );
+        unsigned index = scenes[ scene.index ].gameObjects[ scenes[ scene.index ].shadowCaster.cameraIndex ];
+        teTransformLookAt( index, dirLightPosition, dirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
+        teCameraSetProjection( index, 45, 1, 0.1f, 400.0f );
 
-        RenderSceneWithCamera( scene, scenes[ scene.index ].shadowCaster.cameraIndex, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader );
+        TransformSolveLocalMatrix( index, true );
+        const Matrix localToWorld = teTransformGetMatrix( index );
+
+        Matrix localToView;
+        Matrix localToClip;
+        Matrix::Multiply( localToWorld, teTransformGetMatrix( index ), localToView );
+        Matrix::Multiply( localToView, teCameraGetProjection( index ), localToClip );
+
+        TransformSetComputedLocalToClip( index, localToClip );
+        TransformSetComputedLocalToView( index, localToView );
+
+        RenderSceneWithCamera( scene, index, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader );
     }
 
     outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
@@ -369,7 +392,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, cameraIndex, skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera", nullptr );
+        RenderSceneWithCamera( scene, scenes[ scene.index ].gameObjects[ cameraIndex ], skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera", nullptr );
     }
 }
 
