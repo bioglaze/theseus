@@ -8,4 +8,6 @@ struct Uniforms
     float4 bloomParams;
     float4 tilesXY;
     float4 tint;
+    float4 lightDir;
+    float4 lightColor;
 };
