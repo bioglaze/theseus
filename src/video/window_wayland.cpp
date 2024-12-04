@@ -444,6 +444,10 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
     }
+    else if (button == BTN_MIDDLE)
+    {
+        win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
+    }
     
     win.events[ win.eventIndex ].x = win.lastMouseX;
     win.events[ win.eventIndex ].y = win.lastMouseY;
@@ -635,7 +639,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
     {
         if (version < 3)
         {
-            fprintf( stderr, "%s version 3 required but only version %i is available\n", interface, version );
+            fprintf( stderr, "%s version 3 required but only version %u is available\n", interface, version );
             exit( EXIT_FAILURE );
         }
         //seat = zalloc(sizeof *seat);
@@ -647,7 +651,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
     {
         if (version < 2)
         {
-            fprintf( stderr, "%s version 3 required but only version %i is available\n", interface, version );
+            fprintf( stderr, "%s version 3 required but only version %u is available\n", interface, version );
             exit( EXIT_FAILURE );
 		}
 
@@ -956,7 +960,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wl_registry* wlRegistry = wl_display_get_registry( gwlDisplay );
     wl_registry_add_listener( wlRegistry, &registryListener, nullptr );
     wl_display_roundtrip( gwlDisplay );
-    wl_display_roundtrip( gwlDisplay );
+    wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
 
     Output* output;
 
