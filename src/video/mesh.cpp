@@ -65,6 +65,17 @@ teMesh teCreateCubeMesh()
         1, 1, 1, -1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, -1, 1, 1, -1
     };
 
+    const float tangents[ 30 * 4 ] = // FIXME: these values are not correct.
+    {
+        1, -1, -1,  1, -1, 1, -1, -1, 1, 1, 1, -1, -1, 1, -1, -1, 1, 1,
+        1, -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, 1, 1, -1, -1, 1,
+        -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, -1,
+        -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, 1, -1, 1, 1, -1, -1,
+        1, 1, 1, -1, 1, 1, -1, 1, 1, -1, 1, -1, -1, 1, -1, 1, 1, -1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+
     const float uvs[ 30 * 2 ] =
     {
         0, 1, 0, 2, -1, 2, 0, 0, -1, 0, -1, 1, 0, 1, 0, 0, -1, 0, 0, 1,
@@ -88,6 +99,10 @@ teMesh teCreateCubeMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 12;
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMin = Vec3( -1, -1, -1 );
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
+    meshes[ outMesh.index ].subMeshes[ 0 ].normalOffset = AddNormals( positions, sizeof( positions ) ); // TODO: normals, not positions.
+    meshes[ outMesh.index ].subMeshes[ 0 ].normalCount = 30;
+    meshes[ outMesh.index ].subMeshes[ 0 ].tangentOffset = AddTangents( tangents, sizeof( tangents ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].tangentCount = 30;
 
     return outMesh;
 }
@@ -105,6 +120,14 @@ teMesh teCreateQuadMesh()
         1, 0, 0,
         1, 1, 0,
         0, 1, 0
+    };
+
+    const float tangents[] =
+    {
+        0, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 1, 0, 0,
+        0, 1, 0, 0
     };
 
     const float uvs[] =
@@ -131,6 +154,10 @@ teMesh teCreateQuadMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].indexCount = 2;
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMin = Vec3( -1, -1, -1 );
     meshes[ outMesh.index ].subMeshes[ 0 ].aabbMax = Vec3( 1, 1, 1 );
+    meshes[ outMesh.index ].subMeshes[ 0 ].normalOffset = AddNormals( positions, sizeof( positions ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].normalCount = 4;
+    meshes[ outMesh.index ].subMeshes[ 0 ].tangentOffset = AddTangents( tangents, sizeof( tangents ) );
+    meshes[ outMesh.index ].subMeshes[ 0 ].tangentCount = 4;
 
     return outMesh;
 }
