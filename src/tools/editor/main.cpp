@@ -40,6 +40,7 @@ void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
 void SceneMouseMove( float dx, float dy );
+void SceneMoveSelection( Vec3 amount );
 
 struct InputState
 {
@@ -148,18 +149,55 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             io.AddInputCharacter( ' ' );
         }
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Up)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { 0, 1, 0 } );
+            }
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, true );
+        }
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Up)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Down)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { 0, -1, 0 } );
+            }
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, true );
+        }
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Down)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, false );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Left)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { -1, 0, 0 } );
+            }
             io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, true );
+        }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Left)
             io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, false );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Right)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { 1, 0, 0 } );
+            }
+
             io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, true );
+        }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Right)
             io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, false );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Backspace)
             io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, true );
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Backspace)
             io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, false );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Tab)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Tab, true );
+        else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Tab)
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_Tab, false );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Delete)
         {
             if (!io.WantCaptureKeyboard)
@@ -331,7 +369,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
             io.AddMouseButtonEvent( 0, true );
 
-            if (!io.WantCaptureKeyboard)
+            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
             {
                 unsigned width, height;
                 teWindowGetSize( width, height );
@@ -351,7 +389,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
             io.AddMouseButtonEvent( 0, false );
 
-            if (!io.WantCaptureKeyboard)
+            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
             {
                 SelectObject( event.x, event.y );
             }
@@ -375,6 +413,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.lastMouseY = inputParams.y;
             inputParams.deltaX = 0;
             inputParams.deltaY = 0;
+            inputParams.moveDir.x = 0;
             inputParams.moveDir.y = 0;
             }
         else if (event.type == teWindowEvent::Type::Mouse2Down)
@@ -414,6 +453,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
             if (inputParams.isMiddleMouseDown)
             {
+                inputParams.moveDir.x =  inputParams.deltaX * 0.01f;
                 inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
             }
 

@@ -97,23 +97,24 @@ static void InitKeyMap()
         win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::None;
     }
 
-    win.keyMap[ VK_RETURN ] = teWindowEvent::KeyCode::Enter;
-    win.keyMap[ VK_LEFT ] = teWindowEvent::KeyCode::Left;
-    win.keyMap[ VK_UP ] = teWindowEvent::KeyCode::Up;
-    win.keyMap[ VK_RIGHT ] = teWindowEvent::KeyCode::Right;
-    win.keyMap[ VK_DOWN ] = teWindowEvent::KeyCode::Down;
-    win.keyMap[ VK_ESCAPE ] = teWindowEvent::KeyCode::Escape;
-    win.keyMap[ VK_SPACE ] = teWindowEvent::KeyCode::Space;
-    win.keyMap[ VK_BACK ] = teWindowEvent::KeyCode::Backspace;
-    win.keyMap[ VK_OEM_MINUS ] = teWindowEvent::KeyCode::Minus;
-    win.keyMap[ VK_OEM_PLUS ] = teWindowEvent::KeyCode::Plus;
-    win.keyMap[ VK_DELETE ] = teWindowEvent::KeyCode::Delete;
+    win.keyMap[ VK_RETURN ]     = teWindowEvent::KeyCode::Enter;
+    win.keyMap[ VK_LEFT ]       = teWindowEvent::KeyCode::Left;
+    win.keyMap[ VK_UP ]         = teWindowEvent::KeyCode::Up;
+    win.keyMap[ VK_RIGHT ]      = teWindowEvent::KeyCode::Right;
+    win.keyMap[ VK_DOWN ]       = teWindowEvent::KeyCode::Down;
+    win.keyMap[ VK_ESCAPE ]     = teWindowEvent::KeyCode::Escape;
+    win.keyMap[ VK_SPACE ]      = teWindowEvent::KeyCode::Space;
+    win.keyMap[ VK_BACK ]       = teWindowEvent::KeyCode::Backspace;
+    win.keyMap[ VK_OEM_MINUS ]  = teWindowEvent::KeyCode::Minus;
+    win.keyMap[ VK_OEM_PLUS ]   = teWindowEvent::KeyCode::Plus;
+    win.keyMap[ VK_DELETE ]     = teWindowEvent::KeyCode::Delete;
     win.keyMap[ VK_OEM_PERIOD ] = teWindowEvent::KeyCode::Dot;
-    win.keyMap[ VK_HOME ] = teWindowEvent::KeyCode::Home;
-    win.keyMap[ VK_END ] = teWindowEvent::KeyCode::End;
-    win.keyMap[ VK_PRIOR ] = teWindowEvent::KeyCode::PageUp;
-    win.keyMap[ VK_NEXT ] = teWindowEvent::KeyCode::PageDown;
-    win.keyMap[ VK_OEM_COMMA ] = teWindowEvent::KeyCode::Comma;
+    win.keyMap[ VK_HOME ]       = teWindowEvent::KeyCode::Home;
+    win.keyMap[ VK_END ]        = teWindowEvent::KeyCode::End;
+    win.keyMap[ VK_PRIOR ]      = teWindowEvent::KeyCode::PageUp;
+    win.keyMap[ VK_NEXT ]       = teWindowEvent::KeyCode::PageDown;
+    win.keyMap[ VK_OEM_COMMA ]  = teWindowEvent::KeyCode::Comma;
+    win.keyMap[ VK_TAB ]        = teWindowEvent::KeyCode::Tab;
 
     win.keyMap[ 65 ] = teWindowEvent::KeyCode::A;
     win.keyMap[ 66 ] = teWindowEvent::KeyCode::B;
@@ -196,7 +197,7 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD(lParam);
+        win.events[ win.eventIndex ].y = HIWORD( lParam );
     }
     break;
     case WM_RBUTTONDOWN:
@@ -205,7 +206,7 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD(lParam);
+        win.events[ win.eventIndex ].y = HIWORD( lParam );
     }
     break;
     case WM_MBUTTONDOWN:
@@ -221,7 +222,7 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD(lParam);
+        win.events[ win.eventIndex ].y = HIWORD( lParam );
         break;
     case WM_MOUSEWHEEL:
         wasHandled = IncEventIndex();

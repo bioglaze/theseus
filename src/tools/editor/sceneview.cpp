@@ -33,6 +33,7 @@ int gizmoAxisSelected = -1;
 float pos[ 3 ];
 float scale = 1;
 float lightDir[ 3 ] = { 1, 1, 1 };
+float lightColor[ 3 ] = { 1, 1, 1 };
 
 struct SceneView
 {
@@ -354,6 +355,13 @@ void SelectObject( unsigned x, unsigned y )
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
+void SceneMoveSelection( Vec3 amount )
+{
+    teTransformMoveRight( selectedGoIndex, amount.x );
+    teTransformMoveUp( selectedGoIndex, amount.y );
+    teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+}
+
 void SceneMouseMove( float dx, float dy )
 {
     if (gizmoAxisSelected == 0)
@@ -497,7 +505,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teSceneAdd( sceneView.scene, sceneView.camera3d.index );
     teSceneAdd( sceneView.scene, sceneView.translateGizmoGo.index );
     teSceneAdd( sceneView.scene, sceneView.cubeGo.index );
-    teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( 0, 1, 0 ) );
+    teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( 1, 1, 1 ).Normalized() );
 
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -525,7 +533,7 @@ void RenderSceneView()
 {
     teBeginFrame();
     ImGui::NewFrame();
-    Vec3 dirLightShadowCasterPosition;
+    Vec3 dirLightShadowCasterPosition( 0, -15, 0 );
     teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition );
 
     teBeginSwapchainRendering();
@@ -637,12 +645,20 @@ void RenderSceneView()
         }
         else
         {
-            ImGui::Text( "Light direction" );
-            const bool dirChanged = ImGui::InputFloat3( "dir", lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific );
+            ImGui::Text( "Sunlight direction" );
+            const bool dirChanged = ImGui::InputFloat3( "##dir", lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
 
             if (dirChanged)
             {
-                teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
+                teSceneSetupDirectionalLight( sceneView.scene, Vec3( lightColor[ 0 ], lightColor[ 1 ], lightColor[ 2 ] ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
+            }
+
+            ImGui::Text( "Sunlight color" );
+            const bool colorChanged = ImGui::InputFloat3( "##color", lightColor, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
+
+            if (colorChanged)
+            {
+                teSceneSetupDirectionalLight( sceneView.scene, Vec3( lightColor[ 0 ], lightColor[ 1 ], lightColor[ 2 ] ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
             }
         }
     }
