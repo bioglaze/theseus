@@ -242,7 +242,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     }
     else if (PF_IS_ATI2( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT1;
+        li = loadInfoDXT5;
         outFormat = teTextureFormat::BC5U;
     }
     else
