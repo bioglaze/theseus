@@ -175,8 +175,8 @@ int main()
     QueryPerformanceFrequency( &li );
     PCFreq = li.QuadPart / 1000;
 #endif
-    unsigned width = 1920 / 1;
-    unsigned height = 1080 / 1;
+    unsigned width =  1920 / 1;
+    unsigned height =  1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
@@ -236,14 +236,19 @@ int main()
     teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
     teTexture2D brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teMaterial brickMaterial = teCreateMaterial( standardShader );
-    teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
-
     teFile floorFile = teLoadFile( "assets/textures/plaster_d.dds" );
     teTexture2D floorTex = teLoadTexture( floorFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+    teFile grassNormalFile = teLoadFile( "assets/textures/grass_n.dds" );
+    teTexture2D grassNormalTex = teLoadTexture( grassNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teMaterial floorMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( floorMaterial, floorTex, 0 );
+    teMaterialSetTexture2D( floorMaterial, grassNormalTex, 1 );
+
+    teMaterial brickMaterial = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
+    teMaterialSetTexture2D( brickMaterial, grassNormalTex, 1 );
 
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
@@ -291,7 +296,8 @@ int main()
 
     //teMesh cubeMesh2 = teCreateCubeMesh();
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
-    teTransformSetLocalPosition( cubeGo2.index, Vec3( 0, 20, 0 ) );
+    Vec3 cubePos = Vec3( -1, 15, -1 );
+    teTransformSetLocalPosition( cubeGo2.index, cubePos );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
@@ -301,10 +307,10 @@ int main()
 
     teSceneAdd( scene, camera3d.index );
     //teSceneAdd( scene, cubeGo.index );
-    //teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, cubeGo2.index );
     teSceneAdd( scene, roomGo.index );
 
-    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 1, 1, 1 ).Normalized() );
+    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( -1, 1, -1 ).Normalized() );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;
@@ -521,7 +527,7 @@ int main()
 
         teBeginFrame();
         ImGui::NewFrame();
-        const Vec3 dirLightShadowCasterPosition( 0, -15, 0 );
+        const Vec3 dirLightShadowCasterPosition = cubePos;
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;

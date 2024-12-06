@@ -35,7 +35,7 @@ void WaylandDispatch();
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
 
-constexpr unsigned DescriptorEntryCount = 7;
+constexpr unsigned DescriptorEntryCount = 8;
 constexpr unsigned SamplerCount = 6;
 
 // Must match ubo.h shader header!
@@ -1253,6 +1253,11 @@ void CreateDescriptorSets()
     bindings[ 6 ].descriptorCount = 1;
     bindings[ 6 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
 
+    bindings[ 7 ].binding = 7;
+    bindings[ 7 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    bindings[ 7 ].descriptorCount = 1;
+    bindings[ 7 ].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_MESH_BIT_EXT;
+
     VkDescriptorSetLayoutCreateInfo setCreateInfo = {};
     setCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     setCreateInfo.bindingCount = DescriptorEntryCount;
@@ -1262,20 +1267,22 @@ void CreateDescriptorSets()
     SetObjectName( renderer.device, (uint64_t)renderer.descriptorSetLayout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, "descriptorSetLayout" );
 
     VkDescriptorPoolSize typeCounts[ DescriptorEntryCount ];
-    typeCounts[ 0 ].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    typeCounts[ 0 ].type = bindings[ 0 ].descriptorType;
     typeCounts[ 0 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 1 ].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+    typeCounts[ 1 ].type = bindings[ 1 ].descriptorType;
     typeCounts[ 1 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 2 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    typeCounts[ 2 ].type = bindings[ 2 ].descriptorType;
     typeCounts[ 2 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 3 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    typeCounts[ 3 ].type = bindings[ 3 ].descriptorType;
     typeCounts[ 3 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 4 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    typeCounts[ 4 ].type = bindings[ 4 ].descriptorType;
     typeCounts[ 4 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 5 ].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    typeCounts[ 5 ].type = bindings[ 5 ].descriptorType;
     typeCounts[ 5 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
-    typeCounts[ 6 ].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    typeCounts[ 6 ].type = bindings[ 6 ].descriptorType;
     typeCounts[ 6 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
+    typeCounts[ 7 ].type = bindings[ 7 ].descriptorType;
+    typeCounts[ 7 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
 
     VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
     descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1840,7 +1847,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
 
-static void UpdateDescriptors( const teBuffer& binding2, const teBuffer& binding4, const teBuffer& binding6, const teTexture2D& writeTexture, size_t uboOffset )
+static void UpdateDescriptors( const teBuffer& binding2, const teBuffer& binding4, const teBuffer& binding6, const teBuffer& binding7, const teTexture2D& writeTexture, size_t uboOffset )
 {
     const VkDescriptorSet& dstSet = renderer.swapchainResources[ renderer.frameIndex ].descriptorSets[ renderer.swapchainResources[ renderer.frameIndex ].setIndex ];
 
@@ -1909,6 +1916,15 @@ static void UpdateDescriptors( const teBuffer& binding2, const teBuffer& binding
     sets[ 6 ].pTexelBufferView = &binding6View;
     sets[ 6 ].dstBinding = 6;
 
+    VkBufferView binding7View = BufferGetView( binding7 );
+
+    sets[ 7 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sets[ 7 ].dstSet = dstSet;
+    sets[ 7 ].descriptorCount = 1;
+    sets[ 7 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    sets[ 7 ].pTexelBufferView = &binding7View;
+    sets[ 7 ].dstBinding = 7;
+
     vkUpdateDescriptorSets( renderer.device, DescriptorEntryCount, sets, 0, nullptr );
 }
 
@@ -1960,7 +1976,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     teTexture2D uav;
     uav.index = (params.writeTexture != 0) ? params.writeTexture : renderer.nullUAV.index;
 
-    UpdateDescriptors( renderer.nullBuffer, renderer.nullBuffer, renderer.nullBuffer, uav, renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    UpdateDescriptors( renderer.nullBuffer, renderer.nullBuffer, renderer.nullBuffer, renderer.nullBuffer, uav, renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
@@ -2015,7 +2031,7 @@ static VkSampler GetSampler( teTextureSampler sampler )
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           unsigned textureIndex, teTextureSampler sampler, unsigned shadowMapIndex )
+           unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
 {
     if (textureIndex != 0)
     {
@@ -2028,6 +2044,19 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         }
 
         renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
+    }
+
+    if (normalMapIndex != 0)
+    {
+        teTexture2D tex;
+        tex.index = normalMapIndex;
+
+        //for (unsigned i = 0; i < TextureCount; ++i)
+        {
+            renderer.samplerInfos[ normalMapIndex ].imageView = TextureGetView( tex );
+        }
+
+        renderer.samplerInfos[ normalMapIndex ].sampler = GetSampler( sampler );
     }
 
     if (shadowMapIndex != 0)
@@ -2047,7 +2076,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     teTexture2D nullUAV;
     nullUAV.index = renderer.nullUAV.index;
 
-    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, renderer.staticMeshNormalBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    UpdateDescriptors( renderer.staticMeshPositionBuffer, renderer.staticMeshUVBuffer, renderer.staticMeshNormalBuffer, renderer.staticMeshTangentBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, renderer.currentDepthFormat, false ) ].pso;
@@ -2061,6 +2090,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
     PushConstants pushConstants{};
     pushConstants.textureIndex = (int)textureIndex;
+    pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
 
     if (renderer.meshShaderSupported)
@@ -2083,7 +2113,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0 );
+    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
@@ -2119,7 +2149,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     teTexture2D nullUAV;
     nullUAV.index = (renderer.shaderParams.writeTexture != 0) ? renderer.shaderParams.writeTexture : renderer.nullUAV.index;
 
-    UpdateDescriptors( renderer.uiVertexBuffer, renderer.uiVertexBuffer, renderer.uiVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    UpdateDescriptors( renderer.uiVertexBuffer, renderer.uiVertexBuffer, renderer.uiVertexBuffer, renderer.uiVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     VkDeviceSize offsets[ 1 ] = { 0 };
