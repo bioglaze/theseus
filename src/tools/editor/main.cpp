@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-10-31
+// Modified: 2024-12-07
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -34,7 +34,7 @@ double GetMilliseconds()
 #endif
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
-void RenderSceneView();
+void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
@@ -55,6 +55,7 @@ struct InputState
     bool isMiddleMouseDown = false;
     bool isRightMouseDown = false;
     bool isLeftMouseDown = false;
+    float gridStep = 1;
 };
 
 #if _MSC_VER
@@ -153,7 +154,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             if (!io.WantCaptureKeyboard)
             {
-                SceneMoveSelection( { 0, 1, 0 } );
+                SceneMoveSelection( { 0, inputParams.gridStep, 0 } );
             }
             io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, true );
         }
@@ -163,7 +164,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             if (!io.WantCaptureKeyboard)
             {
-                SceneMoveSelection( { 0, -1, 0 } );
+                SceneMoveSelection( { 0, -inputParams.gridStep, 0 } );
             }
             io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, true );
         }
@@ -173,7 +174,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             if (!io.WantCaptureKeyboard)
             {
-                SceneMoveSelection( { -1, 0, 0 } );
+                SceneMoveSelection( { -inputParams.gridStep, 0, 0 } );
             }
             io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, true );
         }
@@ -183,7 +184,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             if (!io.WantCaptureKeyboard)
             {
-                SceneMoveSelection( { 1, 0, 0 } );
+                SceneMoveSelection( { inputParams.gridStep, 0, 0 } );
             }
 
             io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, true );
@@ -261,10 +262,24 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             io.AddInputCharacter( 'r' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Dot)
             io.AddInputCharacter( '.' );
-        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Minus)
+        else if (event.type == teWindowEvent::Type::KeyDown && (event.keyCode == teWindowEvent::KeyCode::Minus || event.keyCode == teWindowEvent::KeyCode::NumpadMinus))
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                --inputParams.gridStep;
+            }
+            
             io.AddInputCharacter( '-' );
-        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Plus)
+        }
+        else if (event.type == teWindowEvent::Type::KeyDown && (event.keyCode == teWindowEvent::KeyCode::Plus || event.keyCode == teWindowEvent::KeyCode::NumpadPlus))
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                ++inputParams.gridStep;
+            }
+            
             io.AddInputCharacter( '+' );
+        }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Comma)
             io.AddInputCharacter( ',' );
 
@@ -521,7 +536,7 @@ int main()
 
         //printf( "%f\n", dt );
 
-        RenderSceneView();
+        RenderSceneView( inputParams.gridStep );
     }
 
     return 0;

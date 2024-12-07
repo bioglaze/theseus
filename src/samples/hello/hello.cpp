@@ -236,19 +236,22 @@ int main()
     teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
     teTexture2D brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+    teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.dds" );
+    teTexture2D brickNormalTex = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teFile floorFile = teLoadFile( "assets/textures/plaster_d.dds" );
     teTexture2D floorTex = teLoadTexture( floorFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teFile grassNormalFile = teLoadFile( "assets/textures/grass_n.dds" );
-    teTexture2D grassNormalTex = teLoadTexture( grassNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    teFile floorNormalFile = teLoadFile( "assets/textures/plaster_n.dds" );
+    teTexture2D floorNormalTex = teLoadTexture( floorNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teMaterial floorMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( floorMaterial, floorTex, 0 );
-    teMaterialSetTexture2D( floorMaterial, grassNormalTex, 1 );
+    teMaterialSetTexture2D( floorMaterial, floorNormalTex, 1 );
 
     teMaterial brickMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
-    teMaterialSetTexture2D( brickMaterial, grassNormalTex, 1 );
+    teMaterialSetTexture2D( brickMaterial, floorNormalTex, 1 );
 
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
@@ -529,7 +532,7 @@ int main()
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
-
+#if 0
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.bloomThreshold = 0.9f;
@@ -549,6 +552,7 @@ int main()
         shaderParams.tilesXY[ 3 ] = 1.0f;
         teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur v" );
         // TODO UAV barrier here
+#endif
 
         teBeginSwapchainRendering();
         shaderParams.tilesXY[ 0 ] = 2.0f;
@@ -556,9 +560,10 @@ int main()
         shaderParams.tilesXY[ 2 ] = -1.0f;
         shaderParams.tilesXY[ 3 ] = -1.0f;
         teDrawQuad( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
+
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
+        //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

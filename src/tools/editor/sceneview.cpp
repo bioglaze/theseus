@@ -529,7 +529,7 @@ unsigned SceneViewGetCameraIndex()
     return sceneView.camera3d.index;
 }
 
-void RenderSceneView()
+void RenderSceneView( float gridStep )
 {
     teBeginFrame();
     ImGui::NewFrame();
@@ -660,6 +660,8 @@ void RenderSceneView()
             {
                 teSceneSetupDirectionalLight( sceneView.scene, Vec3( lightColor[ 0 ], lightColor[ 1 ], lightColor[ 2 ] ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
             }
+
+            ImGui::Text( "Grid: %d", (int)gridStep );
         }
     }
 
