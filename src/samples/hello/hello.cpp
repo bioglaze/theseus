@@ -313,7 +313,7 @@ int main()
     teSceneAdd( scene, cubeGo2.index );
     teSceneAdd( scene, roomGo.index );
 
-    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( -1, 1, -1 ).Normalized() );
+    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( -1, -1, -1 ).Normalized() );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;

@@ -5,7 +5,6 @@
 struct FrustumImpl
 {
     void UpdateCornersAndCenters( const Vec3& cameraPosition, const Vec3& zAxis );
-    bool BoxInFrustum( const Vec3& min, const Vec3& max );
     
     // Near clipping plane coordinates
     Vec3 nearTopLeft;

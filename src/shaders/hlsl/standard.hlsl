@@ -8,6 +8,7 @@ struct VSOutput
     float3 normalVS    : NORMAL;
     float3 tangentVS   : TANGENT;
     float3 bitangentVS : BINORMAL;
+    float3 positionVS  : POSITION;
 };
 
 VSOutput standardVS( uint vertexId : SV_VertexID )
@@ -18,8 +19,12 @@ VSOutput standardVS( uint vertexId : SV_VertexID )
     vsOut.normalVS = mul( uniforms.localToView, float4( normals[ vertexId ], 0 ) ).xyz;
     vsOut.tangentVS = mul( uniforms.localToView, float4( tangents[ vertexId ].xyz, 0 ) ).xyz;
     vsOut.projCoord = mul( uniforms.localToShadowClip, float4( positions[ vertexId ], 1 ) );
-
-    float3 ct = cross( tangents[ vertexId ].xyz, normals[ vertexId ] ) * tangents[ vertexId ].w;
+    vsOut.positionVS = mul( uniforms.localToView, float4( positions[ vertexId ], 1 ) ).xyz;
+    
+    // aether:
+    //float3 ct = cross( tangents[ vertexId ].xyz, normals[ vertexId ] ) * tangents[ vertexId ].w;
+    // mikkt
+    float3 ct = cross( normals[ vertexId ], tangents[ vertexId ].xyz ) * tangents[ vertexId ].w;
     vsOut.bitangentVS = mul( uniforms.localToView, float4( ct, 0 ) ).xyz;
 
     return vsOut;
@@ -60,11 +65,24 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ 0 ], vsOut.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
+
+    const float3 V = normalize( vsOut.positionVS );
+    const float3 L = -uniforms.lightDirection.xyz;
+    const float3 H = normalize( L + V );
+    float specularStrength = 0.5;
     
+    float3 ambient = float3( 0.2, 0.2, 0.2 );
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
     const float3 surfaceToLightVS = mul( uniforms.localToView, uniforms.lightDirection ).xyz;
-    float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
+    float dotNL = saturate( dot( normalVS, -surfaceToLightVS ) );
     accumDiffuseAndSpecular *= dotNL;
     
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ) * float4( accumDiffuseAndSpecular, 1 );// * shadow;
+    float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
+    float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
+    float3 specular = specularStrength * spec;
+    accumDiffuseAndSpecular += specular;
+    
+    float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv );
+    
+    return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ), 1 );
 }
