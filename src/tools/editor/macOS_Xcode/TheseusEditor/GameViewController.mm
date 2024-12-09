@@ -20,7 +20,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RotateEditorCamera( float x, float y );
 void SelectObject( unsigned x, unsigned y );
 void DeleteSelectedObject();
-void RenderSceneView();
+void RenderSceneView( float gridStep );
 void SetDrawable( id< CAMetalDrawable > drawable );
 void MoveEditorCamera( float right, float up, float forward );
 NSViewController* myViewController;
@@ -115,7 +115,7 @@ void MoveUp( float amount )
 
     renderPassDescriptor = view.currentRenderPassDescriptor;
 
-    RenderSceneView();
+    RenderSceneView( 1 );
     MoveEditorCamera( moveDir.x, moveDir.y, moveDir.z );
 }
 

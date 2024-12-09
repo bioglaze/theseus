@@ -584,9 +584,9 @@ void MoveToNextUboOffset()
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
-          teTextureSampler sampler, unsigned shadowMapIndex )
+          teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
 {
-    id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( textureIndex ) };
+    id< MTLTexture > textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( shadowMapIndex ), TextureGetMetalTexture( normalMapIndex ) };
     NSRange rangeTextures = { 0, 3 };
     [renderer.renderEncoder setFragmentTextures:textures withRange:rangeTextures ];
     
@@ -637,7 +637,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     float m[ 16 ];
     UpdateUBO( m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
 
-    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0 );
+    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )

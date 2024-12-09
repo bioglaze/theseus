@@ -54,7 +54,8 @@ vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
 }
 
 fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
-                            texture2d<float, access::sample> shadowMap [[texture(1)]])
+                            texture2d<float, access::sample> normalMap [[texture(1)]],
+                            texture2d<float, access::sample> shadowMap [[texture(2)]])
 {
     constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
     
