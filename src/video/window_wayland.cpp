@@ -837,6 +837,7 @@ static void InitKeyMap()
     win.keyMap[ 86 ] = teWindowEvent::KeyCode::Less;
     win.keyMap[ 78 ] = teWindowEvent::KeyCode::NumpadPlus;
     win.keyMap[ 74 ] = teWindowEvent::KeyCode::NumpadMinus;
+    win.keyMap[ 15 ] = teWindowEvent::KeyCode::Tab;
 
     win.keyMap[ 39 ] = teWindowEvent::KeyCode::OE;
     win.keyMap[ 40 ] = teWindowEvent::KeyCode::AE;
