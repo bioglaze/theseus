@@ -1578,6 +1578,18 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     VK_CHECK( vkQueueWaitIdle( renderer.graphicsQueue ) );
 }
 
+static VkSampler GetSampler( teTextureSampler sampler )
+{
+    if (sampler == teTextureSampler::LinearRepeat) return renderer.samplerLinearRepeat;
+    if (sampler == teTextureSampler::LinearClamp) return renderer.samplerLinearClamp;
+    if (sampler == teTextureSampler::NearestClamp) return renderer.samplerNearestClamp;
+    if (sampler == teTextureSampler::NearestRepeat) return renderer.samplerNearestRepeat;
+    if (sampler == teTextureSampler::Anisotropic8Clamp) return renderer.samplerAnisotropic8Clamp;
+    if (sampler == teTextureSampler::Anisotropic8Repeat) return renderer.samplerAnisotropic8Repeat;
+    teAssert( !"Unhandled sampler!" );
+    return renderer.samplerLinearRepeat;
+}
+
 void teBeginFrame()
 {
     vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence, VK_TRUE, UINT64_MAX );
@@ -1610,6 +1622,14 @@ void teBeginFrame()
         //renderer.samplerInfosCube[ i ].sampler = renderer.samplerLinearRepeat;
         //renderer.samplerInfosCube[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
+
+    // These indices are defined in ubo.h shader header.
+    renderer.samplerInfos[ 0 ].sampler = GetSampler( teTextureSampler::LinearRepeat );
+    renderer.samplerInfos[ 1 ].sampler = GetSampler( teTextureSampler::LinearClamp );
+    renderer.samplerInfos[ 2 ].sampler = GetSampler( teTextureSampler::NearestRepeat );
+    renderer.samplerInfos[ 3 ].sampler = GetSampler( teTextureSampler::NearestClamp );
+    renderer.samplerInfos[ 4 ].sampler = GetSampler( teTextureSampler::Anisotropic8Repeat );
+    renderer.samplerInfos[ 5 ].sampler = GetSampler( teTextureSampler::Anisotropic8Clamp );
 
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset = 0;
     renderer.boundPSO = VK_NULL_HANDLE;
@@ -2020,18 +2040,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     }
 }
 
-static VkSampler GetSampler( teTextureSampler sampler )
-{
-    if (sampler == teTextureSampler::LinearRepeat) return renderer.samplerLinearRepeat;
-    if (sampler == teTextureSampler::LinearClamp) return renderer.samplerLinearClamp;
-    if (sampler == teTextureSampler::NearestClamp) return renderer.samplerNearestClamp;
-    if (sampler == teTextureSampler::NearestRepeat) return renderer.samplerNearestRepeat;
-    if (sampler == teTextureSampler::Anisotropic8Clamp) return renderer.samplerAnisotropic8Clamp;
-    if (sampler == teTextureSampler::Anisotropic8Repeat) return renderer.samplerAnisotropic8Repeat;
-    teAssert( !"Unhandled sampler!" );
-    return renderer.samplerLinearRepeat;
-}
-
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
            unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
 {
@@ -2067,7 +2075,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         tex.index = shadowMapIndex;
 
         renderer.samplerInfos[ shadowMapIndex ].imageView = TextureGetView( tex );
-        //renderer.samplerInfos[ shadowMapIndex ].sampler = GetSampler( sampler ); // FIXME: We probably want some hardcoded sampler here, not the one used for drawing.
     }
     else
     {

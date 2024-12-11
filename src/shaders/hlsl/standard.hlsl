@@ -84,5 +84,5 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv );
     
-    return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ), 1 );
+    return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
 }
