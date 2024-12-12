@@ -42,5 +42,9 @@ else
 endif
 
 toolz:
+ifeq ($(UNAME), Darwin)
+	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 -Iinclude -Ithirdparty/meshoptimizer -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -fno-objc-arc $(LINKER) -o ../build/convert_obj
+else
 	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 -Iinclude -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
 	$(CC) $(FLAGS) $(SANITIZERS) tools/editor/*.cpp *.o ../build/engine.o $(LINKER) -o ../build/editor
+endif
