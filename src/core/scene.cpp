@@ -25,7 +25,7 @@ void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalTo
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
 const Matrix& teTransformGetComputedLocalToShadowClipMatrix( unsigned index );
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
@@ -52,6 +52,7 @@ struct SceneImpl
     ShadowCaster shadowCaster;
     Vec3 directionalLightColor;
     Vec3 directionalLightDirection;
+    Vec3 directionalLightPosition;
 };
 
 SceneImpl scenes[ 2 ];
@@ -215,7 +216,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
     ShaderParams shaderParams{};
-    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -232,7 +233,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Fullscreen Quad" );
     unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
@@ -269,6 +270,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
         Matrix localToShadowClip = teTransformGetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
+        Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+
         const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
@@ -294,8 +297,12 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             lightColor.x = scenes[ scene.index ].directionalLightColor.x;
             lightColor.y = scenes[ scene.index ].directionalLightColor.y;
             lightColor.z = scenes[ scene.index ].directionalLightColor.z;
+            Vec4 lightPosition;
+            lightPosition.x = scenes[ scene.index ].directionalLightPosition.x;
+            lightPosition.y = scenes[ scene.index ].directionalLightPosition.y;
+            lightPosition.z = scenes[ scene.index ].directionalLightPosition.z;
 
-            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, shaderParams, lightDir, lightColor );
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition );
 
             const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );
 
@@ -352,6 +359,8 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
 
     if (castShadowMap)
     {
+        scenes[ scene.index ].directionalLightPosition = dirLightPosition;
+
         unsigned index = scenes[ scene.index ].gameObjects[ scenes[ scene.index ].shadowCaster.cameraIndex ];
         teTransformLookAt( index, -dirLightPosition, -dirLightPosition - scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( index, 45, 1, 0.1f, 400.0f );

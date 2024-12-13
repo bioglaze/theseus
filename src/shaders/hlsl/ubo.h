@@ -3,11 +3,13 @@ struct UniformData
     matrix localToClip;
     matrix localToView;
     matrix localToShadowClip;
+    matrix localToWorld;
     float4 bloomParams;
     float4 tilesXY;
     float4 tint;
     float4 lightDirection;
     float4 lightColor;
+    float4 lightPosition;
 };
 
 struct PushConstants

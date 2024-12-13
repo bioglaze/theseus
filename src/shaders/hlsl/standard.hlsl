@@ -9,6 +9,7 @@ struct VSOutput
     float3 tangentVS   : TANGENT;
     float3 bitangentVS : BINORMAL;
     float3 positionVS  : POSITION;
+    float3 positionWS  : POSITION1;
 };
 
 VSOutput standardVS( uint vertexId : SV_VertexID )
@@ -20,6 +21,7 @@ VSOutput standardVS( uint vertexId : SV_VertexID )
     vsOut.tangentVS = mul( uniforms.localToView, float4( tangents[ vertexId ].xyz, 0 ) ).xyz;
     vsOut.projCoord = mul( uniforms.localToShadowClip, float4( positions[ vertexId ], 1 ) );
     vsOut.positionVS = mul( uniforms.localToView, float4( positions[ vertexId ], 1 ) ).xyz;
+    vsOut.positionWS = mul( uniforms.localToWorld, float4( positions[ vertexId ], 1 ) ).xyz;
     
     // aether:
     //float3 ct = cross( tangents[ vertexId ].xyz, normals[ vertexId ] ) * tangents[ vertexId ].w;
@@ -39,18 +41,18 @@ float VSM( float depth, float4 projCoord )
 {
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
     float2 moments = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 ).rg;
-    if (moments.x > depth && projCoord.w > 0) // projCoord.w > 0 tries to prevent darkening the area outside the shadow map
-        return 0.2f;
-    return 1.0f;
+    //if (moments.x > depth && projCoord.w > 0) // projCoord.w > 0 tries to prevent darkening the area outside the shadow map
+    //    return 0.2f;
+    //return 1.0f;
 
-/*    float variance = max( moments.y - moments.x * moments.x, -0.001f );
+    float variance = max( moments.y - moments.x * moments.x, -0.001f );
 
     float delta = depth - moments.x;
     float p = smoothstep( depth - 0.02f, depth, moments.x );
     float minAmbient = 0.2f;
     float pMax = linstep( minAmbient, 1.0f, variance / (variance + delta * delta) );
 
-    return saturate( max( p, pMax ) );*/
+    return saturate( max( p, pMax ) );
 }
 
 float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, float3 v )
@@ -60,8 +62,9 @@ float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, f
 
 float4 standardPS( VSOutput vsOut ) : SV_Target
 {
-    float depth = (vsOut.projCoord.z + 0.0001f) / vsOut.projCoord.w;
-    float shadow = max( 0.2f, VSM( depth, vsOut.projCoord ) );
+    float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
+    //float depth = (vsOut.projCoord.z + 0.0001f) / vsOut.projCoord.w;
+    float shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
     float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ 0 ], vsOut.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
