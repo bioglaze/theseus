@@ -898,12 +898,12 @@ void EndRegion( VkCommandBuffer cmdBuffer )
 
 void PushGroupMarker( const char* name )
 {
-    BeginRegion( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, name, 0, 1, 0 );
+    BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, name, 0, 1, 0 );
 }
 
 void PopGroupMarker()
 {
-    EndRegion( renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
+    EndRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
 }
 
 void CreateInstance()
