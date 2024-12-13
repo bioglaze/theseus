@@ -1,6 +1,6 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2024-10-13
+// Modified: 2024-12-13
 // Limitations:
 //   - Only triangulated meshes currently work.
 //   - Face indices are 16-bit.
@@ -10,6 +10,21 @@
 #include <string.h>
 #include "vec3.h"
 #include "meshoptimizer.h"
+
+char gStrings[ 20000 ];
+unsigned gNextFreeString = 0;
+
+unsigned InsertString( char* str )
+{
+    size_t len = strlen( str );
+    assert( gNextFreeString + len < 20000 );
+
+    memcpy( gStrings + gNextFreeString, str, len );
+    unsigned outIndex = gNextFreeString;
+    gNextFreeString += (unsigned)len + 1;
+
+    return outIndex;
+}
 
 // FIXME: This is duplicated from Theseus math.cpp to avoid linking the engine to this converter.
 void NormalizeVec4( Vec4& v )
@@ -65,6 +80,8 @@ struct Mesh
 
     Vec3             aabbMin{ 99999, 99999, 99999 };
     Vec3             aabbMax{ -99999, -99999, -99999 };
+
+    unsigned         nameIndex = 0;
 };
 
 Mesh* meshes = nullptr;
@@ -435,6 +452,11 @@ void InitMeshArrays( FILE* file )
         {
             if (meshCount > 0)
             {
+                char og[ 128 ] = {};
+                char name[ 128 ] = {};
+                sscanf( line, "%127s %127s", og, name );
+
+                meshes[ meshCount - 1 ].nameIndex = InsertString( name );
                 meshes[ meshCount - 1 ].faceCount = faceCount;
                 meshes[ meshCount - 1 ].faces = new Face[ faceCount ];
                 faceCount = 0;
