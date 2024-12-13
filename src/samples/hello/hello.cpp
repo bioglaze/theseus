@@ -307,7 +307,7 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
-    teScene scene = teCreateScene( 2048 );
+    teScene scene = teCreateScene( 0 );
     teFinalizeMeshBuffers();
 
     teSceneAdd( scene, camera3d.index );
