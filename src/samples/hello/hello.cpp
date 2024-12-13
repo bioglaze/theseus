@@ -294,12 +294,14 @@ int main()
 
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+    Vec3 cubePos1 = Vec3( 0, 2, 0 );
+    teTransformSetLocalPosition( cubeGo.index, cubePos1 );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, standardMaterial, 0 );
 
     //teMesh cubeMesh2 = teCreateCubeMesh();
     teGameObject cubeGo2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::MeshRenderer );
-    Vec3 cubePos = Vec3( -1, 15, -1 );
+    Vec3 cubePos = Vec3( 0, 15, 0 );
     teTransformSetLocalPosition( cubeGo2.index, cubePos );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
@@ -309,11 +311,11 @@ int main()
     teFinalizeMeshBuffers();
 
     teSceneAdd( scene, camera3d.index );
-    //teSceneAdd( scene, cubeGo.index );
-    teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, cubeGo.index );
+    //teSceneAdd( scene, cubeGo2.index );
     teSceneAdd( scene, roomGo.index );
 
-    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( -1, -1, -1 ).Normalized() );
+    teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.0001f, -1, 0.0001f ).Normalized() );
 
     teGameObject cubes[ 16 * 4 ];
     unsigned g = 0;

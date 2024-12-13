@@ -353,7 +353,7 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
     if (castShadowMap)
     {
         unsigned index = scenes[ scene.index ].gameObjects[ scenes[ scene.index ].shadowCaster.cameraIndex ];
-        teTransformLookAt( index, dirLightPosition, dirLightPosition + scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
+        teTransformLookAt( index, -dirLightPosition, -dirLightPosition - scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( index, 45, 1, 0.1f, 400.0f );
 
         TransformSolveLocalMatrix( index, true );

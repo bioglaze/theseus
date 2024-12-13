@@ -37,7 +37,7 @@ float linstep( float low, float high, float v )
 
 float VSM( float depth, float4 projCoord )
 {
-    float2 uv = (projCoord.xy / projCoord.w);// * 0.5f + 0.5f; // FIXME: Why was this scale/bias applied? Vulkan z-clip range is 0-1, not -1-1.
+    float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
     float2 moments = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 ).rg;
     if (moments.x > depth && projCoord.w > 0) // projCoord.w > 0 tries to prevent darkening the area outside the shadow map
         return 0.2f;
