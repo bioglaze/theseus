@@ -599,7 +599,7 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
 
     if (depthMode == teDepthMode::LessOrEqualWriteOn || depthMode == teDepthMode::LessOrEqualWriteOff)
     {
-        depthStencilState.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
+        depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     }
     else if (depthMode == teDepthMode::NoneWriteOff)
     {
@@ -1643,8 +1643,8 @@ void teBeginFrame()
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
 
-    /*
-    FIXME: write-after write hazard
+    
+    /*FIXME: write - after write hazard
     VkClearColorValue clearValue{};
     clearValue.float32[0] = 1000.0f;
     clearValue.float32[ 1 ] = 1000.0f;
@@ -1734,7 +1734,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     depthAtt.loadOp = clearFlag == teClearFlag::DontClear ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAtt.imageLayout = depth.format == teTextureFormat::Depth32F_S8 ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-    depthAtt.clearValue.depthStencil.depth = 0;
+    depthAtt.clearValue.depthStencil.depth = 1;
 
     unsigned width = 0, height = 0;
     teTextureGetDimension( color, width, height );
