@@ -12,6 +12,7 @@ teMesh teCreateCubeMesh();
 teMesh teCreateQuadMesh();
 teMesh teLoadMesh( const struct teFile& file );
 unsigned teMeshGetSubMeshCount( const teMesh& mesh );
+char* teMeshGetSubMeshName( const teMesh& mesh, unsigned subMeshIndex );
 teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex );
 void teMeshRendererSetMesh( unsigned gameObjectIndex, teMesh* mesh );
 void teMeshRendererSetMaterial( unsigned gameObjectIndex, const struct teMaterial& material, unsigned subMeshIndex );

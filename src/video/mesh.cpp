@@ -14,6 +14,18 @@ unsigned AddUVs( const float* uvs, unsigned bytes );
 static constexpr unsigned MaxMeshes = 10000;
 static constexpr unsigned MaxMaterials = 1000;
 
+// Copied from meshoptimizer.
+struct meshopt_Meshlet
+{
+    /* offsets within meshlet_vertices and meshlet_triangles arrays with meshlet data */
+    unsigned int vertex_offset;
+    unsigned int triangle_offset;
+
+    /* number of vertices and triangles used in the meshlet; data is stored in consecutive range defined by offset and count */
+    unsigned int vertex_count;
+    unsigned int triangle_count;
+};
+
 struct SubMesh
 {
     unsigned indicesOffset = 0;
@@ -26,15 +38,20 @@ struct SubMesh
     unsigned normalCount = 0;
     unsigned tangentOffset = 0;
     unsigned tangentCount = 0;
+    unsigned meshletCount = 0;
 
-    Vec3 aabbMin;
-    Vec3 aabbMax;
+    Vec3     aabbMin;
+    Vec3     aabbMax;
+
+    unsigned nameIndex = 0; // Index into MeshImpl::names.
+    meshopt_Meshlet* meshlets = nullptr;
 };
 
 struct MeshImpl
 {
     SubMesh* subMeshes = nullptr;
     unsigned subMeshCount = 0;
+    char*    names = nullptr;
 };
 
 struct MeshRenderer
@@ -103,6 +120,9 @@ teMesh teCreateCubeMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].normalCount = 30;
     meshes[ outMesh.index ].subMeshes[ 0 ].tangentOffset = AddTangents( tangents, sizeof( tangents ) );
     meshes[ outMesh.index ].subMeshes[ 0 ].tangentCount = 30;
+    meshes[ outMesh.index ].subMeshes[ 0 ].nameIndex = 0;
+    meshes[ outMesh.index ].names = (char*)teMalloc( 10 );
+    meshes[ outMesh.index ].names[ 0 ] = 0;
 
     return outMesh;
 }
@@ -158,6 +178,8 @@ teMesh teCreateQuadMesh()
     meshes[ outMesh.index ].subMeshes[ 0 ].normalCount = 4;
     meshes[ outMesh.index ].subMeshes[ 0 ].tangentOffset = AddTangents( tangents, sizeof( tangents ) );
     meshes[ outMesh.index ].subMeshes[ 0 ].tangentCount = 4;
+    meshes[ outMesh.index ].names = (char*)teMalloc( 10 );
+    meshes[ outMesh.index ].names[ 0 ] = 0;
 
     return outMesh;
 }
@@ -174,8 +196,8 @@ teMesh teLoadMesh( const teFile& file )
     teMesh outMesh;
     outMesh.index = ++meshIndex;
 
-    // Header is something like "t3d0001" where the last numbers are version that is incremented when reading compatibility breaks.
-    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '1')
+    // Header is something like "t3d0002" where the last numbers are version that is incremented when reading compatibility breaks.
+    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '2')
     {
         printf( "%s has wrong version!\n", file.path );
         return outMesh;
@@ -227,7 +249,19 @@ teMesh teLoadMesh( const teFile& file )
         meshes[ outMesh.index ].subMeshes[ m ].tangentOffset = AddTangents( (float*)pointer, vertexCount * 4 * 4 );
         meshes[ outMesh.index ].subMeshes[ m ].tangentCount = vertexCount;
         pointer += vertexCount * 4 * 4;
+        meshes[ outMesh.index ].subMeshes[ m ].meshletCount = *((unsigned*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].meshlets = (meshopt_Meshlet*)malloc( meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet ) );
+        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshlets, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletCount );
+        pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet );
+        meshes[ outMesh.index ].subMeshes[ m ].nameIndex = *((unsigned*)pointer);
+        pointer += 4;
     }
+
+    unsigned namesSize = *((unsigned*)pointer);
+    pointer += 4;
+    meshes[ outMesh.index ].names = (char*)malloc( namesSize );
+    memcpy( meshes[ outMesh.index ].names, pointer, namesSize );
 
     return outMesh;
 }
@@ -245,6 +279,11 @@ unsigned teMeshGetSubMeshCount( const teMesh& mesh )
     teAssert( mesh.index != 0);
     teAssert( mesh.index < MaxMeshes );
     return meshes[ mesh.index ].subMeshCount;
+}
+
+char* teMeshGetSubMeshName( const teMesh& mesh, unsigned subMeshIndex )
+{
+    return &meshes[ mesh.index ].names[ meshes[ mesh.index ].subMeshes[ subMeshIndex ].nameIndex ];
 }
 
 teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex )

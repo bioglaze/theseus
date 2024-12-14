@@ -1,6 +1,6 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2024-12-13
+// Modified: 2024-12-14
 // Limitations:
 //   - Only triangulated meshes currently work.
 //   - Face indices are 16-bit.
@@ -104,7 +104,7 @@ void WriteT3d( const char* path )
         return;
     }
 
-    const char header[] = { "t3d0001" };
+    const char header[] = { "t3d0002" };
     fwrite( header, sizeof( char ), sizeof( header ), file );
     fwrite( &meshCount, 1, 4, file );
 
@@ -127,7 +127,13 @@ void WriteT3d( const char* path )
         fwrite( meshes[ m ].finalUVs, 2 * 4, meshes[ m ].finalVertexCount, file );
         fwrite( meshes[ m ].finalNormals, 3 * 4, meshes[ m ].finalVertexCount, file );
         fwrite( meshes[ m ].finalTangents, 4 * 4, meshes[ m ].finalVertexCount, file );
+        fwrite( &meshes[ m ].meshletCount, 4, 1, file );
+        fwrite( meshes[ m ].meshlets, meshes[ m ].meshletCount * sizeof( meshopt_Meshlet ), 1, file );
+        fwrite( &meshes[ m ].nameIndex, 4, 1, file );
     }
+
+    fwrite( &gNextFreeString, 4, 1, file );
+    fwrite( gStrings, 1, gNextFreeString, file );
 
     fclose( file );
 }

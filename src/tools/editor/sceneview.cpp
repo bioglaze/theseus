@@ -634,7 +634,7 @@ void RenderSceneView( float gridStep )
                     
                     for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                     {
-                        ImGui::Text( "submesh" );
+                        ImGui::Text( teMeshGetSubMeshName( mesh, i ) );
                     }
                 }
             }
