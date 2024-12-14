@@ -95,8 +95,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
     if (drawData->TotalVtxCount > 0)
     {
-        size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
-        size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+        //size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        //size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
         void* vertexMemory = nullptr;
         void* indexMemory = nullptr;
@@ -634,7 +634,7 @@ void RenderSceneView( float gridStep )
                     
                     for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                     {
-                        ImGui::Text( teMeshGetSubMeshName( mesh, i ) );
+                        ImGui::Text( "%s", teMeshGetSubMeshName( mesh, i ) );
                     }
                 }
             }
