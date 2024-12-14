@@ -5,9 +5,11 @@ struct Uniforms
     matrix_float4x4 localToClip;
     matrix_float4x4 localToView;
     matrix_float4x4 localToShadowClip;
+    matrix_float4x4 localToWorld;
     float4 bloomParams;
     float4 tilesXY;
     float4 tint;
     float4 lightDir;
     float4 lightColor;
+    float4 lightPosition;
 };

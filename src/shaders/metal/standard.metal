@@ -10,6 +10,8 @@ struct ColorInOut
     float2 uv;
     float3 normal;
     float4 projCoord;
+    float3 positionVS;
+    float3 positionWS;
 };
 
 float linstep( float low, float high, float v )
@@ -49,6 +51,8 @@ vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
     out.uv = float2( uvs[ vid ] );
     out.normal = (uniforms.localToView * float4( normals[ vid ], 1 )).xyz;
     out.projCoord = uniforms.localToShadowClip * float4( positions[ vid ], 1 );
+    out.positionVS = (uniforms.localToView * float4( positions[ vid ], 1 )).xyz;
+    out.positionWS = (uniforms.localToWorld * float4( positions[ vid ], 1 )).xyz;
     
     return out;
 }

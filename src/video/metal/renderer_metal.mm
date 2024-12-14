@@ -24,11 +24,13 @@ struct PerObjectUboStruct
     Matrix localToClip;
     Matrix localToView;
     Matrix localToShadowClip;
+    Matrix localToWorld;
     Vec4   bloomParams;
     Vec4   tilesXY;
     Vec4   tint;
     Vec4   lightDir;
     Vec4   lightColor;
+    Vec4   lightPosition;
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -64,6 +66,8 @@ struct Renderer
     id<MTLDepthStencilState> depthStateGreaterWriteOn;
     id<MTLDepthStencilState> depthStateGreaterWriteOff;
     id<MTLDepthStencilState> depthStateNoneWriteOff;
+    id<MTLDepthStencilState> depthStateLessOrEqualWriteOn;
+    id<MTLDepthStencilState> depthStateLessOrEqualWriteOff;
 
     id<MTLSamplerState> anisotropicRepeat;
     id<MTLSamplerState> anisotropicClamp;
@@ -238,6 +242,16 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     depthStateDesc.label = @"none write off";
     renderer.depthStateNoneWriteOff = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
 
+    depthStateDesc.depthCompareFunction = MTLCompareFunctionLessEqual;
+    depthStateDesc.depthWriteEnabled = YES;
+    depthStateDesc.label = @"lessEqual write on";
+    renderer.depthStateLessOrEqualWriteOn = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
+
+    depthStateDesc.depthCompareFunction = MTLCompareFunctionLessEqual;
+    depthStateDesc.depthWriteEnabled = NO;
+    depthStateDesc.label = @"lessEqual write off";
+    renderer.depthStateLessOrEqualWriteOff = [renderer.device newDepthStencilStateWithDescriptor:depthStateDesc];
+
     defaultLibrary = [renderer.device newDefaultLibrary];
     
     renderer.width = width;
@@ -355,11 +369,15 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
     return renderer.tangentCounter - bytes;
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDir, const Vec4& lightColor )
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ],
+                const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDir, const Vec4& lightColor,
+                const Vec4& lightPosition )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
     uboStruct.localToView.InitFrom( localToView );
+    uboStruct.localToShadowClip.InitFrom( localToShadowClip );
+    uboStruct.localToWorld.InitFrom( localToWorld );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
@@ -371,6 +389,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tint.w = shaderParams.tint[ 3 ];
     uboStruct.lightDir = lightDir;
     uboStruct.lightColor = lightColor;
+    uboStruct.lightPosition = lightPosition;
     
     id<MTLBuffer> uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)[uniformBuffer contents] + renderer.frameResources[ 0 ].uboOffset;
@@ -418,7 +437,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].resolveTexture = nil;
         renderer.renderPassDescriptorFBO.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
         renderer.renderPassDescriptorFBO.depthAttachment.loadAction = clearFlag != teClearFlag::DontClear ? MTLLoadActionClear : MTLLoadActionLoad;
-        renderer.renderPassDescriptorFBO.depthAttachment.clearDepth = 0;
+        renderer.renderPassDescriptorFBO.depthAttachment.clearDepth = 1;
         renderer.renderPassDescriptorFBO.depthAttachment.texture = TextureGetMetalTexture( depth.index );
         
         renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderer.renderPassDescriptorFBO];
@@ -431,7 +450,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderPassDescriptor.colorAttachments[ 0 ].resolveTexture = nil;
         renderPassDescriptor.colorAttachments[ 0 ].storeAction = MTLStoreActionStore;
         renderPassDescriptor.depthAttachment.loadAction = clearFlag != teClearFlag::DontClear ? MTLLoadActionClear : MTLLoadActionLoad;
-        renderPassDescriptor.depthAttachment.clearDepth = 0;
+        renderPassDescriptor.depthAttachment.clearDepth = 1;
         
         renderer.renderEncoder = [renderer.frameResources[ 0 ].commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderer.renderEncoder.label = @"RenderEncoder";
@@ -601,14 +620,13 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     [renderer.renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
     [renderer.renderEncoder setCullMode:(MTLCullMode)cullMode];
 
-    // Note that we're using reverse-z, so less equal is really greater.
     if (depthMode == teDepthMode::LessOrEqualWriteOn)
     {
-        [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOn];
+        [renderer.renderEncoder setDepthStencilState:renderer.depthStateLessOrEqualWriteOn];
     }
     else if (depthMode == teDepthMode::LessOrEqualWriteOff)
     {
-        [renderer.renderEncoder setDepthStencilState:renderer.depthStateGreaterWriteOff];
+        [renderer.renderEncoder setDepthStencilState:renderer.depthStateLessOrEqualWriteOff];
     }
     else if (depthMode == teDepthMode::NoneWriteOff)
     {
@@ -635,7 +653,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     float m[ 16 ];
-    UpdateUBO( m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( m, m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0 );
 }
@@ -688,7 +706,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
     ShaderParams shaderParams = {};
-    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, localToClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     const unsigned vertexStride = 20; // sizeof( ImDrawVert )
     const unsigned indexStride = 2; // sizeof( ImDrawIdx )
