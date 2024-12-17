@@ -32,7 +32,7 @@ unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as no
 int gizmoAxisSelected = -1;
 float pos[ 3 ];
 float scale = 1;
-float lightDir[ 3 ] = { 1, 1, 1 };
+float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
 
 struct SceneView
@@ -307,7 +307,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
             Vec3 mMinWorld, mMaxWorld;
             Vec3 mAABB[ 8 ];
 
-            teMeshGetSubMeshLocalAABB( teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
+            teMeshGetSubMeshLocalAABB( *teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
             teGetCorners( mMinLocal, mMaxLocal, mAABB );
 
             for (int v = 0; v < 8; ++v)
@@ -533,7 +533,7 @@ void RenderSceneView( float gridStep )
 {
     teBeginFrame();
     ImGui::NewFrame();
-    Vec3 dirLightShadowCasterPosition( 0, -15, 0 );
+    Vec3 dirLightShadowCasterPosition( 0, 25, 0 );
     teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition );
 
     teBeginSwapchainRendering();
@@ -623,24 +623,24 @@ void RenderSceneView( float gridStep )
                             teFinalizeMeshBuffers();
                             teMeshRendererSetMesh( selectedGoIndex, mesh );
                             
-                            for (unsigned i = 0; i < teMeshGetSubMeshCount( *mesh ); ++i)
+                            for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                             {
                                 teMeshRendererSetMaterial( selectedGoIndex, sceneView.standardMaterial, i );
                             }
                         }
                     }
                     
-                    teMesh& mesh = teMeshRendererGetMesh( selectedGoIndex );
+                    teMesh* mesh = teMeshRendererGetMesh( selectedGoIndex );
                     
                     for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                     {
-                        ImGui::Text( "%s", teMeshGetSubMeshName( mesh, i ) );
+                        ImGui::Text( "%s", teMeshGetSubMeshName( *mesh, i ) );
                     }
                 }
             }
             else if (ImGui::Button( "Add Mesh Renderer" ))
             {
-                printf( "TODO: add mesh renderer\n" );
+                teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
             }
         }
         else

@@ -17,3 +17,4 @@ struct teGameObject
 unsigned teGameObjectGetComponents( unsigned index );
 teGameObject teCreateGameObject( const char* name, unsigned components );
 const char* teGameObjectGetName( unsigned index );
+void teGameObjectAddComponent( unsigned index, teComponent component );

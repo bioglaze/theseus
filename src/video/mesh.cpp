@@ -274,11 +274,16 @@ void teMeshGetSubMeshLocalAABB( const teMesh& mesh, unsigned subMeshIndex, Vec3&
     outAABBMax = meshes[ mesh.index ].subMeshes[ subMeshIndex ].aabbMax;
 }
 
-unsigned teMeshGetSubMeshCount( const teMesh& mesh )
+unsigned teMeshGetSubMeshCount( const teMesh* mesh )
 {
-    teAssert( mesh.index != 0);
-    teAssert( mesh.index < MaxMeshes );
-    return meshes[ mesh.index ].subMeshCount;
+    if (!mesh)
+    {
+        return 0;
+    }
+
+    teAssert( mesh->index != 0);
+    teAssert( mesh->index < MaxMeshes );
+    return meshes[ mesh->index ].subMeshCount;
 }
 
 char* teMeshGetSubMeshName( const teMesh& mesh, unsigned subMeshIndex )
@@ -286,10 +291,10 @@ char* teMeshGetSubMeshName( const teMesh& mesh, unsigned subMeshIndex )
     return &meshes[ mesh.index ].names[ meshes[ mesh.index ].subMeshes[ subMeshIndex ].nameIndex ];
 }
 
-teMesh& teMeshRendererGetMesh( unsigned gameObjectIndex )
+teMesh* teMeshRendererGetMesh( unsigned gameObjectIndex )
 {
     teAssert( gameObjectIndex < MaxMeshes );
-    return *meshRenderers[ gameObjectIndex ].mesh;
+    return meshRenderers[ gameObjectIndex ].mesh;
 }
 
 bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex )

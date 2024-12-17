@@ -35,3 +35,10 @@ const char* teGameObjectGetName( unsigned index )
 {
     return gameObjects[ index ].name;
 }
+
+void teGameObjectAddComponent( unsigned index, teComponent component )
+{
+    teAssert( index < MaxGameObjects );
+
+    gameObjects[ index ].components |= component;
+}

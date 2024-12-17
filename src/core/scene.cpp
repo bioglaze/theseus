@@ -180,12 +180,12 @@ static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOInde
 
         teTransformSetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToShadowClip );
 
-        const teMesh& mesh = teMeshRendererGetMesh(scenes[scene.index].gameObjects[ gameObjectIndex ] );
+        const teMesh* mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
         {
             Vec3 meshAabbMinWorld, meshAabbMaxWorld;
-            teMeshGetSubMeshLocalAABB( mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
+            teMeshGetSubMeshLocalAABB( *mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
 
             Vec3 meshAabbWorld[ 8 ];
             teGetCorners( meshAabbMinWorld, meshAabbMaxWorld, meshAabbWorld );
@@ -272,7 +272,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
         Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
-        const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+        const teMesh* mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
         {
@@ -306,16 +306,16 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
             const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );
 
-            unsigned indexOffset = teMeshGetIndexOffset( mesh, subMeshIndex );
-            unsigned indexCount = teMeshGetIndexCount( mesh, subMeshIndex );
-            unsigned positionOffset = teMeshGetPositionOffset( mesh, subMeshIndex );
-            unsigned normalOffset = teMeshGetNormalOffset( mesh, subMeshIndex );
-            unsigned uvOffset = teMeshGetUVOffset( mesh, subMeshIndex );
+            unsigned indexOffset = teMeshGetIndexOffset( *mesh, subMeshIndex );
+            unsigned indexCount = teMeshGetIndexCount( *mesh, subMeshIndex );
+            unsigned positionOffset = teMeshGetPositionOffset( *mesh, subMeshIndex );
+            unsigned normalOffset = teMeshGetNormalOffset( *mesh, subMeshIndex );
+            unsigned uvOffset = teMeshGetUVOffset( *mesh, subMeshIndex );
 
             teTexture2D texture = teMaterialGetTexture2D( material, 0 );
             teTexture2D normalMap = teMaterialGetTexture2D( material, 1 );
 
-            Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh.topology, material.fillMode, texture.index, texture.sampler, normalMap.index, shadowMapIndex );
+            Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh->topology, material.fillMode, texture.index, texture.sampler, normalMap.index, shadowMapIndex );
         }
     }
 }
@@ -418,12 +418,12 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
         {
             const Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
-            const teMesh& mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+            const teMesh* mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
             for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
             {
                 Vec3 meshAabbMinWorld, meshAabbMaxWorld;
-                teMeshGetSubMeshLocalAABB( mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
+                teMeshGetSubMeshLocalAABB( *mesh, subMeshIndex, meshAabbMinWorld, meshAabbMaxWorld );
 
                 // TODO: This could use the results of updateFrustumsAndCull() instead of calculating this again.
                 Vec3 meshAabbWorld[ 8 ];
