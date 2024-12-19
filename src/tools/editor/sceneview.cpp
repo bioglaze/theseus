@@ -371,17 +371,15 @@ void SceneMouseMove( float x, float y, float dx, float dy )
 
     if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
     {
-        //gizmoAxisSelected = closestSubMesh;
-        printf( "gizmo submesh %d\n", closestSubMesh );
         if (closestSubMesh == 0)
         {
             teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
         }
-        if (closestSubMesh == 1)
+        if (closestSubMesh == 2)
         {
             teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
         }
-        if (closestSubMesh == 2)
+        if (closestSubMesh == 1)
         {
             teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
         }
@@ -393,13 +391,13 @@ void SceneMouseMove( float x, float y, float dx, float dy )
         teTransformMoveUp( selectedGoIndex, -dy * 0.5f );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
-    else if (gizmoAxisSelected == 1)
+    else if (gizmoAxisSelected == 2)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
         teTransformMoveForward( selectedGoIndex, dx * 0.5f, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
-    else if (gizmoAxisSelected == 2)
+    else if (gizmoAxisSelected == 1)
     {
         teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
         teTransformMoveRight( selectedGoIndex, dx * 0.5f );
