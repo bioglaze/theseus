@@ -39,7 +39,7 @@ unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
-void SceneMouseMove( float dx, float dy );
+void SceneMouseMove( float x, float y, float dx, float dy );
 void SceneMoveSelection( Vec3 amount );
 
 struct InputState
@@ -472,9 +472,12 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
             }
 
-            if (inputParams.isLeftMouseDown)
+            //if (inputParams.isLeftMouseDown)
             {
-                SceneMouseMove( inputParams.deltaX, inputParams.deltaY );
+                unsigned width, height;
+                teWindowGetSize( width, height );
+
+                SceneMouseMove( inputParams.x, height - inputParams.y, inputParams.deltaX, inputParams.deltaY );
             }
 
             if (inputParams.isRightMouseDown && !io.WantCaptureMouse)

@@ -26,10 +26,13 @@ void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 
+constexpr unsigned EditorCameraGoIndex = 1;
+
 char text[ 100 ];
 char openFilePath[ 280 ];
-unsigned selectedGoIndex = 1; // 1 is editor camera which the UI considers as non-selection.
+unsigned selectedGoIndex = EditorCameraGoIndex;
 int gizmoAxisSelected = -1;
+int gizmoAxisHovered = -1;
 float pos[ 3 ];
 float scale = 1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
@@ -278,14 +281,14 @@ float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min,
     return tmin;
 }
 
-void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
+void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outClosestSceneGo, unsigned& outClosestSubMesh )
 {
     Vec3 rayOrigin, rayTarget;
     ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d, rayOrigin, rayTarget );
 
-    int closestSceneGo = -1;
+    outClosestSceneGo = -1;
     float closestDistance = 99999.0f;
-    unsigned closestSubMesh = 666;
+    outClosestSubMesh = 666;
 
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
@@ -322,36 +325,29 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo )
             if (meshDistance > 0 && meshDistance < closestDistance)
             {
                 closestDistance = meshDistance;
-                closestSceneGo = sceneGo;
-                closestSubMesh = subMesh;
+                outClosestSceneGo = sceneGo;
+                outClosestSubMesh = subMesh;
             }
         }
-    }
-
-    if (closestSceneGo != -1)
-    {
-        if (!skipGizmo && closestSceneGo == (int)sceneView.translateGizmoGo.index)
-        {
-            gizmoAxisSelected = closestSubMesh;
-            printf( "submesh %d\n", closestSubMesh );
-        }
-        else
-        {
-            selectedGoIndex = closestSceneGo;
-            teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
-        }
-    }
-    
-    if (skipGizmo)
-    {
-        teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, closestSceneGo != -1 );
     }
 }
 
 void SelectObject( unsigned x, unsigned y )
 {
-    selectedGoIndex = 1;
-    GetColliders( x, y, true );
+    selectedGoIndex = EditorCameraGoIndex;
+    unsigned closestSubMesh = 666;
+    int closestSceneGo = -1;
+
+    GetColliders( x, y, true, closestSceneGo, closestSubMesh );
+
+    if (closestSceneGo != -1)
+    {
+        selectedGoIndex = closestSceneGo;
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    }
+
+    teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, closestSceneGo != -1 );
+
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 
@@ -362,8 +358,35 @@ void SceneMoveSelection( Vec3 amount )
     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
 }
 
-void SceneMouseMove( float dx, float dy )
+void SceneMouseMove( float x, float y, float dx, float dy )
 {
+    teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
+    teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
+    teMaterialSetTint( sceneView.blueMaterial, { 1, 1, 1, 1 } );
+
+    unsigned closestSubMesh = 666;
+    int closestSceneGo = -1;
+
+    GetColliders( x, y, false, closestSceneGo, closestSubMesh );
+
+    if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
+    {
+        //gizmoAxisSelected = closestSubMesh;
+        printf( "gizmo submesh %d\n", closestSubMesh );
+        if (closestSubMesh == 0)
+        {
+            teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
+        }
+        if (closestSubMesh == 1)
+        {
+            teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
+        }
+        if (closestSubMesh == 2)
+        {
+            teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
+        }
+    }
+
     if (gizmoAxisSelected == 0)
     {
         teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
@@ -390,7 +413,18 @@ void SelectGizmo( unsigned x, unsigned y )
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.blueMaterial, { 1, 1, 1, 1 } );
-    GetColliders( x, y, false );
+
+    unsigned closestSubMesh = 666;
+    int closestSceneGo = -1;
+
+    GetColliders( x, y, false, closestSceneGo, closestSubMesh );
+
+    if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
+    {
+        gizmoAxisSelected = closestSubMesh;
+        printf( "gizmo submesh %d\n", closestSubMesh );
+    }
+
     printf("Gizmo axis selected: %d\n", gizmoAxisSelected );
     //sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
