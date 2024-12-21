@@ -12,6 +12,7 @@ dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E standardVS -all-resources-bound -T
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E standardPS -all-resources-bound -T ps_6_5 shaders/hlsl/standard.hlsl -Fo ../build/shaders/standard_ps.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E bloomThreshold -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/bloom_threshold.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E bloomBlur -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/bloom_blur.spv
+dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E bloomDownsample -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/downsample.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E momentsVS -all-resources-bound -T vs_6_5 shaders/hlsl/moments.hlsl -Fo ../build/shaders/moments_vs.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.3 -E momentsPS -all-resources-bound -T ps_6_5 shaders/hlsl/moments.hlsl -Fo ../build/shaders/moments_ps.spv
 

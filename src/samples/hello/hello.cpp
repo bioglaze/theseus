@@ -214,6 +214,9 @@ int main()
     teFile bloomBlurFile = teLoadFile( "shaders/bloom_blur.spv" );
     teShader bloomBlurShader = teCreateComputeShader( bloomBlurFile, "bloomBlur", 16, 16 );
 
+    teFile downsampleFile = teLoadFile( "shaders/downsample.spv" );
+    teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 16, 16 );
+
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, -10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
@@ -272,6 +275,9 @@ int main()
 
     teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
     teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
+    teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
+    teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
+    teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -534,11 +540,32 @@ int main()
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
-#if 0
+#if 1
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
-        shaderParams.bloomThreshold = 0.9f;
+        shaderParams.bloomThreshold = 0.1f;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
+
+        // Downsample 1
+        shaderParams.readTexture = bloomTarget.index;
+        shaderParams.writeTexture = downsampleTarget.index;
+        shaderParams.tilesXY[ 0 ] = width / 2;
+        shaderParams.tilesXY[ 1 ] = height / 2;
+        teShaderDispatch( downsampleShader, width / 2 / 16, height / 2 / 16, 1, shaderParams, "bloom downsample" );
+
+        // Downsample 2
+        shaderParams.readTexture = downsampleTarget.index;
+        shaderParams.writeTexture = downsampleTarget2.index;
+        shaderParams.tilesXY[ 0 ] = width / 4;
+        shaderParams.tilesXY[ 1 ] = height / 4;
+        teShaderDispatch( downsampleShader, width / 4 / 16, height / 4 / 16, 1, shaderParams, "bloom downsample 2" );
+
+        // Downsample 3
+        shaderParams.readTexture = downsampleTarget2.index;
+        shaderParams.writeTexture = downsampleTarget3.index;
+        shaderParams.tilesXY[ 0 ] = width / 8;
+        shaderParams.tilesXY[ 1 ] = height / 8;
+        teShaderDispatch( downsampleShader, width / 8 / 16, height / 8 / 16, 1, shaderParams, "bloom downsample 2" );
 
         // TODO UAV barrier here
         shaderParams.readTexture = bloomTarget.index;
@@ -565,7 +592,7 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
+        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
