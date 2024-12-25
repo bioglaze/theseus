@@ -218,7 +218,7 @@ int main()
     teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 16, 16 );
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
-    Vec3 cameraPos = { 0, 0, -10 };
+    Vec3 cameraPos = { 0, -2, -10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
     teClearFlag clearFlag = teClearFlag::DepthAndColor;
     teTransformSetLocalPosition( camera3d.index, cameraPos );
@@ -372,6 +372,7 @@ int main()
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;
+    bool fpsCamera = true;
     InputState inputParams;
 
     double theTime = GetMilliseconds();
@@ -525,15 +526,33 @@ int main()
 
         Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
 
-        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * 0.5f, false );
-        teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * 0.5f );
-        teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * 0.5f );
+        const float speed = fpsCamera ? 0.25f : 0.5f;
+
+        teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt * speed, false, fpsCamera, false );
+        teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * speed );
+        teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * speed );
 
         cameraPos = -teTransformGetLocalPosition( camera3d.index );
 
         if (teScenePointInsideAABB( scene, cameraPos ))
         {
             teTransformSetLocalPosition( camera3d.index, oldCameraPos );
+            teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt* speed, false, fpsCamera, true );
+            cameraPos = -teTransformGetLocalPosition( camera3d.index );
+
+            if (teScenePointInsideAABB( scene, cameraPos ))
+            {
+                teTransformSetLocalPosition( camera3d.index, oldCameraPos );
+                teTransformMoveForward( camera3d.index, inputParams.moveDir.z* (float)dt* speed, true, fpsCamera, false );
+                cameraPos = -teTransformGetLocalPosition( camera3d.index );
+                if (teScenePointInsideAABB( scene, cameraPos ))
+                {
+                    teTransformSetLocalPosition( camera3d.index, oldCameraPos );
+                }
+            }
+            else
+            {
+            }
         }
 
         teBeginFrame();
@@ -592,7 +611,7 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
+        //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

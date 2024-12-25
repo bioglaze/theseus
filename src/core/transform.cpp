@@ -172,16 +172,28 @@ void teTransformLookAt( unsigned index, const Vec3& localPosition, const Vec3& c
     transforms[ index ].localPosition = localPosition;
 }
 
-void teTransformMoveForward( unsigned index, float amount, bool ignoreY )
+void teTransformMoveForward( unsigned index, float amount, bool ignoreX, bool ignoreY, bool ignoreZ )
 {
     if (!IsAlmost( amount, 0 ))
     {
+        const float x = transforms[ index ].localPosition.x;
         const float y = transforms[ index ].localPosition.y;
+        const float z = transforms[ index ].localPosition.z;
         transforms[ index ].localPosition += transforms[ index ].localRotation * Vec3( 0, 0, amount );
-        
+
+        if (ignoreX)
+        {
+            transforms[ index ].localPosition.x = x;
+        }
+
         if (ignoreY)
         {
             transforms[ index ].localPosition.y = y;
+        }
+
+        if (ignoreZ)
+        {
+            transforms[ index ].localPosition.z = z;
         }
     }
 }

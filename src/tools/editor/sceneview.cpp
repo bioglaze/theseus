@@ -367,7 +367,7 @@ void SceneMouseMove( float x, float y, float dx, float dy )
     unsigned closestSubMesh = 666;
     int closestSceneGo = -1;
 
-    GetColliders( x, y, false, closestSceneGo, closestSubMesh );
+    GetColliders( (unsigned)x, (unsigned)y, false, closestSceneGo, closestSubMesh );
 
     if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
     {
@@ -394,7 +394,7 @@ void SceneMouseMove( float x, float y, float dx, float dy )
     else if (gizmoAxisSelected == 2)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false );
+        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false, false, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 1)
@@ -715,7 +715,7 @@ void RotateEditorCamera( float x, float y )
 
 void MoveEditorCamera( float right, float up, float forward )
 {
-    teTransformMoveForward( sceneView.camera3d.index, forward, false );
+    teTransformMoveForward( sceneView.camera3d.index, forward, false, false, false );
     teTransformMoveUp( sceneView.camera3d.index, up );
     teTransformMoveRight( sceneView.camera3d.index, right );
 }
