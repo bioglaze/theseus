@@ -34,7 +34,7 @@ engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
 	$(CC) $(DEFINES) $(SANITIZERS) -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c unity.cpp -fno-objc-arc -o ../build/engine.o
-	$(CC) $(DEFINES) $(SANITIZERS) -std=c++17 -g -Iinclude -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit samples/hello/hello_mac.cpp *.o ../build/engine.o -fno-objc-arc $(LINKER) -o ../build/hello_mac
+	$(CC) $(DEFINES) $(SANITIZERS) -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp samples/hello/hello_mac.mm -o ../build/hello_mac
 	xcrun -sdk macosx metal shaders/metal/*.metal -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o

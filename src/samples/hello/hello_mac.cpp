@@ -149,6 +149,9 @@ void MyAppDelegate::applicationWillFinishLaunching( NS::Notification* pNotificat
     app->setActivationPolicy( NS::ActivationPolicy::ActivationPolicyRegular );
 }
 
+NS::Window* g_window;
+void setDelegate();
+
 void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotification )
 {
     //NS::Window* m_window = (NS::Window*)teCreateWindow( 512, 512, "mutsis" );
@@ -161,6 +164,9 @@ void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotificati
     NS::BackingStoreBuffered,
     false );
     
+    g_window = m_window;
+    setDelegate();
+
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
 
     m_view = MTK::View::alloc()->init( frame, device );
@@ -174,6 +180,8 @@ void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotificati
     m_window->setTitle( NS::String::string( "Theseus Hello", NS::StringEncoding::UTF8StringEncoding ) );
 
     m_window->makeKeyAndOrderFront( nullptr );
+
+    //m_window->makeFirstResponder();
 
     NS::Application* pApp = reinterpret_cast< NS::Application* >( pNotification->object() );
     pApp->activateIgnoringOtherApps( true );
