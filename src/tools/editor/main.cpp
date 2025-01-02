@@ -477,7 +477,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 unsigned width, height;
                 teWindowGetSize( width, height );
 
-                SceneMouseMove( inputParams.x, height - inputParams.y, inputParams.deltaX, inputParams.deltaY );
+                SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY );
             }
 
             if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
