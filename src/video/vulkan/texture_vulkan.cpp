@@ -478,12 +478,7 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
             const int32_t mipWidth = Max2( tex.width >> mipLevel, 1 );
             const int32_t mipHeight = Max2( tex.height >> mipLevel, 1 );
 
-            VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK) ? 8 : 16;
-            
-            if (format == VK_FORMAT_BC5_UNORM_BLOCK || format == VK_FORMAT_BC5_SNORM_BLOCK)
-            {
-                bcBlockSize = 16;
-            }
+            const VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK) ? 8 : 16;
 
             // TODO: Use GetMemoryUsage() instead.
             VkDeviceSize imageSize = (mipWidth / 4) * (mipHeight / 4) * bcBlockSize;
