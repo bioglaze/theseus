@@ -12,13 +12,14 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Modern Vulkan 1.3 and Metal 3 renderers
   - Fast compile times
   - Loads .tga and .dds textures
+  - Scene Editor implemented using Dear ImGui
   - OBJ mesh converter
   - Shader hot-reloading
-  
+
 # Platforms
 
-  - Windows (VS 2022 project files included)
-  - macOS (Apple Silicon)/iOS
+  - Windows, only AMD64 tested, but ARM64 might also work.
+  - macOS (Apple Silicon)
   - Linux support (requires Wayland)
 
 # Building
@@ -33,13 +34,18 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
     - run src/build.bat
     - run build/hello.exe
     
-  - macOS/Xcode:
-    - build theseus.xcodeproj and copy the resulting framework to src/samples/hello_mac_ios
-    - build and run hello_mac_ios/hello.xcodeproj
-    - OBJ mesh converter can be build by running "make toolz" in src.
+  - macOS/command line:
+    - First build ImGui: `make imgui`. You only need to do this once, unless you want to modify/update ImGui later.
+    - Then build the engine: `make engine`. Build artifacts are copied to theseus/build
+    - OBJ mesh converter and Editor can be built by running `make toolz` in src.
     
   - Linux:
-    - First build ImGUI: `make imgui`. You only need to do this once, unless you want to modify ImGUI later.
+    - First build ImGui: `make imgui`. You only need to do this once, unless you want to modify/update ImGui later.
     - Then build the engine: `make engine`. Build artifacts are copied to theseus/build
     - Shaders can be compiled by running compile_deploy_vulkan_shaders.sh
-    - OBJ mesh converter can be built by running "make toolz" in src.
+    - OBJ mesh converter and Editor can be built by running `make toolz` in src.
+
+# Included third-party libraries
+  - meshoptimizer by Arseny Kapoulkine
+  - Dear ImGUI by Omar Cornut
+  - Metal-Cpp by Apple
