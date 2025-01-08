@@ -214,6 +214,9 @@ int main()
     teFile bloomBlurFile = teLoadFile( "shaders/bloom_blur.spv" );
     teShader bloomBlurShader = teCreateComputeShader( bloomBlurFile, "bloomBlur", 16, 16 );
 
+    teFile bloomCombineFile = teLoadFile( "shaders/bloom_combine.spv" );
+    teShader bloomCombineShader = teCreateComputeShader( bloomCombineFile, "bloomCombine", 16, 16 );
+
     teFile downsampleFile = teLoadFile( "shaders/downsample.spv" );
     teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 16, 16 );
 
@@ -275,6 +278,7 @@ int main()
 
     teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
     teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
+    teTexture2D bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomComposeTarget" );
     teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
     teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
     teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
@@ -565,6 +569,23 @@ int main()
         shaderParams.bloomThreshold = 0.1f;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
+        // TODO UAV barrier here
+        shaderParams.readTexture = bloomTarget.index;
+        shaderParams.writeTexture = blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur h" );
+
+        // TODO UAV barrier here
+        shaderParams.readTexture = blurTarget.index;
+        shaderParams.writeTexture = bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur v" );
+
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+
         // Downsample 1
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.writeTexture = downsampleTarget.index;
@@ -584,22 +605,16 @@ int main()
         shaderParams.writeTexture = downsampleTarget3.index;
         shaderParams.tilesXY[ 0 ] = width / 8;
         shaderParams.tilesXY[ 1 ] = height / 8;
-        teShaderDispatch( downsampleShader, width / 8 / 16, height / 8 / 16, 1, shaderParams, "bloom downsample 2" );
+        teShaderDispatch( downsampleShader, width / 8 / 16, height / 8 / 16, 1, shaderParams, "bloom downsample 3" );
 
-        // TODO UAV barrier here
+        // Combine
         shaderParams.readTexture = bloomTarget.index;
-        shaderParams.writeTexture = blurTarget.index;
-        shaderParams.tilesXY[ 2 ] = 1.0f;
-        shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur h" );
-
-        // TODO UAV barrier here
-        shaderParams.readTexture = blurTarget.index;
-        shaderParams.writeTexture = bloomTarget.index;
-        shaderParams.tilesXY[ 2 ] = 0.0f;
-        shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( bloomBlurShader, width / 16, height / 16, 1, shaderParams, "bloom blur v" );
-        // TODO UAV barrier here
+        shaderParams.readTexture2 = downsampleTarget.index;
+        shaderParams.readTexture3 = downsampleTarget2.index;
+        shaderParams.writeTexture = bloomComposeTarget.index;
+        shaderParams.tilesXY[ 0 ] = width;
+        shaderParams.tilesXY[ 1 ] = height;
+        teShaderDispatch( bloomCombineShader, width / 1 / 16, height / 1 / 16, 1, shaderParams, "bloom combine" );
 #endif
 
         teBeginSwapchainRendering();
@@ -611,7 +626,9 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
+        //shaderParams.tilesXY[ 0 ] = width;
+        //shaderParams.tilesXY[ 1 ] = height;
+        teDrawQuad( fullscreenAdditiveShader, bloomComposeTarget, shaderParams, teBlendMode::Additive );
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

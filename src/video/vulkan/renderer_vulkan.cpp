@@ -2002,6 +2002,28 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         renderer.samplerInfos[ textureIndex ].imageView = TextureGetView( tex );
     }
 
+    int shadowTextureIndex = 0;
+
+    if (params.readTexture2 != 0)
+    {
+        teTexture2D tex;
+        tex.index = params.readTexture2;
+        shadowTextureIndex = (int)params.readTexture2;
+
+        renderer.samplerInfos[ shadowTextureIndex ].imageView = TextureGetView( tex );
+    }
+
+    int normalMapIndex = 0;
+
+    if (params.readTexture3 != 0)
+    {
+        teTexture2D tex;
+        tex.index = params.readTexture3;
+        normalMapIndex = (int)params.readTexture3;
+
+        renderer.samplerInfos[ normalMapIndex ].imageView = TextureGetView( tex );
+    }
+
     teTexture2D uav;
     uav.index = (params.writeTexture != 0) ? params.writeTexture : renderer.nullUAV.index;
 
@@ -2009,7 +2031,11 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
-    int pushConstants[ 5 ] = { textureIndex, textureIndex, textureIndex, 0, 0 };
+    PushConstants pushConstants{};
+    pushConstants.textureIndex = (int)textureIndex;
+    pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
+    pushConstants.normalMapIndex = (int)normalMapIndex;
+
     if (renderer.meshShaderSupported)
     {
         vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );

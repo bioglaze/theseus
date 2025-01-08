@@ -36,3 +36,29 @@ void bloomDownsample( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV
     
     rwTexture2d[ globalIdx.xy ] = color;
 }
+
+[numthreads( 8, 8, 1 )]
+void bloomCombine( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
+{
+    float2 uv;
+    uv.x = (globalIdx.x * 1 + 1) / uniforms.tilesXY.x;
+    uv.y = (globalIdx.y * 1 + 1) / uniforms.tilesXY.y;
+
+    float2 uv2;
+    uv2.x = globalIdx.x * 2;
+    uv2.y = globalIdx.y * 2;
+
+    float2 uv3;
+    uv3.x = (globalIdx.x * 8 + 1) / uniforms.tilesXY.x;
+    uv3.y = (globalIdx.y * 8 + 1) / uniforms.tilesXY.y;
+
+    const float4 color1 = texture2ds[ pushConstants.textureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 );
+    const float4 color2 = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv2, 0 );
+    const float4 color3 = texture2ds[ pushConstants.normalMapIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv3, 0 );
+    
+    float4 accumColor = color1 * 0.5f;
+    accumColor += color2 * 0.5f;
+    //accumColor += color3 * 0.25f;
+    
+    rwTexture2d[ globalIdx.xy ] = accumColor;
+}

@@ -179,6 +179,13 @@ teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout
     teShader outShader;
     outShader.index = nextShaderIndex++;
 
+    if (file.size == 0)
+    {
+        tePrint( "teCreateComputeShader failed because file '%s' is empty!\n", file.path );
+        teAssert( false );
+        return outShader;
+    }
+
     VkShaderModuleCreateInfo moduleCreateInfo = {};
     moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     moduleCreateInfo.codeSize = file.size;

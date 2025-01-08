@@ -13,6 +13,7 @@ glslc -fshader-stage=fragment -fentry-point=standardPS shaders/hlsl/standard.hls
 glslc -fshader-stage=compute -fentry-point=bloomThreshold shaders/hlsl/bloom.hlsl -o ../build/shaders/bloom_threshold.spv
 glslc -fshader-stage=compute -fentry-point=bloomBlur shaders/hlsl/bloom.hlsl -o ../build/shaders/bloom_blur.spv
 glslc -fshader-stage=compute -fentry-point=bloomDownsample shaders/hlsl/bloom.hlsl -o ../build/shaders/downsample.spv
+glslc -fshader-stage=compute -fentry-point=bloomCombine shaders/hlsl/bloom.hlsl -o ../build/shaders/bloom_combine.spv
 glslc -fshader-stage=vertex -fentry-point=momentsVS shaders/hlsl/moments.hlsl -o ../build/shaders/moments_vs.spv
 glslc -fshader-stage=fragment -fentry-point=momentsPS shaders/hlsl/moments.hlsl -o ../build/shaders/moments_ps.spv
 

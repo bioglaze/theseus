@@ -24,6 +24,16 @@ teFile teLoadFile( const char* path )
 
     FILE* file = fopen( GetFullPath( path ), "rb" );
 
+    for (unsigned i = 0; i < 260; ++i)
+    {
+        outFile.path[ i ] = path[ i ];
+
+        if (path[ i ] == 0)
+        {
+            break;
+        }
+    }
+
     if (file)
     {    
         fseek( file, 0, SEEK_END );
@@ -31,16 +41,6 @@ teFile teLoadFile( const char* path )
         fseek( file, 0, SEEK_SET );
         outFile.data = (unsigned char*)teMalloc( length );
         outFile.size = (unsigned)length;
-
-        for (unsigned i = 0; i < 260; ++i)
-        {
-            outFile.path[ i ] = path[ i ];
-
-            if (path[ i ] == 0)
-            {
-                break;
-            }
-        }
         
         fread( outFile.data, 1, length, file );    
         fclose( file );
