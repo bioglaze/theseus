@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2024-12-07
+// Modified: 2025-01-09
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -39,7 +39,7 @@ unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
-void SceneMouseMove( float x, float y, float dx, float dy );
+void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
 
 struct InputState
@@ -472,13 +472,10 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
             }
 
-            //if (inputParams.isLeftMouseDown)
-            {
-                unsigned width, height;
-                teWindowGetSize( width, height );
+            unsigned width, height;
+            teWindowGetSize( width, height );
 
-                SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY );
-            }
+            SceneMouseMove( width - (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
 
             if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
             {

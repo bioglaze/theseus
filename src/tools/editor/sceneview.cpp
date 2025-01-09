@@ -358,7 +358,7 @@ void SceneMoveSelection( Vec3 amount )
     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
 }
 
-void SceneMouseMove( float x, float y, float dx, float dy )
+void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown )
 {
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
@@ -383,6 +383,11 @@ void SceneMouseMove( float x, float y, float dx, float dy )
         {
             teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
         }
+    }
+
+    if (!isLeftMouseDown)
+    {
+        return;
     }
 
     if (gizmoAxisSelected == 0)
