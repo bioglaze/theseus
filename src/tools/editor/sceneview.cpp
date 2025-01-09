@@ -578,6 +578,10 @@ void RenderSceneView( float gridStep )
     teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
     shaderParams.tilesXY[ 0 ] = 4.0f;
     shaderParams.tilesXY[ 1 ] = 4.0f;
+    shaderParams.tint[ 0 ] = 1.0f;
+    shaderParams.tint[ 1 ] = 1.0f;
+    shaderParams.tint[ 2 ] = 1.0f;
+    shaderParams.tint[ 3 ] = 1.0f;
     //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
     if (ImGui::Begin( "Hierarchy" ))

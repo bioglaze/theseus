@@ -24,6 +24,7 @@ MTL::Texture* TextureGetMetalTexture( unsigned index );
 
 static const unsigned MaxPSOs = 100;
 
+// Must match shader header ubo.h
 struct PerObjectUboStruct
 {
     Matrix localToClip;
@@ -32,6 +33,7 @@ struct PerObjectUboStruct
     Matrix localToWorld;
     Vec4   bloomParams;
     Vec4   tilesXY;
+    Vec4   tint{ 1, 1, 1, 1  };
     Vec4   lightDir;
     Vec4   lightColor;
     Vec4   lightPosition;
@@ -392,6 +394,10 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.lightDir = lightDir;
     uboStruct.lightColor = lightColor;
     uboStruct.lightPosition = lightPosition;
+    uboStruct.tint.x = shaderParams.tint[ 0 ];
+    uboStruct.tint.y = shaderParams.tint[ 1 ];
+    uboStruct.tint.z = shaderParams.tint[ 2 ];
+    uboStruct.tint.w = shaderParams.tint[ 3 ];
 
     MTL::Buffer* uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ 0 ].uboOffset;

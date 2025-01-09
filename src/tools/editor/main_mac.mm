@@ -31,6 +31,7 @@ extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 
 unsigned width = 800, height = 450;
+const int uiScale = 1;
 
 struct InputParams
 {
@@ -107,7 +108,13 @@ void GetOpenPath( char* path, const char* extension )
 
 - (void)keyDown:(NSEvent *)theEvent
 {
+    bool isCmdDown = [theEvent modifierFlags] & NSEventModifierFlagCommand;
+    bool isShiftDown = [theEvent modifierFlags] & NSEventModifierFlagShift;
+    bool isCtrlDown = [theEvent modifierFlags] & NSEventModifierFlagControl;
+    
     ImGuiIO& io = ImGui::GetIO();
+    io.KeyShift = isShiftDown;
+    io.KeySuper = isCmdDown;
 
     if ([theEvent keyCode] == 0x00) // A
     {
@@ -173,17 +180,26 @@ void GetOpenPath( char* path, const char* extension )
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    //MouseDown( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, true );
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    //MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMouseButtonEvent( 0, false );
+    
+    if (!io.WantCaptureKeyboard)
+    {
+        printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
+        SelectObject( (int)theEvent.locationInWindow.x * uiScale, (int)(theEvent.locationInWindow.y) * uiScale );
+    }
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (height - (int)theEvent.locationInWindow.y) * uiScale );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
@@ -197,20 +213,16 @@ void GetOpenPath( char* path, const char* extension )
     inputParams.lastMouseX = inputParams.x;
     inputParams.lastMouseY = inputParams.y;
 
-    //RotateCamera( theEvent.deltaX, theEvent.deltaY );
-    //teTransformOffsetRotate( m_camera3d.index, Vec3( 0, 1, 0 ), -theEvent.deltaX / 20.0f );
-    //teTransformOffsetRotate( m_camera3d.index, Vec3( 1, 0, 0 ), -theEvent.deltaY / 20.0f );
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (height - (int)theEvent.locationInWindow.y) * uiScale );
 
     //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
     if (/*inputParams.isRightMouseDown &&*/ !io.WantCaptureMouse)
     {
-        float dt = 1;
+        float dt = 2;
         teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
         teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
     }
-
 }
-
 @end
 
 int main()
@@ -247,7 +259,8 @@ int main()
         window.styleMask |= NSWindowStyleMaskClosable;
         window.title = [[NSProcessInfo processInfo] processName];
         [window makeKeyAndOrderFront:nil];
-        
+        [window setAcceptsMouseMovedEvents:YES];
+
         HelloMetalView* view = [[HelloMetalView alloc] initWithFrame:frame];
         window.contentView = view;
         
