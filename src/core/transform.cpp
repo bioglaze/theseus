@@ -90,7 +90,10 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera )
     }    
 
     Matrix translation;
-    translation.SetTranslation( ti.localPosition );
+    if (isCamera)
+        translation.SetTranslation( -ti.localPosition );
+    else
+        translation.SetTranslation( ti.localPosition );
 
     // FIXME: This is a hack to prevent camera's rotation to be weird
     if (isCamera)
@@ -179,7 +182,7 @@ void teTransformMoveForward( unsigned index, float amount, bool ignoreX, bool ig
         const float x = transforms[ index ].localPosition.x;
         const float y = transforms[ index ].localPosition.y;
         const float z = transforms[ index ].localPosition.z;
-        transforms[ index ].localPosition += transforms[ index ].localRotation * Vec3( 0, 0, amount );
+        transforms[ index ].localPosition += transforms[ index ].localRotation * Vec3( 0, 0, -amount );
 
         if (ignoreX)
         {

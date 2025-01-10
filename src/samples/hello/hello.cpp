@@ -304,7 +304,7 @@ int main()
 
     teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-    Vec3 cubePos1 = Vec3( 0, 2, 0 );
+    Vec3 cubePos1 = Vec3( 0, 4, 0 );
     teTransformSetLocalPosition( cubeGo.index, cubePos1 );
     teMeshRendererSetMesh( cubeGo.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo.index, standardMaterial, 0 );
@@ -376,7 +376,7 @@ int main()
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;
-    bool fpsCamera = true;
+    bool fpsCamera = false;
     InputState inputParams;
 
     double theTime = GetMilliseconds();
@@ -434,7 +434,7 @@ int main()
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
             {
-                inputParams.moveDir.x = 0.5f;
+                inputParams.moveDir.x = -0.5f;
                 //io.AddKeyEvent( ImGuiKey_A, true );
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
@@ -443,7 +443,7 @@ int main()
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
             {
-                inputParams.moveDir.x = -0.5f;
+                inputParams.moveDir.x = 0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
             {
@@ -451,7 +451,7 @@ int main()
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
             {
-                inputParams.moveDir.y = 0.5f;
+                inputParams.moveDir.y = -0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
             {
@@ -459,7 +459,7 @@ int main()
             }
             else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
             {
-                inputParams.moveDir.y = -0.5f;
+                inputParams.moveDir.y = 0.5f;
             }
             else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
             {
@@ -536,19 +536,19 @@ int main()
         teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * speed );
         teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * speed );
 
-        cameraPos = -teTransformGetLocalPosition( camera3d.index );
+        /*cameraPos = teTransformGetLocalPosition(camera3d.index);
 
         if (teScenePointInsideAABB( scene, cameraPos ))
         {
             teTransformSetLocalPosition( camera3d.index, oldCameraPos );
             teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt* speed, false, fpsCamera, true );
-            cameraPos = -teTransformGetLocalPosition( camera3d.index );
+            cameraPos = teTransformGetLocalPosition( camera3d.index );
 
             if (teScenePointInsideAABB( scene, cameraPos ))
             {
                 teTransformSetLocalPosition( camera3d.index, oldCameraPos );
                 teTransformMoveForward( camera3d.index, inputParams.moveDir.z* (float)dt* speed, true, fpsCamera, false );
-                cameraPos = -teTransformGetLocalPosition( camera3d.index );
+                cameraPos = teTransformGetLocalPosition( camera3d.index );
                 if (teScenePointInsideAABB( scene, cameraPos ))
                 {
                     teTransformSetLocalPosition( camera3d.index, oldCameraPos );
@@ -557,7 +557,7 @@ int main()
             else
             {
             }
-        }
+        }*/
 
         teBeginFrame();
         ImGui::NewFrame();
