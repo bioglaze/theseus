@@ -78,7 +78,7 @@ void GetOpenPath( char* path, const char* extension )
     {
         teCreateRenderer( 1, nullptr, width, height );
         teLoadMetalShaderLibrary();
-        InitSceneView( width, height, nullptr, 1 );
+        InitSceneView( width, height, nullptr, 2 );
         teFinalizeMeshBuffers();
     }
     return self;
@@ -119,12 +119,12 @@ void GetOpenPath( char* path, const char* extension )
     if ([theEvent keyCode] == 0x00) // A
     {
         if (!io.WantCaptureKeyboard)
-            inputParams.moveDir.x = 0.5f;
+            inputParams.moveDir.x = -0.5f;
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
         if (!io.WantCaptureKeyboard)
-            inputParams.moveDir.x = -0.5f;
+            inputParams.moveDir.x = 0.5f;
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
@@ -139,12 +139,12 @@ void GetOpenPath( char* path, const char* extension )
     else if ([theEvent keyCode] == 0x0C) // Q
     {
         if (!io.WantCaptureKeyboard)
-            inputParams.moveDir.y = 0.5f;
+            inputParams.moveDir.y = -0.5f;
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
         if (!io.WantCaptureKeyboard)
-            inputParams.moveDir.y = -0.5f;
+            inputParams.moveDir.y = 0.5f;
     }
 }
 

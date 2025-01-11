@@ -70,7 +70,7 @@ void MoveUp( float amount )
         m_standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
-        Vec3 cameraPos = { 0, 0, -10 };
+        Vec3 cameraPos = { 0, 0, 10 };
         teTransformSetLocalPosition( m_camera3d.index, cameraPos );
         teCameraSetProjection( m_camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
         teCameraSetClear( m_camera3d.index, teClearFlag::DepthAndColor, Vec4( 1, 0, 0, 1 ) );
@@ -146,11 +146,11 @@ void MoveUp( float amount )
 {
     if ([theEvent keyCode] == 0x00) // A
     {
-        MoveRight( 1 );
+        MoveRight( -1 );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        MoveRight( -1 );
+        MoveRight( 1 );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
@@ -162,11 +162,11 @@ void MoveUp( float amount )
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
-        MoveUp( 1 );
+        MoveUp( -1 );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
-        MoveUp( -1 );
+        MoveUp( 1 );
     }
 }
 
