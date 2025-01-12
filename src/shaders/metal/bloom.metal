@@ -39,3 +39,19 @@ kernel void bloomBlur(texture2d<float, access::read> inputTexture [[texture(0)]]
     resultTexture.write( accumColor, gid.xy );
 }
 
+kernel void bloomDownsample(texture2d<float, access::sample> colorTexture [[texture(0)]],
+                  texture2d<float, access::write> resultTexture [[texture(1)]],
+                  constant Uniforms& uniforms [[ buffer(0) ]],
+                  ushort2 gid [[thread_position_in_grid]],
+                  ushort2 tid [[thread_position_in_threadgroup]],
+                  ushort2 dtid [[threadgroup_position_in_grid]])
+{
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+
+    float2 uv;
+    uv.x = (gid.x * 2 + 1) / uniforms.tilesXY.x;
+    uv.y = (gid.y * 2 + 1) / uniforms.tilesXY.y;
+    const float4 color = colorTexture.sample( sampler0, uv, 0 );
+    
+    resultTexture.write( color, gid.xy );
+}

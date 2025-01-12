@@ -634,7 +634,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     }
 
     NS::Range rangeOffsets = { 0, 4 };
-    MTL::Buffer* buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ) };
+    MTL::Buffer* buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ), BufferGetBuffer( renderer.staticMeshTangentBuffer ) };
     NS::UInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset, normalOffset };
     
     renderer.renderEncoder->setTriangleFillMode( fillMode == teFillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines );

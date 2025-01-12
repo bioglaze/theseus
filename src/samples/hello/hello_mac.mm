@@ -26,12 +26,24 @@ teShader      m_unlitShader;
 teShader      m_skyboxShader;
 teShader      m_momentsShader;
 teShader      m_standardShader;
+teShader      m_bloomThresholdShader;
+teShader      m_bloomBlurShader;
+teShader      m_bloomCombineShader;
+teShader      m_downsampleShader;
 teMaterial    m_standardMaterial;
+teMaterial    m_floorMaterial;
+teMaterial    m_brickMaterial;
 teTexture2D   m_gliderTex;
+teTexture2D   m_brickTex;
+teTexture2D   m_brickNormalTex;
+teTexture2D   m_floorTex;
+teTexture2D   m_floorNormalTex;
 teTextureCube m_skyTex;
 teGameObject  m_camera3d;
 teGameObject  m_cubeGo;
+teGameObject  m_roomGo;
 teScene       m_scene;
+teMesh        m_roomMesh;
 teMesh        m_cubeMesh;
 Vec3 moveDir;
 
@@ -68,6 +80,10 @@ void MoveUp( float amount )
         m_skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
         m_momentsShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "momentsVS", "momentsPS" );
         m_standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
+        m_bloomThresholdShader = teCreateComputeShader( teLoadFile( "" ), "bloomThreshold", 16, 16 );
+        m_bloomBlurShader = teCreateComputeShader( teLoadFile( "" ), "bloomBlur", 16, 16 );
+        //m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 16, 16 );
+        m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 16, 16 );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
         Vec3 cameraPos = { 0, 0, 10 };
@@ -87,19 +103,51 @@ void MoveUp( float amount )
         m_skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
         m_gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+        teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
+        m_brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+        teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.dds" );
+        m_brickNormalTex = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+        teFile floorFile = teLoadFile( "assets/textures/plaster_d.dds" );
+        m_floorTex = teLoadTexture( floorFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+        teFile floorNormalFile = teLoadFile( "assets/textures/plaster_n.dds" );
+        m_floorNormalTex = teLoadTexture( floorNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
         m_standardMaterial = teCreateMaterial( m_standardShader );
         teMaterialSetTexture2D( m_standardMaterial, m_gliderTex, 0 );
+
+        m_floorMaterial = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( m_floorMaterial, m_floorTex, 0 );
+        teMaterialSetTexture2D( m_floorMaterial, m_floorNormalTex, 1 );
+
+        m_brickMaterial = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( m_brickMaterial, m_brickTex, 0 );
+        teMaterialSetTexture2D( m_brickMaterial, m_floorNormalTex, 1 );
+
+        teFile roomFile = teLoadFile( "assets/meshes/room.t3d" );
+        m_roomMesh = teLoadMesh( roomFile );
+        m_roomGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
+        teMeshRendererSetMesh( m_roomGo.index, &m_roomMesh );
+        teMeshRendererSetMaterial( m_roomGo.index, m_floorMaterial, 0 );
+        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 1 );
+        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 2 );
+        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 3 );
+        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 4 );
+        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 5 );
 
         m_cubeMesh = teCreateCubeMesh();
         m_cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
         teMeshRendererSetMesh( m_cubeGo.index, &m_cubeMesh );
         teMeshRendererSetMaterial( m_cubeGo.index, m_standardMaterial, 0 );
-        teTransformSetLocalScale( m_cubeGo.index, 4 );
-        teTransformSetLocalPosition( m_cubeGo.index, Vec3( 0, -4, 0 ) );
+        //teTransformSetLocalScale( m_cubeGo.index, 4 );
+        teTransformSetLocalPosition( m_cubeGo.index, Vec3( 0, 4, 0 ) );
 
-        m_scene = teCreateScene( 0 );
+        m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
+        teSceneAdd( m_scene, m_roomGo.index );
 
         teFinalizeMeshBuffers();
     }
@@ -117,7 +165,9 @@ void MoveUp( float amount )
 
     gDrawable = self.currentDrawable;
     teBeginFrame();
-    teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, Vec3( 0, 0, -10 ) );
+    Vec3 cubePos = Vec3( 0, 45, 0 );
+    const Vec3 dirLightShadowCasterPosition = cubePos;
+    teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
     teBeginSwapchainRendering();
 
     ShaderParams shaderParams;
