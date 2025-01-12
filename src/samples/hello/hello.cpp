@@ -18,6 +18,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+float bloomThreshold = 0.1f;
 
 #if _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -221,7 +224,7 @@ int main()
     teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 16, 16 );
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
-    Vec3 cameraPos = { 0, -2, -10 };
+    Vec3 cameraPos = { 0, 2, 10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
     teClearFlag clearFlag = teClearFlag::DepthAndColor;
     teTransformSetLocalPosition( camera3d.index, cameraPos );
@@ -257,7 +260,7 @@ int main()
 
     teMaterial brickMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
-    teMaterialSetTexture2D( brickMaterial, floorNormalTex, 1 );
+    teMaterialSetTexture2D( brickMaterial, brickNormalTex, 1 );
 
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
@@ -536,7 +539,7 @@ int main()
         teTransformMoveRight( camera3d.index, inputParams.moveDir.x * (float)dt * speed );
         teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * speed );
 
-        /*cameraPos = teTransformGetLocalPosition(camera3d.index);
+        cameraPos = teTransformGetLocalPosition(camera3d.index);
 
         if (teScenePointInsideAABB( scene, cameraPos ))
         {
@@ -557,7 +560,7 @@ int main()
             else
             {
             }
-        }*/
+        }
 
         teBeginFrame();
         ImGui::NewFrame();
@@ -566,7 +569,7 @@ int main()
 #if 1
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
-        shaderParams.bloomThreshold = 0.1f;
+        shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
         teShaderDispatch( bloomThresholdShader, width / 16, height / 16, 1, shaderParams, "bloom threshold" );
 
         // TODO UAV barrier here
@@ -632,6 +635,7 @@ int main()
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
+        ImGui::SliderFloat( "Bloom Threshold", &bloomThreshold, 0.01f, 1.0f );
         ImGui::End();
         ImGui::Render();
 
