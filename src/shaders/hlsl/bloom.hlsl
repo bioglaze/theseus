@@ -58,7 +58,7 @@ void bloomCombine( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Gr
     
     float4 accumColor = color1;// * 0.5f;
     accumColor += color2 * 0.5f;
-    accumColor += color3 * 0.25f;
+    accumColor += color3 * 0.75f;
     
     rwTexture2d[ globalIdx.xy ] = accumColor;
 }

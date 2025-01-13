@@ -586,6 +586,33 @@ int main()
         shaderParams.tilesXY[ 3 ] = 1.0f;
         teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
 
+        // additional blurring
+        shaderParams.readTexture = bloomTarget.index;
+        shaderParams.writeTexture = blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
+
+        shaderParams.readTexture = blurTarget.index;
+        shaderParams.writeTexture = bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
+
+        // additional blurring 2
+        shaderParams.readTexture = bloomTarget.index;
+        shaderParams.writeTexture = blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
+
+        shaderParams.readTexture = blurTarget.index;
+        shaderParams.writeTexture = bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
+
+        // Downsample init.
         shaderParams.tilesXY[ 2 ] = 1.0f;
         shaderParams.tilesXY[ 3 ] = 1.0f;
 
