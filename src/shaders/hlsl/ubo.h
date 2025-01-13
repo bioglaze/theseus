@@ -17,7 +17,7 @@ struct PushConstants
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
-    int unused;
+    int specularMapIndex;
     float2 scale;
     float2 translate;
 };

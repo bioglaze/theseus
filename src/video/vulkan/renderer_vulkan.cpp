@@ -44,7 +44,7 @@ struct PushConstants
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
-    int unused;
+    int specularMapIndex;
     float scale[ 2 ];
     float translate[ 2 ];
 };
@@ -2024,6 +2024,17 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         renderer.samplerInfos[ normalMapIndex ].imageView = TextureGetView( tex );
     }
 
+    int specularMapIndex = 0;
+
+    if (params.readTexture4 != 0)
+    {
+        teTexture2D tex;
+        tex.index = params.readTexture4;
+        specularMapIndex = (int)params.readTexture4;
+
+        renderer.samplerInfos[ specularMapIndex ].imageView = TextureGetView( tex );
+    }
+
     teTexture2D uav;
     uav.index = (params.writeTexture != 0) ? params.writeTexture : renderer.nullUAV.index;
 
@@ -2035,6 +2046,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
+    pushConstants.specularMapIndex = (int)specularMapIndex;
 
     if (renderer.meshShaderSupported)
     {

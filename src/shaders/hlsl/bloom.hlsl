@@ -3,7 +3,7 @@
 [numthreads( 8, 8, 1 )]
 void bloomThreshold( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
 {
-    const float4 color = texture2ds[ pushConstants.textureIndex ].Load( uint3( globalIdx.x * 2, globalIdx.y * 2, 0 ) );
+    const float4 color = texture2ds[ pushConstants.textureIndex ].Load( uint3( globalIdx.x * 1, globalIdx.y * 1, 0 ) );
     const float luminance = dot( color.rgb, float3( 0.2126f, 0.7152f, 0.0722f ) );
     const float luminanceThreshold = uniforms.bloomParams.w;
     const float4 finalColor = luminance > luminanceThreshold ? color : float4( 0, 0, 0, 0 );
@@ -30,8 +30,8 @@ void bloomBlur( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Group
 void bloomDownsample( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
 {
     float2 uv;
-    uv.x = (globalIdx.x * 2 + 1) / uniforms.tilesXY.x;
-    uv.y = (globalIdx.y * 2 + 1) / uniforms.tilesXY.y;
+    uv.x = (globalIdx.x + 1) / uniforms.tilesXY.x;
+    uv.y = (globalIdx.y + 1) / uniforms.tilesXY.y;
     const float4 color = texture2ds[ pushConstants.textureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 );
     
     rwTexture2d[ globalIdx.xy ] = color;
@@ -41,24 +41,24 @@ void bloomDownsample( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV
 void bloomCombine( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
 {
     float2 uv;
-    uv.x = (globalIdx.x * 1 + 1) / uniforms.tilesXY.x;
-    uv.y = (globalIdx.y * 1 + 1) / uniforms.tilesXY.y;
-
+    uv.x = globalIdx.x / uniforms.tilesXY.x;
+    uv.y = globalIdx.y / uniforms.tilesXY.y;
+    
     float2 uv2;
-    uv2.x = globalIdx.x * 2;
-    uv2.y = globalIdx.y * 2;
+    uv2.x = (globalIdx.x * 2 + 1) / (uniforms.tilesXY.x * 2);
+    uv2.y = (globalIdx.y * 2 + 1) / (uniforms.tilesXY.y * 2);
 
     float2 uv3;
-    uv3.x = (globalIdx.x * 8 + 1) / uniforms.tilesXY.x;
-    uv3.y = (globalIdx.y * 8 + 1) / uniforms.tilesXY.y;
+    uv3.x = (globalIdx.x * 4 + 1) / (uniforms.tilesXY.x * 4);
+    uv3.y = (globalIdx.y * 4 + 1) / (uniforms.tilesXY.y * 4);
 
     const float4 color1 = texture2ds[ pushConstants.textureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 );
     const float4 color2 = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv2, 0 );
     const float4 color3 = texture2ds[ pushConstants.normalMapIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv3, 0 );
     
-    float4 accumColor = color1 * 0.5f;
+    float4 accumColor = color1;// * 0.5f;
     accumColor += color2 * 0.5f;
-    //accumColor += color3 * 0.25f;
+    accumColor += color3 * 0.25f;
     
     rwTexture2d[ globalIdx.xy ] = accumColor;
 }
