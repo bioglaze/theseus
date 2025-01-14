@@ -56,9 +56,9 @@ void bloomCombine( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Gr
     const float4 color2 = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv2, 0 );
     const float4 color3 = texture2ds[ pushConstants.normalMapIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv3, 0 );
     
-    float4 accumColor = color1;// * 0.5f;
-    accumColor += color2 * 0.5f;
-    accumColor += color3 * 0.75f;
+    float4 accumColor = color1 * uniforms.tint.y;
+    accumColor += color2 * uniforms.tint.z;
+    accumColor += color3 * uniforms.tint.w;
     
     rwTexture2d[ globalIdx.xy ] = accumColor;
 }
