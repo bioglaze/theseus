@@ -225,7 +225,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     unsigned normalOffset = teMeshGetNormalOffset( *skyboxMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( *skyboxMesh, 0 );
     
-    Draw( *skyboxShader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, skyboxTexture->index, teTextureSampler::LinearRepeat, 0, 0 );
+    Draw( *skyboxShader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, skyboxTexture->index, teTextureSampler::LinearRepeat, 0, skyboxTexture->index );
 
     PopGroupMarker();
 }
@@ -242,7 +242,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     unsigned normalOffset = teMeshGetNormalOffset( quadMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( quadMesh, 0 );
 
-    Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::LinearRepeat, 0, 0 );
+    Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::LinearRepeat, 0, texture.index );
 
     PopGroupMarker();
 }

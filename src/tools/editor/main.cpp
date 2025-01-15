@@ -386,9 +386,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
             if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
             {
-                unsigned width, height;
-                teWindowGetSize( width, height );
-                SelectGizmo( width - event.x, height - event.y );
+                SelectGizmo( event.x, event.y );
             }
         }
         else if (event.type == teWindowEvent::Type::Mouse1Up)
@@ -472,10 +470,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
             }
 
-            unsigned width, height;
-            teWindowGetSize( width, height );
-
-            SceneMouseMove( width - (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
+            SceneMouseMove( (float)inputParams.x, (float)inputParams.y, inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown);
 
             if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
             {

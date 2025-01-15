@@ -1989,6 +1989,9 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         
         SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
+        
+        renderer.samplerInfos[ params.writeTexture ].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        renderer.samplerInfos[ params.writeTexture ].imageView = TextureGetView( tex );
     }
 
     int textureIndex = 0;

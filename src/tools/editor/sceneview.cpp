@@ -185,7 +185,7 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     Vec3 locPos = teTransformGetLocalPosition( camera.index );
     
     Matrix translation;
-    translation.SetTranslation( -locPos );
+    translation.SetTranslation( locPos );
     Matrix::Multiply( translation, view, view );
 
     Matrix invView;
@@ -195,7 +195,7 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     const float farp = teCameraGetFar( camera.index );
 
     outRayOrigin = locPos;
-    outRayTarget = -Vec3( -dx * farp, dy * farp, farp );
+    outRayTarget = Vec3( -dx * farp, dy * farp, farp );
 
     Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
 }
@@ -487,7 +487,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     sceneView.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
-    Vec3 cameraPos = { 0, 0, -10 };
+    Vec3 cameraPos = { 0, 0, 10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
     teClearFlag clearFlag = teClearFlag::DepthAndColor;
     teTransformSetLocalPosition( sceneView.camera3d.index, cameraPos );
