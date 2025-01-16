@@ -1642,8 +1642,8 @@ void teBeginFrame()
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
-    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
+    //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
+     //   VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
 
     
     /*FIXME: write - after write hazard
@@ -2079,16 +2079,9 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( tex ), VK_IMAGE_ASPECT_COLOR_BIT,
                         VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
     }
-
-    if (params.readTexture != 0)
-    {
-        teTexture2D tex;
-        tex.index = params.readTexture;
-        textureIndex = (int)params.readTexture;
-    }
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
+void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned /* tangentOffset */, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
            unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
 {
     if (textureIndex != 0)
@@ -2163,6 +2156,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 
     MoveToNextUboOffset();
 
+    for (unsigned i = 0; i < TextureCount; ++i)
+    {
+        renderer.samplerInfos[ i ].imageView = TextureGetView( renderer.defaultTexture2D );
+    }
+
     ++renderer.statDrawCalls;
 }
 
@@ -2170,7 +2168,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
