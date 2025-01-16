@@ -602,7 +602,7 @@ void MoveToNextUboOffset()
     teAssert( renderer.frameResources[ 0 ].uboOffset < UniformBufferSize );
 }
 
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
           teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
 {
     MTL::Texture* textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( normalMapIndex ), TextureGetMetalTexture( shadowMapIndex ) };
@@ -633,9 +633,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
         renderer.renderEncoder->setDepthStencilState( renderer.depthStateNoneWriteOff );
     }
 
-    NS::Range rangeOffsets = { 0, 4 };
+    NS::Range rangeOffsets = { 0, 5 };
     MTL::Buffer* buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ), BufferGetBuffer( renderer.staticMeshTangentBuffer ) };
-    NS::UInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset, normalOffset };
+    NS::UInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset, normalOffset, tangentOffset };
     
     renderer.renderEncoder->setTriangleFillMode( fillMode == teFillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines );
     renderer.renderEncoder->setFragmentBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
@@ -655,7 +655,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     float m[ 16 ];
     UpdateUBO( m, m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
-    Draw( shader, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )

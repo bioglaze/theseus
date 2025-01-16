@@ -23,7 +23,7 @@ unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
-void SceneMouseMove( float x, float y, float dx, float dy );
+void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
 
 extern id<CAMetalDrawable> gDrawable;
@@ -192,30 +192,34 @@ void GetOpenPath( char* path, const char* extension )
     if (!io.WantCaptureKeyboard)
     {
         printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
-        SelectObject( (int)theEvent.locationInWindow.x * uiScale, (int)(theEvent.locationInWindow.y) * uiScale );
+        SelectObject( (int)theEvent.locationInWindow.x * uiScale * 2, (int)(theEvent.locationInWindow.y) * uiScale * 2);
     }
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (height - (int)theEvent.locationInWindow.y) * uiScale );
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale * 2, (height - (int)theEvent.locationInWindow.y) * uiScale * 2);
+
+    inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+    inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+
+    SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, false/*inputParams.isLeftMouseDown*/ );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    inputParams.x = theEvent.deltaX;
-    inputParams.y = theEvent.deltaY;
-    inputParams.deltaX = float( inputParams.x - inputParams.lastMouseX );
-    inputParams.deltaY = float( inputParams.y - inputParams.lastMouseY );
+    inputParams.x = theEvent.locationInWindow.x;
+    inputParams.y = theEvent.locationInWindow.y;
+    inputParams.deltaX = theEvent.deltaX;//float( inputParams.x - inputParams.lastMouseX );
+    inputParams.deltaY = theEvent.deltaY;//float( inputParams.y - inputParams.lastMouseY );
     inputParams.lastMouseX = inputParams.x;
     inputParams.lastMouseY = inputParams.y;
 
-    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale, (height - (int)theEvent.locationInWindow.y) * uiScale );
+    io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale * 2, (height - (int)theEvent.locationInWindow.y) * uiScale * 2 );
 
-    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
     if (/*inputParams.isRightMouseDown &&*/ !io.WantCaptureMouse)
     {
         float dt = 2;

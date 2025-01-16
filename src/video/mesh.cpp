@@ -392,3 +392,10 @@ unsigned teMeshGetUVCount( const teMesh& mesh, unsigned subMeshIndex )
     teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
     return meshes[ mesh.index ].subMeshes[ subMeshIndex ].uvCount;
 }
+
+unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex )
+{
+    teAssert( mesh.index != 0 );
+    teAssert( subMeshIndex < meshes[ mesh.index ].subMeshCount );
+    return meshes[ mesh.index ].subMeshes[ subMeshIndex ].tangentOffset;
+}

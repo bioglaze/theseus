@@ -26,7 +26,7 @@ void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalTo
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
 const Matrix& teTransformGetComputedLocalToShadowClipMatrix( unsigned index );
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
-void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
+void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
@@ -35,6 +35,7 @@ unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
+unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -225,7 +226,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     unsigned normalOffset = teMeshGetNormalOffset( *skyboxMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( *skyboxMesh, 0 );
     
-    Draw( *skyboxShader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, skyboxTexture->index, teTextureSampler::LinearRepeat, 0, skyboxTexture->index );
+    Draw( *skyboxShader, positionOffset, uvOffset, normalOffset, 0, indexCount, indexOffset, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, skyboxTexture->index, teTextureSampler::LinearRepeat, 0, skyboxTexture->index );
 
     PopGroupMarker();
 }
@@ -242,7 +243,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     unsigned normalOffset = teMeshGetNormalOffset( quadMesh, 0 );
     unsigned uvOffset = teMeshGetUVOffset( quadMesh, 0 );
 
-    Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::LinearRepeat, 0, texture.index );
+    Draw( shader, positionOffset, uvOffset, normalOffset, 0, indexCount, indexOffset, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::LinearRepeat, 0, texture.index );
 
     PopGroupMarker();
 }
@@ -311,11 +312,12 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             unsigned positionOffset = teMeshGetPositionOffset( *mesh, subMeshIndex );
             unsigned normalOffset = teMeshGetNormalOffset( *mesh, subMeshIndex );
             unsigned uvOffset = teMeshGetUVOffset( *mesh, subMeshIndex );
+            unsigned tangentOffset = teMeshGetTangentOffset( *mesh, subMeshIndex );
 
             teTexture2D texture = teMaterialGetTexture2D( material, 0 );
             teTexture2D normalMap = teMaterialGetTexture2D( material, 1 );
 
-            Draw( shader, positionOffset, uvOffset, normalOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh->topology, material.fillMode, texture.index, texture.sampler, normalMap.index, shadowMapIndex );
+            Draw( shader, positionOffset, uvOffset, normalOffset, tangentOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh->topology, material.fillMode, texture.index, texture.sampler, normalMap.index, shadowMapIndex );
         }
     }
 }

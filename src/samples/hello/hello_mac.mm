@@ -72,8 +72,13 @@ void MoveUp( float amount )
     self = [super initWithFrame:inFrame device:device];
     if (self)
     {
+        self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+        self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
+        
         teCreateRenderer( 1, nullptr, width, height );
         teLoadMetalShaderLibrary();
+
+        // FIXME (Metal validation error): Set backbuffer's format to MTLPixelFormatBGRA8Unorm_sRGB
 
         m_fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
         m_unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );

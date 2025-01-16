@@ -289,6 +289,11 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
             const unsigned mipHeight = Max2( tex.height >> mipIndex, 1 );
             unsigned mipBytesPerRow = mipWidth * multiplier;
             
+            if (mipBytesPerRow < 16 && (tex.format == MTL::PixelFormatBC5_RGUnorm || tex.format == MTL::PixelFormatBC5_RGSnorm))
+            {
+                mipBytesPerRow = 16;
+            }
+
             if (mipBytesPerRow < 8)
             {
                 mipBytesPerRow = 8;
