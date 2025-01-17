@@ -52,13 +52,19 @@ void bloomCombine( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Gr
     uv3.x = (globalIdx.x * 4 + 1) / (uniforms.tilesXY.x * 4);
     uv3.y = (globalIdx.y * 4 + 1) / (uniforms.tilesXY.y * 4);
 
+    float2 uv4;
+    uv4.x = (globalIdx.x * 8 + 1) / (uniforms.tilesXY.x * 8);
+    uv4.y = (globalIdx.y * 8 + 1) / (uniforms.tilesXY.y * 8);
+
     const float4 color1 = texture2ds[ pushConstants.textureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 );
     const float4 color2 = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv2, 0 );
     const float4 color3 = texture2ds[ pushConstants.normalMapIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv3, 0 );
+    const float4 color4 = texture2ds[ pushConstants.specularMapIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv4, 0 );
     
-    float4 accumColor = color1 * uniforms.tint.y;
-    accumColor += color2 * uniforms.tint.z;
-    accumColor += color3 * uniforms.tint.w;
+    float4 accumColor = color1 * uniforms.tint.x;
+    accumColor += color2 * uniforms.tint.y;
+    accumColor += color3 * uniforms.tint.z;
+    accumColor += color4 * uniforms.tint.w;
     
     rwTexture2d[ globalIdx.xy ] = accumColor;
 }

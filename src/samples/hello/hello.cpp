@@ -641,6 +641,7 @@ int main()
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.readTexture2 = downsampleTarget.index;
         shaderParams.readTexture3 = downsampleTarget2.index;
+        shaderParams.readTexture4 = downsampleTarget3.index;
         shaderParams.writeTexture = bloomComposeTarget.index;
         shaderParams.tilesXY[ 0 ] = width / 2;
         shaderParams.tilesXY[ 1 ] = height / 2;
@@ -661,9 +662,10 @@ int main()
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
         ImGui::SliderFloat( "Bloom Threshold", &bloomThreshold, 0.01f, 1.0f );
-        ImGui::SliderFloat( "Compose Weight 0", &shaderParams.tint[ 1 ], 0.01f, 1.0f );
-        ImGui::SliderFloat( "Compose Weight 1", &shaderParams.tint[ 2 ], 0.01f, 1.0f );
-        ImGui::SliderFloat( "Compose Weight 2", &shaderParams.tint[ 3 ], 0.01f, 1.0f );
+        ImGui::SliderFloat( "Compose Weight 0", &shaderParams.tint[ 0 ], 0.01f, 1.0f );
+        ImGui::SliderFloat( "Compose Weight 1", &shaderParams.tint[ 1 ], 0.01f, 1.0f );
+        ImGui::SliderFloat( "Compose Weight 2", &shaderParams.tint[ 2 ], 0.01f, 1.0f );
+        ImGui::SliderFloat( "Compose Weight 3", &shaderParams.tint[ 3 ], 0.01f, 1.0f );
         ImGui::End();
         ImGui::Render();
 

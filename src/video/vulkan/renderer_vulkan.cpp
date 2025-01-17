@@ -1000,7 +1000,8 @@ void CreateDevice()
     vkEnumerateDeviceExtensionProperties( renderer.physicalDevice, nullptr, &deviceExtensionCount, nullptr );
 
     VkExtensionProperties* availableExtensions = (VkExtensionProperties*)TE_ALLOCA( deviceExtensionCount * sizeof( VkExtensionProperties ) );
-    
+    vkEnumerateDeviceExtensionProperties( renderer.physicalDevice, nullptr, &deviceExtensionCount, availableExtensions );
+
     for (uint32_t i = 0; i < deviceExtensionCount; ++i)
     {
         if (teStrstr( availableExtensions[ i ].extensionName, VK_EXT_MESH_SHADER_EXTENSION_NAME ))
