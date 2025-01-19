@@ -78,8 +78,6 @@ void MoveUp( float amount )
         teCreateRenderer( 1, nullptr, width, height );
         teLoadMetalShaderLibrary();
 
-        // FIXME (Metal validation error): Set backbuffer's format to MTLPixelFormatBGRA8Unorm_sRGB
-
         m_fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
         m_unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
         m_skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
@@ -122,6 +120,7 @@ void MoveUp( float amount )
 
         m_standardMaterial = teCreateMaterial( m_standardShader );
         teMaterialSetTexture2D( m_standardMaterial, m_gliderTex, 0 );
+        teMaterialSetTexture2D( m_standardMaterial, m_floorNormalTex, 1 );
 
         m_floorMaterial = teCreateMaterial( m_standardShader );
         teMaterialSetTexture2D( m_floorMaterial, m_floorTex, 0 );
@@ -153,6 +152,8 @@ void MoveUp( float amount )
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
         teSceneAdd( m_scene, m_roomGo.index );
+
+        teSceneSetupDirectionalLight( m_scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
         teFinalizeMeshBuffers();
     }

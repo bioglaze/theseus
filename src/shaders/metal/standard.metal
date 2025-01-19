@@ -77,6 +77,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap ) );
+    shadow = 1;
 
     float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
