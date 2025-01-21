@@ -318,7 +318,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = 0.5f;
+                inputParams.moveDir.x = -0.5f;
             io.AddInputCharacter( 'a' );            
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
@@ -330,7 +330,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
                 printf( "TODO: duplicate\n" );
             }
             else if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = -0.5f;
+                inputParams.moveDir.x = 0.5f;
             io.AddInputCharacter( 'd' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
@@ -340,7 +340,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = 0.5f;
+                inputParams.moveDir.y = -0.5f;
             io.AddInputCharacter( 'q' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
@@ -350,7 +350,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = -0.5f;
+                inputParams.moveDir.y = 0.5f;
             io.AddInputCharacter( 'e' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
@@ -496,6 +496,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
     teTransformMoveForward( SceneViewGetCameraIndex(), moveDir.z * (float)dt * 0.5f, false, false, false );
     teTransformMoveRight( SceneViewGetCameraIndex(), moveDir.x * (float)dt * 0.5f );
     teTransformMoveUp( SceneViewGetCameraIndex(), moveDir.y * (float)dt * 0.5f );
+
+    if (inputParams.isMiddleMouseDown)
+    {
+        inputParams.moveDir = Vec3( 0, 0, 0 );
+    }
 
     return true;
 }

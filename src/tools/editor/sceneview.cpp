@@ -500,6 +500,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     sceneView.material = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 0 );
+    teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 1 );
     
     sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
@@ -524,7 +525,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teTransformSetLocalPosition( sceneView.cubeGo.index, Vec3( 0, 0, 0 ) );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( sceneView.cubeGo.index, &sceneView.cubeMesh );
-    teMeshRendererSetMaterial( sceneView.cubeGo.index, sceneView.material, 0 );
+    teMeshRendererSetMaterial( sceneView.cubeGo.index, sceneView.standardMaterial, 0 );
 
     teFile gizmoFile = teLoadFile( "assets/meshes/translation_gizmo.t3d" );
     sceneView.translateGizmoMesh = teLoadMesh( gizmoFile );
@@ -695,7 +696,7 @@ void RenderSceneView( float gridStep )
             }
 
             ImGui::Text( "Sunlight color" );
-            const bool colorChanged = ImGui::InputFloat3( "##color", lightColor, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
+            const bool colorChanged = ImGui::ColorEdit3( "Color", lightColor );
 
             if (colorChanged)
             {
