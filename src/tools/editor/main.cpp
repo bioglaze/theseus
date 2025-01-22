@@ -466,8 +466,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
             if (inputParams.isMiddleMouseDown)
             {
-                inputParams.moveDir.x =  inputParams.deltaX * 0.01f;
-                inputParams.moveDir.y = -inputParams.deltaY * 0.01f;
+                inputParams.moveDir.x = -inputParams.deltaX * 0.01f;
+                inputParams.moveDir.y =  inputParams.deltaY * 0.01f;
             }
 
             SceneMouseMove( (float)inputParams.x, (float)inputParams.y, inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown);
