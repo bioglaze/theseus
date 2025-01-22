@@ -72,7 +72,9 @@ struct Mesh
     unsigned         finalVertexCount = 0;
     unsigned         finalFaceCount = 0;
     unsigned int*    meshletVertices = nullptr;
-    unsigned int*    meshletTriangles = nullptr;
+    unsigned char*   meshletTriangles = nullptr;
+    unsigned         meshletVerticesCount = 0;
+    unsigned         meshletTrianglesCount = 0;
     meshopt_Meshlet* meshlets = nullptr;
     size_t           meshletCount = 0;
     Vec4*            tangents = nullptr; // Size of array is faceCount
@@ -104,7 +106,7 @@ void WriteT3d( const char* path )
         return;
     }
 
-    const char header[] = { "t3d0002" };
+    const char header[] = { "t3d0003" };
     fwrite( header, sizeof( char ), sizeof( header ), file );
     fwrite( &meshCount, 1, 4, file );
 
@@ -129,6 +131,11 @@ void WriteT3d( const char* path )
         fwrite( meshes[ m ].finalTangents, 4 * 4, meshes[ m ].finalVertexCount, file );
         fwrite( &meshes[ m ].meshletCount, 4, 1, file );
         fwrite( meshes[ m ].meshlets, meshes[ m ].meshletCount * sizeof( meshopt_Meshlet ), 1, file );
+        fwrite( &meshes[ m ].meshletVerticesCount, 4, 1, file );
+        fwrite( meshes[ m ].meshletVertices, meshes[ m ].meshletVerticesCount * sizeof( unsigned ), 1, file );
+        fwrite( &meshes[ m ].meshletTrianglesCount, 4, 1, file );
+        fwrite( meshes[ m ].meshletTriangles, meshes[ m ].meshletTrianglesCount * sizeof( unsigned char ), 1, file );
+
         fwrite( &meshes[ m ].nameIndex, 4, 1, file );
     }
 
@@ -152,16 +159,18 @@ bool AlmostEquals( const UV& uv1, const UV& uv2 )
 
 void BuildMeshlets( Mesh& mesh )
 {
-    const size_t maxVertices = 64;
-    const size_t maxTriangles = 124;
+    const unsigned maxVertices = 64;
+    const unsigned maxTriangles = 124;
     const float coneWeight = 0.0f;
 
-    const size_t maxMeshlets = meshopt_buildMeshletsBound( mesh.finalFaceCount * 3, maxVertices, maxTriangles );
+    const unsigned maxMeshlets = (unsigned)meshopt_buildMeshletsBound( mesh.finalFaceCount * 3, maxVertices, maxTriangles );
     mesh.meshlets = new meshopt_Meshlet[ maxMeshlets ];
     mesh.meshletVertices = new unsigned int[ maxVertices * maxMeshlets ];
-    mesh.meshletTriangles = new unsigned int[ maxTriangles * maxMeshlets * 3 ];
+    mesh.meshletVerticesCount = maxVertices * maxMeshlets;
+    mesh.meshletTriangles = new unsigned char[ maxTriangles * maxMeshlets * 3 ];
+    mesh.meshletTrianglesCount = maxTriangles * maxMeshlets * 3;
 
-    mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, (unsigned char*)mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
+    mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
         mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
 }
 
@@ -316,7 +325,7 @@ void SolveFaceTangents( Mesh& mesh )
     bool degenerateFound = false;
 
     // Algorithm source:
-    // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/#header-3
+    // https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/#header-3
     for (unsigned f = 0; f < mesh.faceCount; ++f)
     {
         const Vec3& p1 = mesh.finalPositions[ mesh.finalFaces[ f ].a ];
