@@ -41,6 +41,7 @@ void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
+void SceneViewDuplicate();
 
 struct InputState
 {
@@ -327,7 +328,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
         {
             if (!io.WantCaptureKeyboard && (event.keyModifiers & (unsigned)teWindowEvent::KeyModifier::Control))
             {
-                printf( "TODO: duplicate\n" );
+                SceneViewDuplicate();
             }
             else if (!io.WantCaptureKeyboard)
                 inputParams.moveDir.x = 0.5f;
@@ -486,7 +487,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.y = event.y;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
-            printf( "wheel delta: %d\n", event.wheelDelta );
+            inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100 : 100;
         }
     }
 

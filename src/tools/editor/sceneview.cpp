@@ -358,6 +358,29 @@ void SceneMoveSelection( Vec3 amount )
     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
 }
 
+void SceneViewDuplicate()
+{
+    if (selectedGoIndex != EditorCameraGoIndex)
+    {
+        const unsigned components = teGameObjectGetComponents( selectedGoIndex );
+        teGameObject go = teCreateGameObject( "gameobject", components );
+        teTransformSetLocalPosition( go.index, teTransformGetLocalPosition( selectedGoIndex ) );
+
+        if (components & teComponent::MeshRenderer)
+        {
+            teMeshRendererSetMesh( go.index, teMeshRendererGetMesh( selectedGoIndex ) );
+            teMeshRendererSetEnabled( go.index, teMeshRendererIsEnabled( selectedGoIndex ) );
+
+            for (unsigned i = 0; i < teMeshGetSubMeshCount( teMeshRendererGetMesh( selectedGoIndex ) ); ++i)
+            {
+                teMeshRendererSetMaterial( go.index, teMeshRendererGetMaterial( selectedGoIndex, i ), i );
+            }
+        }
+
+        teSceneAdd( sceneView.scene, go.index );
+    }
+}
+
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown )
 {
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
@@ -399,13 +422,13 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     else if (gizmoAxisSelected == 2)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false, false, false );
+        teTransformMoveRight( selectedGoIndex, dx * 0.5f );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 1)
     {
         teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveRight( selectedGoIndex, dx * 0.5f );
+        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false, false, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
 }
