@@ -22,6 +22,7 @@ extern id<MTLCommandBuffer> gCommandBuffer;
 unsigned width = 800, height = 450;
 
 teShader      m_fullscreenShader;
+teShader      m_fullscreenAdditiveShader;
 teShader      m_unlitShader;
 teShader      m_skyboxShader;
 teShader      m_momentsShader;
@@ -85,14 +86,15 @@ void MoveUp( float amount )
         teLoadMetalShaderLibrary();
 
         m_fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
+        m_fullscreenAdditiveShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenAdditivePS" );
         m_unlitShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "unlitVS", "unlitPS" );
         m_skyboxShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "skyboxVS", "skyboxPS" );
         m_momentsShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "momentsVS", "momentsPS" );
         m_standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
-        m_bloomThresholdShader = teCreateComputeShader( teLoadFile( "" ), "bloomThreshold", 16, 16 );
-        m_bloomBlurShader = teCreateComputeShader( teLoadFile( "" ), "bloomBlur", 16, 16 );
-        m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 16, 16 );
-        m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 16, 16 );
+        m_bloomThresholdShader = teCreateComputeShader( teLoadFile( "" ), "bloomThreshold", 8, 8 );
+        m_bloomBlurShader = teCreateComputeShader( teLoadFile( "" ), "bloomBlur", 8, 8 );
+        m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 8, 8 );
+        m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 8, 8 );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
         Vec3 cameraPos = { 0, 0, 10 };
@@ -187,20 +189,111 @@ void MoveUp( float amount )
     Vec3 cubePos = Vec3( 0, 45, 0 );
     const Vec3 dirLightShadowCasterPosition = cubePos;
     teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
+
+    ShaderParams shaderParams = {};
+    shaderParams.tint[ 0 ] = 0.0f;
+    shaderParams.tint[ 1 ] = 1.0f;
+    shaderParams.tint[ 2 ] = 0.0f;
+    shaderParams.tint[ 3 ] = 0.0f;
+
+#if 1
+        float bloomThreshold = 0.1f;
+
+        shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
+        shaderParams.writeTexture = m_bloomTarget.index;
+        shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
+        teShaderDispatch( m_bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
+
+        // TODO UAV barrier here
+        shaderParams.readTexture = m_bloomTarget.index;
+        shaderParams.writeTexture = m_blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h" );
+
+        // TODO UAV barrier here
+        shaderParams.readTexture = m_blurTarget.index;
+        shaderParams.writeTexture = m_bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
+
+        // additional blurring
+        shaderParams.readTexture = m_bloomTarget.index;
+        shaderParams.writeTexture = m_blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
+
+        shaderParams.readTexture = m_blurTarget.index;
+        shaderParams.writeTexture = m_bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
+
+        // additional blurring 2
+        shaderParams.readTexture = m_bloomTarget.index;
+        shaderParams.writeTexture = m_blurTarget.index;
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 0.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
+
+        shaderParams.readTexture = m_blurTarget.index;
+        shaderParams.writeTexture = m_bloomTarget.index;
+        shaderParams.tilesXY[ 2 ] = 0.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
+
+        // Downsample init.
+        shaderParams.tilesXY[ 2 ] = 1.0f;
+        shaderParams.tilesXY[ 3 ] = 1.0f;
+
+        // Downsample 1
+        shaderParams.readTexture = m_bloomTarget.index;
+        shaderParams.writeTexture = m_downsampleTarget.index;
+        shaderParams.tilesXY[ 0 ] = width / 2;
+        shaderParams.tilesXY[ 1 ] = height / 2;
+        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 1" );
+
+        // Downsample 2
+        shaderParams.readTexture = m_downsampleTarget.index;
+        shaderParams.writeTexture = m_downsampleTarget2.index;
+        shaderParams.tilesXY[ 0 ] = width / 4;
+        shaderParams.tilesXY[ 1 ] = height / 4;
+        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 2" );
+
+        // Downsample 3
+        shaderParams.readTexture = m_downsampleTarget2.index;
+        shaderParams.writeTexture = m_downsampleTarget3.index;
+        shaderParams.tilesXY[ 0 ] = width / 8;
+        shaderParams.tilesXY[ 1 ] = height / 8;
+        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 3" );
+
+        // Combine
+        shaderParams.readTexture = m_bloomTarget.index;
+        shaderParams.readTexture2 = m_downsampleTarget.index;
+        shaderParams.readTexture3 = m_downsampleTarget2.index;
+        shaderParams.readTexture4 = m_downsampleTarget3.index;
+        shaderParams.writeTexture = m_bloomComposeTarget.index;
+        shaderParams.tilesXY[ 0 ] = width / 2;
+        shaderParams.tilesXY[ 1 ] = height / 2;
+        teShaderDispatch( m_bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
+#endif
+
     teBeginSwapchainRendering();
 
-    ShaderParams shaderParams;
     shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
     shaderParams.tilesXY[ 0 ] = 2.0f;
     shaderParams.tilesXY[ 1 ] = 2.0f;
     shaderParams.tilesXY[ 2 ] = -1.0f;
     shaderParams.tilesXY[ 3 ] = -1.0f;
-    shaderParams.tint[ 0 ] = 1.0f;
-    shaderParams.tint[ 1 ] = 1.0f;
-    shaderParams.tint[ 2 ] = 1.0f;
-    shaderParams.tint[ 3 ] = 1.0f;
 
     teDrawQuad( m_fullscreenShader, teCameraGetColorTexture( m_camera3d.index ), shaderParams, teBlendMode::Off );
+
+    shaderParams.tilesXY[ 0 ] = 8.0f; // FIXME: Why is 8 needed here? In hello.cpp it's 4.
+    shaderParams.tilesXY[ 1 ] = 8.0f;
+    teDrawQuad( m_fullscreenAdditiveShader, m_bloomComposeTarget, shaderParams, teBlendMode::Additive );
+
     teEndSwapchainRendering();
     teEndFrame();
 }

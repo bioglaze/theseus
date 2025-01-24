@@ -8,7 +8,6 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
 void MoveToNextUboOffset();
 unsigned TextureGetFlags( unsigned index );
 
-extern MTL::Library* defaultLibrary;
 extern MTL::Library* shaderLibrary;
 extern MTL::CommandQueue* gCommandQueue;
 extern MTL::Device* gDevice;
@@ -49,10 +48,6 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     outShader.index = ++shaderCount;
     
     NS::String* vertexShaderName = NS::String::string( vertexName, NS::StringEncoding::UTF8StringEncoding );
-    if (defaultLibrary != nullptr)
-    {
-        shaders[ outShader.index ].vertexProgram = defaultLibrary->newFunction( vertexShaderName );
-    }
 
     if (shaders[ outShader.index ].vertexProgram == nullptr)
     {
@@ -60,8 +55,7 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
 
         if (shaders[ outShader.index ].vertexProgram == nullptr)
         {
-            //NSLog( @"Shader: Could not load %s!\n", vertexName );
-            printf( "could not load vertex shader\n" );
+            printf( "Could not load vertex shader '%s'\n", vertexName );
             outShader.index = 0;
             return outShader;
         }
@@ -69,19 +63,13 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
     
     NS::String* pixelShaderName = NS::String::string( pixelName, NS::StringEncoding::UTF8StringEncoding );
 
-    if (defaultLibrary != nullptr)
-    {
-        shaders[ outShader.index ].pixelProgram = defaultLibrary->newFunction( pixelShaderName );
-    }
-
     if (shaders[ outShader.index ].pixelProgram == nullptr)
     {
         shaders[ outShader.index ].pixelProgram = shaderLibrary->newFunction( pixelShaderName );
 
         if (shaders[ outShader.index ].pixelProgram == nullptr)
         {
-            //NSLog( @"Shader: Could not load %s!\n", pixelName );
-            printf( "could not load pixel shader\n" );
+            printf( "could not load pixel shader '%s'\n", pixelName );
             outShader.index = 0;
         }
     }
@@ -98,11 +86,6 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
     
     NS::String* computeShaderName = NS::String::string( name, NS::StringEncoding::UTF8StringEncoding );
 
-    if (defaultLibrary != nullptr)
-    {
-        shaders[ outShader.index ].computeProgram = defaultLibrary->newFunction( computeShaderName );
-    }
-    
     shaders[ outShader.index ].threadgroupCounts = MTL::Size::Make( threadsPerThreadgroupX, threadsPerThreadgroupY, 1 );
     
     if (shaders[ outShader.index ].computeProgram == nullptr)
@@ -111,8 +94,7 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
 
         if (shaders[ outShader.index ].computeProgram == nullptr)
         {
-            //NSLog( @"Shader: Could not load %s!\n", name );
-            printf( "Could not load compute shader!\n" );
+            printf( "Could not load compute shader '%s'!\n", name );
             outShader.index = 0;
         }
     }

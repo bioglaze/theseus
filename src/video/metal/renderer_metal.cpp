@@ -115,7 +115,6 @@ struct Renderer
 
 Renderer renderer;
 
-MTL::Library* defaultLibrary; // Shaders from Xcode project
 MTL::Library* shaderLibrary; // Shaders from shaders.metallib, must be loaded with teLoadMetalShaderLibrary().
 CA::MetalDrawable* gDrawable;
 MTL::Device* gDevice;
@@ -258,8 +257,6 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     depthStateDesc->setLabel( NS::String::string( "depthStateLessEqualWriteOn", NS::UTF8StringEncoding ) );
     renderer.depthStateLessEqualWriteOn = renderer.device->newDepthStencilState( depthStateDesc );
 
-    defaultLibrary = renderer.device->newDefaultLibrary();
-    
     renderer.width = width;
     renderer.height = height;
     
