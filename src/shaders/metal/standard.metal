@@ -52,7 +52,7 @@ vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
 
     out.position = uniforms.localToClip * float4( positions[ vid ], 1 );
     out.uv = float2( uvs[ vid ] );
-    out.normalVS = (uniforms.localToView * float4( normals[ vid ], 1 )).xyz;
+    out.normalVS = (uniforms.localToView * float4( normals[ vid ], 0 )).xyz;
     out.projCoord = uniforms.localToShadowClip * float4( positions[ vid ], 1 );
     out.positionVS = (uniforms.localToView * float4( positions[ vid ], 1 )).xyz;
     out.positionWS = (uniforms.localToWorld * float4( positions[ vid ], 1 )).xyz;
@@ -84,8 +84,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
 
     const float3 V = normalize( in.positionVS );
-    const float3 L = -uniforms.lightDir.xyz;
-    const float3 H = normalize( L + V );
+    //const float3 L = -uniforms.lightDir.xyz;
+    //const float3 H = normalize( L + V );
     float specularStrength = 0.5;
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
