@@ -189,7 +189,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 1 );
-    //samplerDescriptor.label = @"linear clamp";
+    samplerDescriptor->setLabel( NS::String::string( "linearClamp", NS::UTF8StringEncoding ) );
     renderer.linearClamp = renderer.device->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -199,7 +199,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 8 );
-    //samplerDescriptor.label = @"anisotropic8 repeat";
+    samplerDescriptor->setLabel( NS::String::string( "anisotropicRepeat", NS::UTF8StringEncoding ) );
     renderer.anisotropicRepeat = renderer.device->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -209,17 +209,17 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 8 );
-    //samplerDescriptor.label = @"anisotropic8 clamp";
+    samplerDescriptor->setLabel( NS::String::string( "anisotropicClamp", NS::UTF8StringEncoding ) );
     renderer.anisotropicClamp = renderer.device->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
-    samplerDescriptor->setMipFilter( MTL::SamplerMipFilterLinear );
+    samplerDescriptor->setMipFilter( MTL::SamplerMipFilterNearest );
     samplerDescriptor->setSAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 1 );
-    //samplerDescriptor.label = @"nearest repeat";
+    samplerDescriptor->setLabel( NS::String::string( "nearestRepeat", NS::UTF8StringEncoding ) );
     renderer.nearestRepeat = renderer.device->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -229,33 +229,33 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 1 );
-    //samplerDescriptor.label = @"nearest clamp";
+    samplerDescriptor->setLabel( NS::String::string( "nearestClamp", NS::UTF8StringEncoding ) );
     renderer.nearestClamp = renderer.device->newSamplerState( samplerDescriptor );
 
     MTL::DepthStencilDescriptor* depthStateDesc = MTL::DepthStencilDescriptor::alloc()->init();
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionGreater );
     depthStateDesc->setDepthWriteEnabled( true );
-    //depthStateDesc.label = @"greater write on";
+    depthStateDesc->setLabel( NS::String::string( "depthStateGreaterWriteOn", NS::UTF8StringEncoding ) );
     renderer.depthStateGreaterWriteOn = renderer.device->newDepthStencilState( depthStateDesc );
     
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionGreater );
     depthStateDesc->setDepthWriteEnabled( false );
-    //depthStateDesc.label = @"greater write off";
+    depthStateDesc->setLabel( NS::String::string( "depthStateGreaterWriteOff", NS::UTF8StringEncoding ) );
     renderer.depthStateGreaterWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
     
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionAlways );
     depthStateDesc->setDepthWriteEnabled( false );
-    //depthStateDesc.label = @"none write off";
+    depthStateDesc->setLabel( NS::String::string( "depthStateNoneWriteOff", NS::UTF8StringEncoding ) );
     renderer.depthStateNoneWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
 
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionLessEqual );
     depthStateDesc->setDepthWriteEnabled( false );
-    //depthStateDesc.label = @"lessEqual write off";
+    depthStateDesc->setLabel( NS::String::string( "depthStateLessEqualWriteOff", NS::UTF8StringEncoding ) );
     renderer.depthStateLessEqualWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
 
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionLessEqual );
     depthStateDesc->setDepthWriteEnabled( true );
-    //depthStateDesc.label = @"lessEqual write on";
+    depthStateDesc->setLabel( NS::String::string( "depthStateLessEqualWriteOn", NS::UTF8StringEncoding ) );
     renderer.depthStateLessEqualWriteOn = renderer.device->newDepthStencilState( depthStateDesc );
 
     defaultLibrary = renderer.device->newDefaultLibrary();

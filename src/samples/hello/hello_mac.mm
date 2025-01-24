@@ -38,6 +38,12 @@ teTexture2D   m_brickTex;
 teTexture2D   m_brickNormalTex;
 teTexture2D   m_floorTex;
 teTexture2D   m_floorNormalTex;
+teTexture2D   m_bloomTarget;
+teTexture2D   m_blurTarget;
+teTexture2D   m_bloomComposeTarget;
+teTexture2D   m_downsampleTarget;
+teTexture2D   m_downsampleTarget2;
+teTexture2D   m_downsampleTarget3;
 teTextureCube m_skyTex;
 teGameObject  m_camera3d;
 teGameObject  m_cubeGo;
@@ -85,7 +91,7 @@ void MoveUp( float amount )
         m_standardShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "standardVS", "standardPS" );
         m_bloomThresholdShader = teCreateComputeShader( teLoadFile( "" ), "bloomThreshold", 16, 16 );
         m_bloomBlurShader = teCreateComputeShader( teLoadFile( "" ), "bloomBlur", 16, 16 );
-        //m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 16, 16 );
+        m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 16, 16 );
         m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 16, 16 );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
@@ -95,6 +101,13 @@ void MoveUp( float amount )
         teCameraSetClear( m_camera3d.index, teClearFlag::DepthAndColor, Vec4( 1, 0, 0, 1 ) );
         teCameraGetColorTexture( m_camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
         teCameraGetDepthTexture( m_camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
+
+        m_bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
+        m_blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
+        m_bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomComposeTarget" );
+        m_downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
+        m_downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
+        m_downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
 
         teFile backFile   = teLoadFile( "assets/textures/skybox/back.dds" );
         teFile frontFile  = teLoadFile( "assets/textures/skybox/front.dds" );

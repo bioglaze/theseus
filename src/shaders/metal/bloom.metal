@@ -55,3 +55,44 @@ kernel void bloomDownsample(texture2d<float, access::sample> colorTexture [[text
     
     resultTexture.write( color, gid.xy );
 }
+
+kernel void bloomCombine(texture2d<float, access::sample> bloomTexture [[texture(0)]],
+                  texture2d<float, access::write> resultTexture [[texture(1)]],
+                  texture2d<float, access::sample> downsampleTexture1 [[texture(2)]],
+                  texture2d<float, access::sample> downsampleTexture2 [[texture(3)]],
+                  texture2d<float, access::sample> downsampleTexture3 [[texture(4)]],
+                  constant Uniforms& uniforms [[ buffer(0) ]],
+                  ushort2 gid [[thread_position_in_grid]],
+                  ushort2 tid [[thread_position_in_threadgroup]],
+                  ushort2 dtid [[threadgroup_position_in_grid]])
+{
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
+
+    float2 uv;
+    uv.x = gid.x / uniforms.tilesXY.x;
+    uv.y = gid.y / uniforms.tilesXY.y;
+    
+    float2 uv2;
+    uv2.x = (gid.x * 2 + 1) / (uniforms.tilesXY.x * 2);
+    uv2.y = (gid.y * 2 + 1) / (uniforms.tilesXY.y * 2);
+
+    float2 uv3;
+    uv3.x = (gid.x * 4 + 1) / (uniforms.tilesXY.x * 4);
+    uv3.y = (gid.y * 4 + 1) / (uniforms.tilesXY.y * 4);
+
+    float2 uv4;
+    uv4.x = (gid.x * 8 + 1) / (uniforms.tilesXY.x * 8);
+    uv4.y = (gid.y * 8 + 1) / (uniforms.tilesXY.y * 8);
+
+    const float4 color1 = bloomTexture.sample( sampler0, uv, 0 );
+    const float4 color2 = downsampleTexture1.sample( sampler0, uv2, 0 );
+    const float4 color3 = downsampleTexture2.sample( sampler0, uv3, 0 );
+    const float4 color4 = downsampleTexture3.sample( sampler0, uv4, 0 );
+    
+    float4 accumColor = color1 * uniforms.tint.x;
+    accumColor += color2 * uniforms.tint.y;
+    accumColor += color3 * uniforms.tint.z;
+    accumColor += color4 * uniforms.tint.w;
+    
+    resultTexture.write( accumColor, gid.xy );
+}

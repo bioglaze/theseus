@@ -141,13 +141,16 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     MTL::Size threadgroups = MTL::Size::Make( groupsX, groupsY, groupsZ );
 
     MTL::CommandBuffer* commandBuffer = gCommandQueue->commandBuffer();
-    //commandBuffer.label = [NSString stringWithUTF8String:debugName ];
+    commandBuffer->setLabel( NS::String::string( debugName, NS::UTF8StringEncoding ) );
     
     MTL::ComputeCommandEncoder* commandEncoder = commandBuffer->computeCommandEncoder();
-    //commandEncoder.label = commandBuffer.label;
+    commandEncoder->setLabel( NS::String::string( debugName, NS::UTF8StringEncoding ) );
     
     commandEncoder->setTexture( TextureGetMetalTexture( params.readTexture ), 0 );
     commandEncoder->setTexture( TextureGetMetalTexture( params.writeTexture ), 1 );
+    commandEncoder->setTexture( TextureGetMetalTexture( params.readTexture2 ), 2 );
+    commandEncoder->setTexture( TextureGetMetalTexture( params.readTexture3 ), 3 );
+    commandEncoder->setTexture( TextureGetMetalTexture( params.readTexture4 ), 4 );
 
     unsigned uboOffset = 0;
     MTL::Buffer* ubo = GetUniformBufferAndOffset( uboOffset );
