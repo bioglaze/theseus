@@ -4,6 +4,7 @@
 #include "te_stdlib.h"
 #include "vec3.h"
 #include <stdio.h>
+#include <stdint.h>
 
 unsigned AddPositions( const float* positions, unsigned bytes );
 unsigned AddNormals( const float* normals, unsigned bytes );
@@ -28,6 +29,10 @@ struct meshopt_Meshlet
 
 struct SubMesh
 {
+    meshopt_Meshlet* meshlets = nullptr;
+    unsigned* meshletVertices = nullptr;
+    uint8_t* meshletTriangles = nullptr;
+
     unsigned indicesOffset = 0;
     unsigned indexCount = 0;
     unsigned uvOffset = 0;
@@ -44,7 +49,8 @@ struct SubMesh
     Vec3     aabbMax;
 
     unsigned nameIndex = 0; // Index into MeshImpl::names.
-    meshopt_Meshlet* meshlets = nullptr;
+    unsigned meshletVerticesCount = 0;
+    unsigned meshletTriangleCount = 0;
 };
 
 struct MeshImpl
@@ -196,8 +202,8 @@ teMesh teLoadMesh( const teFile& file )
     teMesh outMesh;
     outMesh.index = ++meshIndex;
 
-    // Header is something like "t3d0002" where the last numbers are version that is incremented when reading compatibility breaks.
-    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '2')
+    // Header is something like "t3d0003" where the last numbers are version that is incremented when reading compatibility breaks.
+    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '3')
     {
         printf( "%s has wrong version!\n", file.path );
         return outMesh;
@@ -251,16 +257,27 @@ teMesh teLoadMesh( const teFile& file )
         pointer += vertexCount * 4 * 4;
         meshes[ outMesh.index ].subMeshes[ m ].meshletCount = *((unsigned*)pointer);
         pointer += 4;
-        meshes[ outMesh.index ].subMeshes[ m ].meshlets = (meshopt_Meshlet*)malloc( meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet ) );
+        meshes[ outMesh.index ].subMeshes[ m ].meshlets = (meshopt_Meshlet*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet ) );
         memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshlets, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletCount );
         pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount = *((unsigned*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].meshletVertices = (unsigned*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount * sizeof( unsigned ) );
+        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshletVertices, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount * sizeof( unsigned ) );
+        pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount * sizeof( unsigned );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount = *((unsigned*)pointer);
+        pointer += 4;
+        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles = (uint8_t*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t ) );
+        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t ) );
+        pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t );
+
         meshes[ outMesh.index ].subMeshes[ m ].nameIndex = *((unsigned*)pointer);
         pointer += 4;
     }
 
     unsigned namesSize = *((unsigned*)pointer);
     pointer += 4;
-    meshes[ outMesh.index ].names = (char*)malloc( namesSize );
+    meshes[ outMesh.index ].names = (char*)teMalloc( namesSize );
     memcpy( meshes[ outMesh.index ].names, pointer, namesSize );
 
     return outMesh;

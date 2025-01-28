@@ -1702,7 +1702,7 @@ void teEndFrame()
 
     uint64_t timestamps[ 2 ] = {};
     VK_CHECK( vkGetQueryPoolResults( renderer.device, renderer.queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT ) );
-    printf( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
+    //printf( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
