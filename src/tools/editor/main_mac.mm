@@ -188,11 +188,14 @@ void GetOpenPath( char* path, const char* extension )
 {
     ImGuiIO& io = ImGui::GetIO();
     io.AddMouseButtonEvent( 0, false );
+
+    inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+    inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     
     if (!io.WantCaptureKeyboard)
     {
         printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
-        SelectObject( (int)theEvent.locationInWindow.x * uiScale * 2, (int)(theEvent.locationInWindow.y) * uiScale * 2);
+        SelectObject( (int)inputParams.x * uiScale, (int)(height - inputParams.y) * uiScale );
     }
 }
 
