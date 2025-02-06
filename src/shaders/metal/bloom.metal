@@ -46,7 +46,7 @@ kernel void bloomDownsample(texture2d<float, access::sample> colorTexture [[text
                   ushort2 tid [[thread_position_in_threadgroup]],
                   ushort2 dtid [[threadgroup_position_in_grid]])
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
 
     float2 uv;
     uv.x = (gid.x * 2 + 1) / uniforms.tilesXY.x;
@@ -66,7 +66,7 @@ kernel void bloomCombine(texture2d<float, access::sample> bloomTexture [[texture
                   ushort2 tid [[thread_position_in_threadgroup]],
                   ushort2 dtid [[threadgroup_position_in_grid]])
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
+    constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
 
     float2 uv;
     uv.x = gid.x / uniforms.tilesXY.x;

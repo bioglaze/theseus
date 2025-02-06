@@ -4,15 +4,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#if __APPLE__
-const char* GetFullPath( const char* fileName );
-#else
-const char* GetFullPath( const char* fileName )
-{
-    return fileName;
-}
-#endif
-
 teFile teLoadFile( const char* path )
 {
     teFile outFile;
@@ -22,7 +13,7 @@ teFile teLoadFile( const char* path )
         return outFile;
     }
 
-    FILE* file = fopen( GetFullPath( path ), "rb" );
+    FILE* file = fopen( path, "rb" );
 
     for (unsigned i = 0; i < 260; ++i)
     {

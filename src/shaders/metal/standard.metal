@@ -21,24 +21,24 @@ float linstep( float low, float high, float v )
     return saturate( (v - low) / (high - low) );
 }
 
-float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shadowMap [[texture(1)]] )
+float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shadowMap [[texture(2)]] )
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
     
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
     float2 moments = shadowMap.sample( sampler0, uv ).rg;
-    if (moments.x > depth)
+    /*if (moments.x > depth)
         return 0.2f;
-    return 1.0f;
+    return 1.0f;*/
 
-/*    float variance = max( moments.y - moments.x * moments.x, -0.001f );
+    float variance = max( moments.y - moments.x * moments.x, -0.001f );
 
     float delta = depth - moments.x;
     float p = smoothstep( depth - 0.02f, depth, moments.x );
     float minAmbient = 0.2f;
     float pMax = linstep( minAmbient, 1.0f, variance / (variance + delta * delta) );
 
-    return saturate( max( p, pMax ) );*/
+    return saturate( max( p, pMax ) );
 }
 
 vertex ColorInOut standardVS( uint vid [[ vertex_id ]],

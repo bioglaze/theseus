@@ -129,19 +129,6 @@ MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset )
     return renderer.frameResources[ 0 ].uniformBuffer;
 }
 
-// TODO: Move into a better place.
-const char* GetFullPath( const char* fileName )
-{
-    return fileName;
-    //NSBundle *b = [NSBundle mainBundle];
-    //NSString *dir = [b resourcePath];
-    //NSString* fName = [NSString stringWithUTF8String: "/"];
-    //NSString* fPath = [NSString stringWithUTF8String: fileName];
-    //fName = [fName stringByAppendingString:fPath];
-    //dir = [dir stringByAppendingString:fName];
-    //return [dir fileSystemRepresentation];
-}
-
 static MTL::SamplerState* GetSampler( teTextureSampler sampler )
 {
     if (sampler == teTextureSampler::LinearClamp) return renderer.linearClamp;

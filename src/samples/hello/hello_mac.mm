@@ -191,8 +191,8 @@ void MoveUp( float amount )
     teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
 
     ShaderParams shaderParams = {};
-    shaderParams.tint[ 0 ] = 0.0f;
-    shaderParams.tint[ 1 ] = 1.0f;
+    shaderParams.tint[ 0 ] = 1.0f;
+    shaderParams.tint[ 1 ] = 0.0f;
     shaderParams.tint[ 2 ] = 0.0f;
     shaderParams.tint[ 3 ] = 0.0f;
 
