@@ -30,8 +30,9 @@ void bloomBlur( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Group
 void bloomDownsample( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
 {
     float2 uv;
-    uv.x = (globalIdx.x + 1) / uniforms.tilesXY.x;
-    uv.y = (globalIdx.y + 1) / uniforms.tilesXY.y;
+    uv.x = (globalIdx.x + 1) / uniforms.tilesXY.x - 0.5 / uniforms.tilesXY.x;
+    uv.y = (globalIdx.y + 1) / uniforms.tilesXY.y - 0.5 / uniforms.tilesXY.y;
+    
     const float4 color = texture2ds[ pushConstants.textureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 );
     
     rwTexture2d[ globalIdx.xy ] = color;
