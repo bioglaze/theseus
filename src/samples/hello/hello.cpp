@@ -212,16 +212,16 @@ int main()
     teShader standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
 
     teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
-    teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 16, 16 );
+    teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 8, 8 );
 
     teFile bloomBlurFile = teLoadFile( "shaders/bloom_blur.spv" );
-    teShader bloomBlurShader = teCreateComputeShader( bloomBlurFile, "bloomBlur", 16, 16 );
+    teShader bloomBlurShader = teCreateComputeShader( bloomBlurFile, "bloomBlur", 8, 8 );
 
     teFile bloomCombineFile = teLoadFile( "shaders/bloom_combine.spv" );
-    teShader bloomCombineShader = teCreateComputeShader( bloomCombineFile, "bloomCombine", 16, 16 );
+    teShader bloomCombineShader = teCreateComputeShader( bloomCombineFile, "bloomCombine", 8, 8 );
 
     teFile downsampleFile = teLoadFile( "shaders/downsample.spv" );
-    teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 16, 16 );
+    teShader downsampleShader = teCreateComputeShader( downsampleFile, "bloomDownsample", 8, 8 );
 
     teGameObject camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
@@ -277,6 +277,9 @@ int main()
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     
+    teFile bilinearTestFile = teLoadFile( "assets/textures/test/bilinear_test.tga" );
+    teTexture2D bilinearTex = teLoadTexture( bilinearTestFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
     teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
@@ -285,6 +288,8 @@ int main()
     teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
     teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
     teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
+
+    teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::BGRA, "bilinearTestTarget" );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -566,6 +571,13 @@ int main()
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
+
+        shaderParams.readTexture = bilinearTex.index;
+        shaderParams.writeTexture = bilinearTestTarget.index;
+        shaderParams.tilesXY[ 0 ] = 16 / 2;
+        shaderParams.tilesXY[ 1 ] = 16 / 2;
+        teShaderDispatch( downsampleShader, 16 / 8, 16 / 8, 1, shaderParams, "bilinearTest" );
+
 #if 1
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
@@ -657,7 +669,7 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        teDrawQuad( fullscreenAdditiveShader, bloomComposeTarget, shaderParams, teBlendMode::Additive );
+        teDrawQuad( fullscreenAdditiveShader, /*bilinearTestTarget*/bloomComposeTarget, shaderParams, teBlendMode::Additive);
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
