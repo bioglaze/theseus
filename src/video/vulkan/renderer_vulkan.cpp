@@ -25,6 +25,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
                            void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
+unsigned TextureGetFlags( unsigned index );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
 VkBufferView BufferGetView( const teBuffer& buffer );
@@ -1701,7 +1702,7 @@ void teEndFrame()
     VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
 
     uint64_t timestamps[ 2 ] = {};
-    VK_CHECK( vkGetQueryPoolResults( renderer.device, renderer.queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT ) );
+    VkResult res = vkGetQueryPoolResults( renderer.device, renderer.queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
     //printf( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};
@@ -1998,6 +1999,8 @@ void MoveToNextUboOffset()
 
 void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groupsY, unsigned groupsZ, const ShaderParams& params, const char* debugName )
 {
+    teAssert( !params.writeTexture || (TextureGetFlags( params.writeTexture ) & teTextureFlags::UAV) );
+
     renderer.shaderParams = params;
 
     Matrix identity;

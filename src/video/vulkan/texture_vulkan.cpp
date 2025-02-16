@@ -175,6 +175,11 @@ VkImage TextureGetImage( teTexture2D texture )
     return textures[ texture.index ].image;
 }
 
+unsigned TextureGetFlags( unsigned index )
+{
+    return textures[ index ].flags;
+}
+
 void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight )
 {
     outWidth = textures[ texture.index ].width;
@@ -571,6 +576,11 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 
         LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
         bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
+
+        if (bitsPerPixel == 24)
+        {
+            printf( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
+        }
 
         tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( tex.mipLevelCount <= 15 );
