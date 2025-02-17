@@ -171,6 +171,30 @@ struct InputState
     Vec3 moveDir;
 };
 
+teTexture2D key0tex;
+teTexture2D key1tex;
+teTexture2D key2tex;
+teTexture2D key3tex;
+teTexture2D key4tex;
+teTexture2D key5tex;
+teTexture2D key6tex;
+teTexture2D key7tex;
+teTexture2D key8tex;
+teTexture2D key9tex;
+
+teMaterial key0mat;
+teMaterial key1mat;
+teMaterial key2mat;
+teMaterial key3mat;
+teMaterial key4mat;
+teMaterial key5mat;
+teMaterial key6mat;
+teMaterial key7mat;
+teMaterial key8mat;
+teMaterial key9mat;
+
+teMesh keypadMesh;
+
 int main()
 {
 #ifdef _WIN32
@@ -270,6 +294,71 @@ int main()
     materialTrans.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTrans, transTex, 0 );
 
+    teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );
+    teFile key1File = teLoadFile( "assets/textures/digits/one.tga" );
+    teFile key2File = teLoadFile( "assets/textures/digits/two.tga" );
+    teFile key3File = teLoadFile( "assets/textures/digits/three.tga" );
+    teFile key4File = teLoadFile( "assets/textures/digits/four.tga" );
+    teFile key5File = teLoadFile( "assets/textures/digits/five.tga" );
+    teFile key6File = teLoadFile( "assets/textures/digits/six.tga" );
+    teFile key7File = teLoadFile( "assets/textures/digits/seven.tga" );
+    teFile key8File = teLoadFile( "assets/textures/digits/eight.tga" );
+    teFile key9File = teLoadFile( "assets/textures/digits/nine.tga" );
+    
+    key0tex = teLoadTexture( key0File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key1tex = teLoadTexture( key1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key2tex = teLoadTexture( key2File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key3tex = teLoadTexture( key3File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key4tex = teLoadTexture( key4File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key5tex = teLoadTexture( key5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key6tex = teLoadTexture( key6File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key7tex = teLoadTexture( key7File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key8tex = teLoadTexture( key8File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    key9tex = teLoadTexture( key9File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    key0mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key0mat, key0tex, 0 );
+    teMaterialSetTexture2D( key0mat, floorNormalTex, 1 );
+
+    key1mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key1mat, key1tex, 0 );
+    teMaterialSetTexture2D( key1mat, floorNormalTex, 1 );
+
+    key2mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key2mat, key2tex, 0 );
+    teMaterialSetTexture2D( key2mat, floorNormalTex, 1 );
+
+    key3mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key3mat, key3tex, 0 );
+    teMaterialSetTexture2D( key3mat, floorNormalTex, 1 );
+
+    key4mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key4mat, key4tex, 0 );
+    teMaterialSetTexture2D( key4mat, floorNormalTex, 1 );
+
+    key5mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key5mat, key5tex, 0 );
+    teMaterialSetTexture2D( key5mat, floorNormalTex, 1 );
+
+    key6mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key6mat, key6tex, 0 );
+    teMaterialSetTexture2D( key6mat, floorNormalTex, 1 );
+
+    key7mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key7mat, key7tex, 0 );
+    teMaterialSetTexture2D( key7mat, floorNormalTex, 1 );
+
+    key8mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key8mat, key8tex, 0 );
+    teMaterialSetTexture2D( key8mat, floorNormalTex, 1 );
+
+    key9mat = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( key9mat, key9tex, 0 );
+    teMaterialSetTexture2D( key9mat, floorNormalTex, 1 );
+
+    teFile keypadFile = teLoadFile( "assets/meshes/keypad.t3d" );
+    keypadMesh = teLoadMesh( keypadFile );
+
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
     teFile leftFile = teLoadFile( "assets/textures/skybox/left.dds" );
@@ -325,6 +414,27 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
+    teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
+    teMeshRendererSetMesh( keypadGo.index, &keypadMesh );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 0 );
+    teMeshRendererSetMaterial( keypadGo.index, key1mat, 1 );
+    teMeshRendererSetMaterial( keypadGo.index, key2mat, 2 );
+    teMeshRendererSetMaterial( keypadGo.index, key3mat, 3 );
+    teMeshRendererSetMaterial( keypadGo.index, key4mat, 4 );
+    teMeshRendererSetMaterial( keypadGo.index, key5mat, 5 );
+    teMeshRendererSetMaterial( keypadGo.index, key6mat, 6 );
+    teMeshRendererSetMaterial( keypadGo.index, key7mat, 7 );
+    teMeshRendererSetMaterial( keypadGo.index, key8mat, 8 );
+    teMeshRendererSetMaterial( keypadGo.index, key9mat, 9 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 10 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 11 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 12 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 13 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 14 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 15 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 16 );
+    teMeshRendererSetMaterial( keypadGo.index, key0mat, 17 );
+
     teScene scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
 
@@ -332,6 +442,7 @@ int main()
     teSceneAdd( scene, cubeGo.index );
     //teSceneAdd( scene, cubeGo2.index );
     teSceneAdd( scene, roomGo.index );
+    teSceneAdd( scene, keypadGo.index );
 
     teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
