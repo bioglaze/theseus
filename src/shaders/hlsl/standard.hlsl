@@ -65,7 +65,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
     //float depth = (vsOut.projCoord.z + 0.0001f) / vsOut.projCoord.w;
     float shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
-    float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ 0 ], vsOut.uv ).xy;
+    float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
 
@@ -85,7 +85,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float3 specular = specularStrength * spec;
     accumDiffuseAndSpecular += specular;
     
-    float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv );
+    float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
     
     return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
 }
