@@ -1,4 +1,6 @@
 #include "matrix.h"
+#include "mathutil.h"
+#include "transform.h"
 #include "quaternion.h"
 #include "te_stdlib.h"
 #include "vec3.h"
@@ -25,6 +27,76 @@ void Vec4::Normalize()
     x *= invLen;
     y *= invLen;
     z *= invLen;
+}
+
+static float Min2( float a, float b )
+{
+    return a < b ? a : b;
+}
+
+static float Max2( float a, float b )
+{
+    return a < b ? b : a;
+}
+
+float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min, const Vec3& max )
+{
+    const Vec3 dir = (origin - target).Normalized(); // NOTE: This was "target - origin" in Aether3D Editor.
+    const Vec3 dirfrac{ 1.0f / dir.x, 1.0f / dir.y, 1.0f / dir.z };
+
+    const float t1 = (min.x - origin.x) * dirfrac.x;
+    const float t2 = (max.x - origin.x) * dirfrac.x;
+    const float t3 = (min.y - origin.y) * dirfrac.y;
+    const float t4 = (max.y - origin.y) * dirfrac.y;
+    const float t5 = (min.z - origin.z) * dirfrac.z;
+    const float t6 = (max.z - origin.z) * dirfrac.z;
+
+    const float tmin = Max2( Max2( Min2( t1, t2 ), Min2( t3, t4 ) ), Min2( t5, t6 ) );
+    const float tmax = Min2( Min2( Max2( t1, t2 ), Max2( t3, t4 ) ), Max2( t5, t6 ) );
+
+    // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+    if (tmax < 0)
+    {
+        return -1.0f;
+    }
+
+    // if tmin > tmax, ray doesn't intersect AABB
+    if (tmin > tmax)
+    {
+        return -1.0f;
+    }
+
+    return tmin;
+}
+
+void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screenHeight, unsigned cameraIndex, Vec3& outRayOrigin, Vec3& outRayTarget )
+{
+    const float aspect = screenHeight / screenWidth;
+    const float halfWidth = screenWidth * 0.5f;
+    const float halfHeight = screenHeight * 0.5f;
+    const float fov = teCameraGetFovDegrees( cameraIndex ) * (3.1415926535f / 180.0f);
+
+    // Normalizes screen coordinates and scales them to the FOV.
+    const float dx = tanf( fov * 0.5f ) * (screenX / halfWidth - 1.0f) / aspect;
+    const float dy = tanf( fov * 0.5f ) * (screenY / halfHeight - 1.0f);
+
+    Matrix view = teTransformGetMatrix( cameraIndex );
+    Vec3 locPos = teTransformGetLocalPosition( cameraIndex );
+
+    Matrix translation;
+    translation.SetTranslation( locPos );
+    Matrix::Multiply( translation, view, view );
+
+    Matrix invView;
+    // FIXME: does this need to be a proper invert or will a simpler function do?
+    Matrix::Invert( view, invView );
+
+    const float farp = teCameraGetFar( cameraIndex );
+
+    outRayOrigin = locPos;
+    outRayTarget = Vec3( -dx * farp, dy * farp, farp );
+
+    Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
 }
 
 #ifdef SIMD_SSE3

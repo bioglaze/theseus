@@ -165,6 +165,7 @@
     <ClInclude Include="..\include\gameobject.h" />
     <ClInclude Include="..\include\light.h" />
     <ClInclude Include="..\include\material.h" />
+    <ClInclude Include="..\include\mathutil.h" />
     <ClInclude Include="..\include\matrix.h" />
     <ClInclude Include="..\include\mesh.h" />
     <ClInclude Include="..\include\quaternion.h" />

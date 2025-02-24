@@ -123,5 +123,8 @@
     <ClInclude Include="..\include\light.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\mathutil.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

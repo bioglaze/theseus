@@ -70,5 +70,8 @@
     <ClInclude Include="..\..\..\include\window.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\mathutil.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
