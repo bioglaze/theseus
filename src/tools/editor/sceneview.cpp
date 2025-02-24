@@ -23,7 +23,6 @@
 #include "imgui.h"
 
 void GetOpenPath( char* path, const char* extension );
-void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 
@@ -168,47 +167,6 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
         global_idx_offset += cmd_list->IdxBuffer.Size;
         global_vtx_offset += cmd_list->VtxBuffer.Size;
-    }
-}
-
-static void GetMinMax( const Vec3* points, int count, Vec3& outMin, Vec3& outMax )
-{
-    outMin = points[ 0 ];
-    outMax = points[ 0 ];
-
-    for (int i = 1, s = count; i < s; ++i)
-    {
-        const Vec3& point = points[ i ];
-
-        if (point.x < outMin.x)
-        {
-            outMin.x = point.x;
-        }
-
-        if (point.y < outMin.y)
-        {
-            outMin.y = point.y;
-        }
-
-        if (point.z < outMin.z)
-        {
-            outMin.z = point.z;
-        }
-
-        if (point.x > outMax.x)
-        {
-            outMax.x = point.x;
-        }
-
-        if (point.y > outMax.y)
-        {
-            outMax.y = point.y;
-        }
-
-        if (point.z > outMax.z)
-        {
-            outMax.z = point.z;
-        }
     }
 }
 

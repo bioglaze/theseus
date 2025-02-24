@@ -69,6 +69,47 @@ float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min,
     return tmin;
 }
 
+void GetMinMax( const Vec3* points, int count, Vec3& outMin, Vec3& outMax )
+{
+    outMin = points[ 0 ];
+    outMax = points[ 0 ];
+
+    for (int i = 1, s = count; i < s; ++i)
+    {
+        const Vec3& point = points[ i ];
+
+        if (point.x < outMin.x)
+        {
+            outMin.x = point.x;
+        }
+
+        if (point.y < outMin.y)
+        {
+            outMin.y = point.y;
+        }
+
+        if (point.z < outMin.z)
+        {
+            outMin.z = point.z;
+        }
+
+        if (point.x > outMax.x)
+        {
+            outMax.x = point.x;
+        }
+
+        if (point.y > outMax.y)
+        {
+            outMax.y = point.y;
+        }
+
+        if (point.z > outMax.z)
+        {
+            outMax.z = point.z;
+        }
+    }
+}
+
 void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screenHeight, unsigned cameraIndex, Vec3& outRayOrigin, Vec3& outRayTarget )
 {
     const float aspect = screenHeight / screenWidth;
