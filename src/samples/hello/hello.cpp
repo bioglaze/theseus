@@ -503,6 +503,10 @@ int main()
     double theTime = GetMilliseconds();
 
     ShaderParams shaderParams{};
+    shaderParams.tint[ 0 ] = 0.8f;
+    shaderParams.tint[ 1 ] = 0.7f;
+    shaderParams.tint[ 2 ] = 0.6f;
+    shaderParams.tint[ 3 ] = 0.5f;
 
     while (!shouldQuit)
     {
