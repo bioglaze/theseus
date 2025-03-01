@@ -45,6 +45,8 @@ teTexture2D   m_bloomComposeTarget;
 teTexture2D   m_downsampleTarget;
 teTexture2D   m_downsampleTarget2;
 teTexture2D   m_downsampleTarget3;
+teTexture2D   m_downsampleTestTarget;
+teTexture2D   m_bilinearTestTex;
 teTextureCube m_skyTex;
 teGameObject  m_camera3d;
 teGameObject  m_cubeGo;
@@ -111,6 +113,8 @@ void MoveUp( float amount )
         m_downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
         m_downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
 
+        m_downsampleTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::RGBA_sRGB, "downsampleTestTarget" );
+
         teFile backFile   = teLoadFile( "assets/textures/skybox/back.dds" );
         teFile frontFile  = teLoadFile( "assets/textures/skybox/front.dds" );
         teFile leftFile   = teLoadFile( "assets/textures/skybox/left.dds" );
@@ -123,6 +127,9 @@ void MoveUp( float amount )
 
         teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
         m_brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+        teFile bilinearFile = teLoadFile( "assets/textures/test/bilinear_test.tga" );
+        m_bilinearTestTex = teLoadTexture( bilinearFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
         teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.dds" );
         m_brickNormalTex = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -191,10 +198,10 @@ void MoveUp( float amount )
     teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
 
     ShaderParams shaderParams = {};
-    shaderParams.tint[ 0 ] = 1.0f;
-    shaderParams.tint[ 1 ] = 0.0f;
-    shaderParams.tint[ 2 ] = 0.0f;
-    shaderParams.tint[ 3 ] = 0.0f;
+    shaderParams.tint[ 0 ] = 0.8f;
+    shaderParams.tint[ 1 ] = 0.7f;
+    shaderParams.tint[ 2 ] = 0.6f;
+    shaderParams.tint[ 3 ] = 0.5f;
 
 #if 1
         float bloomThreshold = 0.1f;
@@ -280,6 +287,13 @@ void MoveUp( float amount )
         teShaderDispatch( m_bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
 #endif
 
+    // Bilinear test
+    /*shaderParams.readTexture = m_bilinearTestTex.index;
+    shaderParams.writeTexture = m_downsampleTestTarget.index;
+    shaderParams.tilesXY[ 0 ] = 16;
+    shaderParams.tilesXY[ 1 ] = 16;
+    teShaderDispatch( m_downsampleShader, 16 / 8, 16 / 8, 1, shaderParams, "downsample test" );*/
+
     teBeginSwapchainRendering();
 
     shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
@@ -293,6 +307,7 @@ void MoveUp( float amount )
     shaderParams.tilesXY[ 0 ] = 8.0f; // FIXME: Why is 8 needed here? In hello.cpp it's 4.
     shaderParams.tilesXY[ 1 ] = 8.0f;
     teDrawQuad( m_fullscreenAdditiveShader, m_bloomComposeTarget, shaderParams, teBlendMode::Additive );
+    //teDrawQuad( m_fullscreenAdditiveShader, m_downsampleTestTarget, shaderParams, teBlendMode::Additive );
 
     teEndSwapchainRendering();
     teEndFrame();
