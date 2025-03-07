@@ -4,6 +4,8 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "light.h"
+#include "matrix.h"
+#include "mathutil.h"
 #include "material.h"
 #include "mesh.h"
 #include "quaternion.h"
@@ -157,6 +159,52 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
         global_idx_offset += cmd_list->IdxBuffer.Size;
         global_vtx_offset += cmd_list->VtxBuffer.Size;
+    }
+}
+
+void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned height, teScene scene, unsigned cameraIndex, int& outClosestSceneGo, unsigned& outClosestSubMesh )
+{
+    Vec3 rayOrigin, rayTarget;
+    ScreenPointToRay( screenX, screenY, (float)width, (float)height, cameraIndex, rayOrigin, rayTarget );
+
+    outClosestSceneGo = -1;
+    float closestDistance = 99999.0f;
+    outClosestSubMesh = 666;
+
+    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    {
+        unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
+
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++subMesh)
+        {
+            Vec3 mMinLocal, mMaxLocal;
+            Vec3 mMinWorld, mMaxWorld;
+            Vec3 mAABB[ 8 ];
+
+            teMeshGetSubMeshLocalAABB( *teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
+            teGetCorners( mMinLocal, mMaxLocal, mAABB );
+
+            for (int v = 0; v < 8; ++v)
+            {
+                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( sceneGo ), mAABB[ v ] );
+            }
+
+            GetMinMax( mAABB, 8, mMinWorld, mMaxWorld );
+
+            const float meshDistance = IntersectRayAABB( rayOrigin, rayTarget, mMinWorld, mMaxWorld );
+
+            if (meshDistance > 0 && meshDistance < closestDistance)
+            {
+                closestDistance = meshDistance;
+                outClosestSceneGo = sceneGo;
+                outClosestSubMesh = subMesh;
+            }
+        }
     }
 }
 
@@ -508,6 +556,8 @@ int main()
     shaderParams.tint[ 2 ] = 0.6f;
     shaderParams.tint[ 3 ] = 0.5f;
 
+    unsigned activeDigit = 1; // 1-4
+
     while (!shouldQuit)
     {
         double lastTime = theTime;
@@ -601,6 +651,35 @@ int main()
                 inputParams.deltaY = 0;
 
                 io.AddMouseButtonEvent( 0, true );
+
+                int closestSceneGo = 0;
+                unsigned closestSubMesh = 0;
+                GetColliders( event.x, event.y, width, height, scene, camera3d.index, closestSceneGo, closestSubMesh );
+                //printf( "closest go: %d, closest submesh: %u\n", closestSceneGo, closestSubMesh );
+                // display digit submeshes: 1-4
+                // number pad: 5-14
+                if (closestSceneGo == keypadGo.index)
+                {
+                    if (closestSubMesh >= 5 && closestSubMesh < 15)
+                    {
+                        if (closestSubMesh == 5) teMeshRendererSetMaterial( keypadGo.index, key1mat, activeDigit );
+                        if (closestSubMesh == 6) teMeshRendererSetMaterial( keypadGo.index, key2mat, activeDigit );
+                        if (closestSubMesh == 7) teMeshRendererSetMaterial( keypadGo.index, key3mat, activeDigit );
+                        if (closestSubMesh == 8) teMeshRendererSetMaterial( keypadGo.index, key4mat, activeDigit );
+                        if (closestSubMesh == 9) teMeshRendererSetMaterial( keypadGo.index, key5mat, activeDigit );
+                        if (closestSubMesh == 10) teMeshRendererSetMaterial( keypadGo.index, key6mat, activeDigit );
+                        if (closestSubMesh == 11) teMeshRendererSetMaterial( keypadGo.index, key7mat, activeDigit );
+                        if (closestSubMesh == 12) teMeshRendererSetMaterial( keypadGo.index, key8mat, activeDigit );
+                        if (closestSubMesh == 13) teMeshRendererSetMaterial( keypadGo.index, key9mat, activeDigit );
+                        if (closestSubMesh == 14) teMeshRendererSetMaterial( keypadGo.index, key0mat, activeDigit );
+
+                        ++activeDigit;
+                        if (activeDigit == 5)
+                        {
+                            activeDigit = 1;
+                        }
+                    }
+                }
             }
             else if (event.type == teWindowEvent::Type::Mouse1Up)
             {
