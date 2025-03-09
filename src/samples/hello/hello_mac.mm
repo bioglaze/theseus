@@ -5,7 +5,10 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
+#include "math.h"
+#include "mathutil.h"
 #include "material.h"
+#include "matrix.h"
 #include "mesh.h"
 #include "renderer.h"
 #include "quaternion.h"
@@ -55,6 +58,77 @@ teScene       m_scene;
 teMesh        m_roomMesh;
 teMesh        m_cubeMesh;
 Vec3 moveDir;
+
+teTexture2D key0tex;
+teTexture2D key1tex;
+teTexture2D key2tex;
+teTexture2D key3tex;
+teTexture2D key4tex;
+teTexture2D key5tex;
+teTexture2D key6tex;
+teTexture2D key7tex;
+teTexture2D key8tex;
+teTexture2D key9tex;
+
+teMaterial key0mat;
+teMaterial key1mat;
+teMaterial key2mat;
+teMaterial key3mat;
+teMaterial key4mat;
+teMaterial key5mat;
+teMaterial key6mat;
+teMaterial key7mat;
+teMaterial key8mat;
+teMaterial key9mat;
+
+teMesh keypadMesh;
+teGameObject keypadGo;
+
+void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned height, teScene scene, unsigned cameraIndex, int& outClosestSceneGo, unsigned& outClosestSubMesh )
+{
+    Vec3 rayOrigin, rayTarget;
+    ScreenPointToRay( screenX, screenY, (float)width, (float)height, cameraIndex, rayOrigin, rayTarget );
+
+    outClosestSceneGo = -1;
+    float closestDistance = 99999.0f;
+    outClosestSubMesh = 666;
+
+    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    {
+        unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
+
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++subMesh)
+        {
+            Vec3 mMinLocal, mMaxLocal;
+            Vec3 mMinWorld, mMaxWorld;
+            Vec3 mAABB[ 8 ];
+
+            teMeshGetSubMeshLocalAABB( *teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
+            teGetCorners( mMinLocal, mMaxLocal, mAABB );
+
+            for (int v = 0; v < 8; ++v)
+            {
+                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( sceneGo ), mAABB[ v ] );
+            }
+
+            GetMinMax( mAABB, 8, mMinWorld, mMaxWorld );
+
+            const float meshDistance = IntersectRayAABB( rayOrigin, rayTarget, mMinWorld, mMaxWorld );
+
+            if (meshDistance > 0 && meshDistance < closestDistance)
+            {
+                closestDistance = meshDistance;
+                outClosestSceneGo = sceneGo;
+                outClosestSubMesh = subMesh;
+            }
+        }
+    }
+}
 
 void MoveForward( float amount )
 {
@@ -170,10 +244,99 @@ void MoveUp( float amount )
         //teTransformSetLocalScale( m_cubeGo.index, 4 );
         teTransformSetLocalPosition( m_cubeGo.index, Vec3( 0, 4, 0 ) );
 
+        teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );
+        teFile key1File = teLoadFile( "assets/textures/digits/one.tga" );
+        teFile key2File = teLoadFile( "assets/textures/digits/two.tga" );
+        teFile key3File = teLoadFile( "assets/textures/digits/three.tga" );
+        teFile key4File = teLoadFile( "assets/textures/digits/four.tga" );
+        teFile key5File = teLoadFile( "assets/textures/digits/five.tga" );
+        teFile key6File = teLoadFile( "assets/textures/digits/six.tga" );
+        teFile key7File = teLoadFile( "assets/textures/digits/seven.tga" );
+        teFile key8File = teLoadFile( "assets/textures/digits/eight.tga" );
+        teFile key9File = teLoadFile( "assets/textures/digits/nine.tga" );
+        
+        key0tex = teLoadTexture( key0File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key1tex = teLoadTexture( key1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key2tex = teLoadTexture( key2File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key3tex = teLoadTexture( key3File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key4tex = teLoadTexture( key4File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key5tex = teLoadTexture( key5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key6tex = teLoadTexture( key6File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key7tex = teLoadTexture( key7File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key8tex = teLoadTexture( key8File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+        key9tex = teLoadTexture( key9File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+        key0mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key0mat, key0tex, 0 );
+        teMaterialSetTexture2D( key0mat, m_floorNormalTex, 1 );
+
+        key1mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key1mat, key1tex, 0 );
+        teMaterialSetTexture2D( key1mat, m_floorNormalTex, 1 );
+
+        key2mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key2mat, key2tex, 0 );
+        teMaterialSetTexture2D( key2mat, m_floorNormalTex, 1 );
+
+        key3mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key3mat, key3tex, 0 );
+        teMaterialSetTexture2D( key3mat, m_floorNormalTex, 1 );
+
+        key4mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key4mat, key4tex, 0 );
+        teMaterialSetTexture2D( key4mat, m_floorNormalTex, 1 );
+
+        key5mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key5mat, key5tex, 0 );
+        teMaterialSetTexture2D( key5mat, m_floorNormalTex, 1 );
+
+        key6mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key6mat, key6tex, 0 );
+        teMaterialSetTexture2D( key6mat, m_floorNormalTex, 1 );
+
+        key7mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key7mat, key7tex, 0 );
+        teMaterialSetTexture2D( key7mat, m_floorNormalTex, 1 );
+
+        key8mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key8mat, key8tex, 0 );
+        teMaterialSetTexture2D( key8mat, m_floorNormalTex, 1 );
+
+        key9mat = teCreateMaterial( m_standardShader );
+        teMaterialSetTexture2D( key9mat, key9tex, 0 );
+        teMaterialSetTexture2D( key9mat, m_floorNormalTex, 1 );
+
+        teFile keypadFile = teLoadFile( "assets/meshes/keypad.t3d" );
+        keypadMesh = teLoadMesh( keypadFile );
+
+        keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
+        Vec3 keypadPos = Vec3( -10, 4, 3 );
+        teTransformSetLocalPosition( keypadGo.index, keypadPos );
+        teMeshRendererSetMesh( keypadGo.index, &keypadMesh );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 0 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 1 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 2 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 3 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 4 );
+        teMeshRendererSetMaterial( keypadGo.index, key1mat, 5 );
+        teMeshRendererSetMaterial( keypadGo.index, key2mat, 6 );
+        teMeshRendererSetMaterial( keypadGo.index, key3mat, 7 );
+        teMeshRendererSetMaterial( keypadGo.index, key4mat, 8 );
+        teMeshRendererSetMaterial( keypadGo.index, key5mat, 9 );
+        teMeshRendererSetMaterial( keypadGo.index, key6mat, 10 );
+        teMeshRendererSetMaterial( keypadGo.index, key7mat, 11 );
+        teMeshRendererSetMaterial( keypadGo.index, key8mat, 12 );
+        teMeshRendererSetMaterial( keypadGo.index, key9mat, 13 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 14 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 15 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 16 );
+        teMeshRendererSetMaterial( keypadGo.index, key0mat, 17 );
+
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
         teSceneAdd( m_scene, m_roomGo.index );
+        teSceneAdd( m_scene, keypadGo.index );
 
         teSceneSetupDirectionalLight( m_scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
@@ -204,87 +367,87 @@ void MoveUp( float amount )
     shaderParams.tint[ 3 ] = 0.5f;
 
 #if 1
-        float bloomThreshold = 0.1f;
+    float bloomThreshold = 0.1f;
 
-        shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
-        shaderParams.writeTexture = m_bloomTarget.index;
-        shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
-        teShaderDispatch( m_bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
+    shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
+    shaderParams.writeTexture = m_bloomTarget.index;
+    shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
+    teShaderDispatch( m_bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
 
-        // TODO UAV barrier here
-        shaderParams.readTexture = m_bloomTarget.index;
-        shaderParams.writeTexture = m_blurTarget.index;
-        shaderParams.tilesXY[ 2 ] = 1.0f;
-        shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h" );
+    // TODO UAV barrier here
+    shaderParams.readTexture = m_bloomTarget.index;
+    shaderParams.writeTexture = m_blurTarget.index;
+    shaderParams.tilesXY[ 2 ] = 1.0f;
+    shaderParams.tilesXY[ 3 ] = 0.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h" );
 
-        // TODO UAV barrier here
-        shaderParams.readTexture = m_blurTarget.index;
-        shaderParams.writeTexture = m_bloomTarget.index;
-        shaderParams.tilesXY[ 2 ] = 0.0f;
-        shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
+    // TODO UAV barrier here
+    shaderParams.readTexture = m_blurTarget.index;
+    shaderParams.writeTexture = m_bloomTarget.index;
+    shaderParams.tilesXY[ 2 ] = 0.0f;
+    shaderParams.tilesXY[ 3 ] = 1.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
 
-        // additional blurring
-        shaderParams.readTexture = m_bloomTarget.index;
-        shaderParams.writeTexture = m_blurTarget.index;
-        shaderParams.tilesXY[ 2 ] = 1.0f;
-        shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
+    // additional blurring
+    shaderParams.readTexture = m_bloomTarget.index;
+    shaderParams.writeTexture = m_blurTarget.index;
+    shaderParams.tilesXY[ 2 ] = 1.0f;
+    shaderParams.tilesXY[ 3 ] = 0.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
 
-        shaderParams.readTexture = m_blurTarget.index;
-        shaderParams.writeTexture = m_bloomTarget.index;
-        shaderParams.tilesXY[ 2 ] = 0.0f;
-        shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
+    shaderParams.readTexture = m_blurTarget.index;
+    shaderParams.writeTexture = m_bloomTarget.index;
+    shaderParams.tilesXY[ 2 ] = 0.0f;
+    shaderParams.tilesXY[ 3 ] = 1.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
 
-        // additional blurring 2
-        shaderParams.readTexture = m_bloomTarget.index;
-        shaderParams.writeTexture = m_blurTarget.index;
-        shaderParams.tilesXY[ 2 ] = 1.0f;
-        shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
+    // additional blurring 2
+    shaderParams.readTexture = m_bloomTarget.index;
+    shaderParams.writeTexture = m_blurTarget.index;
+    shaderParams.tilesXY[ 2 ] = 1.0f;
+    shaderParams.tilesXY[ 3 ] = 0.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
 
-        shaderParams.readTexture = m_blurTarget.index;
-        shaderParams.writeTexture = m_bloomTarget.index;
-        shaderParams.tilesXY[ 2 ] = 0.0f;
-        shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
+    shaderParams.readTexture = m_blurTarget.index;
+    shaderParams.writeTexture = m_bloomTarget.index;
+    shaderParams.tilesXY[ 2 ] = 0.0f;
+    shaderParams.tilesXY[ 3 ] = 1.0f;
+    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
 
-        // Downsample init.
-        shaderParams.tilesXY[ 2 ] = 1.0f;
-        shaderParams.tilesXY[ 3 ] = 1.0f;
+    // Downsample init.
+    shaderParams.tilesXY[ 2 ] = 1.0f;
+    shaderParams.tilesXY[ 3 ] = 1.0f;
 
-        // Downsample 1
-        shaderParams.readTexture = m_bloomTarget.index;
-        shaderParams.writeTexture = m_downsampleTarget.index;
-        shaderParams.tilesXY[ 0 ] = width / 2;
-        shaderParams.tilesXY[ 1 ] = height / 2;
-        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 1" );
+    // Downsample 1
+    shaderParams.readTexture = m_bloomTarget.index;
+    shaderParams.writeTexture = m_downsampleTarget.index;
+    shaderParams.tilesXY[ 0 ] = width / 2;
+    shaderParams.tilesXY[ 1 ] = height / 2;
+    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 1" );
 
-        // Downsample 2
-        shaderParams.readTexture = m_downsampleTarget.index;
-        shaderParams.writeTexture = m_downsampleTarget2.index;
-        shaderParams.tilesXY[ 0 ] = width / 4;
-        shaderParams.tilesXY[ 1 ] = height / 4;
-        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 2" );
+    // Downsample 2
+    shaderParams.readTexture = m_downsampleTarget.index;
+    shaderParams.writeTexture = m_downsampleTarget2.index;
+    shaderParams.tilesXY[ 0 ] = width / 4;
+    shaderParams.tilesXY[ 1 ] = height / 4;
+    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 2" );
 
-        // Downsample 3
-        shaderParams.readTexture = m_downsampleTarget2.index;
-        shaderParams.writeTexture = m_downsampleTarget3.index;
-        shaderParams.tilesXY[ 0 ] = width / 8;
-        shaderParams.tilesXY[ 1 ] = height / 8;
-        teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 3" );
+    // Downsample 3
+    shaderParams.readTexture = m_downsampleTarget2.index;
+    shaderParams.writeTexture = m_downsampleTarget3.index;
+    shaderParams.tilesXY[ 0 ] = width / 8;
+    shaderParams.tilesXY[ 1 ] = height / 8;
+    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 3" );
 
-        // Combine
-        shaderParams.readTexture = m_bloomTarget.index;
-        shaderParams.readTexture2 = m_downsampleTarget.index;
-        shaderParams.readTexture3 = m_downsampleTarget2.index;
-        shaderParams.readTexture4 = m_downsampleTarget3.index;
-        shaderParams.writeTexture = m_bloomComposeTarget.index;
-        shaderParams.tilesXY[ 0 ] = width / 2;
-        shaderParams.tilesXY[ 1 ] = height / 2;
-        teShaderDispatch( m_bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
+    // Combine
+    shaderParams.readTexture = m_bloomTarget.index;
+    shaderParams.readTexture2 = m_downsampleTarget.index;
+    shaderParams.readTexture3 = m_downsampleTarget2.index;
+    shaderParams.readTexture4 = m_downsampleTarget3.index;
+    shaderParams.writeTexture = m_bloomComposeTarget.index;
+    shaderParams.tilesXY[ 0 ] = width / 2;
+    shaderParams.tilesXY[ 1 ] = height / 2;
+    teShaderDispatch( m_bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
 #endif
 
     // Bilinear test
