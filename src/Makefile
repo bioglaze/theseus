@@ -33,8 +33,8 @@ imgui:
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=14.7.2 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c unity.cpp -fno-objc-arc -o ../build/engine.o
-	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=14.7.2 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp samples/hello/hello_mac.mm -o ../build/hello_mac
+	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c unity.cpp -fno-objc-arc -o ../build/engine.o
+	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp samples/hello/hello_mac.mm -o ../build/hello_mac
 	xcrun -sdk macosx metal shaders/metal/*.metal -frecord-sources -gline-tables-only -o ../build/shaders.metallib
 else
 	$(CC) $(FLAGS) $(DEFINES) $(SANITIZERS) -c unity.cpp -o ../build/engine.o
@@ -43,8 +43,8 @@ endif
 
 toolz:
 ifeq ($(UNAME), Darwin)
-	$(CC) $(FLAGS) $(SANITIZERS) -mmacos-version-min=14.7.2 -std=c++17 -Iinclude -Ithirdparty/meshoptimizer -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -fno-objc-arc $(LINKER) -o ../build/convert_obj
-	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=14.7.2 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp tools/editor/sceneview.cpp tools/editor/main_mac.mm -o ../build/editor_mac
+	$(CC) $(FLAGS) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -Iinclude -Ithirdparty/meshoptimizer -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -fno-objc-arc $(LINKER) -o ../build/convert_obj
+	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp tools/editor/sceneview.cpp tools/editor/main_mac.mm -o ../build/editor_mac
 else
 	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 -Iinclude -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
 	$(CC) $(FLAGS) $(SANITIZERS) tools/editor/*.cpp *.o ../build/engine.o $(LINKER) -o ../build/editor

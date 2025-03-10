@@ -83,6 +83,7 @@ teMaterial key9mat;
 
 teMesh keypadMesh;
 teGameObject keypadGo;
+int activeDigit = 1;
 
 void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned height, teScene scene, unsigned cameraIndex, int& outClosestSceneGo, unsigned& outClosestSubMesh )
 {
@@ -361,10 +362,10 @@ void MoveUp( float amount )
     teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
 
     ShaderParams shaderParams = {};
-    shaderParams.tint[ 0 ] = 0.8f;
-    shaderParams.tint[ 1 ] = 0.7f;
-    shaderParams.tint[ 2 ] = 0.6f;
-    shaderParams.tint[ 3 ] = 0.5f;
+    shaderParams.tint[ 0 ] = 0.6f;
+    shaderParams.tint[ 1 ] = 0.5f;
+    shaderParams.tint[ 2 ] = 0.4f;
+    shaderParams.tint[ 3 ] = 0.3f;
 
 #if 1
     float bloomThreshold = 0.1f;
@@ -538,9 +539,40 @@ void MoveUp( float amount )
     }
 }
 
-- (void)mouseDown:(NSEvent *)theEvent
+- (void)mouseDown:(NSEvent *)event
 {
-    //MouseDown( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    //MouseDown( (int)event.locationInWindow.x, (int)event.locationInWindow.y );
+    int x = (int)event.locationInWindow.x;
+    int y = height - (int)event.locationInWindow.y;
+
+    int closestSceneGo = 0;
+    unsigned closestSubMesh = 0;
+    GetColliders( x, y, width, height, m_scene, m_camera3d.index, closestSceneGo, closestSubMesh );
+    //printf( "closest go: %d, closest submesh: %u\n", closestSceneGo, closestSubMesh );
+    // display digit submeshes: 1-4
+    // number pad: 5-14
+    if (closestSceneGo == keypadGo.index)
+    {
+        if (closestSubMesh >= 5 && closestSubMesh < 15)
+        {
+            if (closestSubMesh == 5) teMeshRendererSetMaterial( keypadGo.index, key1mat, activeDigit );
+            if (closestSubMesh == 6) teMeshRendererSetMaterial( keypadGo.index, key2mat, activeDigit );
+            if (closestSubMesh == 7) teMeshRendererSetMaterial( keypadGo.index, key3mat, activeDigit );
+            if (closestSubMesh == 8) teMeshRendererSetMaterial( keypadGo.index, key4mat, activeDigit );
+            if (closestSubMesh == 9) teMeshRendererSetMaterial( keypadGo.index, key5mat, activeDigit );
+            if (closestSubMesh == 10) teMeshRendererSetMaterial( keypadGo.index, key6mat, activeDigit );
+            if (closestSubMesh == 11) teMeshRendererSetMaterial( keypadGo.index, key7mat, activeDigit );
+            if (closestSubMesh == 12) teMeshRendererSetMaterial( keypadGo.index, key8mat, activeDigit );
+            if (closestSubMesh == 13) teMeshRendererSetMaterial( keypadGo.index, key9mat, activeDigit );
+            if (closestSubMesh == 14) teMeshRendererSetMaterial( keypadGo.index, key0mat, activeDigit );
+
+            ++activeDigit;
+            if (activeDigit == 5)
+            {
+                activeDigit = 1;
+            }
+        }
+    }
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
