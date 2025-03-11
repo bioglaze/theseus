@@ -658,7 +658,7 @@ int main()
                 //printf( "closest go: %d, closest submesh: %u\n", closestSceneGo, closestSubMesh );
                 // display digit submeshes: 1-4
                 // number pad: 5-14
-                if (closestSceneGo == keypadGo.index)
+                if ((unsigned)closestSceneGo == keypadGo.index)
                 {
                     if (closestSubMesh >= 5 && closestSubMesh < 15)
                     {
@@ -780,45 +780,47 @@ int main()
         shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
         teShaderDispatch( bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
 
+        unsigned dh = (height + 8) / 8;
+        
         // TODO UAV barrier here
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.writeTexture = blurTarget.index;
         shaderParams.tilesXY[ 2 ] = 1.0f;
         shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur h" );
 
         // TODO UAV barrier here
         shaderParams.readTexture = blurTarget.index;
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.tilesXY[ 2 ] = 0.0f;
         shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur v" );
 
         // additional blurring
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.writeTexture = blurTarget.index;
         shaderParams.tilesXY[ 2 ] = 1.0f;
         shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur h 2" );
 
         shaderParams.readTexture = blurTarget.index;
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.tilesXY[ 2 ] = 0.0f;
         shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur v 2" );
 
         // additional blurring 2
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.writeTexture = blurTarget.index;
         shaderParams.tilesXY[ 2 ] = 1.0f;
         shaderParams.tilesXY[ 3 ] = 0.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur h 3" );
 
         shaderParams.readTexture = blurTarget.index;
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.tilesXY[ 2 ] = 0.0f;
         shaderParams.tilesXY[ 3 ] = 1.0f;
-        teShaderDispatch( bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
+        teShaderDispatch( bloomBlurShader, width / 8, dh, 1, shaderParams, "bloom blur v 3" );
 
         // Downsample init.
         shaderParams.tilesXY[ 2 ] = 1.0f;
@@ -829,21 +831,21 @@ int main()
         shaderParams.writeTexture = downsampleTarget.index;
         shaderParams.tilesXY[ 0 ] = width / 2;
         shaderParams.tilesXY[ 1 ] = height / 2;
-        teShaderDispatch( downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 1" );
+        teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 1" );
 
         // Downsample 2
         shaderParams.readTexture = downsampleTarget.index;
         shaderParams.writeTexture = downsampleTarget2.index;
         shaderParams.tilesXY[ 0 ] = width / 4;
         shaderParams.tilesXY[ 1 ] = height / 4;
-        teShaderDispatch( downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 2" );
+        teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 2" );
 
         // Downsample 3
         shaderParams.readTexture = downsampleTarget2.index;
         shaderParams.writeTexture = downsampleTarget3.index;
         shaderParams.tilesXY[ 0 ] = width / 8;
         shaderParams.tilesXY[ 1 ] = height / 8;
-        teShaderDispatch( downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 3" );
+        teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 3" );
 
         // Combine
         shaderParams.readTexture = bloomTarget.index;
@@ -853,7 +855,7 @@ int main()
         shaderParams.writeTexture = bloomComposeTarget.index;
         shaderParams.tilesXY[ 0 ] = width / 2;
         shaderParams.tilesXY[ 1 ] = height / 2;
-        teShaderDispatch( bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
+        teShaderDispatch( bloomCombineShader, width / 8, dh, 1, shaderParams, "bloom combine" );
 #endif
 
         teBeginSwapchainRendering();
