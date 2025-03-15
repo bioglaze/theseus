@@ -419,14 +419,14 @@ int main()
 
     teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
-    teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
-    teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
-    teTexture2D bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomComposeTarget" );
-    teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
-    teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
-    teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
+    teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomTarget" );
+    teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "blurTarget" );
+    teTexture2D bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomComposeTarget" );
+    teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget" );
+    teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget2" );
+    teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget3" );
 
-    teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::BGRA, "bilinearTestTarget" );
+    teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bilinearTestTarget" );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );

@@ -134,6 +134,11 @@ void GetFormatAndBPP( teTextureFormat format, VkFormat& outFormat, unsigned& out
         outFormat = VK_FORMAT_R32_SFLOAT;
         outBytesPerPixel = 4;
     }
+    else if (format == teTextureFormat::R32G32B32A32F)
+    {
+        outFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+        outBytesPerPixel = 4 * 4;
+    }
     else if (format == teTextureFormat::Depth32F)
     {
         outFormat = VK_FORMAT_D32_SFLOAT;
