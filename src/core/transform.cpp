@@ -58,9 +58,9 @@ void teTransformSetLocalRotation( unsigned index, const Quaternion& rotation )
     transforms[ index ].localRotation = rotation;
 }
 
-const Matrix& teTransformGetComputedLocalToShadowClipMatrix( unsigned index )
+void teTransformGetComputedLocalToShadowClipMatrix( unsigned index, Matrix& outLocalToShadowClip )
 {
-    return transforms[ index ].localToShadowClip;
+    outLocalToShadowClip = transforms[ index ].localToShadowClip;
 }
 
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip )

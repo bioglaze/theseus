@@ -1,5 +1,4 @@
-# theseus
-Theseus Game Engine
+# Theseus Game Engine
 
 Author: [Timo Wirén](https://twiren.kapsi.fi)
 

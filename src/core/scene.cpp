@@ -24,7 +24,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera );
 void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalToClip );
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
-const Matrix& teTransformGetComputedLocalToShadowClipMatrix( unsigned index );
+void teTransformGetComputedLocalToShadowClipMatrix( unsigned index, Matrix& outLocalToShadowClip );
 void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
@@ -269,7 +269,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
         Matrix localToView;
         teTransformGetComputedLocalToViewMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToView );
 
-        Matrix localToShadowClip = teTransformGetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
+        Matrix localToShadowClip;
+        teTransformGetComputedLocalToShadowClipMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ], localToShadowClip );
 
         Matrix localToWorld = teTransformGetMatrix( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
