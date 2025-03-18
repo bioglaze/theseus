@@ -963,6 +963,12 @@ void CreateInstance()
     if (result != VK_SUCCESS)
     {
         printf( "Unable to create instance!\n" );
+        if (result == VK_ERROR_EXTENSION_NOT_PRESENT) printf( "VK_ERROR_EXTENSION_NOT_PRESENT\n" );
+        if (result == VK_ERROR_OUT_OF_HOST_MEMORY) printf( "VK_ERROR_OUT_OF_HOST_MEMORY\n" );
+        if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY) printf( "VK_ERROR_OUT_OF_DEVICE_MEMORY\n" );
+        if (result == VK_ERROR_INITIALIZATION_FAILED) printf( "VK_ERROR_INITIALIZATION_FAILED\n" );
+        if (result == VK_ERROR_LAYER_NOT_PRESENT) printf( "VK_ERROR_LAYER_NOT_PRESENT\n" );
+
         return;
     }
 
