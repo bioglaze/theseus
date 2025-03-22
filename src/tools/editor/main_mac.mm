@@ -61,9 +61,12 @@ void GetOpenPath( char* path, const char* extension )
         NSString *myString = [nsurl path];
         const char* str = [myString UTF8String];
         strcpy( path, str );
+        path[ strlen( str ) ] = 0;
     }
-    
-    path[ 0 ] = 0;
+    else
+    {
+        path[ 0 ] = 0;
+    }
 }
 
 @interface HelloMetalView : MTKView
