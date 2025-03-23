@@ -775,12 +775,12 @@ int main()
         teShaderDispatch( downsampleShader, 16 / 8, 16 / 8, 1, shaderParams, "bilinearTest" );
 
 #if 1
+        unsigned dh = (height + 7) / 8;
+
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
         shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
-        teShaderDispatch( bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
-
-        unsigned dh = (height + 8) / 8;
+        teShaderDispatch( bloomThresholdShader, width / 8, dh, 1, shaderParams, "bloom threshold" );
         
         // TODO UAV barrier here
         shaderParams.readTexture = bloomTarget.index;
