@@ -25,7 +25,11 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
 {
     constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
     
+    // NOTE: This is needed on Metal, but not on Vulkan.
+    projCoord.y = -projCoord.y;
+
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
+
     float2 moments = shadowMap.sample( sampler0, uv ).rg;
     /*if (moments.x > depth)
         return 0.2f;
@@ -77,7 +81,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap ) );
-    shadow = 1;
+    //shadow = 1;
 
     float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
