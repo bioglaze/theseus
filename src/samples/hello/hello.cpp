@@ -334,6 +334,52 @@ int main()
     teMaterialSetTexture2D( brickMaterial, brickTex, 0 );
     teMaterialSetTexture2D( brickMaterial, brickNormalTex, 1 );
 
+    teFile gridFile = teLoadFile( "assets/textures/metal_grid.dds" );
+    teTexture2D gridTex = teLoadTexture( gridFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    teFile gridNormalFile = teLoadFile( "assets/textures/metal_grid_n.dds" );
+    teTexture2D gridNormalTex = teLoadTexture( gridNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
+    teMaterial gridMaterial = teCreateMaterial( standardShader );
+    teMaterialSetTexture2D( gridMaterial, gridTex, 0 );
+    teMaterialSetTexture2D( gridMaterial, gridNormalTex, 1 );
+
+    teFile corridorFile = teLoadFile( "assets/meshes/scifi_corridor.t3d" );
+    teMesh corridorMesh = teLoadMesh( corridorFile );
+    teGameObject corridorGo = teCreateGameObject( "corridor", teComponent::Transform | teComponent::MeshRenderer );
+    printf("materials: %d\n", teMeshGetSubMeshCount( &corridorMesh ) );
+    teTransformSetLocalPosition( corridorGo.index, { 0, -10, 0 } );
+    teTransformSetLocalScale( corridorGo.index, 0.5f );
+    teMeshRendererSetMesh( corridorGo.index, &corridorMesh );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 0 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 1 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 2 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 3 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 4 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 5 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 6 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 7 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 8 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 9 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 10 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 11 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 12 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 13 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 14 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 15 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 16 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 17 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 18 );
+    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 19 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 20 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 21 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 22 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 23 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 24 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 25 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 26 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 27 );
+
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
@@ -463,8 +509,12 @@ int main()
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
-    Vec3 keypadPos = Vec3( -10, 4, 3 );
+    Vec3 keypadPos = Vec3( 20, 4, 15 );
+    Quaternion keypadAngle;
+    keypadAngle.FromAxisAngle( { 0, 1, 0 }, 180 );
+    teTransformSetLocalScale( keypadGo.index, 2 );
     teTransformSetLocalPosition( keypadGo.index, keypadPos );
+    teTransformSetLocalRotation( keypadGo.index, keypadAngle );
     teMeshRendererSetMesh( keypadGo.index, &keypadMesh );
     teMeshRendererSetMaterial( keypadGo.index, key0mat, 0 );
     teMeshRendererSetMaterial( keypadGo.index, key0mat, 1 );
@@ -491,8 +541,9 @@ int main()
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     //teSceneAdd( scene, cubeGo2.index );
-    teSceneAdd( scene, roomGo.index );
+    //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
+    teSceneAdd( scene, corridorGo.index );
 
     teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
@@ -741,8 +792,9 @@ int main()
         teTransformMoveUp( camera3d.index, inputParams.moveDir.y * (float)dt * speed );
 
         cameraPos = teTransformGetLocalPosition(camera3d.index);
+        bool collisionDetection = false;
 
-        if (teScenePointInsideAABB( scene, cameraPos ))
+        if (collisionDetection && teScenePointInsideAABB( scene, cameraPos ))
         {
             teTransformSetLocalPosition( camera3d.index, oldCameraPos );
             teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt* speed, false, fpsCamera, true );
@@ -750,7 +802,7 @@ int main()
 
             if (teScenePointInsideAABB( scene, cameraPos ))
             {
-                teTransformSetLocalPosition( camera3d.index, oldCameraPos );
+                teTransformSetLocalPosition(camera3d.index, oldCameraPos);
                 teTransformMoveForward( camera3d.index, inputParams.moveDir.z* (float)dt* speed, true, fpsCamera, false );
                 cameraPos = teTransformGetLocalPosition( camera3d.index );
                 if (teScenePointInsideAABB( scene, cameraPos ))
