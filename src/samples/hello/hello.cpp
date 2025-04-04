@@ -535,6 +535,19 @@ int main()
     teMeshRendererSetMaterial( keypadGo.index, key0mat, 16 );
     teMeshRendererSetMaterial( keypadGo.index, key0mat, 17 );
 
+    teFile sceneFile = teLoadFile( "assets/hello.tscene" );
+    teGameObject* sceneGos;
+    teTexture2D* sceneTextures;
+    teMaterial* sceneMaterials;
+    unsigned sceneGoCount = 0;
+    unsigned sceneTextureCount = 0;
+    unsigned sceneMaterialCount = 0;
+    teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount );
+    sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
+    sceneTextures = (teTexture2D*)malloc( sceneGoCount * sizeof( teTexture2D ) );
+    sceneMaterials = (teMaterial*)malloc( sceneGoCount * sizeof( teMaterial ) );
+    //teSceneRead( sceneFile, sceneGos, sceneTextures, sceneMaterials );
+
     teScene scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
 
@@ -544,6 +557,11 @@ int main()
     //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
     teSceneAdd( scene, corridorGo.index );
+
+    for (unsigned i = 0; i < sceneGoCount; ++i)
+    {
+        teSceneAdd( scene, sceneGos[ i ].index );
+    }
 
     teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
