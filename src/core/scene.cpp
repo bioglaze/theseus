@@ -453,3 +453,8 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
 
     return isInside;
 }
+
+void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, unsigned& outMaterialCount )
+{
+
+}

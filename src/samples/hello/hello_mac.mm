@@ -333,6 +333,18 @@ void MoveUp( float amount )
         teMeshRendererSetMaterial( keypadGo.index, key0mat, 16 );
         teMeshRendererSetMaterial( keypadGo.index, key0mat, 17 );
 
+        teFile sceneFile = teLoadFile( "assets/hello.tscene" );
+        teGameObject* sceneGos;
+        teTexture2D* sceneTextures;
+        teMaterial* sceneMaterials;
+        unsigned sceneGoCount = 0;
+        unsigned sceneTextureCount = 0;
+        unsigned sceneMaterialCount = 0;
+        teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount );
+        //sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
+        //sceneTextures = (teTexture2D*)malloc( sceneGoCount * sizeof( teTexture2D ) );
+        //sceneMaterials = (teMaterial*)malloc( sceneGoCount * sizeof( teMaterial ) );
+
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );

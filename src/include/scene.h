@@ -15,3 +15,4 @@ void teSceneSetupDirectionalLight( const teScene& scene, const Vec3& color, cons
 unsigned teSceneGetMaxGameObjects();
 // \return 0 if the game object at index i doesn't exist.
 unsigned teSceneGetGameObjectIndex( const teScene& scene, unsigned i );
+void teSceneReadArraySizes( const struct teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, unsigned& outMaterialCount );
