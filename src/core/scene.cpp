@@ -456,5 +456,30 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
 
 void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, unsigned& outMaterialCount )
 {
+    char line[ 255 ] = {};
 
+    unsigned i = 0;
+    unsigned cursor = 0;
+    int iter = 0;
+    
+    while (cursor < sceneFile.size)
+    {        
+        while (sceneFile.data[ i + cursor ] != '\n' && i + cursor < sceneFile.size)
+        {
+            line[ i ] = sceneFile.data[ i + cursor ];
+            ++i;
+        
+            if (i == 256)
+            {
+                tePrint( "Scene file line is longer than 255 characters! Clamping to 255." );
+            }
+        }
+        printf("line: %s\n", line);
+        memset( line, 0, 255 );
+        cursor += i;
+        i = 0;
+        //return;
+        ++iter;
+        if (iter > 20) return;
+    }
 }
