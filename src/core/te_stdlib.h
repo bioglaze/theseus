@@ -89,6 +89,14 @@ static void teMemcpy( void* dst, const void* src, size_t size )
     memcpy( dst, src, size );
 }
 
+static void teZero( char* dst, size_t size )
+{
+    for (unsigned i = 0; i < size; ++i)
+    {
+        dst[ i ] = 0;
+    }
+}
+
 static void* teMalloc( size_t bytes )
 {
     teAssert( bytes > 0 );

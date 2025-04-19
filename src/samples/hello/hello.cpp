@@ -542,10 +542,12 @@ int main()
     unsigned sceneGoCount = 0;
     unsigned sceneTextureCount = 0;
     unsigned sceneMaterialCount = 0;
-    teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount );
+    unsigned sceneMeshCount = 0;
+    teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
     sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
     sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
     sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
+    sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
     printf( "gos: %u, textures: %u, materials: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount );
     //teSceneRead( sceneFile, sceneGos, sceneTextures, sceneMaterials );
 

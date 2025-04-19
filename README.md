@@ -18,7 +18,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 # Platforms
 
   - Windows, only AMD64 tested, but ARM64 might also work.
-  - macOS (Apple Silicon)
+  - macOS (Apple silicon)
   - Linux support (requires Wayland)
 
 # Building

@@ -454,32 +454,157 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
     return isInside;
 }
 
-void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, unsigned& outMaterialCount )
+void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, 
+                            unsigned& outMaterialCount, unsigned& outMeshCount )
 {
-    char line[ 255 ] = {};
+    outGoCount = 0;
+    outTextureCount = 0;
+    outMaterialCount = 0;
+    outMeshCount = 0;
 
-    unsigned i = 0;
+    char line[ 255 ] = {};
     unsigned cursor = 0;
-    int iter = 0;
-    
+    unsigned i = 0;
+
     while (cursor < sceneFile.size)
-    {        
-        while (sceneFile.data[ i + cursor ] != '\n' && i + cursor < sceneFile.size)
+    {
+        line[ i ] = sceneFile.data[ cursor ];
+        ++i;
+
+        if (sceneFile.data[ cursor ] == '\n')
         {
-            line[ i ] = sceneFile.data[ i + cursor ];
-            ++i;
-        
-            if (i == 256)
+            line[ i - 1 ] = 0;
+            i = 0;
+            printf( "line: %s\n", line );
+            // TODO: make sure that the code works even if these keywords are used in asset file names.
+            // TODO: make sure that file names containing spaces work.
+            // TODO: don't add duplicates.
+            if (teStrstr( line, "texture2d" ) == line)
             {
-                tePrint( "Scene file line is longer than 255 characters! Clamping to 255." );
+                ++outTextureCount;
             }
+            else if (teStrstr( line, "material" ) == line)
+            {
+                ++outMaterialCount;
+            }
+            else if (teStrstr( line, "gameobject" ) == line)
+            {
+                ++outGoCount;
+            }
+            else if (teStrstr( line, "mesh" ) == line)
+            {
+                ++outMeshCount;
+            }
+            teZero( line, 255 );
         }
-        printf("line: %s\n", line);
-        memset( line, 0, 255 );
-        cursor += i;
-        i = 0;
-        //return;
-        ++iter;
-        if (iter > 20) return;
+
+        ++cursor;
+    }    
+}
+
+char gSceneStrings[ 20000 ];
+uint32_t gNextFreeSceneString = 0;
+
+uint32_t InsertSceneString( char* str )
+{
+    size_t len = teStrlen( str );
+    teMemcpy( gSceneStrings + gNextFreeSceneString, str, len );
+    uint32_t outIndex = gNextFreeSceneString;
+    gNextFreeSceneString += (uint32_t)len + 1;
+    teAssert( gNextFreeSceneString < 20000 );
+    
+    return outIndex;
+}
+
+void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* textures, teMaterial* materials, teMesh* meshes )
+{
+    unsigned goCount = 0;
+    unsigned textureCount = 0;
+    unsigned materialCount = 0;
+    unsigned meshCount = 0;
+
+    char line[ 255 ] = {};
+    unsigned cursor = 0;
+    unsigned i = 0;
+
+    while (cursor < sceneFile.size)
+    {
+        line[ i ] = sceneFile.data[ cursor ];
+        ++i;
+
+        if (sceneFile.data[ cursor ] == '\n')
+        {
+            line[ i - 1 ] = 0;
+            i = 0;
+            printf( "line: %s\n", line );
+            // TODO: make sure that the code works even if these keywords are used in asset file names.
+            // TODO: make sure that file names containing spaces work.
+            // TODO: don't add duplicates.
+            if (teStrstr( line, "texture2d" ) == line)
+            {
+                printf("line begins with texture2d\n" );
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "texture2d " );
+
+                while (line[ nameCursor + offset ] != ' ')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "texture name: %s\n", name );
+                unsigned nameIndex = InsertSceneString( name );
+
+                char fileName[ 100 ] = {};
+                unsigned fileNameCursor = 0;
+
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 2)
+                {
+                    fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
+                    printf("read %c\n", fileName[ fileNameCursor ] );
+                    ++fileNameCursor;
+                }
+                
+                // TODO: if .dds is not supported by runtime, use .tga or .astc
+                fileName[ fileNameCursor ] = '.';
+                fileName[ fileNameCursor + 1 ] = 'd';
+                fileName[ fileNameCursor + 2 ] = 'd';
+                fileName[ fileNameCursor + 3 ] = 's';
+                printf( "file name: %s\n", fileName );
+                teFile texFile = teLoadFile( fileName );
+
+                textures[ textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                ++textureCount;
+            }
+            else if (teStrstr( line, "material" ) == line)
+            {
+                printf("line begins with material\n");
+                ++materialCount;
+            }
+            else if (teStrstr( line, "gameobject" ) == line)
+            {
+                printf("line begins with gameobject\n");
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "gameobject " );
+
+                while (nameCursor + offset < teStrlen( line ) - 1)
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "gameobject name: %s\n", name );
+
+                ++goCount;
+            }
+            else if (teStrstr( line, "mesh" ) == line)
+            {
+                printf("line begins with mesh\n");
+                ++meshCount;
+            }
+            teZero( line, 255 );
+        }
+
+        ++cursor;
     }
 }

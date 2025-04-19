@@ -337,19 +337,28 @@ void MoveUp( float amount )
         teGameObject* sceneGos;
         teTexture2D* sceneTextures;
         teMaterial* sceneMaterials;
+        teMesh* sceneMeshes;
         unsigned sceneGoCount = 0;
         unsigned sceneTextureCount = 0;
         unsigned sceneMaterialCount = 0;
-        teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount );
-        //sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
-        //sceneTextures = (teTexture2D*)malloc( sceneGoCount * sizeof( teTexture2D ) );
-        //sceneMaterials = (teMaterial*)malloc( sceneGoCount * sizeof( teMaterial ) );
+        unsigned sceneMeshCount = 0;
+        teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
+        sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
+        sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
+        sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
+        sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
+        teSceneReadScene( sceneFile, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
 
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
         teSceneAdd( m_scene, m_roomGo.index );
         teSceneAdd( m_scene, keypadGo.index );
+
+        for (unsigned i = 0; i < sceneGoCount; ++i)
+        {
+            //teSceneAdd( scene, sceneGos[ i ].index );
+        }
 
         teSceneSetupDirectionalLight( m_scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
