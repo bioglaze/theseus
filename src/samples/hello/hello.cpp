@@ -536,19 +536,16 @@ int main()
     teMeshRendererSetMaterial( keypadGo.index, key0mat, 17 );
 
     teFile sceneFile = teLoadFile( "assets/hello.tscene" );
-    teGameObject* sceneGos;
-    teTexture2D* sceneTextures;
-    teMaterial* sceneMaterials;
     unsigned sceneGoCount = 0;
     unsigned sceneTextureCount = 0;
     unsigned sceneMaterialCount = 0;
     unsigned sceneMeshCount = 0;
     teSceneReadArraySizes( sceneFile, sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
-    sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
-    sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
-    sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
-    sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
-    printf( "gos: %u, textures: %u, materials: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount );
+    teGameObject* sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
+    teTexture2D* sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
+    teMaterial* sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
+    teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
+    printf( "gos: %u, textures: %u, materials: %u, meshes: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
     //teSceneRead( sceneFile, sceneGos, sceneTextures, sceneMaterials );
 
     teScene scene = teCreateScene( 2048 );
@@ -563,7 +560,7 @@ int main()
 
     for (unsigned i = 0; i < sceneGoCount; ++i)
     {
-        teSceneAdd( scene, sceneGos[ i ].index );
+        //teSceneAdd( scene, sceneGos[ i ].index );
     }
 
     teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
