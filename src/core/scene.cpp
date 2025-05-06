@@ -12,6 +12,7 @@
 #include "texture.h"
 #include "transform.h"
 #include "vec3.h"
+#include <stdint.h>
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor );
 void EndRendering( teTexture2D& color );
@@ -579,6 +580,18 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             else if (teStrstr( line, "material" ) == line)
             {
                 printf("line begins with material\n");
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "material " );
+
+                while (nameCursor + offset < teStrlen( line ) - 1)
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "material name: %s\n", name );
+                unsigned nameIndex = InsertSceneString( name );
+
                 ++materialCount;
             }
             else if (teStrstr( line, "gameobject" ) == line)

@@ -546,7 +546,7 @@ int main()
     teMaterial* sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
     teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
     printf( "gos: %u, textures: %u, materials: %u, meshes: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
-    //teSceneRead( sceneFile, sceneGos, sceneTextures, sceneMaterials );
+    teSceneReadScene( sceneFile, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
 
     teScene scene = teCreateScene( 2048 );
     teFinalizeMeshBuffers();
