@@ -1709,7 +1709,7 @@ void teEndFrame()
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
+    submitInfo.pSignalSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer;
 
@@ -1724,7 +1724,7 @@ void teEndFrame()
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &renderer.swapchain;
     presentInfo.pImageIndices = &renderer.currentBuffer;
-    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.frameIndex ].renderCompleteSemaphore;
+    presentInfo.pWaitSemaphores = &renderer.swapchainResources[ renderer.currentBuffer ].renderCompleteSemaphore;
     presentInfo.waitSemaphoreCount = 1;
     VkResult err = renderer.queuePresentKHR( renderer.graphicsQueue, &presentInfo );
 
