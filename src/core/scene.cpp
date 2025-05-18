@@ -619,7 +619,21 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             }
             else if (teStrstr( line, "meshrenderer" ) == line)
             {
+                if (goCount == 0)
+                {
+                    printf( "meshrenderer without gameobject!\n" );
+                }
                 printf("line begins with meshrenderer\n");
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "meshrenderer " );
+
+                while (nameCursor + offset < teStrlen( line ) - 1)
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "meshrenderer for mesh: %s\n", name );
             }
             else if (teStrstr( line, "mesh" ) == line)
             {

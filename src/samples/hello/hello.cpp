@@ -556,11 +556,11 @@ int main()
     //teSceneAdd( scene, cubeGo2.index );
     //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
-    teSceneAdd( scene, corridorGo.index );
+    //teSceneAdd( scene, corridorGo.index );
 
     for (unsigned i = 0; i < sceneGoCount; ++i)
     {
-        //teSceneAdd( scene, sceneGos[ i ].index );
+        teSceneAdd( scene, sceneGos[ i ].index );
     }
 
     teSceneSetupDirectionalLight( scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
