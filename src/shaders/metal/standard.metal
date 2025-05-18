@@ -31,9 +31,6 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
 
     float2 moments = shadowMap.sample( sampler0, uv ).rg;
-    /*if (moments.x > depth)
-        return 0.2f;
-    return 1.0f;*/
 
     float variance = max( moments.y - moments.x * moments.x, -0.001f );
 

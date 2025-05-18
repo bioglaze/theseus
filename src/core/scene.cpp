@@ -477,7 +477,6 @@ void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsig
             line[ i - 1 ] = 0;
             i = 0;
             printf( "line: %s\n", line );
-            // TODO: make sure that the code works even if these keywords are used in asset file names.
             // TODO: make sure that file names containing spaces work.
             // TODO: don't add duplicates.
             if (teStrstr( line, "texture2d" ) == line)
@@ -491,6 +490,14 @@ void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsig
             else if (teStrstr( line, "gameobject" ) == line)
             {
                 ++outGoCount;
+            }
+            else if (teStrstr( line, "meshrenderer" ) == line)
+            {
+                //++outMeshCount;
+            }
+            else if (teStrstr( line, "meshmaterial" ) == line)
+            {
+                //++outMeshCount;
             }
             else if (teStrstr( line, "mesh" ) == line)
             {
@@ -538,12 +545,10 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             line[ i - 1 ] = 0;
             i = 0;
             printf( "line: %s\n", line );
-            // TODO: make sure that the code works even if these keywords are used in asset file names.
             // TODO: make sure that file names containing spaces work.
             // TODO: don't add duplicates.
             if (teStrstr( line, "texture2d" ) == line)
             {
-                printf("line begins with texture2d\n" );
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "texture2d " );
@@ -562,7 +567,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 2)
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
-                    printf("read %c\n", fileName[ fileNameCursor ] );
+                    //printf("read %c\n", fileName[ fileNameCursor ] );
                     ++fileNameCursor;
                 }
                 
@@ -579,7 +584,6 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             }
             else if (teStrstr( line, "material" ) == line)
             {
-                printf("line begins with material\n");
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "material " );
@@ -596,7 +600,6 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             }
             else if (teStrstr( line, "gameobject" ) == line)
             {
-                printf("line begins with gameobject\n");
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "gameobject " );
@@ -607,12 +610,42 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "gameobject name: %s\n", name );
-
+                gos[ goCount ] = teCreateGameObject( "gameobject", teComponent::Transform );
                 ++goCount;
+            }
+            else if (teStrstr( line, "meshmaterial" ) == line)
+            {
+                printf("line begins with meshmaterial\n");
+            }
+            else if (teStrstr( line, "meshrenderer" ) == line)
+            {
+                printf("line begins with meshrenderer\n");
             }
             else if (teStrstr( line, "mesh" ) == line)
             {
-                printf("line begins with mesh\n");
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "mesh " );
+
+                while (line[ nameCursor + offset ] != ' ')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "mesh name: %s\n", name );
+                unsigned nameIndex = InsertSceneString( name );
+
+                char fileName[ 100 ] = {};
+                unsigned fileNameCursor = 0;
+
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 2)
+                {
+                    fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
+                    //printf("read %c\n", fileName[ fileNameCursor ] );
+                    ++fileNameCursor;
+                }
+                printf("mesh fileName: %s\n", fileName );
+                teFile meshFile = teLoadFile( fileName );
                 ++meshCount;
             }
             teZero( line, 255 );

@@ -347,6 +347,8 @@ void MoveUp( float amount )
         sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
         sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
         sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
+        printf( "sceneGos: %u, sceneTextures: %u, sceneMaterials: %u, sceneMeshes: %u\n",
+            sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
         teSceneReadScene( sceneFile, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
 
         m_scene = teCreateScene( 2048 );
@@ -357,7 +359,7 @@ void MoveUp( float amount )
 
         for (unsigned i = 0; i < sceneGoCount; ++i)
         {
-            //teSceneAdd( scene, sceneGos[ i ].index );
+            teSceneAdd( m_scene, sceneGos[ i ].index );
         }
 
         teSceneSetupDirectionalLight( m_scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
