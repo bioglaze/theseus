@@ -535,6 +535,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
     unsigned cursor = 0;
     unsigned i = 0;
 
+    unsigned meshNameIndices[ 1000 ];
+
     while (cursor < sceneFile.size)
     {
         line[ i ] = sceneFile.data[ cursor ];
@@ -634,6 +636,23 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "meshrenderer for mesh: %s\n", name );
+                teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::MeshRenderer );
+
+                bool found = false;
+
+                for (unsigned m = 0; m < meshCount; ++m)
+                {
+                    if (!found && teStrstr( gSceneStrings + meshNameIndices[ m ], name ))
+                    {
+                        teMeshRendererSetMesh( gos[ goCount - 1 ].index, &meshes[ m ] );
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                {
+                    printf( "meshrenderer: could not find %s\n", name );
+                }
             }
             else if (teStrstr( line, "mesh" ) == line)
             {
@@ -647,7 +666,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "mesh name: %s\n", name );
-                unsigned nameIndex = InsertSceneString( name );
+                teAssert( meshCount < 1000 );
+                meshNameIndices[ meshCount ] = InsertSceneString( name );
 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
@@ -660,6 +680,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 }
                 printf("mesh fileName: %s\n", fileName );
                 teFile meshFile = teLoadFile( fileName );
+                meshes[ meshCount ] = teLoadMesh( meshFile );
                 ++meshCount;
             }
             teZero( line, 255 );
