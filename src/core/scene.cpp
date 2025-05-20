@@ -536,6 +536,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
     unsigned i = 0;
 
     unsigned meshNameIndices[ 1000 ];
+    unsigned materialNameIndices[ 1000 ];
 
     while (cursor < sceneFile.size)
     {
@@ -566,7 +567,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
-                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 2)
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 1)
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
@@ -596,7 +597,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "material name: %s\n", name );
-                unsigned nameIndex = InsertSceneString( name );
+                materialNameIndices[ materialCount ] = InsertSceneString( name );
 
                 ++materialCount;
             }
@@ -672,7 +673,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
-                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 2)
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 1)
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
@@ -683,9 +684,36 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 meshes[ meshCount ] = teLoadMesh( meshFile );
                 ++meshCount;
             }
+            else if (teStrstr( line, "tex0" ) == line)
+            {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "tex0 " );
+
+                while (nameCursor + offset < teStrlen( line ))
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "texture 0 name: %s\n", name );
+            }
+            else if (teStrstr( line, "tex1" ) == line)
+            {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = teStrlen( "tex1 " );
+                
+                while (nameCursor + offset < teStrlen( line ))
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "texture 1 name: %s\n", name );
+            }
+
             teZero( line, 255 );
         }
-
+        
         ++cursor;
     }
 }
