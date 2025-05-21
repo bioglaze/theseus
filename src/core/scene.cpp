@@ -568,7 +568,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned fileNameCursor = 0;
 
                 while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
-                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                       line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
@@ -576,10 +576,10 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 }
                 
                 // TODO: if .dds is not supported by runtime, use .tga or .astc
-                fileName[ fileNameCursor - 1] = '.';
-                fileName[ fileNameCursor + 0 ] = 'd';
+                fileName[ fileNameCursor + 0 ] = '.';
                 fileName[ fileNameCursor + 1 ] = 'd';
-                fileName[ fileNameCursor + 2 ] = 's';
+                fileName[ fileNameCursor + 2 ] = 'd';
+                fileName[ fileNameCursor + 3 ] = 's';
                 printf( "file name: %s\n", fileName );
                 teFile texFile = teLoadFile( fileName );
 
@@ -640,7 +640,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                printf( "meshrenderer for mesh: %s\n", name );
+                printf( "meshrenderer for mesh: '%s'\n", name );
                 teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::MeshRenderer );
 
                 bool found = false;
@@ -656,7 +656,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
 
                 if (!found)
                 {
-                    printf( "meshrenderer: could not find %s\n", name );
+                    printf( "meshrenderer: could not find '%s'\n", name );
                 }
             }
             else if (teStrstr( line, "mesh" ) == line)
@@ -678,13 +678,13 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned fileNameCursor = 0;
 
                 while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
-                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                       line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
                     ++fileNameCursor;
                 }
-                printf("mesh fileName: %s\n", fileName );
+                printf("mesh fileName: '%s'\n", fileName );
                 teFile meshFile = teLoadFile( fileName );
                 meshes[ meshCount ] = teLoadMesh( meshFile );
                 ++meshCount;
