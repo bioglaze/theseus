@@ -567,7 +567,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
-                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 1)
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
@@ -575,10 +576,10 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 }
                 
                 // TODO: if .dds is not supported by runtime, use .tga or .astc
-                fileName[ fileNameCursor ] = '.';
+                fileName[ fileNameCursor - 1] = '.';
+                fileName[ fileNameCursor + 0 ] = 'd';
                 fileName[ fileNameCursor + 1 ] = 'd';
-                fileName[ fileNameCursor + 2 ] = 'd';
-                fileName[ fileNameCursor + 3 ] = 's';
+                fileName[ fileNameCursor + 2 ] = 's';
                 printf( "file name: %s\n", fileName );
                 teFile texFile = teLoadFile( fileName );
 
@@ -591,7 +592,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "material " );
 
-                while (nameCursor + offset < teStrlen( line ) - 1)
+                while (nameCursor + offset < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
@@ -607,7 +609,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "gameobject " );
 
-                while (nameCursor + offset < teStrlen( line ) - 1)
+                while (nameCursor + offset < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
@@ -631,7 +634,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "meshrenderer " );
 
-                while (nameCursor + offset < teStrlen( line ) - 1)
+                while (nameCursor + offset < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
@@ -673,7 +677,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
-                while (nameCursor + offset + fileNameCursor < teStrlen( line ) - 1)
+                while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     //printf("read %c\n", fileName[ fileNameCursor ] );
@@ -690,7 +695,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "tex0 " );
 
-                while (nameCursor + offset < teStrlen( line ))
+                while (nameCursor + offset < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
@@ -703,7 +709,8 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "tex1 " );
                 
-                while (nameCursor + offset < teStrlen( line ))
+                while (nameCursor + offset < teStrlen( line ) &&
+                       line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
                 {
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
