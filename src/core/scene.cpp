@@ -524,7 +524,7 @@ uint32_t InsertSceneString( char* str )
     return outIndex;
 }
 
-void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* textures, teMaterial* materials, teMesh* meshes )
+void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, teGameObject* gos, teTexture2D* textures, teMaterial* materials, teMesh* meshes )
 {
     unsigned goCount = 0;
     unsigned textureCount = 0;
@@ -536,7 +536,11 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
     unsigned i = 0;
 
     unsigned meshNameIndices[ 1000 ];
+    unsigned textureNameIndices[ 1000 ];
     unsigned materialNameIndices[ 1000 ];
+
+    unsigned tex0Index = 0;
+    unsigned tex1Index = 0;
 
     while (cursor < sceneFile.size)
     {
@@ -547,7 +551,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
         {
             line[ i - 1 ] = 0;
             i = 0;
-            printf( "line: %s\n", line );
+            
             // TODO: make sure that file names containing spaces work.
             // TODO: don't add duplicates.
             if (teStrstr( line, "texture2d" ) == line)
@@ -562,7 +566,7 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "texture name: %s\n", name );
-                unsigned nameIndex = InsertSceneString( name );
+                textureNameIndices[ textureCount ] = InsertSceneString( name );
 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
@@ -571,7 +575,6 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                        line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
-                    //printf("read %c\n", fileName[ fileNameCursor ] );
                     ++fileNameCursor;
                 }
                 
@@ -598,8 +601,10 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
+
                 printf( "material name: %s\n", name );
                 materialNameIndices[ materialCount ] = InsertSceneString( name );
+                materials[ materialCount ] = teCreateMaterial( standardShader );
 
                 ++materialCount;
             }
@@ -622,6 +627,50 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
             else if (teStrstr( line, "meshmaterial" ) == line)
             {
                 printf("line begins with meshmaterial\n");
+                char index[ 100 ] = {};
+                unsigned indexCursor = 0;
+                unsigned offset = teStrlen( "meshmaterial " );
+
+                while (line[ indexCursor + offset ] != ' ')
+                {
+                    index[ indexCursor ] = line[ indexCursor + offset ];
+                    ++indexCursor;
+                }
+                printf( "meshmaterial submesh index: %s\n", index );
+
+                char materialName[ 100 ] = {};
+                unsigned materialNameCursor = 0;
+
+                while (indexCursor + offset + materialNameCursor < teStrlen( line ) &&
+                    line[ indexCursor + offset + materialNameCursor + 1 ] != '\r' && line[ indexCursor + offset + materialNameCursor + 1 ] != '\n')
+                {
+                    materialName[ materialNameCursor ] = line[ indexCursor + offset + materialNameCursor + 1 ];
+                    ++materialNameCursor;
+                }
+
+                printf( "meshmaterial material name: %s\n", materialName );
+                unsigned materialIndex = 0;
+
+                for (unsigned m = 0; m < materialCount; ++m)
+                {
+                    if (teStrstr( gSceneStrings + meshNameIndices[ m ], materialName ))
+                    {
+                        materialIndex = m;
+                    }
+                }
+
+                if (teStrstr( index, "all" ))
+                {
+                    printf( "all submeshes wanted\n" );
+                    for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( teMeshRendererGetMesh( gos[ goCount - 1 ].index ) ); ++subMeshIndex)
+                    {
+                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, materials[ materialIndex ], subMeshIndex);
+                    }
+                }
+                else
+                {
+                    printf( "only 'all' submeshes supported currently!\n" );
+                }
             }
             else if (teStrstr( line, "meshrenderer" ) == line)
             {
@@ -681,7 +730,6 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                        line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
-                    //printf("read %c\n", fileName[ fileNameCursor ] );
                     ++fileNameCursor;
                 }
                 printf("mesh fileName: '%s'\n", fileName );
@@ -702,6 +750,16 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "texture 0 name: %s\n", name );
+
+                for (unsigned t = 0; t < textureCount; ++t)
+                {
+                    if (teStrstr( gSceneStrings + textureNameIndices[ t ], name ))
+                    {
+                        tex0Index = t;
+                        teMaterialSetTexture2D( materials[ materialCount - 1 ], textures[ t ], 0 );
+                        break;
+                    }
+                }
             }
             else if (teStrstr( line, "tex1" ) == line)
             {
@@ -716,6 +774,16 @@ void teSceneReadScene( const teFile& sceneFile, teGameObject* gos, teTexture2D* 
                     ++nameCursor;
                 }
                 printf( "texture 1 name: %s\n", name );
+
+                for (unsigned t = 0; t < textureCount; ++t)
+                {
+                    if (teStrstr( gSceneStrings + textureNameIndices[ t ], name ))
+                    {
+                        tex1Index = t;
+                        teMaterialSetTexture2D( materials[ materialCount - 1 ], textures[ t ], 1 );
+                        break;
+                    }
+                }
             }
 
             teZero( line, 255 );
