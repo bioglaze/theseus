@@ -22,6 +22,7 @@ DWORD WINAPI XInputSetStateStub( DWORD /*dwUserIndex*/, XINPUT_VIBRATION* /*pVib
 }
 
 static x_input_set_state* XInputSetState_ = XInputSetStateStub;
+static LONGLONG PCFreq;
 
 constexpr int EventStackSize = 100;
 
@@ -39,6 +40,13 @@ struct WindowImpl
 };
 
 WindowImpl win;
+
+double GetMilliseconds()
+{
+    LARGE_INTEGER li;
+    QueryPerformanceCounter( &li );
+    return (double)(li.QuadPart / (double)PCFreq);
+}
 
 void InitGamePad()
 {
@@ -263,6 +271,10 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     _CrtSetReportMode( _CRT_ASSERT, _CRTDBG_MODE_FILE );
     _CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDERR );
 #endif
+
+    LARGE_INTEGER li;
+    QueryPerformanceFrequency( &li );
+    PCFreq = li.QuadPart / 1000;
 
     win.width = width == 0 ? GetSystemMetrics( SM_CXSCREEN ) : width;
     win.height = height == 0 ? GetSystemMetrics( SM_CYSCREEN ) : height;

@@ -24,28 +24,7 @@
 
 float bloomThreshold = 0.1f;
 
-#if _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-static LONGLONG PCFreq;
-
-double GetMilliseconds()
-{
-    LARGE_INTEGER li;
-    QueryPerformanceCounter( &li );
-    return (double)(li.QuadPart / (double)PCFreq);
-}
-#else
-#include <time.h>
-
-double GetMilliseconds()
-{
-    timespec spec;
-    clock_gettime( CLOCK_MONOTONIC, &spec );
-    return spec.tv_nsec / 1000000;
-}
-#endif
+double GetMilliseconds();
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -245,11 +224,6 @@ teMesh keypadMesh;
 
 int main()
 {
-#ifdef _WIN32
-    LARGE_INTEGER li;
-    QueryPerformanceFrequency( &li );
-    PCFreq = li.QuadPart / 1000;
-#endif
     unsigned width =  1920 / 1;
     unsigned height =  1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );

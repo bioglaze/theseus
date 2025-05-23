@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <time.h>
 #include <libdecor.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
@@ -58,6 +59,13 @@ struct WindowImpl
 };
 
 WindowImpl win;
+
+double GetMilliseconds()
+{
+    timespec spec;
+    clock_gettime( CLOCK_MONOTONIC, &spec );
+    return spec.tv_nsec / 1000000;
+}
 
 void IncEventIndex()
 {
