@@ -42,6 +42,7 @@ constexpr unsigned SamplerCount = 6;
 // Must match ubo.h shader header!
 struct PushConstants
 {
+    uint64_t posBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -1340,13 +1341,13 @@ void CreateDescriptorSets()
 void CreateBuffers()
 {
     unsigned bufferBytes = 1024 * 1024 * 250;
-    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
     renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshPositionStagingBuffer" );
-    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
     renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
-    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshNormalBuffer" );
+    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshNormalBuffer" );
     renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshNormalStagingBuffer" );
-    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float4, "staticMeshTangentBuffer" );
+    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float4, "staticMeshTangentBuffer" );
     renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float4, "staticMeshTangentStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
@@ -2085,7 +2086,12 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
+    VkBufferDeviceAddressInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR;
+    info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+
     PushConstants pushConstants{};
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &info );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
@@ -2178,7 +2184,12 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         ++renderer.statPSOBinds;
     }
 
+    VkBufferDeviceAddressInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR;
+    info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+
     PushConstants pushConstants{};
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &info );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;

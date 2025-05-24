@@ -50,9 +50,14 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 
     outBuffer.memoryUsage = (unsigned int)memReqs.size;
 
+    VkMemoryAllocateFlagsInfoKHR flagsInfo = {};
+    flagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR;
+    flagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memReqs.size;
+    allocInfo.pNext = (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? &flagsInfo : nullptr;
     allocInfo.memoryTypeIndex = GetMemoryType( memReqs.memoryTypeBits, deviceMemoryProperties, memoryFlags );
     VK_CHECK( vkAllocateMemory( device, &allocInfo, nullptr, &buffers[ outBuffer.index ].memory ) );
     SetObjectName( device, (uint64_t)buffers[ outBuffer.index ].memory, VK_OBJECT_TYPE_DEVICE_MEMORY, debugName );

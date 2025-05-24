@@ -10,6 +10,7 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
     vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
+    //float4 vTest = vk::RawBufferLoad<float4>( pushConstants.posBuf + 16 );
     vsOut.uv = uvs[ vertexId ];
 
     return vsOut;

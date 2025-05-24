@@ -14,6 +14,7 @@ struct UniformData
 
 struct PushConstants
 {
+    uint64_t posBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
