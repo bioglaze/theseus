@@ -2087,7 +2087,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
     VkBufferDeviceAddressInfoKHR info = {};
-    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR;
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
 
     PushConstants pushConstants{};
@@ -2184,8 +2184,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         ++renderer.statPSOBinds;
     }
 
-    VkBufferDeviceAddressInfoKHR info = {};
-    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR;
+    VkBufferDeviceAddressInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
 
     PushConstants pushConstants{};
