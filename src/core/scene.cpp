@@ -571,6 +571,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
+                // FIXME: the first line probably should have + 1
                 while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
                        line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
@@ -664,12 +665,17 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     printf( "all submeshes wanted\n" );
                     for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( teMeshRendererGetMesh( gos[ goCount - 1 ].index ) ); ++subMeshIndex)
                     {
-                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, materials[ materialIndex ], subMeshIndex);
+                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, materials[ materialIndex ], subMeshIndex );
                     }
                 }
                 else
                 {
-                    printf( "only 'all' submeshes supported currently!\n" );
+                    unsigned subMeshIndex = atoi( index );
+                    
+                    if (subMeshIndex < teMeshGetSubMeshCount( teMeshRendererGetMesh( gos[ goCount - 1 ].index ) ))
+                    {
+                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, materials[ materialIndex ], subMeshIndex );
+                    }
                 }
             }
             else if (teStrstr( line, "meshrenderer" ) == line)
