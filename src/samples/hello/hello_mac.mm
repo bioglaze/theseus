@@ -349,7 +349,7 @@ void MoveUp( float amount )
         sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
         printf( "sceneGos: %u, sceneTextures: %u, sceneMaterials: %u, sceneMeshes: %u\n",
             sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
-        teSceneReadScene( sceneFile, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
+        teSceneReadScene( sceneFile, m_standardShader, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
 
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
