@@ -936,7 +936,6 @@ void CreateInstance()
     const char* enabledExtensions[] =
     {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 #if VK_USE_PLATFORM_WIN32_KHR
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
 #elif VK_USE_PLATFORM_WAYLAND_KHR
@@ -948,7 +947,7 @@ void CreateInstance()
     VkInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &appInfo;
-    instanceCreateInfo.enabledExtensionCount = hasDebugUtils ? 4 : 3;
+    instanceCreateInfo.enabledExtensionCount = hasDebugUtils ? 3 : 2;
     instanceCreateInfo.ppEnabledExtensionNames = enabledExtensions;
 #if _DEBUG
     const char* validationLayerNames[] = { "VK_LAYER_KHRONOS_validation" };
@@ -1043,7 +1042,6 @@ void CreateDevice()
     const char* enabledExtensions[] =
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
         VK_EXT_MESH_SHADER_EXTENSION_NAME
     };
     
@@ -1051,8 +1049,8 @@ void CreateDevice()
 
     VkPhysicalDeviceVulkan12Features features12 = {};
 
-    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{};
-    dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{};
+    dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamicRenderingFeature.dynamicRendering = VK_TRUE;
     dynamicRenderingFeature.pNext = &features12;
     
@@ -1065,7 +1063,7 @@ void CreateDevice()
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.pEnabledFeatures = &renderer.features;
-    deviceCreateInfo.enabledExtensionCount = renderer.meshShaderSupported ? 3 : 2;
+    deviceCreateInfo.enabledExtensionCount = renderer.meshShaderSupported ? 2 : 1;
     deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions;
     VK_CHECK( vkCreateDevice( renderer.physicalDevice, &deviceCreateInfo, nullptr, &renderer.device ) );
 
