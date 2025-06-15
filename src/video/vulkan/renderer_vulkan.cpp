@@ -43,6 +43,7 @@ constexpr unsigned SamplerCount = 6;
 struct PushConstants
 {
     uint64_t posBuf;
+    uint64_t uvBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -2084,12 +2085,17 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
-    VkBufferDeviceAddressInfoKHR info = {};
-    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+    VkBufferDeviceAddressInfo posInfo = {};
+    posInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    posInfo.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+
+    VkBufferDeviceAddressInfo uvInfo = {};
+    uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
 
     PushConstants pushConstants{};
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &info );
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
+    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
@@ -2182,12 +2188,17 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         ++renderer.statPSOBinds;
     }
 
-    VkBufferDeviceAddressInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    info.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+    VkBufferDeviceAddressInfo posInfo = {};
+    posInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    posInfo.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
+
+    VkBufferDeviceAddressInfo uvInfo = {};
+    uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
 
     PushConstants pushConstants{};
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &info );
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
+    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
