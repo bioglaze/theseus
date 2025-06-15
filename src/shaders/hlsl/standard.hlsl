@@ -16,12 +16,13 @@ VSOutput standardVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
     vsOut.uv = uvs[ vertexId  ];
-    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
+    float3 pos = vk::RawBufferLoad < float3 > (pushConstants.posBuf + 12 * vertexId);
+    vsOut.pos = mul( uniforms.localToClip, float4( pos, 1 ) );
     vsOut.normalVS = mul( uniforms.localToView, float4( normals[ vertexId ], 0 ) ).xyz;
     vsOut.tangentVS = mul( uniforms.localToView, float4( tangents[ vertexId ].xyz, 0 ) ).xyz;
-    vsOut.projCoord = mul( uniforms.localToShadowClip, float4( positions[ vertexId ], 1 ) );
-    vsOut.positionVS = mul( uniforms.localToView, float4( positions[ vertexId ], 1 ) ).xyz;
-    vsOut.positionWS = mul( uniforms.localToWorld, float4( positions[ vertexId ], 1 ) ).xyz;
+    vsOut.projCoord = mul( uniforms.localToShadowClip, float4( pos, 1 ) );
+    vsOut.positionVS = mul( uniforms.localToView, float4( pos, 1 ) ).xyz;
+    vsOut.positionWS = mul( uniforms.localToWorld, float4( pos, 1 ) ).xyz;
     
     // aether:
     //float3 ct = cross( tangents[ vertexId ].xyz, normals[ vertexId ] ) * tangents[ vertexId ].w;

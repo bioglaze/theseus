@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2025-01-09
+// Modified: 2025-06-15
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -11,27 +11,12 @@
 #include "vec3.h"
 #include "transform.h"
 
-#if _WIN32
+
+#if _MSC_VER
 #include <Windows.h>
-
-static LONGLONG PCFreq;
-
-double GetMilliseconds()
-{
-    LARGE_INTEGER li;
-    QueryPerformanceCounter( &li );
-    return (double)(li.QuadPart / (double)PCFreq);
-}
-#else
-#include <time.h>
-
-double GetMilliseconds()
-{
-    timespec spec;
-    clock_gettime( CLOCK_MONOTONIC, &spec );
-    return spec.tv_nsec / 1000000;
-}
 #endif
+
+double GetMilliseconds();
 
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 void RenderSceneView( float gridStep );
@@ -508,12 +493,6 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
 
 int main()
 {
-#ifdef _WIN32
-    LARGE_INTEGER li;
-    QueryPerformanceFrequency( &li );
-    PCFreq = li.QuadPart / 1000;
-#endif
-
     unsigned width = 1920 / 1;
     unsigned height = 1080 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
