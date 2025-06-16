@@ -44,6 +44,8 @@ struct PushConstants
 {
     uint64_t posBuf;
     uint64_t uvBuf;
+    uint64_t normalBuf;
+    uint64_t tangentBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -2093,9 +2095,19 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
 
+    VkBufferDeviceAddressInfo normalInfo = {};
+    normalInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    normalInfo.buffer = BufferGetBuffer( renderer.staticMeshNormalBuffer );
+
+    VkBufferDeviceAddressInfo tangentInfo = {};
+    tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
+    pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
+    pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
@@ -2196,9 +2208,19 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
 
+    VkBufferDeviceAddressInfo normalInfo = {};
+    normalInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    normalInfo.buffer = BufferGetBuffer( renderer.staticMeshNormalBuffer );
+
+    VkBufferDeviceAddressInfo tangentInfo = {};
+    tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
+    pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
+    pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;

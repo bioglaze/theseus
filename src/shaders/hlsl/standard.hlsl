@@ -19,16 +19,18 @@ VSOutput standardVS( uint vertexId : SV_VertexID )
     vsOut.uv = uv;
     float3 pos = vk::RawBufferLoad < float3 > (pushConstants.posBuf + 12 * vertexId);
     vsOut.pos = mul( uniforms.localToClip, float4( pos, 1 ) );
-    vsOut.normalVS = mul( uniforms.localToView, float4( normals[ vertexId ], 0 ) ).xyz;
-    vsOut.tangentVS = mul( uniforms.localToView, float4( tangents[ vertexId ].xyz, 0 ) ).xyz;
+    float3 normal = vk::RawBufferLoad< float3 > (pushConstants.normalBuf + 12 * vertexId);
+    vsOut.normalVS = mul( uniforms.localToView, float4( normal, 0 ) ).xyz;
+    float4 tangent = vk::RawBufferLoad< float4 > (pushConstants.tangentBuf + 16 * vertexId);
+    vsOut.tangentVS = mul( uniforms.localToView, float4( tangent.xyz, 0 ) ).xyz;
     vsOut.projCoord = mul( uniforms.localToShadowClip, float4( pos, 1 ) );
     vsOut.positionVS = mul( uniforms.localToView, float4( pos, 1 ) ).xyz;
     vsOut.positionWS = mul( uniforms.localToWorld, float4( pos, 1 ) ).xyz;
     
     // aether:
-    //float3 ct = cross( tangents[ vertexId ].xyz, normals[ vertexId ] ) * tangents[ vertexId ].w;
+    //float3 ct = cross( tangent.xyz, normal ) * tangent.w;
     // mikkt
-    float3 ct = cross( normals[ vertexId ], tangents[ vertexId ].xyz ) * tangents[ vertexId ].w;
+    float3 ct = cross( normal, tangent.xyz ) * tangent.w;
     vsOut.bitangentVS = mul( uniforms.localToView, float4( ct, 0 ) ).xyz;
 
     return vsOut;

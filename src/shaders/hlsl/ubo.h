@@ -16,6 +16,8 @@ struct PushConstants
 {
     uint64_t posBuf;
     uint64_t uvBuf;
+    uint64_t normalBuf;
+    uint64_t tangentBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
