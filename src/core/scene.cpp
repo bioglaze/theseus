@@ -571,8 +571,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 char fileName[ 100 ] = {};
                 unsigned fileNameCursor = 0;
 
-                // FIXME: the first line probably should have + 1
-                while (nameCursor + offset + fileNameCursor < teStrlen( line ) &&
+                while (nameCursor + offset + fileNameCursor + 1 < teStrlen( line ) &&
                        line[ nameCursor + offset + fileNameCursor + 1 ] != '\r' && line[ nameCursor + offset + fileNameCursor + 1 ] != '\n')
                 {
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
