@@ -41,6 +41,7 @@ struct InputParams
     float deltaY = 0;
     int lastMouseX = 0;
     int lastMouseY = 0;
+    bool isLeftMouseDown = false;
 
     Vec3 moveDir;
 } inputParams;
@@ -185,6 +186,16 @@ void GetOpenPath( char* path, const char* extension )
 {
     ImGuiIO& io = ImGui::GetIO();
     io.AddMouseButtonEvent( 0, true );
+
+    inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+    inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+    inputParams.isLeftMouseDown = true;
+
+    if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
+    {
+        printf("selectgizmo\n");
+        SelectGizmo( (int)inputParams.x * uiScale, (int)(height - inputParams.y) * uiScale );
+    }
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
@@ -194,7 +205,8 @@ void GetOpenPath( char* path, const char* extension )
 
     inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
     inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
-    
+    inputParams.isLeftMouseDown = false;
+
     if (!io.WantCaptureKeyboard)
     {
         printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
@@ -210,7 +222,7 @@ void GetOpenPath( char* path, const char* extension )
     inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
     inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
 
-    SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, false/*inputParams.isLeftMouseDown*/ );
+    SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
@@ -226,12 +238,15 @@ void GetOpenPath( char* path, const char* extension )
 
     io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale * 2, (height - (int)theEvent.locationInWindow.y) * uiScale * 2 );
 
+    // TODO: don't rotate camera if gizmo is selected.
     if (/*inputParams.isRightMouseDown &&*/ !io.WantCaptureMouse)
     {
         float dt = 2;
         teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
         teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -inputParams.deltaY / 100.0f * (float)dt );
     }
+
+    SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
 }
 @end
 
