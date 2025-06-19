@@ -56,6 +56,7 @@ struct WindowImpl
     unsigned              lastMouseY = 0;
 
     GamePad               gamePad;
+    bool                  pointerOutsideWindow = false;
 };
 
 WindowImpl win;
@@ -429,6 +430,7 @@ void pointerEnter( void*       data,
 
     printf( "pointer_enter\n" );
     setCursor( dseat );
+    win.pointerOutsideWindow = false;
 
     dseat->pointer_sx = surface_x;
     dseat->pointer_sy = surface_y;
@@ -436,6 +438,11 @@ void pointerEnter( void*       data,
 
 void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t pointerState )
 {
+    if (win.pointerOutsideWindow)
+    {
+        return;
+    }
+    
     if (button == BTN_LEFT) // BTN_LEFT = 272, BTN_RIGHT: 273, BTN_MIDDLE: 274
     {
         bool pressed = pointerState == WL_POINTER_BUTTON_STATE_PRESSED;
@@ -476,6 +483,9 @@ void pointerLeave( void* data, wl_pointer* wlPointer, uint32_t serial, wl_surfac
 {
     Seat* dseat = (Seat*)data;
 
+    printf( "pointerLeave\n" );
+    win.pointerOutsideWindow = true;
+    
     if (dseat->pointer_focus == surface)
         dseat->pointer_focus = nullptr;
 }
