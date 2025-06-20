@@ -41,8 +41,5 @@ struct PushConstants
 [[vk::binding(2)]] Buffer<float3> positions;
 [[vk::binding(3)]] ConstantBuffer< UniformData > uniforms;
 [[vk::binding(4)]] Buffer<float2> uvs;
-[[vk::binding(6)]] Buffer<float3> normals;
-[[vk::binding(7)]] Buffer<float4> tangents;
 [[vk::binding(5)]] RWTexture2D<float4> rwTexture2d;
-//[[vk::binding(9)]] Buffer<float4> pointLightBufferCenterAndRadius;
 
