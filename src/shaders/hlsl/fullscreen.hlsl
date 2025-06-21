@@ -9,7 +9,8 @@ struct VSOutput
 VSOutput fullscreenVS( uint vertexId : SV_VertexID )
 {
     VSOutput vsOut;
-    vsOut.pos = mul( uniforms.localToClip, float4( positions[ vertexId ], 1 ) );
+    float3 pos = vk::RawBufferLoad< float3 > (pushConstants.posBuf + 12 * vertexId);
+    vsOut.pos = mul( uniforms.localToClip, float4( pos, 1 ) );
     vsOut.pos.xy *= uniforms.tilesXY.xy;
     vsOut.pos.xy += uniforms.tilesXY.wz;
     vsOut.uv = uvs[ vertexId ];
