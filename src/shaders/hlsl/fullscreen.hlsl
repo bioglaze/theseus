@@ -13,7 +13,9 @@ VSOutput fullscreenVS( uint vertexId : SV_VertexID )
     vsOut.pos = mul( uniforms.localToClip, float4( pos, 1 ) );
     vsOut.pos.xy *= uniforms.tilesXY.xy;
     vsOut.pos.xy += uniforms.tilesXY.wz;
-    vsOut.uv = uvs[ vertexId ];
+    
+    float2 uv = vk::RawBufferLoad< float2 > (pushConstants.uvBuf + 8 * vertexId);
+    vsOut.uv = uv;
     
     return vsOut;
 }

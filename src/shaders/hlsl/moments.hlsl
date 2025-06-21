@@ -14,7 +14,9 @@ VSOutput momentsVS( uint vertexId : SV_VertexID )
     vsOut.pos = mul( uniforms.localToClip, float4( pos, 1 ) );
 
     vsOut.posVS = mul( uniforms.localToView, float4( pos, 1 ) );
-    vsOut.uv = uvs[ vertexId ];
+    
+    float2 uv = vk::RawBufferLoad< float2 > (pushConstants.uvBuf + 8 * vertexId);
+    vsOut.uv = uv;
 
     return vsOut;
 }

@@ -40,6 +40,5 @@ struct PushConstants
 [[vk::binding(1)]] SamplerState samplers[ 80 ];
 [[vk::binding(2)]] Buffer<float3> positions;
 [[vk::binding(3)]] ConstantBuffer< UniformData > uniforms;
-[[vk::binding(4)]] Buffer<float2> uvs;
-[[vk::binding(5)]] RWTexture2D<float4> rwTexture2d;
+[[vk::binding(4)]] RWTexture2D<float4> rwTexture2d;
 
