@@ -15,6 +15,7 @@
 #include "te_stdlib.h"
 #include "vec3.h"
 
+void InitLightTiler();
 teBuffer CreateBuffer( MTL::Device* device, unsigned dataBytes, bool isStaging, const char* debugName );
 unsigned BufferGetSizeBytes( const teBuffer& buffer );
 MTL::Buffer* BufferGetBuffer( const teBuffer& buffer );
@@ -151,6 +152,11 @@ void teLoadMetalShaderLibrary()
     }
 }
 
+teBuffer CreateBuffer( unsigned size, const char* debugName )
+{
+    return CreateBuffer( renderer.device, size, false, debugName );
+}
+
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
     renderer.device = MTL::CreateSystemDefaultDevice();
@@ -282,6 +288,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     }
     
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
+
+    InitLightTiler();
 }
 
 void PushGroupMarker( const char* name )
