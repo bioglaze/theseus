@@ -32,6 +32,7 @@ VkBufferView BufferGetView( const teBuffer& buffer );
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
 void WaylandDispatch();
+void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -1320,6 +1321,11 @@ void CreateDescriptorSets()
     }
 }
 
+teBuffer CreateBuffer( unsigned size, const char* debugName )
+{
+    return CreateBuffer( renderer.device, renderer.deviceMemoryProperties, size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::None, debugName );
+}
+
 void CreateBuffers()
 {
     unsigned bufferBytes = 1024 * 1024 * 250;
@@ -1586,6 +1592,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     submitInfo.pCommandBuffers = &renderer.swapchainResources[ 0 ].drawCommandBuffer;
     VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) );
     VK_CHECK( vkQueueWaitIdle( renderer.graphicsQueue ) );
+
+    InitLightTiler( width, height );
 }
 
 static VkSampler GetSampler( teTextureSampler sampler )
