@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "frustum.h"
 #include "gameobject.h"
+#include "light.h"
 #include "material.h"
 #include "matrix.h"
 #include "mesh.h"
@@ -790,7 +791,25 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     }
                 }
             }
-
+            else if (teStrstr( line, "lightcolor" ) == line)
+            {
+                printf( "TODO: read light color\n" );
+            }
+            else if (teStrstr( line, "light" ) == line)
+            {
+                char lightType[ 100 ] = {};
+                unsigned typeCursor = 0;
+                unsigned offset = teStrlen( "light " );
+                
+                while (typeCursor + offset < teStrlen( line ) &&
+                       line[ typeCursor + offset ] != '\r' && line[ typeCursor + offset ] != '\n')
+                {
+                    lightType[ typeCursor ] = line[ typeCursor + offset ];
+                    ++typeCursor;
+                }
+                printf( "light type: %s\n", lightType );
+            }
+            
             teZero( line, 255 );
         }
         
