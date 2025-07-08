@@ -2,6 +2,13 @@
 #include "buffer.h"
 #include "vec3.h"
 
+struct LightImpl
+{
+    unsigned tilerIndex = 0;
+} lights[ 10000 ];
+
+unsigned gCurrentTilerIndex = 0;
+
 struct LightTiler
 {
     static constexpr int TileRes = 16;
@@ -16,15 +23,22 @@ struct LightTiler
     Vec4 pointLightColors[ MaxLights ];
 } gLightTiler;
 
-void tePointLightSetParams( unsigned index, const Vec3& position, const Vec3& color )
+void teAddLight( unsigned index )
 {
-    if (index >= LightTiler::MaxLights)
+    lights[ index ].tilerIndex = gCurrentTilerIndex++;
+}
+
+void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& color )
+{
+    unsigned tilerIndex = lights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
     {
         return;
     }
     
-    gLightTiler.pointLightCenterAndRadius[ index ] = Vec4( position.x, position.y, position.z, 1 );
-    gLightTiler.pointLightColors[ index ] = Vec4( color.x, color.y, color.z, 1 );    
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, 1 );
+    gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
 
 unsigned GetLightTileCount( unsigned renderTargetWidthOrHeight )

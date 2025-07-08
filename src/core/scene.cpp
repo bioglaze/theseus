@@ -38,6 +38,7 @@ unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
+void teAddLight( unsigned index );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -808,6 +809,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     ++typeCursor;
                 }
                 printf( "light type: %s\n", lightType );
+                teAddLight( gos[ goCount - 1 ].index );
             }
             
             teZero( line, 255 );

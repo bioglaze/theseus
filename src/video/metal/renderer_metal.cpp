@@ -15,7 +15,7 @@
 #include "te_stdlib.h"
 #include "vec3.h"
 
-void InitLightTiler();
+void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 teBuffer CreateBuffer( MTL::Device* device, unsigned dataBytes, bool isStaging, const char* debugName );
 unsigned BufferGetSizeBytes( const teBuffer& buffer );
 MTL::Buffer* BufferGetBuffer( const teBuffer& buffer );
@@ -289,7 +289,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
 
-    InitLightTiler();
+    InitLightTiler( width, height );
 }
 
 void PushGroupMarker( const char* name )
