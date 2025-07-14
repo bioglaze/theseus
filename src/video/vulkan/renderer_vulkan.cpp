@@ -83,7 +83,6 @@ struct PSO
     teTopology topology = teTopology::Triangles;
     teTextureFormat colorFormat = teTextureFormat::Invalid;
     teTextureFormat depthFormat = teTextureFormat::Invalid;
-    bool isUI = false;
 };
 
 struct PerObjectUboStruct
@@ -513,7 +512,7 @@ void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, 
     vkUnmapMemory( renderer.device, renderer.textureStagingMemories[ index ] );
 }
 
-static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat, bool isUI )
+static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
     VkVertexInputAttributeDescription attribute_desc[ 3 ] = {};
     VkPipelineVertexInputStateCreateInfo vertex_info = {};
@@ -521,28 +520,6 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     VkVertexInputBindingDescription bindingDesc[ 1 ] = {};
     bindingDesc[ 0 ].stride = 4 * 4 + 4; // sizeof( ImDrawVert );
     bindingDesc[ 0 ].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    if (isUI)
-    {
-        attribute_desc[ 0 ].location = 0;
-        attribute_desc[ 0 ].binding = 0;
-        attribute_desc[ 0 ].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[ 0 ].offset = 0;
-        attribute_desc[ 1 ].location = 1;
-        attribute_desc[ 1 ].binding = 0;
-        attribute_desc[ 1 ].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[ 1 ].offset = 2 * 4;
-        attribute_desc[ 2 ].location = 2;
-        attribute_desc[ 2 ].binding = 0;
-        attribute_desc[ 2 ].format = VK_FORMAT_R8G8B8A8_UNORM;
-        attribute_desc[ 2 ].offset = 4 * 4;
-
-        vertex_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertex_info.vertexBindingDescriptionCount = 1;
-        vertex_info.pVertexBindingDescriptions = bindingDesc;
-        vertex_info.vertexAttributeDescriptionCount = 3;
-        vertex_info.pVertexAttributeDescriptions = attribute_desc;
-    }
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -671,11 +648,6 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     pipelineCreateInfo.pDynamicState = &dynamicState;
     pipelineCreateInfo.pNext = &info;
     
-    if (isUI)
-    {
-        pipelineCreateInfo.pVertexInputState = &vertex_info;
-    }
-
     VkPipeline pso;
 
     VK_CHECK( vkCreateGraphicsPipelines( renderer.device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pso ) );
@@ -703,7 +675,6 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
-            renderer.psos[ i ].isUI == isUI &&
             renderer.psos[ i ].colorFormat == colorFormat && renderer.psos[ i ].depthFormat == depthFormat &&
             renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module)
         {
@@ -733,7 +704,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         }
 
         psoIndex = nextFreePsoIndex;
-        renderer.psos[ psoIndex ].pso = CreatePipeline( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat, isUI );
+        renderer.psos[ psoIndex ].pso = CreatePipeline( shader, blendMode, cullMode, depthMode, fillMode, topology, colorFormat, depthFormat );
         renderer.psos[ psoIndex ].blendMode = blendMode;
         renderer.psos[ psoIndex ].fillMode = fillMode;
         renderer.psos[ psoIndex ].topology = topology;
@@ -743,7 +714,6 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         renderer.psos[ psoIndex ].fragmentModule = fragmentInfo.module;
         renderer.psos[ psoIndex ].colorFormat = colorFormat;
         renderer.psos[ psoIndex ].depthFormat = depthFormat;
-        renderer.psos[ psoIndex ].isUI = isUI;
     }
 
     return psoIndex;
@@ -1339,7 +1309,7 @@ void CreateBuffers()
     renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float4, "staticMeshTangentStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
     renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "uiIndexBuffer" );
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
@@ -2272,6 +2242,12 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     pushConstants.scale[ 1 ] = 2.0f / displaySizeY;
     pushConstants.translate[ 0 ] = -1.0f - displayPosX * pushConstants.scale[ 0 ];
     pushConstants.translate[ 1 ] = -1.0f - displayPosY * pushConstants.scale[ 1 ];
+
+    VkBufferDeviceAddressInfo vertexInfo = {};
+    vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    vertexInfo.buffer = BufferGetBuffer( renderer.uiVertexBuffer );
+
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo );
 
     if (renderer.meshShaderSupported)
     {
