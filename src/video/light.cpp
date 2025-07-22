@@ -1,5 +1,7 @@
 #include "light.h"
 #include "buffer.h"
+#include "matrix.h"
+#include "shader.h"
 #include "vec3.h"
 
 struct LightImpl
@@ -41,6 +43,17 @@ void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& 
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
 
+unsigned GetMaxLightsPerTile( unsigned height )
+{
+    constexpr unsigned AdjustmentMultipier = 32;
+
+    // I haven't tested at greater than 1080p, so cap it
+    const unsigned uHeight = (height > 1080) ? 1080 : height;
+
+    // adjust max lights per tile down as height increases
+    return (LightTiler::MaxLightsPerTile - (AdjustmentMultipier * (uHeight / 120)));
+}
+
 unsigned GetLightTileCount( unsigned renderTargetWidthOrHeight )
 {
     return (unsigned)((renderTargetWidthOrHeight + LightTiler::TileRes - 1) / (float)LightTiler::TileRes);
@@ -48,8 +61,19 @@ unsigned GetLightTileCount( unsigned renderTargetWidthOrHeight )
 
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
 {
-    const unsigned numTiles = GetLightTileCount( widthPixels ) * GetLightTileCount( heightPixels );
-
+    const unsigned tileCount = GetLightTileCount( widthPixels ) * GetLightTileCount( heightPixels );
+    const unsigned maxLightsPerTile = GetMaxLightsPerTile( heightPixels );
+    
+    gLightTiler.lightIndexBuffer = CreateBuffer( maxLightsPerTile * tileCount * sizeof( unsigned ), "lightIndexBuffer" );
     gLightTiler.pointLightCenterAndRadiusBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightCenterAndRadiusBuffer" );
     gLightTiler.pointLightColorBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorAndRadiusBuffer" );
+}
+
+void CullLights( teShader& shader, const Matrix& localToClip, const Matrix& localToView, unsigned widthPixels, unsigned heightPixels )
+{
+    // TODO: remember to update the light position/radius etc. before calling this.
+
+    ShaderParams params = {};
+    teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );
+
 }
