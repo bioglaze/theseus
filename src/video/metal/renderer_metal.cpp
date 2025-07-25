@@ -22,22 +22,25 @@ MTL::Buffer* BufferGetBuffer( const teBuffer& buffer );
 MTL::Function* teShaderGetVertexProgram( const teShader& shader );
 MTL::Function* teShaderGetPixelProgram( const teShader& shader );
 MTL::Texture* TextureGetMetalTexture( unsigned index );
+unsigned GetMaxLightsPerTile( unsigned height );
 
 static const unsigned MaxPSOs = 100;
 
 // Must match shader header ubo.h
 struct PerObjectUboStruct
 {
-    Matrix localToClip;
-    Matrix localToView;
-    Matrix localToShadowClip;
-    Matrix localToWorld;
-    Vec4   bloomParams;
-    Vec4   tilesXY;
-    Vec4   tint{ 1, 1, 1, 1  };
-    Vec4   lightDir;
-    Vec4   lightColor;
-    Vec4   lightPosition;
+    Matrix   localToClip;
+    Matrix   localToView;
+    Matrix   localToShadowClip;
+    Matrix   localToWorld;
+    Vec4     bloomParams;
+    Vec4     tilesXY;
+    Vec4     tint{ 1, 1, 1, 1  };
+    Vec4     lightDir;
+    Vec4     lightColor;
+    Vec4     lightPosition;
+    unsigned pointLightCount{ 0 };
+    unsigned maxLightsPerTile{ 0 };
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -390,6 +393,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.tint.y = shaderParams.tint[ 1 ];
     uboStruct.tint.z = shaderParams.tint[ 2 ];
     uboStruct.tint.w = shaderParams.tint[ 3 ];
+    uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.height );
+    uboStruct.pointLightCount = 0;
 
     MTL::Buffer* uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ 0 ].uboOffset;

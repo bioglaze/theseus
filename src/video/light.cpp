@@ -45,7 +45,7 @@ void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& 
 
 unsigned GetMaxLightsPerTile( unsigned height )
 {
-    constexpr unsigned AdjustmentMultipier = 32;
+    constexpr unsigned AdjustmentMultipier = 32; // FIXME: Should this be equal to tile size?
 
     // I haven't tested at greater than 1080p, so cap it
     const unsigned uHeight = (height > 1080) ? 1080 : height;

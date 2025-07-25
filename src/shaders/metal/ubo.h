@@ -12,4 +12,6 @@ struct Uniforms
     float4 lightDir;
     float4 lightColor;
     float4 lightPosition;
+    uint pointLightCount;
+    uint maxLightsPerTile;
 };
