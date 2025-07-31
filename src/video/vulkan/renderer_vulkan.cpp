@@ -664,7 +664,7 @@ void ClearPSOCache()
     renderer.boundPSO = VK_NULL_HANDLE;
 }
 
-static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat, bool isUI )
+static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
     int psoIndex = -1;
 
@@ -2123,7 +2123,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     UpdateDescriptors( renderer.staticMeshPositionBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, renderer.currentDepthFormat, false ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
@@ -2221,11 +2221,11 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     UpdateDescriptors( renderer.uiVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    VkDeviceSize offsets[ 1 ] = { 0 };
-    VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
-    vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
+    //VkDeviceSize offsets[ 1 ] = { 0 };
+    //VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
+    //vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, renderer.currentDepthFormat, true ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
