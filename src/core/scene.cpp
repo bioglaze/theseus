@@ -150,6 +150,22 @@ void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
     }
 }
 
+static void RenderDepthAndNormals( unsigned cameraGOIndex )
+{
+    teClearFlag clearFlag;
+    Vec4 clearColor;
+    teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
+
+    teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
+
+    teAssert( color.index != 0 ); // Camera must have a render target!
+
+    BeginRendering( color, depth, clearFlag, &clearColor.x );
+
+    EndRendering( color );
+}
+
 static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
@@ -338,6 +354,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     TransformSolveLocalMatrix( cameraGOIndex, true );
     UpdateFrustum( cameraGOIndex, teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );
     UpdateTransformsAndCull( scene, cameraGOIndex );
+
+    RenderDepthAndNormals( cameraGOIndex );
 
     teClearFlag clearFlag;
     Vec4 clearColor;
