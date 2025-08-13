@@ -14,9 +14,6 @@
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexgenerator.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawanalyzer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawoptimizer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>

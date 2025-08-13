@@ -98,7 +98,6 @@
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\clusterizer.cpp" />
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexcodec.cpp" />
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexgenerator.cpp" />
-    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawanalyzer.cpp" />
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawoptimizer.cpp" />
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\quantization.cpp" />
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\simplifier.cpp" />
