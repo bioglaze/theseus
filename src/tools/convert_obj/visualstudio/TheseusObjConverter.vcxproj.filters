@@ -8,6 +8,9 @@
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\clusterizer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexanalyzer.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\indexcodec.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
@@ -17,7 +20,13 @@
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\overdrawoptimizer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\partition.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\quantization.cpp">
+      <Filter>meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\rasterizer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\simplifier.cpp">
@@ -29,9 +38,6 @@
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\stripifier.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vcacheanalyzer.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vcacheoptimizer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
@@ -39,9 +45,6 @@
       <Filter>meshoptimizer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vertexfilter.cpp">
-      <Filter>meshoptimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vfetchanalyzer.cpp">
       <Filter>meshoptimizer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\thirdparty\meshoptimizer\vfetchoptimizer.cpp">
@@ -57,11 +60,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\thirdparty\meshoptimizer\meshoptimizer.h">
-      <Filter>meshoptimizer</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\vec3.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\thirdparty\meshoptimizer\meshoptimizer.h">
+      <Filter>meshoptimizer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
