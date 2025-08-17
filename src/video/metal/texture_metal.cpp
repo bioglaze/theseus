@@ -76,9 +76,13 @@ static MTL::PixelFormat GetPixelFormat( teTextureFormat aeFormat )
     {
         return MTL::PixelFormatRG32Float;
     }
-    if (aeFormat == teTextureFormat::R32F)
+    else if (aeFormat == teTextureFormat::R32F)
     {
         return MTL::PixelFormatR32Float;
+    }
+    else if (aeFormat == teTextureFormat::R32G32B32A32F)
+    {
+        return MTL::PixelFormatRGBA32Float;
     }
     else if (aeFormat == teTextureFormat::Depth32F)
     {
