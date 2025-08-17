@@ -15,6 +15,7 @@ struct CameraImpl
     teProjectionType projectionType = teProjectionType::Perspective;
     teTexture2D color;
     teTexture2D depth;
+    teTexture2D depthNormals;
     teClearFlag clearFlag = teClearFlag::DepthAndColor;
     Vec4 clearColor;
 
@@ -115,4 +116,10 @@ Matrix& teCameraGetProjection( unsigned index )
     teAssert( index < MaxCameras );
 
     return cameras[ index ].projection;
+}
+
+teTexture2D& teCameraGetDepthNormalsTexture( unsigned index )
+{
+    teAssert( index < MaxCameras );
+    return cameras[ index ].depthNormals;
 }

@@ -14,3 +14,4 @@ void teCameraGetClear( unsigned index, teClearFlag& outClearFlag, Vec4& outColor
 struct Matrix& teCameraGetProjection( unsigned index );
 struct teTexture2D& teCameraGetColorTexture( unsigned index );
 teTexture2D& teCameraGetDepthTexture( unsigned index );
+teTexture2D& teCameraGetDepthNormalsTexture( unsigned index );

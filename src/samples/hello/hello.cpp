@@ -257,6 +257,10 @@ int main()
     teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
     teShader standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
 
+    teFile depthNormalsVsFile = teLoadFile( "shaders/depthnormals_vs.spv" );
+    teFile depthNormalsPsFile = teLoadFile( "shaders/depthnormals_ps.spv" );
+    teShader depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
+
     teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
     teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 8, 8 );
 
@@ -278,6 +282,7 @@ int main()
     teCameraSetClear( camera3d.index, clearFlag, clearColor );
     teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "camera3d depth" );
+    teCameraGetDepthNormalsTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
 
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );

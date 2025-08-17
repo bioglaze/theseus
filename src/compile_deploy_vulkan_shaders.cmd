@@ -17,5 +17,7 @@ if not exist ..\build\shaders mkdir ..\build\shaders
 %VULKAN_SDK%/bin/dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E bloomCombine -all-resources-bound -T cs_6_5 shaders/hlsl/bloom.hlsl -Fo ../build/shaders/bloom_combine.spv
 %VULKAN_SDK%/bin/dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E momentsVS -all-resources-bound -T vs_6_5 shaders/hlsl/moments.hlsl -Fo ../build/shaders/moments_vs.spv
 %VULKAN_SDK%/bin/dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E momentsPS -all-resources-bound -T ps_6_5 shaders/hlsl/moments.hlsl -Fo ../build/shaders/moments_ps.spv
+%VULKAN_SDK%/bin/dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E depthNormalsVS -all-resources-bound -T vs_6_5 shaders/hlsl/depthnormals.hlsl -Fo ../build/shaders/depthnormals_vs.spv
+%VULKAN_SDK%/bin/dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E depthNormalsPS -all-resources-bound -T ps_6_5 shaders/hlsl/depthnormals.hlsl -Fo ../build/shaders/depthnormals_ps.spv
 pause
 

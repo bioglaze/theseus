@@ -156,14 +156,14 @@ static void RenderDepthAndNormals( unsigned cameraGOIndex )
     Vec4 clearColor;
     teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
 
-    teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
+    teTexture2D& depthNormals = teCameraGetDepthNormalsTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
-    teAssert( color.index != 0 ); // Camera must have a render target!
+    teAssert( depthNormals.index != 0 ); // Camera must have a render target!
 
-    BeginRendering( color, depth, clearFlag, &clearColor.x );
+    BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
 
-    EndRendering( color );
+    EndRendering( depthNormals );
 }
 
 static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
@@ -355,7 +355,11 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     UpdateFrustum( cameraGOIndex, teTransformGetLocalPosition( cameraGOIndex ), teTransformGetViewDirection( cameraGOIndex ) );
     UpdateTransformsAndCull( scene, cameraGOIndex );
 
-    RenderDepthAndNormals( cameraGOIndex );
+    if (teCameraGetDepthNormalsTexture( cameraGOIndex ).index != 0)
+    {
+        // TODO: use the depthNormals shader.
+        RenderDepthAndNormals( cameraGOIndex );
+    }
 
     teClearFlag clearFlag;
     Vec4 clearColor;
