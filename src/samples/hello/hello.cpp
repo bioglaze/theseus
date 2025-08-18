@@ -815,7 +815,7 @@ int main()
         teBeginFrame();
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
-        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition );
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition, depthNormalsShader );
 
         shaderParams.readTexture = bilinearTex.index;
         shaderParams.writeTexture = bilinearTestTarget.index;
