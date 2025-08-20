@@ -48,6 +48,7 @@ struct SceneView
     teShader fullscreenShader;
     teShader fullscreenAdditiveShader;
     teShader momentsShader;
+    teShader depthNormalsShader;
     teGameObject cubeGo;
     teGameObject translateGizmoGo;
 
@@ -371,6 +372,10 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
     sceneView.standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
 
+    teFile depthNormalsVsFile = teLoadFile( "shaders/depthnormals_vs.spv" );
+    teFile depthNormalsPsFile = teLoadFile( "shaders/depthnormals_ps.spv" );
+    sceneView.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
+
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
     teFile fullscreenAdditivePsFile = teLoadFile( "shaders/fullscreen_additive_ps.spv" );
@@ -484,7 +489,7 @@ void RenderSceneView( float gridStep )
     teBeginFrame();
     ImGui::NewFrame();
     Vec3 dirLightShadowCasterPosition( 0, 25, 0 );
-    teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition );
+    teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition, sceneView.depthNormalsShader );
 
     teBeginSwapchainRendering();
 

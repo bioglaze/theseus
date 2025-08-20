@@ -34,6 +34,7 @@ teShader      m_bloomThresholdShader;
 teShader      m_bloomBlurShader;
 teShader      m_bloomCombineShader;
 teShader      m_downsampleShader;
+teShader      m_depthNormalsShader;
 teMaterial    m_standardMaterial;
 teMaterial    m_floorMaterial;
 teMaterial    m_brickMaterial;
@@ -172,6 +173,7 @@ void MoveUp( float amount )
         m_bloomBlurShader = teCreateComputeShader( teLoadFile( "" ), "bloomBlur", 8, 8 );
         m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 8, 8 );
         m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 8, 8 );
+        m_depthNormalsShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "depthNormalsVS", "depthNormalsPS" );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
         Vec3 cameraPos = { 0, 0, 10 };
@@ -382,7 +384,7 @@ void MoveUp( float amount )
     teBeginFrame();
     Vec3 cubePos = Vec3( 0, 45, 0 );
     const Vec3 dirLightShadowCasterPosition = cubePos;
-    teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition );
+    teSceneRender( m_scene, &m_skyboxShader, &m_skyTex, &m_cubeMesh, m_momentsShader, dirLightShadowCasterPosition, m_depthNormalsShader );
 
     ShaderParams shaderParams = {};
     shaderParams.tint[ 0 ] = 0.6f;
