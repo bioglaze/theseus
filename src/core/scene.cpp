@@ -152,22 +152,6 @@ void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
     }
 }
 
-static void RenderDepthAndNormals( unsigned cameraGOIndex, const teShader* shader )
-{
-    teClearFlag clearFlag;
-    Vec4 clearColor;
-    teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
-
-    teTexture2D& depthNormals = teCameraGetDepthNormalsTexture( cameraGOIndex );
-    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
-
-    teAssert( depthNormals.index != 0 ); // Camera must have a render target!
-
-    BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
-
-    EndRendering( depthNormals );
-}
-
 static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
@@ -269,7 +253,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     PopGroupMarker();
 }
 
-static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* momentsShader )
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* overrideShader )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
     {
@@ -327,7 +311,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
             UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition );
 
-            const teShader shader = momentsShader ? *momentsShader : teMaterialGetShader( material );
+            const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );
 
             unsigned indexOffset = teMeshGetIndexOffset( *mesh, subMeshIndex );
             unsigned indexCount = teMeshGetIndexCount( *mesh, subMeshIndex );
@@ -342,6 +326,25 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             Draw( shader, positionOffset, uvOffset, normalOffset, tangentOffset, indexCount, indexOffset, material.blendMode, material.cullMode, material.depthMode, mesh->topology, material.fillMode, texture.index, texture.sampler, normalMap.index, shadowMapIndex );
         }
     }
+}
+
+static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex, const teShader* shader )
+{
+    teClearFlag clearFlag;
+    Vec4 clearColor;
+    teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
+
+    teTexture2D& depthNormals = teCameraGetDepthNormalsTexture( cameraGOIndex );
+    teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
+
+    teAssert( depthNormals.index != 0 ); // Camera must have a render target!
+
+    BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
+
+    RenderMeshes( scene, teBlendMode::Off, 0, shader );
+    RenderMeshes( scene, teBlendMode::Alpha, 0, shader );
+
+    EndRendering( depthNormals );
 }
 
 // \param skyboxShader if not null, skybox is rendered using it, skyboxMesh and skyboxTexture.
@@ -359,7 +362,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
     if (teCameraGetDepthNormalsTexture( cameraGOIndex ).index != 0 && depthNormalsShader)
     {
-        RenderDepthAndNormals( cameraGOIndex, depthNormalsShader );
+        RenderDepthAndNormals( scene, cameraGOIndex, depthNormalsShader );
     }
 
     teClearFlag clearFlag;
