@@ -69,9 +69,12 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
     gLightTiler.pointLightColorBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorAndRadiusBuffer" );
 }
 
-void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, unsigned widthPixels, unsigned heightPixels )
+void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
 {
     // TODO: remember to update the light position/radius etc. before calling this.
+
+    Matrix clipToView;
+    Matrix::Invert( viewToClip, clipToView );
 
     ShaderParams params = {};
     teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );

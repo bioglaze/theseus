@@ -91,6 +91,7 @@ struct PerObjectUboStruct
     Matrix localToView;
     Matrix localToShadowClip;
     Matrix localToWorld;
+    Matrix clipToView;
     Vec4 bloomParams;
     Vec4 tilesXY;
     Vec4 tint{ 1, 1, 1, 1 };
@@ -1849,13 +1850,20 @@ void teEndSwapchainRendering()
     PopGroupMarker();
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition )
+void RendererGetSize( unsigned& outWidth, unsigned& outHeight )
+{
+    outWidth = renderer.swapchainWidth;
+    outHeight = renderer.swapchainHeight;
+}
+
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const float clipToView[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
     uboStruct.localToView.InitFrom( localToView );
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
     uboStruct.localToWorld.InitFrom( localToWorld );
+    uboStruct.clipToView.InitFrom( clipToView );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
@@ -1952,7 +1960,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     renderer.shaderParams = params;
 
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 
@@ -2181,7 +2189,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
 }
 

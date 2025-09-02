@@ -4,6 +4,7 @@ struct UniformData
     matrix localToView;
     matrix localToShadowClip;
     matrix localToWorld;
+    matrix clipToView;
     float4 bloomParams;
     float4 tilesXY;
     float4 tint;

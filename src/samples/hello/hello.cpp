@@ -261,6 +261,9 @@ int main()
     teFile depthNormalsPsFile = teLoadFile( "shaders/depthnormals_ps.spv" );
     teShader depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
+    teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
+    teShader lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+
     teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
     teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 8, 8 );
 
@@ -815,7 +818,7 @@ int main()
         teBeginFrame();
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
-        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition, depthNormalsShader );
+        teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition, depthNormalsShader, lightCullShader );
 
         shaderParams.readTexture = bilinearTex.index;
         shaderParams.writeTexture = bilinearTestTarget.index;

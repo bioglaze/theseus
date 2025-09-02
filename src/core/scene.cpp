@@ -29,7 +29,7 @@ void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalTo
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
 void teTransformGetComputedLocalToShadowClipMatrix( unsigned index, Matrix& outLocalToShadowClip );
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
+void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const float clipToView[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
@@ -41,7 +41,7 @@ unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
 void teAddLight( unsigned index );
-void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, unsigned widthPixels, unsigned heightPixels );
+void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
@@ -224,7 +224,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
     ShaderParams shaderParams{};
-    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToView.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -241,7 +241,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     PushGroupMarker( "Fullscreen Quad" );
     unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
@@ -311,7 +311,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             lightPosition.y = scenes[ scene.index ].directionalLightPosition.y;
             lightPosition.z = scenes[ scene.index ].directionalLightPosition.z;
 
-            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition );
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, localToWorld.m /* FIXME: clipToView */, shaderParams, lightDir, lightColor, lightPosition);
 
             const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );
 
@@ -378,7 +378,9 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     {
         unsigned width, height;
         RendererGetSize( width, height );
-        CullLights( *cullLightsShader, localToClip, localToView, width, height );
+
+        Matrix viewToClip = teCameraGetProjection( cameraGOIndex );
+        CullLights( *cullLightsShader, localToClip, localToView, viewToClip, width, height );
     }
 
     teClearFlag clearFlag;

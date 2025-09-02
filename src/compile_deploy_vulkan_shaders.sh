@@ -18,4 +18,4 @@ dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E momentsVS -all-resources-bound -T 
 dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E momentsPS -all-resources-bound -T ps_6_5 shaders/hlsl/moments.hlsl -Fo ../build/shaders/moments_ps.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E depthNormalsVS -all-resources-bound -T vs_6_5 shaders/hlsl/depthnormals.hlsl -Fo ../build/shaders/depthnormals_vs.spv
 dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E depthNormalsPS -all-resources-bound -T ps_6_5 shaders/hlsl/depthnormals.hlsl -Fo ../build/shaders/depthnormals_ps.spv
-
+dxc -Ges -spirv -fspv-target-env=vulkan1.2 -E cullLights -all-resources-bound -T cs_6_5 shaders/hlsl/lightculler.hlsl -Fo ../build/shaders/lightculler.spv
