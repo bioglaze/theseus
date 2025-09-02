@@ -41,6 +41,8 @@ unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
 void teAddLight( unsigned index );
+void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, unsigned widthPixels, unsigned heightPixels );
+void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -349,7 +351,10 @@ static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex,
 
 // \param skyboxShader if not null, skybox is rendered using it, skyboxMesh and skyboxTexture.
 // \param momentsShader if not null, overrides material's shader
-static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, const teShader* momentsShader, const teShader* depthNormalsShader )
+// \param depthNormalsShader if not null, overrides material's shader
+static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex, const teShader* skyboxShader, 
+    const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, unsigned shadowMapindex, const char* profileMarker, 
+    const teShader* momentsShader, const teShader* depthNormalsShader, const teShader* cullLightsShader )
 {
     teTexture2D& color = teCameraGetColorTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
@@ -363,6 +368,17 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     if (teCameraGetDepthNormalsTexture( cameraGOIndex ).index != 0 && depthNormalsShader)
     {
         RenderDepthAndNormals( scene, cameraGOIndex, depthNormalsShader );
+    }
+
+    Matrix localToClip, localToView;
+    teTransformGetComputedLocalToClipMatrix( cameraGOIndex, localToClip );
+    teTransformGetComputedLocalToClipMatrix( cameraGOIndex, localToView );
+
+    if (cullLightsShader)
+    {
+        unsigned width, height;
+        RendererGetSize( width, height );
+        CullLights( *cullLightsShader, localToClip, localToView, width, height );
     }
 
     teClearFlag clearFlag;
@@ -408,13 +424,13 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
         TransformSetComputedLocalToClip( index, localToClip );
         TransformSetComputedLocalToView( index, localToView );
 
-        RenderSceneWithCamera( scene, index, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader, nullptr );
+        RenderSceneWithCamera( scene, index, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader, nullptr, nullptr );
     }
 
     outShadowMapIndex = castShadowMap ? scenes[ scene.index ].shadowCaster.color.index : 0;
 }
 
-void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader, const Vec3& dirLightPosition, const teShader& depthNormalsShader )
+void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader, const Vec3& dirLightPosition, const teShader& depthNormalsShader, const teShader& lightCullShader )
 {
     Vec3 dirLightColor{ 1, 1, 1 };
     unsigned shadowMapIndex = 0;
@@ -434,7 +450,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     if (cameraIndex != -1)
     {
-        RenderSceneWithCamera( scene, scenes[ scene.index ].gameObjects[ cameraIndex ], skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera", nullptr, &depthNormalsShader );
+        RenderSceneWithCamera( scene, scenes[ scene.index ].gameObjects[ cameraIndex ], skyboxShader, skyboxTexture, skyboxMesh, shadowMapIndex, "Camera", nullptr, &depthNormalsShader, &lightCullShader );
     }
 }
 

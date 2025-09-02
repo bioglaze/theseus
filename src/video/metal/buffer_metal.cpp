@@ -1,12 +1,6 @@
 #include "buffer.h"
 #include "te_stdlib.h"
-//#define NS_PRIVATE_IMPLEMENTATION
-//#define MTL_PRIVATE_IMPLEMENTATION
-//#define MTK_PRIVATE_IMPLEMENTATION
-//#define CA_PRIVATE_IMPLEMENTATION
 #include <Metal/Metal.hpp>
-//#include <AppKit/AppKit.hpp>
-//#include <MetalKit/MetalKit.hpp>
 
 struct BufferImpl
 {
@@ -28,7 +22,6 @@ teBuffer CreateBuffer( MTL::Device* device, unsigned dataBytes, bool isStaging, 
         
     buffers[ outBuffer.index ].buffer = device->newBuffer( dataBytesNextMultipleOf4, opt );
     buffers[ outBuffer.index ].sizeBytes = dataBytesNextMultipleOf4;
-    //buffers[ outBuffer.index ].buffer.label = [NSString stringWithUTF8String:debugName];
     buffers[ outBuffer.index ].buffer->setLabel( NS::String::string( debugName, NS::UTF8StringEncoding ) );
     return outBuffer;
 }

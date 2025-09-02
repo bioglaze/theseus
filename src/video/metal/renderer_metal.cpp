@@ -33,6 +33,7 @@ struct PerObjectUboStruct
     Matrix   localToView;
     Matrix   localToShadowClip;
     Matrix   localToWorld;
+    Matrix   clipToView;
     Vec4     bloomParams;
     Vec4     tilesXY;
     Vec4     tint{ 1, 1, 1, 1  };
@@ -142,6 +143,12 @@ static MTL::SamplerState* GetSampler( teTextureSampler sampler )
     
     teAssert( !"Unhandled sampler!" );
     return renderer.linearClamp;
+}
+
+void RendererGetSize( unsigned& outWidth, unsigned& outHeight )
+{
+    outWidth = renderer.width;
+    outHeight = renderer.height;
 }
 
 void teLoadMetalShaderLibrary()
@@ -381,6 +388,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.localToView.InitFrom( localToView );
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
     uboStruct.localToWorld.InitFrom( localToWorld );
+    uboStruct.clipToView.InitFrom( localToView ); // FIXME: implement
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
