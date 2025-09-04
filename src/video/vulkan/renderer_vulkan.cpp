@@ -33,6 +33,7 @@ VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
 void WaylandDispatch();
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
+unsigned GetPointLightCount();
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -98,6 +99,8 @@ struct PerObjectUboStruct
     Vec4 lightDirection;
     Vec4 lightColor;
     Vec4 lightPosition;
+    unsigned pointLightCount;
+    unsigned spotLightCount;
 };
 
 struct Ubo
@@ -518,10 +521,6 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     VkVertexInputAttributeDescription attribute_desc[ 3 ] = {};
     VkPipelineVertexInputStateCreateInfo vertex_info = {};
     
-    VkVertexInputBindingDescription bindingDesc[ 1 ] = {};
-    bindingDesc[ 0 ].stride = 4 * 4 + 4; // sizeof( ImDrawVert );
-    bindingDesc[ 0 ].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyState.topology = topology == teTopology::Triangles ? VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -1879,6 +1878,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], co
     uboStruct.lightPosition.y = lightPosition.y;
     uboStruct.lightPosition.z = lightPosition.z;
     uboStruct.lightPosition.w = 1;
+    uboStruct.pointLightCount = GetPointLightCount();
+    uboStruct.spotLightCount = 0;
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }

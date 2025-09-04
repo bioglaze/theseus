@@ -132,4 +132,80 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
     maxZ = asfloat( ldsZMin );
 #endif
 
+    // loop over the lights and do a sphere vs. frustum intersection test
+
+    for (uint i = 0; i < uniforms.pointLightCount; i += NUM_THREADS_PER_TILE)
+    {
+        uint il = localIdxFlattened + i;
+        if (il < uniforms.pointLightCount)
+        {
+            float4 cen = vk::RawBufferLoad< float4 >( pushConstants.pointLightCenterAndRadiusBuf + 16 * il );
+            float4 center = cen;
+            float radius = center.w;
+            center.xyz = mul( uniforms.localToView, float4( center.xyz, 1 ) ).xyz;
+
+            // test if sphere is intersecting or inside frustum
+#if USE_MINMAX_Z
+            if (-center.z + minZ < radius && center.z - maxZ < radius)
+#else
+            if (center.z < radius)
+#endif
+            {
+                if ((GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 0 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 1 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 2 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 3 ] ) < radius))
+                {
+                    // do a thread-safe increment of the list counter 
+                    // and put the index of this light into the list
+                    uint dstIdx = 0;
+                    InterlockedAdd( ldsLightIdxCounter, 1, dstIdx );
+                    ldsLightIdx[ dstIdx ] = il;
+                }
+            }
+        }
+    }
+    
+    GroupMemoryBarrierWithGroupSync();
+
+    // Spot lights.
+    uint pointLightsInThisTile = ldsLightIdxCounter;
+
+    for (uint j = 0; j < uniforms.spotLightCount; j += NUM_THREADS_PER_TILE)
+    {
+        uint jl = localIdxFlattened + j;
+
+        if (jl < uniforms.spotLightCount)
+        {
+            // FIXME: replace pointLight with spotLight
+            float4 cen = vk::RawBufferLoad < float4 > (pushConstants.pointLightCenterAndRadiusBuf + 16 * jl);
+            float4 center = cen;
+
+            float radius = center.w;
+            center.xyz = mul( uniforms.localToView, float4( center.xyz, 1 ) ).xyz;
+
+            // test if sphere is intersecting or inside frustum
+#if USE_MINMAX_Z
+            if (-center.z - minZ < radius && center.z - maxZ < radius)
+#else
+            // Nothing to do here
+#endif
+            {
+                if ((GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 0 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 1 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 2 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 3 ] ) < radius))
+                {
+                    // do a thread-safe increment of the list counter 
+                    // and put the index of this light into the list
+                    uint dstIdx = 0;
+                    InterlockedAdd( ldsLightIdxCounter, 1, dstIdx );
+                    ldsLightIdx[ dstIdx ] = jl;
+                }
+            }
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
 }

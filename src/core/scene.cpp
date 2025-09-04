@@ -311,7 +311,7 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             lightPosition.y = scenes[ scene.index ].directionalLightPosition.y;
             lightPosition.z = scenes[ scene.index ].directionalLightPosition.z;
 
-            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, localToWorld.m /* FIXME: clipToView */, shaderParams, lightDir, lightColor, lightPosition);
+            UpdateUBO( localToClip.m, localToView.m, localToShadowClip.m, localToWorld.m, localToWorld.m /* FIXME: clipToView */, shaderParams, lightDir, lightColor, lightPosition );
 
             const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );
 

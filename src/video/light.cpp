@@ -30,6 +30,11 @@ void teAddLight( unsigned index )
     lights[ index ].tilerIndex = gCurrentTilerIndex++;
 }
 
+unsigned GetPointLightCount()
+{
+    return gCurrentTilerIndex;
+}
+
 void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& color )
 {
     unsigned tilerIndex = lights[ goIndex ].tilerIndex;
@@ -77,6 +82,9 @@ void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix
     Matrix::Invert( viewToClip, clipToView );
 
     ShaderParams params = {};
+    params.tilesXY[ 0 ] = widthPixels; // FIXME: In Aether3D this was GetLightTileCount( width ) but that same calculation is done in shader, so seems like an Aether bug!
+    params.tilesXY[ 1 ] = heightPixels;
+
     teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );
 
 }

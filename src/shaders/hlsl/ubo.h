@@ -11,6 +11,8 @@ struct UniformData
     float4 lightDirection;
     float4 lightColor;
     float4 lightPosition;
+    uint pointLightCount;
+    uint spotLightCount;
 };
 
 struct PushConstants
