@@ -5,7 +5,8 @@ enum teComponent : unsigned
     Transform = 1,
     Camera = 2,
     MeshRenderer = 4,
-    Light = 8,
+    PointLight = 8,
+    SpotLight = 16
 };
 
 struct teGameObject

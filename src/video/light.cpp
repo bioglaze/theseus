@@ -7,9 +7,13 @@
 struct LightImpl
 {
     unsigned tilerIndex = 0;
-} lights[ 10000 ];
+};
 
-unsigned gCurrentTilerIndex = 0;
+LightImpl pointLights[ 10000 ];
+LightImpl spotLights[ 10000 ];
+
+unsigned gCurrentPointTilerIndex = 0;
+unsigned gCurrentSpotTilerIndex = 0;
 
 struct LightTiler
 {
@@ -35,19 +39,34 @@ teBuffer GetPointLightColorBuffer()
     return gLightTiler.pointLightColorBuffer;
 }
 
-void teAddLight( unsigned index )
+teBuffer GetLightIndexBuffer()
 {
-    lights[ index ].tilerIndex = gCurrentTilerIndex++;
+    return gLightTiler.lightIndexBuffer;
+}
+
+void teAddPointLight( unsigned index )
+{
+    pointLights[ index ].tilerIndex = gCurrentPointTilerIndex++;
+}
+
+void teAddSpotLight( unsigned index )
+{
+    spotLights[ index ].tilerIndex = gCurrentSpotTilerIndex++;
 }
 
 unsigned GetPointLightCount()
 {
-    return gCurrentTilerIndex;
+    return gCurrentPointTilerIndex;
+}
+
+unsigned GetSpotLightCount()
+{
+    return gCurrentSpotTilerIndex;
 }
 
 void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& color )
 {
-    unsigned tilerIndex = lights[ goIndex ].tilerIndex;
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
 
     if (tilerIndex >= LightTiler::MaxLights)
     {

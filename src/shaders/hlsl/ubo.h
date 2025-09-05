@@ -23,6 +23,7 @@ struct PushConstants
     uint64_t tangentBuf;
     uint64_t pointLightCenterAndRadiusBuf;
     uint64_t pointLightColorBuf;
+    uint64_t lightIndexBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;

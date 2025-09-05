@@ -36,6 +36,7 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 unsigned GetPointLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
+teBuffer GetLightIndexBuffer();
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -52,6 +53,7 @@ struct PushConstants
     uint64_t tangentBuf;
     uint64_t pointLightCenterAndRadiusBuf;
     uint64_t pointLightColorBuf;
+    uint64_t lightIndexBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -2051,6 +2053,10 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
 
+    VkBufferDeviceAddressInfo lightIndexInfo = {};
+    lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
@@ -2058,6 +2064,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
     pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
     pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
+    pushConstants.lightIndexBuf = vkGetBufferDeviceAddress( renderer.device, &lightIndexInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
@@ -2174,6 +2181,10 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
 
+    VkBufferDeviceAddressInfo lightIndexInfo = {};
+    lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
@@ -2181,6 +2192,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
     pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
     pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
+    pushConstants.lightIndexBuf = vkGetBufferDeviceAddress( renderer.device, &lightIndexInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;

@@ -40,7 +40,8 @@ unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
-void teAddLight( unsigned index );
+void teAddPointLight( unsigned index );
+void teAddSpotLight( unsigned index );
 void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 
@@ -868,7 +869,14 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     ++typeCursor;
                 }
                 printf( "light type: %s\n", lightType );
-                teAddLight( gos[ goCount - 1 ].index );
+                if (teStrstr( lightType, "point" ) )
+                {
+                    teAddPointLight( gos[ goCount - 1 ].index );
+                }
+                if (teStrstr( lightType, "spot" ))
+                {
+                    teAddSpotLight( gos[ goCount - 1 ].index );
+                }
             }
             
             teZero( line, 255 );

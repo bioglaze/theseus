@@ -1,7 +1,8 @@
 #include "gameobject.h"
 #include "te_stdlib.h"
 
-void teAddLight( unsigned index );
+void teAddPointLight( unsigned index );
+void teAddSpotLight( unsigned index );
 
 struct teGameObjectImpl
 {
@@ -23,9 +24,14 @@ teGameObject teCreateGameObject( const char* name, unsigned components )
     gameObjects[ outGo.index ].components = components;
     gameObjects[ outGo.index ].name = name;
     
-    if (components & teComponent::Light)
+    if (components & teComponent::PointLight)
     {
-        teAddLight( outGo.index );
+        teAddPointLight( outGo.index );
+    }
+
+    if (components & teComponent::SpotLight)
+    {
+        teAddSpotLight( outGo.index );
     }
 
     return outGo;
