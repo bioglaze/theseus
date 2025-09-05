@@ -355,10 +355,12 @@ static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex,
     teAssert( depthNormals.index != 0 ); // Camera must have a render target!
 
     BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
+    PushGroupMarker( "DepthNormals");
 
     RenderMeshes( scene, teBlendMode::Off, 0, shader );
     RenderMeshes( scene, teBlendMode::Alpha, 0, shader );
 
+    PopGroupMarker();
     EndRendering( depthNormals );
 }
 
@@ -383,9 +385,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         RenderDepthAndNormals( scene, cameraGOIndex, depthNormalsShader );
     }
 
-    Matrix localToClip, localToView;
+    Matrix localToClip;
     teTransformGetComputedLocalToClipMatrix( cameraGOIndex, localToClip );
-    teTransformGetComputedLocalToClipMatrix( cameraGOIndex, localToView );
 
     if (cullLightsShader)
     {
@@ -393,6 +394,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         RendererGetSize( width, height );
 
         Matrix viewToClip = teCameraGetProjection( cameraGOIndex );
+        Matrix localToView = teTransformGetMatrix( cameraGOIndex );
         CullLights( *cullLightsShader, localToClip, localToView, viewToClip, width, height );
     }
 

@@ -34,6 +34,8 @@ VkBuffer BufferGetBuffer( const teBuffer& buffer );
 void WaylandDispatch();
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 unsigned GetPointLightCount();
+teBuffer GetPointLightCenterAndRadiusBuffer();
+teBuffer GetPointLightColorBuffer();
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -2041,11 +2043,21 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
 
+    VkBufferDeviceAddressInfo pointLightCenterAndRadiusInfo = {};
+    pointLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    pointLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() );
+
+    VkBufferDeviceAddressInfo pointLightColorInfo = {};
+    pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
     pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
     pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
+    pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
+    pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
@@ -2154,11 +2166,21 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
 
+    VkBufferDeviceAddressInfo pointLightCenterAndRadiusInfo = {};
+    pointLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    pointLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() );
+
+    VkBufferDeviceAddressInfo pointLightColorInfo = {};
+    pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
     pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
     pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
+    pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
+    pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
