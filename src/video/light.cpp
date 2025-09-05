@@ -77,14 +77,19 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
 void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
 {
     // TODO: remember to update the light position/radius etc. before calling this.
+    ShaderParams params = {};
 
     Matrix clipToView;
     Matrix::Invert( viewToClip, clipToView );
 
-    ShaderParams params = {};
-    params.tilesXY[ 0 ] = widthPixels; // FIXME: In Aether3D this was GetLightTileCount( width ) but that same calculation is done in shader, so seems like an Aether bug!
-    params.tilesXY[ 1 ] = heightPixels;
+    for (unsigned i = 0; i < 16; ++i)
+    {
+        params.clipToView[ i ] = clipToView.m[ i ];
+        params.localToView[ i ] = localToView.m[ i ];
+    }
 
+    params.tilesXY[ 0 ] = (float)widthPixels; // FIXME: In Aether3D this was GetLightTileCount( width ) but that same calculation is done in shader, so seems like an Aether bug!
+    params.tilesXY[ 1 ] = (float)heightPixels;
     teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );
 
 }

@@ -518,9 +518,6 @@ void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, 
 
 static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teFillMode fillMode, teTopology topology, teTextureFormat colorFormat, teTextureFormat depthFormat )
 {
-    VkVertexInputAttributeDescription attribute_desc[ 3 ] = {};
-    VkPipelineVertexInputStateCreateInfo vertex_info = {};
-    
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyState.topology = topology == teTopology::Triangles ? VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
@@ -1855,14 +1852,14 @@ void RendererGetSize( unsigned& outWidth, unsigned& outHeight )
     outHeight = renderer.swapchainHeight;
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToView[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const float clipToView[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition )
+void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
-    uboStruct.localToView.InitFrom( localToView );
+    uboStruct.localToView.InitFrom( shaderParams.localToView );
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
     uboStruct.localToWorld.InitFrom( localToWorld );
-    uboStruct.clipToView.InitFrom( clipToView );
+    uboStruct.clipToView.InitFrom( shaderParams.clipToView );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
@@ -1961,7 +1958,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     renderer.shaderParams = params;
 
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 
@@ -2190,7 +2187,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
 }
 
