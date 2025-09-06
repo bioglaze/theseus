@@ -325,6 +325,11 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
                 //shaderParams.clipToView[ i ] = clipToView.m[ i ];
             }
 
+            unsigned width, height;
+            RendererGetSize( width, height );
+            shaderParams.tilesXY[ 0 ] = (float)width;
+            shaderParams.tilesXY[ 1 ] = (float)height;
+
             UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition );
 
             const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );

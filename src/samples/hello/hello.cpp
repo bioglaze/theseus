@@ -490,6 +490,10 @@ int main()
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
+    teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
+    teTransformSetLocalPosition( pointLight.index, cubePos );
+    tePointLightSetParams( pointLight.index, { 0, 0, 0 }, { 1, 1, 1 } );
+
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );
     Quaternion keypadAngle;
@@ -539,6 +543,7 @@ int main()
     //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
     //teSceneAdd( scene, corridorGo.index );
+    teSceneAdd( scene, pointLight.index );
 
     for (unsigned i = 0; i < sceneGoCount; ++i)
     {

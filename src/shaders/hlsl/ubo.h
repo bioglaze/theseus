@@ -13,6 +13,7 @@ struct UniformData
     float4 lightPosition;
     uint pointLightCount;
     uint spotLightCount;
+    uint maxLightsPerTile;
 };
 
 struct PushConstants

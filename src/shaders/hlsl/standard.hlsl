@@ -1,5 +1,8 @@
 #include "ubo.h"
 
+#define TILE_RES 16
+#define LIGHT_INDEX_BUFFER_SENTINEL 0x7fffffff
+
 struct VSOutput
 {
     float4 pos         : SV_Position;
@@ -11,6 +14,47 @@ struct VSOutput
     float3 positionVS  : POSITION;
     float3 positionWS  : POSITION1;
 };
+
+uint GetNumLightsInThisTile( uint tileIndex )
+{
+    uint numLightsInThisTile = 0;
+    //uint index = uniforms.maxLightsPerTile * tileIndex;
+    uint index = vk::RawBufferLoad < uint > (pushConstants.lightIndexBuf + 4 * uniforms.maxLightsPerTile * tileIndex);
+    //uint nextLightIndex = perTileLightIndexBuffer[ index ];
+    uint nextLightIndex = vk::RawBufferLoad<uint > (pushConstants.lightIndexBuf + 4 * index);
+    
+    // count point lights
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        ++numLightsInThisTile;
+        ++index;
+        //nextLightIndex = perTileLightIndexBuffer[ index ];
+        nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
+    }
+
+    ++index;
+    //nextLightIndex = perTileLightIndexBuffer[ index ];
+    nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
+    
+    // count spot lights
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        ++numLightsInThisTile;
+        ++index;
+        //nextLightIndex = perTileLightIndexBuffer[ index ];
+        nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
+    }
+
+    return numLightsInThisTile;
+}
+
+uint GetTileIndex( float2 screenPos )
+{
+    const float tileRes = (float) TILE_RES;
+    uint numCellsX = (uniforms.tilesXY.x + TILE_RES - 1) / TILE_RES; // tilesXY.x is screen width in pixels
+    uint tileIdx = floor( screenPos.x / tileRes ) + floor( screenPos.y / tileRes ) * numCellsX;
+    return tileIdx;
+}
 
 VSOutput standardVS( uint vertexId : SV_VertexID )
 {

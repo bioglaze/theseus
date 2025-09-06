@@ -208,4 +208,28 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
 
     GroupMemoryBarrierWithGroupSync();
 
+    // write back
+    uint startOffset = uniforms.maxLightsPerTile * tileIdxFlattened;
+
+    for (uint i = localIdxFlattened; i < pointLightsInThisTile; i += NUM_THREADS_PER_TILE)
+    {
+        //perTileLightIndexBuffer[ startOffset + i ] = ldsLightIdx[ i ];
+        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (startOffset + i), ldsLightIdx[ i ] );
+    }
+
+    for (uint j = (localIdxFlattened + pointLightsInThisTile); j < ldsLightIdxCounter; j += NUM_THREADS_PER_TILE)
+    {
+        //perTileLightIndexBuffer[ startOffset + j + 1 ] = ldsLightIdx[ j ];
+        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (startOffset + j + 1), ldsLightIdx[ j ] );
+    }
+
+    if (localIdxFlattened == 0)
+    {
+        // mark the end of each per-tile list with a sentinel (point lights)
+        //perTileLightIndexBuffer[ startOffset + pointLightsInThisTile ] = LIGHT_INDEX_BUFFER_SENTINEL;
+        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * pointLightsInThisTile, LIGHT_INDEX_BUFFER_SENTINEL);
+        // mark the end of each per-tile list with a sentinel (spot lights)
+        //perTileLightIndexBuffer[ startOffset + ldsLightIdxCounter + 1 ] = LIGHT_INDEX_BUFFER_SENTINEL;
+        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (ldsLightIdxCounter + 1), LIGHT_INDEX_BUFFER_SENTINEL);
+    }
 }
