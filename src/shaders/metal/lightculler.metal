@@ -121,4 +121,36 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
     float minZ = as_type< float >( zMax );
     float maxZ = as_type< float >( zMin );
 #endif
+
+    for (uint i = 0; i < uniforms.pointLightCount; i += NUM_THREADS_PER_TILE)
+    {
+        uint il = localIdxFlattened + i;
+
+        if (il < uniforms.pointLightCount)
+        {
+            float4 center = pointLightBufferCenterAndRadius[ il ];
+            float radius = center.w;
+            center.xyz = (uniforms.localToView * float4( center.xyz, 1.0f ) ).xyz;
+
+#if USE_MINMAX_Z
+            if (-center.z + minZ < radius && center.z - maxZ < radius)
+#else
+            if (center.z < radius)
+#endif
+            {
+                if ((GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 0 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 1 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 2 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 3 ] ) < radius))
+                {
+                    // do a thread-safe increment of the list counter
+                    // and put the index of this light into the list
+                    int dstIdx = atomic_fetch_add_explicit( &ldsLightIdxCounter, 1, memory_order::memory_order_relaxed );
+                    ldsLightIdx[ dstIdx ] = il;
+                }
+            }
+        }
+    }
+
+    threadgroup_barrier( mem_flags::mem_threadgroup );
 }
