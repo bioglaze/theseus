@@ -101,7 +101,8 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
     }
     else if (viewType == BufferViewType::None)
     {
-
+        outBuffer.count = sizeBytes;
+        outBuffer.stride = 1;
     }
     else
     {

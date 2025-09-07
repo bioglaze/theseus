@@ -24,6 +24,8 @@ struct LightTiler
     teBuffer lightIndexBuffer;
     teBuffer pointLightCenterAndRadiusBuffer;
     teBuffer pointLightColorBuffer;
+    teBuffer pointLightCenterAndRadiusStagingBuffer;
+    teBuffer pointLightColorStagingBuffer;
 
     Vec4 pointLightCenterAndRadius[ MaxLights ];
     Vec4 pointLightColors[ MaxLights ];
@@ -101,11 +103,17 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
     gLightTiler.lightIndexBuffer = CreateBuffer( maxLightsPerTile * tileCount * sizeof( unsigned ), "lightIndexBuffer" );
     gLightTiler.pointLightCenterAndRadiusBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightCenterAndRadiusBuffer" );
     gLightTiler.pointLightColorBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorAndRadiusBuffer" );
+    gLightTiler.pointLightCenterAndRadiusStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightCenterAndRadiusStagingBuffer" );
+    gLightTiler.pointLightColorStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorStagingBuffer" );
 }
 
 void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
 {
-    // TODO: remember to update the light position/radius etc. before calling this.
+    // TODO: update light position and color to staging buffers.
+
+    CopyBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadiusBuffer );
+    CopyBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColorBuffer );
+
     ShaderParams params = {};
 
     Matrix clipToView;

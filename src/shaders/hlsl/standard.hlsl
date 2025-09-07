@@ -108,6 +108,36 @@ float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, f
     return normalize( v.x * tangent + v.y * bitangent + v.z * normal );
 }
 
+float pointLightAttenuation( float d, float r )
+{
+    return 2.0f / (d * d + r * r + d * sqrt( d * d + r * r ));
+}
+
+float D_GGX( float dotNH, float a )
+{
+    float a2 = a * a;
+    float f = (dotNH * a2 - dotNH) * dotNH + 1.0f;
+    return a2 / (3.14159265f * f * f);
+}
+
+float3 F_Schlick( float dotVH, float3 f0 )
+{
+    return f0 + (float3( 1, 1, 1 ) - f0) * pow( 1.0f - dotVH, 5.0f );
+}
+
+float V_SmithGGXCorrelated( float dotNV, float dotNL, float a )
+{
+    float a2 = a * a;
+    float GGXL = dotNV * sqrt( (-dotNL * a2 + dotNL) * dotNL + a2 );
+    float GGXV = dotNL * sqrt( (-dotNV * a2 + dotNV) * dotNV + a2 );
+    return 0.5f / (GGXV + GGXL);
+}
+
+float Fd_Lambert()
+{
+    return 1.0f / 3.14159265f;
+}
+
 float4 standardPS( VSOutput vsOut ) : SV_Target
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
@@ -117,6 +147,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
 
+    const float3 N = normalVS;
     const float3 V = normalize( vsOut.positionVS );
     const float3 L = -uniforms.lightDirection.xyz;
     const float3 H = normalize( L + V );
@@ -135,5 +166,57 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
     
+    const uint tileIndex = GetTileIndex( vsOut.pos.xy );
+    uint index = uniforms.maxLightsPerTile * tileIndex;
+    //uint nextLightIndex = perTileLightIndexBuffer[ index ];
+    uint nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
+    
+    // Point lights
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        uint lightIndex = nextLightIndex;
+        ++index;
+        //nextLightIndex = perTileLightIndexBuffer[ index ];
+        nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
+        
+        //const float4 centerAndRadius = pointLightBufferCenterAndRadius[ lightIndex ];
+        float4 centerAndRadius = vk::RawBufferLoad < uint > (pushConstants.pointLightCenterAndRadiusBuf + 16 * lightIndex);
+        const float radius = centerAndRadius.w;
+
+        const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
+        const float3 vecToLightWS = centerAndRadius.xyz - vsOut.positionVS.xyz;
+        const float3 lightDirVS = normalize( vecToLightVS );
+
+        const float3 L = normalize( vecToLightVS );
+        const float3 H = normalize( L + V );
+
+        const float dotNV = abs( dot( N, V ) ) + 1e-5f;
+        const float dotNL = saturate( dot( N, lightDirVS ) );
+        const float dotVH = saturate( dot( V, H ) );
+        const float dotLH = saturate( dot( L, H ) );
+        const float dotNH = saturate( dot( N, H ) );
+        
+        const float lightDistance = length( vecToLightWS );
+
+        float f0 = 0.04f;
+        float roughness = 0.5f;
+        
+        float3 f0v = float3( f0, f0, f0 );
+        float a = roughness * roughness;
+        float D = D_GGX( dotNH, a );
+        float3 F = F_Schlick( dotLH, f0v );
+        float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
+        float3 Fr = (D * v) * F;
+        float3 Fd = Fd_Lambert();
+        
+        if (lightDistance < radius)
+        {
+            const float attenuation = pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
+            const float3 color = Fd + Fr;
+            float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
+            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
+        }
+    }
+
     return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
 }

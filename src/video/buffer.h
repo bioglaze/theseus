@@ -11,6 +11,7 @@ struct teBuffer
 };
 
 teBuffer CreateBuffer( unsigned size, const char* debugName );
+teBuffer CreateStagingBuffer( unsigned size, const char* debugName );
 void CopyBuffer( const teBuffer& source, const teBuffer& destination );
 void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset );
 
