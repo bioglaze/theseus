@@ -167,6 +167,11 @@ teBuffer CreateBuffer( unsigned size, const char* debugName )
     return CreateBuffer( renderer.device, size, false, debugName );
 }
 
+teBuffer CreateStagingBuffer( unsigned size, const char* debugName )
+{
+    return CreateBuffer( renderer.device, size, true, debugName );
+}
+
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
     renderer.device = MTL::CreateSystemDefaultDevice();

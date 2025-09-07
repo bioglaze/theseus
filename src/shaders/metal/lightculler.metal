@@ -37,6 +37,7 @@ struct PointLight
 kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[texture(0)]],
                   constant Uniforms& uniforms [[ buffer(0) ]],
                   const device float4* pointLightBufferCenterAndRadius [[ buffer(1) ]],
+                  device uint* perTileLightIndexBufferOut [[ buffer(2) ]],
                   ushort2 gid [[thread_position_in_grid]],
                   ushort2 tid [[thread_position_in_threadgroup]],
                   ushort2 dtid [[threadgroup_position_in_grid]])
@@ -153,4 +154,32 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
     }
 
     threadgroup_barrier( mem_flags::mem_threadgroup );
+
+    uint pointLightsInThisTile = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
+
+    // write back
+    int startOffset = uniforms.maxLightsPerTile * tileIdxFlattened;
+
+    for (uint i = localIdxFlattened; i < pointLightsInThisTile; i += NUM_THREADS_PER_TILE)
+    {
+        // per-tile list of light indices
+        perTileLightIndexBufferOut[ startOffset + i ] = ldsLightIdx[ i ];
+    }
+
+    int jMax = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
+    for (int j = localIdxFlattened + pointLightsInThisTile; j < jMax; j += NUM_THREADS_PER_TILE)
+    {
+        // per-tile list of light indices
+        perTileLightIndexBufferOut[ startOffset + j + 1 ] = ldsLightIdx[ j ];
+    }
+
+    if (localIdxFlattened == 0)
+    {
+        // mark the end of each per-tile list with a sentinel (point lights)
+        perTileLightIndexBufferOut[ startOffset + pointLightsInThisTile ] = LIGHT_INDEX_BUFFER_SENTINEL;
+
+        // mark the end of each per-tile list with a sentinel (spot lights)
+        int offs = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
+        perTileLightIndexBufferOut[ startOffset + offs + 1 ] = LIGHT_INDEX_BUFFER_SENTINEL;
+    }
 }

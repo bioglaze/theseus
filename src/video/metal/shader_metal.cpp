@@ -137,6 +137,13 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     unsigned uboOffset = 0;
     MTL::Buffer* ubo = GetUniformBufferAndOffset( uboOffset );
     commandEncoder->setBuffer( ubo, uboOffset, 0 );
+
+    // FIXME: Fill these
+    //MTL::Buffer* pointLightCenterAndRadius;
+    //commandEncoder->setBuffer( pointLightCenterAndRadius, 0, 1 );
+    //MTL::Buffer* lightIndexBuffer;
+    //commandEncoder->setBuffer( lightIndexBuffer, 0, 2 );
+
     commandEncoder->setComputePipelineState( shaders[ shader.index ].computePipeline );
 
     commandEncoder->dispatchThreadgroups( threadgroups, shaders[ shader.index ].threadgroupCounts );
