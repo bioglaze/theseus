@@ -7,6 +7,8 @@ struct teShader
 
 struct ShaderParams
 {
+    float clipToView[ 16  ];
+    float localToView[ 16 ];
     unsigned readTexture;
     unsigned readTexture2;
     unsigned readTexture3;
@@ -15,8 +17,6 @@ struct ShaderParams
     float bloomThreshold;
     float tilesXY[ 4 ];
     float tint[ 4 ];
-    float clipToView[ 16  ];
-    float localToView[ 16 ];
 };
 
 /*
