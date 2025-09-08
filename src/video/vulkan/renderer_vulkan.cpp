@@ -105,6 +105,7 @@ struct PerObjectUboStruct
     Vec4 lightPosition;
     unsigned pointLightCount;
     unsigned spotLightCount;
+    unsigned maxLightsPerTile;
 };
 
 struct Ubo
@@ -1886,6 +1887,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.lightPosition.w = 1;
     uboStruct.pointLightCount = GetPointLightCount();
     uboStruct.spotLightCount = 0;
+    uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.swapchainWidth );
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }
@@ -2265,10 +2267,6 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
 
     UpdateDescriptors( renderer.uiVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
-
-    //VkDeviceSize offsets[ 1 ] = { 0 };
-    //VkBuffer buffer = BufferGetBuffer( renderer.uiVertexBuffer );
-    //vkCmdBindVertexBuffers( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &buffer, offsets );
 
     const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Alpha, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Triangles, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
 

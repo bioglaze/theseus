@@ -70,7 +70,7 @@ void CalculateMinMaxDepthInLds( uint3 globalThreadIdx, uint depthBufferSampleIdx
     }
 }
 
-[numthreads( 8, 8, 1 )]
+[numthreads( TILE_RES, TILE_RES, 1 )]
 void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_GroupThreadID, uint3 groupIdx : SV_GroupID )
 {
     uint localIdxFlattened = localIdx.x + localIdx.y * TILE_RES;
@@ -171,7 +171,7 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
     // Spot lights.
     uint pointLightsInThisTile = ldsLightIdxCounter;
 
-    for (uint j = 0; j < uniforms.spotLightCount; j += NUM_THREADS_PER_TILE)
+    /*for (uint j = 0; j < uniforms.spotLightCount; j += NUM_THREADS_PER_TILE)
     {
         uint jl = localIdxFlattened + j;
 
@@ -204,7 +204,7 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
                 }
             }
         }
-    }
+    }*/
 
     GroupMemoryBarrierWithGroupSync();
 

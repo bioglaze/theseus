@@ -18,7 +18,7 @@ unsigned gCurrentSpotTilerIndex = 0;
 struct LightTiler
 {
     static constexpr int TileRes = 16;
-    static constexpr unsigned MaxLightsPerTile = 544;
+    static constexpr unsigned MaxLightsPerTile = 544; // If this is changed, update lightculler shader.
     static constexpr unsigned MaxLights = 2048;
 
     teBuffer lightIndexBuffer;
@@ -66,7 +66,7 @@ unsigned GetSpotLightCount()
     return gCurrentSpotTilerIndex;
 }
 
-void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& color )
+void tePointLightSetParams( unsigned goIndex, const Vec3& position, float radius, const Vec3& color )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
 
@@ -75,7 +75,7 @@ void tePointLightSetParams( unsigned goIndex, const Vec3& position, const Vec3& 
         return;
     }
     
-    gLightTiler.pointLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, 1 );
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, radius );
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
 
@@ -109,7 +109,8 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
 
 void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
 {
-    // TODO: update light position and color to staging buffers.
+    UpdateStagingBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
+    UpdateStagingBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
 
     CopyBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadiusBuffer );
     CopyBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColorBuffer );
@@ -127,5 +128,6 @@ void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix
 
     params.tilesXY[ 0 ] = (float)widthPixels; // FIXME: In Aether3D this was GetLightTileCount( width ) but that same calculation is done in shader, so seems like an Aether bug!
     params.tilesXY[ 1 ] = (float)heightPixels;
+    
     teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );
 }

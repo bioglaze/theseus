@@ -172,7 +172,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     uint nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
     
     // Point lights
-    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    /* while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
     {
         uint lightIndex = nextLightIndex;
         ++index;
@@ -184,7 +184,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         const float radius = centerAndRadius.w;
 
         const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
-        const float3 vecToLightWS = centerAndRadius.xyz - vsOut.positionVS.xyz;
+        const float3 vecToLightWS = centerAndRadius.xyz - vsOut.positionWS.xyz;
         const float3 lightDirVS = normalize( vecToLightVS );
 
         const float3 L = normalize( vecToLightVS );
@@ -215,8 +215,9 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float3 color = Fd + Fr;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
+            return float4( 1, 0, 0, 1 );
         }
-    }
+    }*/
 
     return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
 }

@@ -492,7 +492,7 @@ int main()
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, cubePos );
-    tePointLightSetParams( pointLight.index, { 0, 0, 0 }, { 1, 1, 1 } );
+    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 2, { 1, 1, 1 } );
 
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );
