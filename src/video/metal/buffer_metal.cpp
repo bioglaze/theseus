@@ -35,7 +35,7 @@ unsigned BufferGetSizeBytes( const teBuffer& buffer )
 
 MTL::Buffer* BufferGetBuffer( const teBuffer& buffer )
 {
-    teAssert( buffer.index != 0 );
+    teAssert( buffer.index < 10000 );
     
-    return buffers[ buffer.index ].buffer;
+    return buffer.index == 0 ? nullptr : buffers[ buffer.index ].buffer;
 }

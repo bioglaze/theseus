@@ -17,6 +17,8 @@ struct ShaderParams
     float bloomThreshold;
     float tilesXY[ 4 ];
     float tint[ 4 ];
+    unsigned readBuffer;
+    unsigned writeBuffer;
 };
 
 /*

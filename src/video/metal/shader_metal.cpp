@@ -14,6 +14,8 @@ extern MTL::Device* gDevice;
 
 MTL::Texture* TextureGetMetalTexture( unsigned index );
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset );
+teBuffer GetPointLightCenterAndRadiusBuffer();
+teBuffer GetLightIndexBuffer();
 
 struct ShaderImpl
 {
@@ -138,11 +140,23 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     MTL::Buffer* ubo = GetUniformBufferAndOffset( uboOffset );
     commandEncoder->setBuffer( ubo, uboOffset, 0 );
 
-    // FIXME: Fill these
-    //MTL::Buffer* pointLightCenterAndRadius;
-    //commandEncoder->setBuffer( pointLightCenterAndRadius, 0, 1 );
-    //MTL::Buffer* lightIndexBuffer;
-    //commandEncoder->setBuffer( lightIndexBuffer, 0, 2 );
+    /*teBuffer readBuf;
+    readBuf.index = params.readBuffer;
+    MTL::Buffer* readBuffer = BufferGetBuffer( readBuf );
+    
+    if (readBuffer)
+    {
+        commandEncoder->setBuffer( readBuffer, 0, 1 );
+    }
+    
+    teBuffer writeBuf;
+    writeBuf.index = params.writeBuffer;
+    MTL::Buffer* writeBuffer = BufferGetBuffer( writeBuf );
+    
+    if(writeBuffer)
+    {
+        commandEncoder->setBuffer( writeBuffer, 0, 2 );        
+    }*/
 
     commandEncoder->setComputePipelineState( shaders[ shader.index ].computePipeline );
 
