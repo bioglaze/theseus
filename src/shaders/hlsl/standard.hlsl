@@ -180,7 +180,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
         
         //const float4 centerAndRadius = pointLightBufferCenterAndRadius[ lightIndex ];
-        float4 centerAndRadius = vk::RawBufferLoad < uint > (pushConstants.pointLightCenterAndRadiusBuf + 16 * lightIndex);
+        float4 centerAndRadius = vk::RawBufferLoad < float4 > (pushConstants.pointLightCenterAndRadiusBuf + 16 * lightIndex);
         const float radius = centerAndRadius.w;
 
         const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
