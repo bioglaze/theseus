@@ -492,7 +492,11 @@ int main()
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, cubePos );
-    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 2, { 1, 1, 1 } );
+    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 3, { 1, 1, 1 } );
+
+    teGameObject pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
+    teTransformSetLocalPosition( pointLight2.index, cubePos );
+    tePointLightSetParams( pointLight2.index, { 25, 2, 15 }, 3, { 1, 1, 1 } );
 
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );
@@ -544,6 +548,7 @@ int main()
     teSceneAdd( scene, keypadGo.index );
     //teSceneAdd( scene, corridorGo.index );
     teSceneAdd( scene, pointLight.index );
+    teSceneAdd( scene, pointLight2.index );
 
     for (unsigned i = 0; i < sceneGoCount; ++i)
     {

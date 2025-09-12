@@ -227,9 +227,9 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
     {
         // mark the end of each per-tile list with a sentinel (point lights)
         //perTileLightIndexBuffer[ startOffset + pointLightsInThisTile ] = LIGHT_INDEX_BUFFER_SENTINEL;
-        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * pointLightsInThisTile, LIGHT_INDEX_BUFFER_SENTINEL);
+        vk::RawBufferStore < uint > (pushConstants.lightIndexBuf + 4 * (startOffset + pointLightsInThisTile), LIGHT_INDEX_BUFFER_SENTINEL);
         // mark the end of each per-tile list with a sentinel (spot lights)
         //perTileLightIndexBuffer[ startOffset + ldsLightIdxCounter + 1 ] = LIGHT_INDEX_BUFFER_SENTINEL;
-        vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (ldsLightIdxCounter + 1), LIGHT_INDEX_BUFFER_SENTINEL);
+        vk::RawBufferStore < uint > (pushConstants.lightIndexBuf + 4 * (startOffset + ldsLightIdxCounter + 1), LIGHT_INDEX_BUFFER_SENTINEL);
     }
 }

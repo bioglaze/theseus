@@ -172,7 +172,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     uint nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
     
     // Point lights
-    /* while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
     {
         uint lightIndex = nextLightIndex;
         ++index;
@@ -217,7 +217,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
             return float4( 1, 0, 0, 1 );
         }
-    }*/
+    }
 
     return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
 }
