@@ -168,7 +168,6 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     const uint tileIndex = GetTileIndex( vsOut.pos.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
-    //uint nextLightIndex = perTileLightIndexBuffer[ index ];
     uint nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
     
     // Point lights
@@ -176,10 +175,8 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     {
         uint lightIndex = nextLightIndex;
         ++index;
-        //nextLightIndex = perTileLightIndexBuffer[ index ];
         nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
         
-        //const float4 centerAndRadius = pointLightBufferCenterAndRadius[ lightIndex ];
         float4 centerAndRadius = vk::RawBufferLoad < float4 > (pushConstants.pointLightCenterAndRadiusBuf + 16 * lightIndex);
         const float radius = centerAndRadius.w;
 
@@ -215,9 +212,11 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float3 color = Fd + Fr;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
-            return float4( 1, 0, 0, 1 );
+            return float4( pointLightColor.rgb, 1 );
         }
     }
 
-    return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
+    accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
+    
+    return albedo * float4( saturate( accumDiffuseAndSpecular ) * shadow, 1 );
 }

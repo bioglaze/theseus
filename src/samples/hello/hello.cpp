@@ -492,11 +492,11 @@ int main()
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, cubePos );
-    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 3, { 1, 1, 1 } );
+    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 3, { 1, 0, 0 } );
 
     teGameObject pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight2.index, cubePos );
-    tePointLightSetParams( pointLight2.index, { 25, 2, 15 }, 3, { 1, 1, 1 } );
+    tePointLightSetParams( pointLight2.index, { 25, 2, 15 }, 3, { 0, 1, 0 } );
 
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );
@@ -929,7 +929,7 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        teDrawQuad( fullscreenAdditiveShader, /*bilinearTestTarget*/bloomComposeTarget, shaderParams, teBlendMode::Additive);
+        //teDrawQuad( fullscreenAdditiveShader, /*bilinearTestTarget*/bloomComposeTarget, shaderParams, teBlendMode::Additive);
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
