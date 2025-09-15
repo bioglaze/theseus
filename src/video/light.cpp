@@ -107,7 +107,7 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
     gLightTiler.pointLightColorStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorStagingBuffer" );
 }
 
-void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
+void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
 {
     UpdateStagingBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
     UpdateStagingBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
@@ -126,7 +126,7 @@ void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix
         params.localToView[ i ] = localToView.m[ i ];
     }
 
-    params.tilesXY[ 0 ] = (float)widthPixels; // FIXME: In Aether3D this was GetLightTileCount( width ) but that same calculation is done in shader, so seems like an Aether bug!
+    params.tilesXY[ 0 ] = (float)widthPixels;
     params.tilesXY[ 1 ] = (float)heightPixels;
     
     params.readBuffer = gLightTiler.pointLightCenterAndRadiusBuffer.index;

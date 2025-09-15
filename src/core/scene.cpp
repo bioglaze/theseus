@@ -29,7 +29,6 @@ void teTransformGetComputedLocalToClipMatrix( unsigned index, Matrix& outLocalTo
 void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalToView );
 void teTransformSetComputedLocalToShadowClipMatrix( unsigned index, const Matrix& localToShadowClip );
 void teTransformGetComputedLocalToShadowClipMatrix( unsigned index, Matrix& outLocalToShadowClip );
-void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex );
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
@@ -42,7 +41,7 @@ unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
 void teAddPointLight( unsigned index );
 void teAddSpotLight( unsigned index );
-void CullLights( const teShader& shader, const Matrix& localToClip, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
+void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
@@ -391,9 +390,6 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         RenderDepthAndNormals( scene, cameraGOIndex, depthNormalsShader );
     }
 
-    Matrix localToClip;
-    teTransformGetComputedLocalToClipMatrix( cameraGOIndex, localToClip );
-
     if (cullLightsShader)
     {
         unsigned width, height;
@@ -401,7 +397,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
         Matrix viewToClip = teCameraGetProjection( cameraGOIndex );
         Matrix localToView = teTransformGetMatrix( cameraGOIndex );
-        CullLights( *cullLightsShader, localToClip, localToView, viewToClip, width, height );
+        CullLights( *cullLightsShader, localToView, viewToClip, width, height );
     }
 
     teClearFlag clearFlag;

@@ -1,3 +1,5 @@
+void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const struct ShaderParams& shaderParams, const struct Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition );
+
 #if VK_USE_PLATFORM_WIN32_KHR
 #include "window_win32.cpp"
 #endif
