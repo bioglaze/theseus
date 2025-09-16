@@ -175,7 +175,7 @@ void MoveUp( float amount )
         m_bloomCombineShader = teCreateComputeShader( teLoadFile( "" ), "bloomCombine", 8, 8 );
         m_downsampleShader = teCreateComputeShader( teLoadFile( "" ), "bloomDownsample", 8, 8 );
         m_depthNormalsShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "depthNormalsVS", "depthNormalsPS" );
-        m_lightCullShader = teCreateComputeShader( teLoadFile( "" ), "cullLights", 8, 8 );
+        m_lightCullShader = teCreateComputeShader( teLoadFile( "" ), "cullLights", 16, 16 );
 
         m_camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
         Vec3 cameraPos = { 0, 0, 10 };
@@ -358,7 +358,7 @@ void MoveUp( float amount )
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
-        teSceneAdd( m_scene, m_roomGo.index );
+        //teSceneAdd( m_scene, m_roomGo.index );
         teSceneAdd( m_scene, keypadGo.index );
 
         for (unsigned i = 0; i < sceneGoCount; ++i)

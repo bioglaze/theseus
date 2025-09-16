@@ -191,6 +191,13 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel );
         multiplier = 4;
 
+        if (bitsPerPixel == 24)
+        {
+            printf( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
+            outTexture.index = 1;
+            return outTexture;
+        }
+
         MTL::TextureDescriptor* stagingDescriptor =
         MTL::TextureDescriptor::texture2DDescriptor( tex.format,
                                                            tex.width,

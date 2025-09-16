@@ -23,6 +23,8 @@ MTL::Function* teShaderGetVertexProgram( const teShader& shader );
 MTL::Function* teShaderGetPixelProgram( const teShader& shader );
 MTL::Texture* TextureGetMetalTexture( unsigned index );
 unsigned GetMaxLightsPerTile( unsigned height );
+unsigned GetPointLightCount();
+unsigned GetSpotLightCount();
 
 static const unsigned MaxPSOs = 100;
 
@@ -41,6 +43,7 @@ struct PerObjectUboStruct
     Vec4     lightColor;
     Vec4     lightPosition;
     unsigned pointLightCount{ 0 };
+    unsigned spotLightCount{ 0 };
     unsigned maxLightsPerTile{ 0 };
 };
 
@@ -407,7 +410,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.tint.z = shaderParams.tint[ 2 ];
     uboStruct.tint.w = shaderParams.tint[ 3 ];
     uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.height );
-    uboStruct.pointLightCount = 0;
+    uboStruct.pointLightCount = GetPointLightCount();
+    uboStruct.spotLightCount = GetSpotLightCount();
 
     MTL::Buffer* uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ 0 ].uboOffset;

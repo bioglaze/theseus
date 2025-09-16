@@ -2,6 +2,9 @@
 #include <simd/simd.h>
 #include "ubo.h"
 
+#define TILE_RES 16
+#define LIGHT_INDEX_BUFFER_SENTINEL 0x7fffffff
+
 using namespace metal;
 
 struct ColorInOut
@@ -15,6 +18,14 @@ struct ColorInOut
     float3 tangentVS;
     float3 bitangentVS;
 };
+
+uint GetTileIndex( float2 screenPos, float2 screenDim )
+{
+    const float tileRes = (float) TILE_RES;
+    uint numCellsX = (screenDim.x + TILE_RES - 1) / TILE_RES; // screenDim.x is screen width in pixels
+    uint tileIdx = floor( screenPos.x / tileRes ) + floor( screenPos.y / tileRes ) * numCellsX;
+    return tileIdx;
+}
 
 float linstep( float low, float high, float v )
 {
@@ -70,7 +81,7 @@ float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, f
 }
 
 fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
-                            constant Uniforms & uniforms [[ buffer(0) ]],
+                            constant Uniforms& uniforms [[ buffer(0) ]],
                             texture2d<float, access::sample> normalMap [[texture(1)]],
                             texture2d<float, access::sample> shadowMap [[texture(2)]])
 {
@@ -100,8 +111,11 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float3 specular = specularStrength * spec;
     accumDiffuseAndSpecular += specular;
 
-
     float4 albedo = textureMap.sample( sampler0, in.uv );
 
-    return albedo * float4( saturate( accumDiffuseAndSpecular + ambient ) * shadow, 1 );
+    const uint tileIndex = GetTileIndex( in.position.xy, uniforms.tilesXY.xy );
+    uint index = uniforms.maxLightsPerTile * tileIndex;
+    //uint nextLightIndex = lightIndexBuf[ index ];
+    accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
+    return albedo * float4( saturate( accumDiffuseAndSpecular ) * shadow, 1 );
 }

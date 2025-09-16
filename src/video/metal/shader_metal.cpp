@@ -4,7 +4,6 @@
 #include "te_stdlib.h"
 #include "vec3.h"
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDir, const Vec4& lightColor, const Vec4& lightPosition );
 void MoveToNextUboOffset();
 unsigned TextureGetFlags( unsigned index );
 
@@ -140,6 +139,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     MTL::Buffer* ubo = GetUniformBufferAndOffset( uboOffset );
     commandEncoder->setBuffer( ubo, uboOffset, 0 );
 
+    // FIXME: implement
     /*teBuffer readBuf;
     readBuf.index = params.readBuffer;
     MTL::Buffer* readBuffer = BufferGetBuffer( readBuf );
@@ -158,6 +158,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         commandEncoder->setBuffer( writeBuffer, 0, 2 );        
     }*/
 
+    // FIXME: bind point light color buffer and light index buffer for standard shader.
+    
     commandEncoder->setComputePipelineState( shaders[ shader.index ].computePipeline );
 
     commandEncoder->dispatchThreadgroups( threadgroups, shaders[ shader.index ].threadgroupCounts );
