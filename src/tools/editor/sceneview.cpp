@@ -378,7 +378,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
@@ -604,6 +604,18 @@ void RenderSceneView( float gridStep )
             else if (ImGui::Button( "Add Mesh Renderer" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
+            }
+
+            if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight)
+            {
+                if (ImGui::CollapsingHeader( "Point Light" ))
+                {
+                }
+            }
+            else if (ImGui::Button( "Add Point Light" ))
+            {
+                teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
+                tePointLightSetParams( selectedGoIndex, teTransformGetLocalPosition( selectedGoIndex ), 2, Vec3( 1, 0, 0 ) );
             }
         }
         else

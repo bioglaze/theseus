@@ -791,11 +791,6 @@ void CreateDepthStencil( uint32_t width, uint32_t height )
 
     teAssert( depthFormat != VK_FORMAT_UNDEFINED && "undefined depth format!" );
 
-    if (depthFormat != VK_FORMAT_D32_SFLOAT_S8_UINT)
-    {
-        printf( "Warning! Depth format is not a floating-point format, but the renderer uses reverse-z that needs it.\n" );
-    }
-
     VkImageCreateInfo image = {};
     image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image.imageType = VK_IMAGE_TYPE_2D;
