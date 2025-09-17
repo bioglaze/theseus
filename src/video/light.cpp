@@ -79,6 +79,38 @@ void tePointLightSetParams( unsigned goIndex, const Vec3& position, float radius
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
 
+float* tePointLightAccessRadius( unsigned goIndex )
+{
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return nullptr;
+    }
+
+    return &gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
+}
+
+void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor )
+{
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return;
+    }
+
+    outPosition.x = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].x;
+    outPosition.y = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].y;
+    outPosition.z = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].z;
+    
+    outRadius = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
+
+    outColor.x = gLightTiler.pointLightColors[ tilerIndex ].x;
+    outColor.y = gLightTiler.pointLightColors[ tilerIndex ].y;
+    outColor.z = gLightTiler.pointLightColors[ tilerIndex ].z;
+}
+
 unsigned GetMaxLightsPerTile( unsigned height )
 {
     constexpr unsigned AdjustmentMultipier = 32; // FIXME: Should this be equal to tile size?

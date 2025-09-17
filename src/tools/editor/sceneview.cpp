@@ -610,6 +610,7 @@ void RenderSceneView( float gridStep )
             {
                 if (ImGui::CollapsingHeader( "Point Light" ))
                 {
+                    ImGui::InputFloat( "radius", tePointLightAccessRadius( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
                 }
             }
             else if (ImGui::Button( "Add Point Light" ))
