@@ -29,6 +29,11 @@ float GetSignedDistanceFromPlane( float3 p, float3 eqn )
     return dot( eqn, p );
 }
 
+uint GetNumTilesX( float screenWidth )
+{
+    return (uint) ((screenWidth + TILE_RES - 1) / (float) TILE_RES);
+}
+
 struct PointLight
 {
     float4 d[ 2048 ];
@@ -53,7 +58,7 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
     ushort2 groupIdx = dtid;
 
     uint localIdxFlattened = localIdx.x + localIdx.y * TILE_RES;
-    uint tileIdxFlattened = groupIdx.x + groupIdx.y * uniforms.tilesXY.x;
+    uint tileIdxFlattened = groupIdx.x + groupIdx.y * GetNumTilesX( uniforms.tilesXY.x );
 
     if (localIdxFlattened == 0)
     {

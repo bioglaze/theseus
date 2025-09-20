@@ -139,8 +139,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     MTL::Buffer* ubo = GetUniformBufferAndOffset( uboOffset );
     commandEncoder->setBuffer( ubo, uboOffset, 0 );
 
-    // FIXME: implement
-    /*teBuffer readBuf;
+    teBuffer readBuf;
     readBuf.index = params.readBuffer;
     MTL::Buffer* readBuffer = BufferGetBuffer( readBuf );
     
@@ -153,10 +152,10 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     writeBuf.index = params.writeBuffer;
     MTL::Buffer* writeBuffer = BufferGetBuffer( writeBuf );
     
-    if(writeBuffer)
+    if (writeBuffer)
     {
         commandEncoder->setBuffer( writeBuffer, 0, 2 );        
-    }*/
+    }
 
     // FIXME: bind point light color buffer and light index buffer for standard shader.
     
