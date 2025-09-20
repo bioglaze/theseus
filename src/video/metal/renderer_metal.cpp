@@ -25,6 +25,8 @@ MTL::Texture* TextureGetMetalTexture( unsigned index );
 unsigned GetMaxLightsPerTile( unsigned height );
 unsigned GetPointLightCount();
 unsigned GetSpotLightCount();
+teBuffer GetPointLightCenterAndRadiusBuffer();
+teBuffer GetPointLightColorBuffer();
 
 static const unsigned MaxPSOs = 100;
 
@@ -653,6 +655,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     
     renderer.renderEncoder->setTriangleFillMode( fillMode == teFillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines );
     renderer.renderEncoder->setFragmentBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetLightIndexBuffer() ), 0, 1 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() ), 0, 2 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightColorBuffer() ), 0, 3 );
     renderer.renderEncoder->setVertexBuffers( buffers, offsets, rangeOffsets );
     renderer.renderEncoder->drawIndexedPrimitives( MTL::PrimitiveTypeTriangle,
                               indexCount * 3,

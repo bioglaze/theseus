@@ -80,10 +80,43 @@ float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, f
     return normalize( v.x * tangent + v.y * bitangent + v.z * normal );
 }
 
+float pointLightAttenuation( float d, float r )
+{
+    return 2.0f / (d * d + r * r + d * sqrt( d * d + r * r ));
+}
+
+float D_GGX( float dotNH, float a )
+{
+    float a2 = a * a;
+    float f = (dotNH * a2 - dotNH) * dotNH + 1.0f;
+    return a2 / (3.14159265f * f * f);
+}
+
+float3 F_Schlick( float dotVH, float3 f0 )
+{
+    return f0 + (float3( 1, 1, 1 ) - f0) * pow( 1.0f - dotVH, 5.0f );
+}
+
+float V_SmithGGXCorrelated( float dotNV, float dotNL, float a )
+{
+    float a2 = a * a;
+    float GGXL = dotNV * sqrt( (-dotNL * a2 + dotNL) * dotNL + a2 );
+    float GGXV = dotNL * sqrt( (-dotNV * a2 + dotNV) * dotNV + a2 );
+    return 0.5f / (GGXV + GGXL);
+}
+
+float Fd_Lambert()
+{
+    return 1.0f / 3.14159265f;
+}
+
 fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
                             constant Uniforms& uniforms [[ buffer(0) ]],
                             texture2d<float, access::sample> normalMap [[texture(1)]],
-                            texture2d<float, access::sample> shadowMap [[texture(2)]])
+                            texture2d<float, access::sample> shadowMap [[texture(2)]],
+                            const device uint* lightIndexBuf [[ buffer(1) ]],
+                            const device float4* pointLightBufferCenterAndRadius [[ buffer(2) ]],
+                            const device float4* pointLightBufferColors [[ buffer(3) ]])
 {
     constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
     
@@ -94,7 +127,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
-
+    
+    const float3 N = normalize( normalVS );
     const float3 V = normalize( in.positionVS );
     //const float3 L = -uniforms.lightDir.xyz;
     //const float3 H = normalize( L + V );
@@ -104,6 +138,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
     const float3 surfaceToLightVS = ( uniforms.localToView * uniforms.lightDir ).xyz;
     float dotNL = saturate( dot( normalVS, -surfaceToLightVS ) );
+    const float dotNV = abs( dot( N, V ) ) + 1e-5f;
+    
     accumDiffuseAndSpecular *= dotNL;
     
     float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
@@ -115,7 +151,47 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
 
     const uint tileIndex = GetTileIndex( in.position.xy, uniforms.tilesXY.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
-    //uint nextLightIndex = lightIndexBuf[ index ];
+    uint nextLightIndex = lightIndexBuf[ index ];
+
+    // Point lights
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        const int lightIndex = nextLightIndex;
+        index++;
+        nextLightIndex = lightIndexBuf[ index ];
+
+        const float4 center = pointLightBufferCenterAndRadius[ lightIndex ];
+        const float radius = center.w;
+        const float3 vecToLightWS = center.xyz - in.positionWS.xyz;
+        const float lightDistance = length( vecToLightWS );
+        
+        if (lightDistance < radius)
+        {
+            const float3 vecToLightVS = (uniforms.localToView * float4( vecToLightWS, 0 )).xyz;
+            const float3 L = normalize( -vecToLightVS );
+            const float3 H = normalize( L + V );
+            
+            const float dotNL = saturate( dot( N, -L ) );
+            const float dotLH = saturate( dot( L, H ) );
+            const float dotNH = saturate( dot( N, H ) );
+            
+            const float3 f0 = float3( 0.04f );
+            
+            float roughness = 0.5f;
+            const float a = roughness * roughness;
+            const float D = D_GGX( dotNH, a );
+            const float3 F = F_Schlick( dotLH, f0 );
+            const float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
+            const float3 Fr = (D * v) * F;
+            const float3 Fd = Fd_Lambert();
+
+            const float attenuation = pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
+            const float3 color = Fd + Fr;
+            accumDiffuseAndSpecular.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
+            return pointLightBufferColors[ lightIndex ];
+        }
+    }
+
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
     return albedo * float4( saturate( accumDiffuseAndSpecular ) * shadow, 1 );
 }

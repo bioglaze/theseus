@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
+#include "light.h"
 #include "math.h"
 #include "mathutil.h"
 #include "material.h"
@@ -59,6 +60,8 @@ teGameObject  m_roomGo;
 teScene       m_scene;
 teMesh        m_roomMesh;
 teMesh        m_cubeMesh;
+teGameObject pointLight;
+teGameObject pointLight2;
 Vec3 moveDir;
 
 teTexture2D key0tex;
@@ -355,11 +358,23 @@ void MoveUp( float amount )
             sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
         teSceneReadScene( sceneFile, m_standardShader, sceneGos, sceneTextures, sceneMaterials, sceneMeshes );
 
+        Vec3 lightPos = Vec3( -10, 1, 3 );
+        pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
+        teTransformSetLocalPosition( pointLight.index, lightPos );
+        tePointLightSetParams( pointLight.index, lightPos, 3, { 1, 0, 0 } );
+
+        Vec3 light2Pos = Vec3( -13, 1, 3 );
+        pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
+        teTransformSetLocalPosition( pointLight2.index, light2Pos );
+        tePointLightSetParams( pointLight2.index, light2Pos, 3, { 0, 1, 0 } );
+
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
         //teSceneAdd( m_scene, m_roomGo.index );
         teSceneAdd( m_scene, keypadGo.index );
+        teSceneAdd( m_scene, pointLight.index );
+        teSceneAdd( m_scene, pointLight2.index );
 
         for (unsigned i = 0; i < sceneGoCount; ++i)
         {

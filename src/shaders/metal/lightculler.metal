@@ -29,9 +29,9 @@ float GetSignedDistanceFromPlane( float3 p, float3 eqn )
     return dot( eqn, p );
 }
 
-uint GetNumTilesX( float screenWidth )
+uint GetNumTiles( float screenWidthOrHeight )
 {
-    return (uint) ((screenWidth + TILE_RES - 1) / (float) TILE_RES);
+    return (uint) ((screenWidthOrHeight + TILE_RES - 1) / (float) TILE_RES);
 }
 
 struct PointLight
@@ -58,7 +58,7 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
     ushort2 groupIdx = dtid;
 
     uint localIdxFlattened = localIdx.x + localIdx.y * TILE_RES;
-    uint tileIdxFlattened = groupIdx.x + groupIdx.y * GetNumTilesX( uniforms.tilesXY.x );
+    uint tileIdxFlattened = groupIdx.x + groupIdx.y * GetNumTiles( uniforms.tilesXY.x );
 
     if (localIdxFlattened == 0)
     {
@@ -78,8 +78,8 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
         uint pyp = TILE_RES * (groupIdx.y + 1);
 
         // Evenly divisible by tile res
-        float winWidth  = float( TILE_RES * uniforms.tilesXY.x );
-        float winHeight = float( TILE_RES * uniforms.tilesXY.y );
+        float winWidth  = float( TILE_RES * GetNumTiles( uniforms.tilesXY.x ) );
+        float winHeight = float( TILE_RES * GetNumTiles( uniforms.tilesXY.y ) );
 
         float4 v0 = float4( pxm / winWidth * 2.0f - 1.0f, (winHeight - pym) / winHeight * 2.0f - 1.0f, 1.0f, 1.0f );
         float4 v1 = float4( pxp / winWidth * 2.0f - 1.0f, (winHeight - pym) / winHeight * 2.0f - 1.0f, 1.0f, 1.0f );
