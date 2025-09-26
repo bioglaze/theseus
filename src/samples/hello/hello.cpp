@@ -222,6 +222,9 @@ teMaterial key9mat;
 
 teMesh keypadMesh;
 
+// Temp code until engine sets light position from the gameobject's transform component.
+void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
+
 int main()
 {
     unsigned width =  1920 / 1;
@@ -370,7 +373,7 @@ int main()
     materialTrans.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTrans, transTex, 0 );
 
-    teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );
+    teFile key0File = teLoadFile( "assets/textures/digits/zero_bad.tga" );
     teFile key1File = teLoadFile( "assets/textures/digits/one.tga" );
     teFile key2File = teLoadFile( "assets/textures/digits/two.tga" );
     teFile key3File = teLoadFile( "assets/textures/digits/three.tga" );
@@ -491,13 +494,15 @@ int main()
     teMeshRendererSetMaterial( cubeGo2.index, materialTrans, 0 );
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
-    teTransformSetLocalPosition( pointLight.index, cubePos );
-    tePointLightSetParams( pointLight.index, { 20, 2, 15 }, 3, { 1, 0, 0 } );
-
+    teTransformSetLocalPosition( pointLight.index, { 20, 2, 15 } );
+    tePointLightSetParams( pointLight.index, 3, { 1, 0, 0 } );
+    SetPointLightPosition( pointLight.index, { 20, 2, 15 } );
+    
     teGameObject pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
-    teTransformSetLocalPosition( pointLight2.index, cubePos );
-    tePointLightSetParams( pointLight2.index, { 25, 2, 15 }, 3, { 0, 1, 0 } );
-
+    teTransformSetLocalPosition( pointLight2.index, { 25, 2, 15 } );
+    tePointLightSetParams( pointLight2.index, 3, { 0, 1, 0 } );
+    SetPointLightPosition( pointLight2.index, { 25, 2, 15 } );
+    
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );
     Quaternion keypadAngle;

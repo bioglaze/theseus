@@ -66,7 +66,7 @@ unsigned GetSpotLightCount()
     return gCurrentSpotTilerIndex;
 }
 
-void tePointLightSetParams( unsigned goIndex, const Vec3& position, float radius, const Vec3& color )
+void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
 
@@ -75,8 +75,22 @@ void tePointLightSetParams( unsigned goIndex, const Vec3& position, float radius
         return;
     }
     
-    gLightTiler.pointLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, radius );
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w = radius;
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
+}
+
+void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS )
+{
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return;
+    }
+    
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ].x = positionWS.x;
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ].y = positionWS.y;
+    gLightTiler.pointLightCenterAndRadius[ tilerIndex ].z = positionWS.z;
 }
 
 float* tePointLightAccessRadius( unsigned goIndex )
