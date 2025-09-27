@@ -616,7 +616,7 @@ void RenderSceneView( float gridStep )
             else if (ImGui::Button( "Add Point Light" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
-                tePointLightSetParams( selectedGoIndex, teTransformGetLocalPosition( selectedGoIndex ), 2, Vec3( 1, 0, 0 ) );
+                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 0, 0 ) );
             }
         }
         else
