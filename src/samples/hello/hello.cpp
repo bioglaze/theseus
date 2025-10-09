@@ -222,9 +222,6 @@ teMaterial key9mat;
 
 teMesh keypadMesh;
 
-// Temp code until engine sets light position from the gameobject's transform component.
-void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
-
 int main()
 {
     unsigned width =  1920 / 1;
@@ -496,12 +493,10 @@ int main()
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, { 20, 2, 15 } );
     tePointLightSetParams( pointLight.index, 3, { 1, 0, 0 } );
-    SetPointLightPosition( pointLight.index, { 20, 2, 15 } );
     
     teGameObject pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight2.index, { 25, 2, 15 } );
     tePointLightSetParams( pointLight2.index, 3, { 0, 1, 0 } );
-    SetPointLightPosition( pointLight2.index, { 25, 2, 15 } );
     
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );

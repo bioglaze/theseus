@@ -43,6 +43,7 @@ void teAddPointLight( unsigned index );
 void teAddSpotLight( unsigned index );
 void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
+void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
 
 constexpr unsigned MAX_GAMEOBJECTS = 10000;
 
@@ -392,6 +393,14 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
     if (cullLightsShader)
     {
+        for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+        {
+            if ((teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::PointLight) != 0)
+            {
+                SetPointLightPosition( scenes[ scene.index ].gameObjects[ gameObjectIndex ], teTransformGetLocalPosition( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) );
+            }
+        }
+	
         unsigned width, height;
         RendererGetSize( width, height );
 
