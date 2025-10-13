@@ -13,6 +13,7 @@
 #include "vec3.h"
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
+teShader teCreateMeshShader( VkDevice device, const teFile& meshShaderFile, const teFile& fragmentShaderFile, const char* meshShaderName, const char* fragmentShaderName );
 teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
 void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
 VkPipeline ShaderGetComputePSO( const teShader& shader );
@@ -724,6 +725,11 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
 teShader teCreateShader( const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName )
 {
     return teCreateShader( renderer.device, vertexFile, fragmentFile, vertexName, fragmentName );
+}
+
+teShader teCreateMeshShader( const teFile& meshShaderFile, const teFile& fragmentShaderFile, const char* meshShaderName, const char* fragmentShaderName )
+{
+    return teCreateMeshShader( renderer.device, meshShaderFile, fragmentShaderFile, meshShaderName, fragmentShaderName );
 }
 
 teShader teCreateComputeShader( const teFile& file, const char* name, unsigned threadsPerThreadgroupX, unsigned threadsPerThreadgroupY )

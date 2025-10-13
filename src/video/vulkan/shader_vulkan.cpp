@@ -10,10 +10,12 @@ void ClearPSOCache();
 struct teShaderImpl
 {
     VkPipelineShaderStageCreateInfo vertexInfo = {};
+    VkPipelineShaderStageCreateInfo meshInfo = {};
     VkPipelineShaderStageCreateInfo fragmentInfo = {};
-    VkShaderModule vertexShaderModule = VK_NULL_HANDLE;    
+    VkShaderModule vertexShaderModule = VK_NULL_HANDLE;
     VkShaderModule fragmentShaderModule = VK_NULL_HANDLE;
-
+    VkShaderModule meshShaderModule = VK_NULL_HANDLE;
+    
     VkPipelineShaderStageCreateInfo computeInfo = {};
     VkShaderModule computeShaderModule = VK_NULL_HANDLE;
     VkPipeline computePso = {};
@@ -165,6 +167,48 @@ teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const
             teMemcpy( shaderCacheEntries[ i ].fragmentPath, fragmentFile.path, teStrlen( fragmentFile.path ) + 1 );
             break;
         }
+    }
+
+    return outShader;
+}
+
+teShader teCreateMeshShader( VkDevice device, const teFile& meshShaderFile, const teFile& fragmentShaderFile, const char* meshShaderName, const char* fragmentShaderName )
+{
+    teAssert( nextShaderIndex < MaxShaders );
+
+    ShaderCacheEntry::device = device;
+
+    teShader outShader;
+    outShader.index = nextShaderIndex++;
+
+    {
+        VkShaderModuleCreateInfo moduleCreateInfo = {};
+        moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        moduleCreateInfo.codeSize = meshShaderFile.size;
+        moduleCreateInfo.pCode = (const uint32_t*)meshShaderFile.data;
+
+        VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].meshShaderModule ) );
+        SetObjectName( device, (uint64_t)shaders[ outShader.index ].meshShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, meshShaderFile.path );
+
+        shaders[ outShader.index ].meshInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaders[ outShader.index ].meshInfo.stage = VK_SHADER_STAGE_MESH_BIT_EXT;
+        shaders[ outShader.index ].meshInfo.module = shaders[ outShader.index ].meshShaderModule;
+        shaders[ outShader.index ].meshInfo.pName = meshShaderName;
+    }
+
+    {
+        VkShaderModuleCreateInfo moduleCreateInfo = {};
+        moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        moduleCreateInfo.codeSize = fragmentShaderFile.size;
+        moduleCreateInfo.pCode = (const uint32_t*)fragmentShaderFile.data;
+
+        VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].fragmentShaderModule ) );
+        SetObjectName( device, (uint64_t)shaders[ outShader.index ].fragmentShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, fragmentShaderFile.path );
+
+        shaders[ outShader.index ].fragmentInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaders[ outShader.index ].fragmentInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        shaders[ outShader.index ].fragmentInfo.module = shaders[ outShader.index ].fragmentShaderModule;
+        shaders[ outShader.index ].fragmentInfo.pName = fragmentShaderName;
     }
 
     return outShader;

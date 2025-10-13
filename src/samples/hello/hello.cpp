@@ -231,6 +231,7 @@ int main()
     teCreateRenderer( 1, windowHandle, width, height );
     teLoadMetalShaderLibrary();
 
+    teFile unlitMsFile = teLoadFile( "shaders/unlit_ms.spv" );
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
