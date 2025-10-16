@@ -272,6 +272,11 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     _CrtSetReportFile( _CRT_ASSERT, _CRTDBG_FILE_STDERR );
 #endif
 
+    if (!SetProcessDpiAwarenessContext( DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ))
+    {
+
+    }
+
     LARGE_INTEGER li;
     QueryPerformanceFrequency( &li );
     PCFreq = li.QuadPart / 1000;

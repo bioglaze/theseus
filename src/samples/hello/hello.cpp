@@ -371,7 +371,7 @@ int main()
     materialTrans.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTrans, transTex, 0 );
 
-    teFile key0File = teLoadFile( "assets/textures/digits/zero_bad.tga" );
+    teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );
     teFile key1File = teLoadFile( "assets/textures/digits/one.tga" );
     teFile key2File = teLoadFile( "assets/textures/digits/two.tga" );
     teFile key3File = teLoadFile( "assets/textures/digits/three.tga" );
