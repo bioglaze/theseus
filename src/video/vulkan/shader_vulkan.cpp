@@ -39,10 +39,11 @@ struct ShaderCacheEntry
 
 ShaderCacheEntry shaderCacheEntries[ MaxShaders ];
 
-void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo )
+void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo, VkPipelineShaderStageCreateInfo& outMeshInfo )
 {
     outVertexInfo = shaders[ shader.index ].vertexInfo;
     outFragmentInfo = shaders[ shader.index ].fragmentInfo;
+    outMeshInfo = shaders[ shader.index ].meshInfo;
 }
 
 VkPipeline ShaderGetComputePSO( const teShader& shader )

@@ -15,7 +15,7 @@
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teShader teCreateMeshShader( VkDevice device, const teFile& meshShaderFile, const teFile& fragmentShaderFile, const char* meshShaderName, const char* fragmentShaderName );
 teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout, const teFile& file, const char* name, unsigned /*threadsPerThreadgroupX*/, unsigned /*threadsPerThreadgroupY*/ );
-void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo );
+void teShaderGetInfo( const teShader& shader, VkPipelineShaderStageCreateInfo& outVertexInfo, VkPipelineShaderStageCreateInfo& outFragmentInfo, VkPipelineShaderStageCreateInfo& outMeshInfo );
 VkPipeline ShaderGetComputePSO( const teShader& shader );
 unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format );
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName );
@@ -82,6 +82,7 @@ struct PSO
     VkPipeline pso = VK_NULL_HANDLE;
     VkShaderModule vertexModule = VK_NULL_HANDLE;
     VkShaderModule fragmentModule = VK_NULL_HANDLE;
+    VkShaderModule meshModule = VK_NULL_HANDLE;
     teBlendMode blendMode = teBlendMode::Off;
     teCullMode cullMode = teCullMode::Off;
     teDepthMode depthMode = teDepthMode::NoneWriteOff;
@@ -612,10 +613,14 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
-    teShaderGetInfo( shader, vertexInfo, fragmentInfo );
-    const VkPipelineShaderStageCreateInfo shaderStages[ 2 ] = { vertexInfo, fragmentInfo };
-
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
+    VkPipelineShaderStageCreateInfo shaderStages[ 2 ] = { vertexInfo, fragmentInfo };
+    if (meshInfo.pName)
+    {
+        shaderStages[ 0 ] = meshInfo;
+    }
+    
     VkPipelineViewportStateCreateInfo viewportState = {};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
@@ -671,15 +676,16 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
 {
     int psoIndex = -1;
 
-    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo;
-    teShaderGetInfo( shader, vertexInfo, fragmentInfo );
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
 
     for (unsigned i = 0; i < Renderer::MaxPSOs; ++i)
     {
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[i].depthMode == depthMode && renderer.psos[ i ].cullMode == cullMode &&
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
             renderer.psos[ i ].colorFormat == colorFormat && renderer.psos[ i ].depthFormat == depthFormat &&
-            renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module)
+            renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module &&
+            renderer.psos[ i ].meshModule == meshInfo.module && renderer.psos[ i ].meshModule == meshInfo.module)
         {
             psoIndex = i;
             break;
@@ -715,6 +721,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
         renderer.psos[ psoIndex ].depthMode = depthMode;
         renderer.psos[ psoIndex ].vertexModule = vertexInfo.module;
         renderer.psos[ psoIndex ].fragmentModule = fragmentInfo.module;
+        renderer.psos[ psoIndex ].meshModule = meshInfo.module;
         renderer.psos[ psoIndex ].colorFormat = colorFormat;
         renderer.psos[ psoIndex ].depthFormat = depthFormat;
     }
@@ -995,6 +1002,7 @@ void CreateDevice()
         if (teStrstr( availableExtensions[ i ].extensionName, VK_EXT_MESH_SHADER_EXTENSION_NAME ))
         {
             renderer.meshShaderSupported = true;
+            printf( "mesh shader is supported\n" );
         }
     }
 
@@ -1032,10 +1040,18 @@ void CreateDevice()
     dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamicRenderingFeature.dynamicRendering = VK_TRUE;
     dynamicRenderingFeature.pNext = &features12;
-    
+
+    VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {};
+    meshShaderFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
+    meshShaderFeatures.meshShader = VK_TRUE;
+
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features12.bufferDeviceAddress = VK_TRUE;
-
+    if (renderer.meshShaderSupported)
+    {
+        features12.pNext = &meshShaderFeatures;
+    }
+    
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pNext = &dynamicRenderingFeature;
@@ -1503,7 +1519,7 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
-	CreateInstance();
+    CreateInstance();
     CreateDevice();
     LoadFunctionPointers();
     CreateCommandBuffers();

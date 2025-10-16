@@ -235,6 +235,7 @@ int main()
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
+    teShader unlitMeshShader = teCreateMeshShader( unlitMsFile, unlitPsFile, "unlitMS", "unlitPS" );
 
     teFile uiVsFile = teLoadFile( "shaders/ui_vs.spv" );
     teFile uiPsFile = teLoadFile( "shaders/ui_ps.spv" );
@@ -291,7 +292,7 @@ int main()
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
     teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-    teMaterial material = teCreateMaterial( unlitShader );
+    teMaterial material = teCreateMaterial( unlitMeshShader );
     teMaterialSetTexture2D( material, gliderTex, 0 );
 
     teMaterial standardMaterial = teCreateMaterial( standardShader );
@@ -544,7 +545,7 @@ int main()
 
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
-    //teSceneAdd( scene, cubeGo2.index );
+    teSceneAdd( scene, cubeGo2.index );
     //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
     //teSceneAdd( scene, corridorGo.index );
