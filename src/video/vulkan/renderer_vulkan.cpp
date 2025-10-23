@@ -215,6 +215,7 @@ struct Renderer
     PFN_vkGetPhysicalDeviceSurfaceFormatsKHR      getPhysicalDeviceSurfaceFormatsKHR = VK_NULL_HANDLE;
     PFN_vkAcquireNextImageKHR                     acquireNextImageKHR = VK_NULL_HANDLE;
     PFN_vkQueuePresentKHR                         queuePresentKHR = VK_NULL_HANDLE;
+    PFN_vkCmdDrawMeshTasksEXT                     CmdDrawMeshTasksEXT = VK_NULL_HANDLE;
 
     ShaderParams shaderParams;
 
@@ -862,6 +863,7 @@ static void LoadFunctionPointers()
     renderer.acquireNextImageKHR = (PFN_vkAcquireNextImageKHR)vkGetDeviceProcAddr( renderer.device, "vkAcquireNextImageKHR" );
     renderer.queuePresentKHR = (PFN_vkQueuePresentKHR)vkGetDeviceProcAddr( renderer.device, "vkQueuePresentKHR" );
     renderer.SetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr( renderer.instance, "vkSetDebugUtilsObjectNameEXT" );
+    renderer.CmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)vkGetInstanceProcAddr( renderer.instance, "vkCmdDrawMeshTasksEXT" );
 }
 
 void BeginRegion( VkCommandBuffer cmdbuffer, const char* pMarkerName, float r, float g, float b )
@@ -2230,7 +2232,17 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
     }
     
-    vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
+
+    if (vertexInfo.module)
+    {
+        vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
+    }
+    else if (meshInfo.module)
+    {
+        renderer.CmdDrawMeshTasksEXT( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 1, 1, 1 );
+    }
 
     MoveToNextUboOffset();
 
