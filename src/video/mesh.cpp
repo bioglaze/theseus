@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "buffer.h"
 #include "material.h"
 #include "file.h"
 #include "te_stdlib.h"
@@ -18,11 +19,11 @@ static constexpr unsigned MaxMaterials = 1000;
 // Copied from meshoptimizer.
 struct meshopt_Meshlet
 {
-    /* offsets within meshlet_vertices and meshlet_triangles arrays with meshlet data */
+    // offsets within meshlet_vertices and meshlet_triangles arrays with meshlet data
     unsigned int vertex_offset;
     unsigned int triangle_offset;
 
-    /* number of vertices and triangles used in the meshlet; data is stored in consecutive range defined by offset and count */
+    // number of vertices and triangles used in the meshlet; data is stored in consecutive range defined by offset and count
     unsigned int vertex_count;
     unsigned int triangle_count;
 };
@@ -32,6 +33,13 @@ struct SubMesh
     meshopt_Meshlet* meshlets = nullptr;
     unsigned* meshletVertices = nullptr;
     uint8_t* meshletTriangles = nullptr;
+    
+    teBuffer meshletBuffer;
+    teBuffer meshletVertexBuffer;
+    teBuffer meshletTriangleBuffer;
+    teBuffer meshletStagingBuffer;
+    teBuffer meshletVertexStagingBuffer;
+    teBuffer meshletTriangleStagingBuffer;
 
     unsigned indicesOffset = 0;
     unsigned indexCount = 0;
@@ -273,6 +281,24 @@ teMesh teLoadMesh( const teFile& file )
 
         meshes[ outMesh.index ].subMeshes[ m ].nameIndex = *((unsigned*)pointer);
         pointer += 4;
+
+        const unsigned meshletBufferSize = meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletBuffer = CreateBuffer( meshletBufferSize, "meshletBuffer" );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletStagingBuffer = CreateStagingBuffer( meshletBufferSize, "meshletStagingBuffer" );
+        UpdateStagingBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshlets, meshletBufferSize, 0 );
+        CopyBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletBuffer );
+
+        const unsigned meshletVerticesBufferSize = meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount * sizeof( unsigned );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletVertexBuffer = CreateBuffer( meshletVerticesBufferSize, "meshletVertexBuffer" );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletVertexStagingBuffer = CreateStagingBuffer( meshletVerticesBufferSize, "meshletVertexStagingBuffer" );
+        UpdateStagingBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletVertexStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletVertices, meshletVerticesBufferSize, 0 );
+        CopyBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletVertexStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletVertexBuffer );
+
+        const unsigned meshletTrianglesBufferSize = meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleBuffer = CreateBuffer( meshletTrianglesBufferSize, "meshletTrianglesBuffer" );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleStagingBuffer = CreateStagingBuffer( meshletTrianglesBufferSize, "meshletTrianglesStagingBuffer" );
+        UpdateStagingBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles, meshletTrianglesBufferSize, 0 );
+        CopyBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleBuffer );
     }
 
     unsigned namesSize = *((unsigned*)pointer);
