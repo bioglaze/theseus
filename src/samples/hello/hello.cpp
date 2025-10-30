@@ -368,7 +368,7 @@ int main()
 
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
     teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-    teMaterial materialTrans = teCreateMaterial( unlitShader );
+    teMaterial materialTrans = teCreateMaterial( unlitMeshShader );
     materialTrans.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTrans, transTex, 0 );
 
