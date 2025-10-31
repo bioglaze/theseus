@@ -153,7 +153,7 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
     gLightTiler.pointLightColorStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorStagingBuffer" );
 }
 
-void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels )
+void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels, unsigned depthNormalsTextureIndex )
 {
     UpdateStagingBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
     UpdateStagingBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
@@ -175,6 +175,7 @@ void CullLights( const teShader& shader, const Matrix& localToView, const Matrix
     params.tilesXY[ 0 ] = (float)widthPixels;
     params.tilesXY[ 1 ] = (float)heightPixels;
     
+    params.readTexture = depthNormalsTextureIndex;
     params.readBuffer = gLightTiler.pointLightCenterAndRadiusBuffer.index;
     params.writeBuffer = gLightTiler.lightIndexBuffer.index;
     

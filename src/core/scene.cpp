@@ -41,7 +41,7 @@ unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
 void teAddPointLight( unsigned index );
 void teAddSpotLight( unsigned index );
-void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels );
+void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels, unsigned depthNormalsTextureIndex );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
 
@@ -406,7 +406,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
         Matrix viewToClip = teCameraGetProjection( cameraGOIndex );
         Matrix localToView = teTransformGetMatrix( cameraGOIndex );
-        CullLights( *cullLightsShader, localToView, viewToClip, width, height );
+        CullLights( *cullLightsShader, localToView, viewToClip, width, height, teCameraGetDepthNormalsTexture( cameraGOIndex ).index );
     }
 
     teClearFlag clearFlag;
