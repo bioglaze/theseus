@@ -361,7 +361,8 @@ void DeleteSelectedObject()
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )
 {
     teCreateRenderer( 1, windowHandle, width, height );
-
+    teLoadMetalShaderLibrary();
+    
     sceneView.width = width;
     sceneView.height = height;
 

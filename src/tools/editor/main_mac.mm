@@ -80,8 +80,6 @@ void GetOpenPath( char* path, const char* extension )
     self = [super initWithFrame:inFrame device:device];
     if (self)
     {
-        teCreateRenderer( 1, nullptr, width, height );
-        teLoadMetalShaderLibrary();
         InitSceneView( width, height, nullptr, 2 );
         teFinalizeMeshBuffers();
     }
@@ -248,6 +246,7 @@ void GetOpenPath( char* path, const char* extension )
 
     SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
 }
+
 @end
 
 int main()
@@ -271,8 +270,8 @@ int main()
         [menu addItem:quit];
         NSApp.mainMenu = bar;
         
-        NSRect rect = NSMakeRect(0, 0, width, height);
-        NSRect frame = NSMakeRect(0, 0, width, height);
+        NSRect rect = NSMakeRect( 0, 0, width, height );
+        NSRect frame = NSMakeRect( 0, 0, width, height );
         NSWindow* window = [[KeyHandlingWindow alloc]
                             initWithContentRect:rect
                             styleMask:NSWindowStyleMaskTitled
@@ -288,7 +287,10 @@ int main()
 
         HelloMetalView* view = [[HelloMetalView alloc] initWithFrame:frame];
         window.contentView = view;
-        
+
+        id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
+            printf("window resize: %.0fx%.0f\n", window.frame.size.width, window.frame.size.height );
+        }];
         [NSApp run];
         NSLog(@"run()");
     }
