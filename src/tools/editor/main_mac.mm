@@ -30,7 +30,7 @@ extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 
-unsigned width = 800, height = 450;
+unsigned width = 800*1, height = 450*1;
 const int uiScale = 1;
 
 struct InputParams
@@ -287,6 +287,9 @@ int main()
 
         HelloMetalView* view = [[HelloMetalView alloc] initWithFrame:frame];
         window.contentView = view;
+        const float scale = [view.window backingScaleFactor];
+        
+        printf( "Scale: %f\n", scale );
 
         id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
             printf("window resize: %.0fx%.0f\n", window.frame.size.width, window.frame.size.height );

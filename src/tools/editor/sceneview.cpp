@@ -124,7 +124,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
     ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-
+//clip_scale.x = 1;
+//clip_scale.y = 1;
     int global_vtx_offset = 0;
     int global_idx_offset = 0;
 
@@ -471,6 +472,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width * uiScale;
     io.DisplaySize.y = (float)height * uiScale;
+    //io.DisplayFramebufferScale = ImVec2( 2, 2 );
     io.FontGlobalScale = 2;
     ImGui::StyleColorsDark();
 

@@ -730,6 +730,15 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     const unsigned vertexStride = 20; // sizeof( ImDrawVert )
     const unsigned indexStride = 2; // sizeof( ImDrawIdx )
     
+    MTL::Viewport viewport;
+    viewport.originX = 0;
+    viewport.originY = 0;
+    viewport.znear = 0;
+    viewport.zfar = 1;
+    viewport.width = displayPosX + displaySizeX;
+    viewport.height = displayPosY + displaySizeY;
+    renderer.renderEncoder->setViewport( viewport );
+
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
     ++renderer.statPSOBinds;
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
