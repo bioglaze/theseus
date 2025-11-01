@@ -30,7 +30,7 @@ extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 
-unsigned width = 800*1, height = 450*1;
+unsigned width = 800*2, height = 450*2;
 const int uiScale = 1;
 
 struct InputParams
@@ -42,7 +42,7 @@ struct InputParams
     int lastMouseX = 0;
     int lastMouseY = 0;
     bool isLeftMouseDown = false;
-
+    float gridStep = 1;
     Vec3 moveDir;
 } inputParams;
 
@@ -118,6 +118,8 @@ void GetOpenPath( char* path, const char* extension )
     io.KeyShift = isShiftDown;
     io.KeySuper = isCmdDown;
 
+    printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
+
     if ([theEvent keyCode] == 0x00) // A
     {
         if (!io.WantCaptureKeyboard)
@@ -148,6 +150,63 @@ void GetOpenPath( char* path, const char* extension )
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.y = 0.5f;
     }
+    else if ([theEvent keyCode] == 123) // Left
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            SceneMoveSelection( { -inputParams.gridStep, 0, 0 } );
+        }
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, true );
+    }
+    else if ([theEvent keyCode] == 124) // Right
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            SceneMoveSelection( { inputParams.gridStep, 0, 0 } );
+        }
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, true );
+    }
+    else if ([theEvent keyCode] == 126) // Up
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            SceneMoveSelection( { 0, inputParams.gridStep, 0 } );
+        }
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, true );
+    }
+    else if ([theEvent keyCode] == 125) // Down
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            SceneMoveSelection( { 0, -inputParams.gridStep, 0 } );
+        }
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, true );
+    }
+    else if ([theEvent keyCode] == 51) // Backspace
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, true );
+    }
+    else if ([theEvent keyCode] == 29) // 0
+        io.AddInputCharacter( '0' );
+    else if ([theEvent keyCode] == 18) // 1
+        io.AddInputCharacter( '1' );
+    else if ([theEvent keyCode] == 19) // 2
+        io.AddInputCharacter( '2' );
+    else if ([theEvent keyCode] == 20) // 3
+        io.AddInputCharacter( '3' );
+    else if ([theEvent keyCode] == 21) // 4
+        io.AddInputCharacter( '4' );
+    else if ([theEvent keyCode] == 23) // 5
+        io.AddInputCharacter( '5' );
+    else if ([theEvent keyCode] == 22) // 6
+        io.AddInputCharacter( '6' );
+    else if ([theEvent keyCode] == 26) // 7
+        io.AddInputCharacter( '7' );
+    else if ([theEvent keyCode] == 28) // 8
+        io.AddInputCharacter( '8' );
+    else if ([theEvent keyCode] == 25) // 9
+        io.AddInputCharacter( '9' );
+
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -177,6 +236,26 @@ void GetOpenPath( char* path, const char* extension )
     else if ([theEvent keyCode] == 0x0E) // E
     {
         inputParams.moveDir.y = 0;
+    }
+    else if ([theEvent keyCode] == 123) // Left
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, false );
+    }
+    else if ([theEvent keyCode] == 124) // Right
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, false );
+    }
+    else if ([theEvent keyCode] == 126) // Up
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, false );
+    }
+    else if ([theEvent keyCode] == 125) // Down
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, false );
+    }
+    else if ([theEvent keyCode] == 51) // Backspace
+    {
+        io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, false );
     }
 }
 
