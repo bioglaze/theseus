@@ -54,4 +54,14 @@ void teGameObjectAddComponent( unsigned index, teComponent component )
     teAssert( index < MaxGameObjects );
 
     gameObjects[ index ].components |= component;
+
+    if (gameObjects[ index ].components & teComponent::PointLight)
+    {
+        teAddPointLight( index );
+    }
+
+    if (gameObjects[ index ].components & teComponent::SpotLight)
+    {
+        teAddSpotLight( index );
+    }
 }
