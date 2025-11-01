@@ -443,7 +443,9 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.blueMaterial = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.blueMaterial, sceneView.blueTex, 0 );
 
-    sceneView.cubeMesh = teCreateCubeMesh();
+    teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
+    sceneView.cubeMesh = teLoadMesh( cubeFile );
+    //sceneView.cubeMesh = teCreateCubeMesh();
     sceneView.cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teTransformSetLocalPosition( sceneView.cubeGo.index, Vec3( 0, 0, 0 ) );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
@@ -536,7 +538,7 @@ void RenderSceneView( float gridStep )
             {
                 ImGui::PushID( i );
 
-                if (ImGui::Selectable( teGameObjectGetName( goIndex ), &selected ))
+                if (ImGui::Selectable( teGameObjectGetName( goIndex ), /*&selected*/selectedGoIndex == goIndex ))
                 {
                     selectedGoIndex = goIndex;
                     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
