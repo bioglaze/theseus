@@ -37,6 +37,7 @@ float pos[ 3 ];
 float scale = 1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
+float pointLightColor[ 3 ] = { 1, 1, 1 };
 
 struct SceneView
 {
@@ -616,6 +617,14 @@ void RenderSceneView( float gridStep )
                 if (ImGui::CollapsingHeader( "Point Light" ))
                 {
                     ImGui::InputFloat( "radius", tePointLightAccessRadius( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
+
+                    ImGui::Text( "color" );
+                    const bool colorChanged = ImGui::ColorEdit3( "Color", pointLightColor );
+
+                    if (colorChanged)
+                    {
+                        tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( pointLightColor[ 0 ], pointLightColor[ 1 ], pointLightColor[ 2 ] ) );
+                    }
                 }
             }
             else if (ImGui::Button( "Add Point Light" ))
