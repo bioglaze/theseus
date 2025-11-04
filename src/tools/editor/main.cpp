@@ -473,6 +473,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100 : 100;
+
+            io.AddMouseWheelEvent( 0, -event.wheelDelta );
         }
     }
 

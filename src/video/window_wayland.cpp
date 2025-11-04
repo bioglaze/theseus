@@ -463,7 +463,7 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
     }
-    
+
     win.events[ win.eventIndex ].x = win.lastMouseX;
     win.events[ win.eventIndex ].y = win.lastMouseY;
 }
@@ -474,7 +474,7 @@ void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
     win.events[ win.eventIndex ].x = (float)wl_fixed_to_double( x );
     win.events[ win.eventIndex ].y = (float)wl_fixed_to_double( y );
-    
+
     win.lastMouseX = win.events[ win.eventIndex ].x;
     win.lastMouseY = win.events[ win.eventIndex ].y;
 }
@@ -496,6 +496,9 @@ static void pointerAxis( void*       data,
                          uint32_t    axis,
                          wl_fixed_t  value )
 {
+    IncEventIndex();
+    win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+    win.events[ win.eventIndex ].wheelDelta = (int)wl_fixed_to_double( value );    
 }
 
 static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr };
