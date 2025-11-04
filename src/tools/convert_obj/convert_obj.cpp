@@ -465,16 +465,20 @@ void InitMeshArrays( FILE* file )
         
         if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
         {
+            char name[ 128 ] = {};
+            char og[ 128 ] = {};
+            sscanf( line, "%127s %127s", og, name );
+
             if (meshCount > 0)
             {
-                char og[ 128 ] = {};
-                char name[ 128 ] = {};
-                sscanf( line, "%127s %127s", og, name );
-
                 meshes[ meshCount - 1 ].nameIndex = InsertString( name );
                 meshes[ meshCount - 1 ].faceCount = faceCount;
                 meshes[ meshCount - 1 ].faces = new Face[ faceCount ];
                 faceCount = 0;
+            }
+            else
+            {
+                meshes[ 0 ].nameIndex = InsertString( name );
             }
 
             ++meshCount;
