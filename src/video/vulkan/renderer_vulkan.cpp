@@ -759,7 +759,7 @@ teTextureCube teCreateTextureCube( unsigned dimension, unsigned flags, teTexture
 
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
-    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer, renderer.properties,
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.properties,
                                             pixels, pixelsWidth, pixelsHeight, pixelsFormat );
     
     return outTexture;
@@ -767,7 +767,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixe
 
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags )
 {
-    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.currentBuffer ].drawCommandBuffer );
+    teTextureCube outTexture = teLoadTexture( negX, posX, negY, posY, negZ, posZ, flags, renderer.device, renderer.textureStagingBuffers, renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
 
     return outTexture;
 }
