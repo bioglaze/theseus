@@ -380,7 +380,7 @@ static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDevice
 
     VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &cmdBufInfo ) );
 
-    SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, stagingBufferCount, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+    SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, stagingBufferCount, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
     for (unsigned face = 0; face < stagingBufferCount; ++face)
     {
