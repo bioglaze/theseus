@@ -15,6 +15,7 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\sceneview.cpp" />
+    <ClCompile Include="..\scene_usd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">

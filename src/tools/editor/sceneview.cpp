@@ -517,6 +517,17 @@ void RenderSceneView( float gridStep )
     shaderParams.tint[ 3 ] = 1.0f;
     //teDrawQuad( fullscreenAdditiveShader, bloomTarget, shaderParams, teBlendMode::Additive );
 
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu( "File" ))
+        {
+            bool selected = false;
+            ImGui::MenuItem( "Load Scene", nullptr, &selected );
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
     if (ImGui::Begin( "Hierarchy" ))
     {
         if (ImGui::Button( "Add Game object" ))
