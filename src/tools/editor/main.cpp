@@ -66,6 +66,10 @@ void GetOpenPath( char* path, const char* extension )
     {
         ofn.lpstrFilter = "Audio\0*.wav\0All\0*.*\0";
     }
+    else if (strstr( extension, "usda" ))
+    {
+        ofn.lpstrFilter = "USDA\0*.usda\0All\0*.*\0";
+    }
 
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = nullptr;
