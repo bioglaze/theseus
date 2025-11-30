@@ -70,6 +70,30 @@ void GetOpenPath( char* path, const char* extension )
     }
 }
 
+void GetSavePath( char* path, const char* extension )
+{
+    NSMutableArray *types = [NSMutableArray new];
+    [types addObject: [NSString stringWithUTF8String: extension]];
+    //NSArray<UTType*>* types = [NSArray<UTType*> new];
+    
+    NSSavePanel *op = [NSSavePanel savePanel];
+    //[op setAllowedFileTypes: types];
+    //[op allowedContentTypes:types];
+    
+    if ([op runModal] == NSModalResponseOK)
+    {
+        NSURL *nsurl = [op URL];
+        NSString *myString = [nsurl path];
+        const char* str = [myString UTF8String];
+        strcpy( path, str );
+        path[ strlen( str ) ] = 0;
+    }
+    else
+    {
+        path[ 0 ] = 0;
+    }
+}
+
 @interface HelloMetalView : MTKView
 @end
 

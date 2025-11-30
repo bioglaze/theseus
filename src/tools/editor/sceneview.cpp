@@ -23,8 +23,9 @@
 #include "imgui.h"
 
 void GetOpenPath( char* path, const char* extension );
-void LoadUsdScene( const char* path );
-void SaveUsdScene( const char* path );
+void GetSavePath( char* path, const char* extension );
+void LoadUsdScene( teScene& scene, const char* path );
+void SaveUsdScene( const teScene& scene, const char* path );
 
 constexpr unsigned MaxSelectedObjects = 10;
 
@@ -528,15 +529,15 @@ void RenderSceneView( float gridStep )
                 printf( "load scene\n" );
                 openFilePath[ 0 ] = 0;
                 GetOpenPath( openFilePath, "usda" );
-                LoadUsdScene( openFilePath );
+                LoadUsdScene( sceneView.scene, openFilePath );
             }
 
             if (ImGui::MenuItem( "Save Scene", nullptr, nullptr ))
             {
                 printf( "save scene\n" );
                 openFilePath[ 0 ] = 0;
-                GetOpenPath( openFilePath, "usda" );
-                SaveUsdScene( openFilePath );
+                GetSavePath( openFilePath, "usda" );
+                SaveUsdScene( sceneView.scene, openFilePath );
             }
             ImGui::EndMenu();
         }

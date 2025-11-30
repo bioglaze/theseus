@@ -44,7 +44,7 @@ endif
 toolz:
 ifeq ($(UNAME), Darwin)
 	$(CC) $(FLAGS) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -Iinclude -Ithirdparty/meshoptimizer -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework Metal -framework MetalKit thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -fno-objc-arc $(LINKER) -o ../build/convert_obj
-	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp tools/editor/sceneview.cpp tools/editor/main_mac.mm -o ../build/editor_mac
+	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=15.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp tools/editor/scene_usd.cpp tools/editor/sceneview.cpp tools/editor/main_mac.mm -o ../build/editor_mac
 else
 	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 -Iinclude -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
 	$(CC) $(FLAGS) $(SANITIZERS) -std=c++17 tools/editor/*.cpp *.o ../build/engine.o $(LINKER) -o ../build/editor
