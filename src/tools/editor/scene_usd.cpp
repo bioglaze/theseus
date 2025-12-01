@@ -21,7 +21,8 @@ void SaveUsdScene( const teScene& scene, const char* path )
     }
 
     const char header[] = { "#usda 1.0\n\n" };
-    fwrite( header, sizeof( char ), sizeof( header ), outFile );
+    //fwrite( header, sizeof( char ), sizeof( header ), outFile );
+    fprintf( outFile, "#usda 1.0\n\n" );
 
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
     {
@@ -38,12 +39,14 @@ void SaveUsdScene( const teScene& scene, const char* path )
         }
 
         const char transform[] = { "def Xform \"transform\"\n{\n" };
-        fwrite( transform, sizeof( char ), sizeof( transform ), outFile );
+        //fwrite( transform, sizeof( char ), sizeof( transform ), outFile );
+        fprintf( outFile, "def Xform \"transform\"\n{\n" );
 
         Vec3 position = teTransformGetLocalPosition( sceneGo );
         
         const char transformEnd[] = { "}\n\n" };
-        fwrite( transformEnd, sizeof( char ), sizeof( transformEnd ), outFile );
+        //fwrite( transformEnd, sizeof( char ), sizeof( transformEnd ), outFile );
+        fprintf( outFile, transformEnd );
 
     }
 

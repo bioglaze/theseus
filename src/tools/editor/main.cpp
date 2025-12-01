@@ -82,6 +82,44 @@ void GetOpenPath( char* path, const char* extension )
         strncpy( path, ofn.lpstrFile, 280 ); // 280 comes from sceneview.cpp: openFilePath
     }
 }
+
+void GetSavePath( char* path, const char* extension )
+{
+    OPENFILENAME ofn = {};
+    TCHAR szFile[ 260 ] = {};
+
+    ofn.lStructSize = sizeof( ofn );
+    ofn.hwndOwner = GetActiveWindow();
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof( szFile );
+    if (strstr( extension, "t3d" ))
+    {
+        ofn.lpstrFilter = "Theseus Mesh (.t3d)\0*.t3d\0All\0*.*\0";
+    }
+    else if (strstr( extension, "scene" ))
+    {
+        ofn.lpstrFilter = "Scene\0*.scene\0All\0*.*\0";
+    }
+    else if (strstr( extension, "wav" ))
+    {
+        ofn.lpstrFilter = "Audio\0*.wav\0All\0*.*\0";
+    }
+    else if (strstr( extension, "usda" ))
+    {
+        ofn.lpstrFilter = "USDA\0*.usda\0All\0*.*\0";
+    }
+
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = nullptr;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = nullptr;
+    ofn.Flags = 0;
+
+    if (GetSaveFileName( &ofn ) != FALSE)
+    {
+        strncpy( path, ofn.lpstrFile, 280 ); // 280 comes from sceneview.cpp: openFilePath
+    }
+}
 #else
 void GetOpenPath( char* path, const char* extension )
 {
