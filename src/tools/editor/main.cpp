@@ -149,11 +149,25 @@ void GetOpenPath( char* path, const char* extension )
         path[ strlen( path ) - 1 ] = 0;
     }
 }
+
+void GetSavePath( char* path, const char* extension )
+{
+    FILE* f = nullptr;
+
+    f = popen( "zenity --file-selection --save --title \"Save .scene file\"", "w" );
+
+    fgets( path, 1024, f );
+
+    if (strlen( path ) > 0)
+    {
+        path[ strlen( path ) - 1 ] = 0;
+    }
+}
 #endif
 
 InputState inputParams;
 
-bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt)
+bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 {
     ImGuiIO& io = ImGui::GetIO();
 
