@@ -1,5 +1,7 @@
 #include "file.h"
 #include "gameobject.h"
+#include "light.h"
+#include "quaternion.h"
 #include "scene.h"
 #include "transform.h"
 #include "vec3.h"
@@ -20,8 +22,6 @@ void SaveUsdScene( const teScene& scene, const char* path )
         return;
     }
 
-    const char header[] = { "#usda 1.0\n\n" };
-    //fwrite( header, sizeof( char ), sizeof( header ), outFile );
     fprintf( outFile, "#usda 1.0\n\n" );
 
     for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
@@ -33,21 +33,31 @@ void SaveUsdScene( const teScene& scene, const char* path )
             continue;
         }
 
-        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
-        {
-            //continue;
-        }
-
-        const char transform[] = { "def Xform \"transform\"\n{\n" };
-        //fwrite( transform, sizeof( char ), sizeof( transform ), outFile );
         fprintf( outFile, "def Xform \"transform\"\n{\n" );
 
         Vec3 position = teTransformGetLocalPosition( sceneGo );
-        
-        const char transformEnd[] = { "}\n\n" };
-        //fwrite( transformEnd, sizeof( char ), sizeof( transformEnd ), outFile );
-        fprintf( outFile, transformEnd );
+        fprintf( outFile, "    double3 xformOp:translate = (%f, %f, %f)\n", position.x, position.y, position.z );
 
+        //Quaternion rotation = teTransformGetLocalRotation( sceneGo );
+        //Vec3 rotationv = rotation.get
+        //fprintf( outFile, "double3 xformOp:translate = (%f, %f, %f)", position.x, position.y, position.z );
+
+        float* scale = teTransformAccessLocalScale( sceneGo );
+        fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
+
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::PointLight) != 0)
+        {
+            Vec3 lposition, color;
+            float radius;
+            tePointLightGetParams( sceneGo, lposition, radius, color );
+            fprintf( outFile, "\n    def SphereLight \"Light\"\n    {\n" );
+            //fprintf( outFile, "    float inputs:intensity = %f\n",  );
+            fprintf( outFile, "        color3f inputs:color = (%f, %f, %f)\n", color.x, color.y, color.z );
+            fprintf( outFile, "        float inputs:radius = %f\n    }\n", radius );
+        }
+
+        const char transformEnd[] = { "}\n\n" };
+        fprintf( outFile, transformEnd );
     }
 
     fclose( outFile );
