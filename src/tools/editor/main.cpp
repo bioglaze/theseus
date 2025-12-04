@@ -58,9 +58,9 @@ void GetOpenPath( char* path, const char* extension )
     {
         ofn.lpstrFilter = "Theseus Mesh (.t3d)\0*.t3d\0All\0*.*\0";
     }
-    else if (strstr( extension, "scene" ))
+    else if (strstr( extension, "tscene" ))
     {
-        ofn.lpstrFilter = "Scene\0*.scene\0All\0*.*\0";
+        ofn.lpstrFilter = "Scene\0*.tscene\0All\0*.*\0";
     }
     else if (strstr( extension, "wav" ))
     {
@@ -96,9 +96,9 @@ void GetSavePath( char* path, const char* extension )
     {
         ofn.lpstrFilter = "Theseus Mesh (.t3d)\0*.t3d\0All\0*.*\0";
     }
-    else if (strstr( extension, "scene" ))
+    else if (strstr( extension, "tscene" ))
     {
-        ofn.lpstrFilter = "Scene\0*.scene\0All\0*.*\0";
+        ofn.lpstrFilter = "Scene\0*.tscene\0All\0*.*\0";
     }
     else if (strstr( extension, "wav" ))
     {
@@ -125,9 +125,9 @@ void GetOpenPath( char* path, const char* extension )
 {
     FILE* f = nullptr;
 
-    if (strstr( extension, "scene" ))
+    if (strstr( extension, "tscene" ))
     {
-        f = popen( "zenity --file-selection --file-filter=*.scene --title \"Load .scene file\"", "r" );
+        f = popen( "zenity --file-selection --file-filter=*.tscene --title \"Load .tscene file\"", "r" );
     }
     else if (strstr( extension, "t3d" ))
     {
@@ -154,7 +154,7 @@ void GetSavePath( char* path, const char* extension )
 {
     FILE* f = nullptr;
 
-    f = popen( "zenity --file-selection --save --title \"Save .scene file\"", "w" );
+    f = popen( "zenity --file-selection --save --title \"Save .tscene file\"", "w" );
 
     fgets( path, 1024, f );
 

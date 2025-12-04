@@ -7,6 +7,8 @@
 #include "vec3.h"
 #include <stdio.h>
 
+unsigned GetTranslateGizmoGoIndex();
+
 void LoadUsdScene( teScene& scene, const char* path )
 {
     teFile file = teLoadFile( path );
@@ -28,12 +30,12 @@ void SaveUsdScene( const teScene& scene, const char* path )
     {
         unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
 
-        if (sceneGo == 0)
+        if (sceneGo == 0 || sceneGo == 1 || sceneGo == GetTranslateGizmoGoIndex()) // 0 = unused, 1 = editor camera
         {
             continue;
         }
 
-        fprintf( outFile, "def Xform \"transform\"\n{\n" );
+        fprintf( outFile, "def Xform \"transform%u\"\n{\n", sceneGo );
 
         Vec3 position = teTransformGetLocalPosition( sceneGo );
         fprintf( outFile, "    double3 xformOp:translate = (%f, %f, %f)\n", position.x, position.y, position.z );
@@ -48,10 +50,10 @@ void SaveUsdScene( const teScene& scene, const char* path )
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::PointLight) != 0)
         {
             Vec3 lposition, color;
-            float radius;
-            tePointLightGetParams( sceneGo, lposition, radius, color );
+            float radius, intensity;
+            tePointLightGetParams( sceneGo, lposition, radius, color, intensity );
             fprintf( outFile, "\n    def SphereLight \"Light\"\n    {\n" );
-            //fprintf( outFile, "    float inputs:intensity = %f\n",  );
+            fprintf( outFile, "        float inputs:intensity = %f\n", intensity );
             fprintf( outFile, "        color3f inputs:color = (%f, %f, %f)\n", color.x, color.y, color.z );
             fprintf( outFile, "        float inputs:radius = %f\n    }\n", radius );
         }

@@ -92,6 +92,11 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom impl;
 
+unsigned GetTranslateGizmoGoIndex()
+{
+    return sceneView.translateGizmoGo.index;
+}
+
 void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
@@ -650,14 +655,14 @@ void RenderSceneView( float gridStep )
 
                     if (colorChanged)
                     {
-                        tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( pointLightColor[ 0 ], pointLightColor[ 1 ], pointLightColor[ 2 ] ) );
+                        tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( pointLightColor[ 0 ], pointLightColor[ 1 ], pointLightColor[ 2 ] ), 1.0f );
                     }
                 }
             }
             else if (ImGui::Button( "Add Point Light" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
-                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 0, 0 ) );
+                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 0, 0 ), 1.0f );
             }
         }
         else

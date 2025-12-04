@@ -7,6 +7,7 @@
 struct LightImpl
 {
     unsigned tilerIndex = 0;
+    float intensity = 1.0f;
 };
 
 LightImpl pointLights[ 10000 ];
@@ -66,7 +67,7 @@ unsigned GetSpotLightCount()
     return gCurrentSpotTilerIndex;
 }
 
-void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color )
+void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color, float intensity )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
 
@@ -75,6 +76,8 @@ void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color )
         return;
     }
     
+    pointLights[ goIndex ].intensity = intensity;
+
     gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w = radius;
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
@@ -105,7 +108,7 @@ float* tePointLightAccessRadius( unsigned goIndex )
     return &gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
 }
 
-void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor )
+void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor, float& outIntensity )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
 
@@ -119,6 +122,8 @@ void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadiu
     outPosition.z = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].z;
     
     outRadius = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
+
+    outIntensity = pointLights[ goIndex ].intensity;
 
     outColor.x = gLightTiler.pointLightColors[ tilerIndex ].x;
     outColor.y = gLightTiler.pointLightColors[ tilerIndex ].y;
