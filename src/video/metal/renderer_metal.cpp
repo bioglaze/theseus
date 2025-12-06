@@ -632,7 +632,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, colorFormat, depthFormat, false );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
-    ++renderer.statPSOBinds;
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
     renderer.renderEncoder->setCullMode( (MTL::CullMode)cullMode );
 
@@ -667,6 +666,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;
+    ++renderer.statPSOBinds;
 }
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
@@ -740,7 +740,6 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     renderer.renderEncoder->setViewport( viewport );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
-    ++renderer.statPSOBinds;
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
     renderer.renderEncoder->setCullMode( MTL::CullModeNone );
     renderer.renderEncoder->setScissorRect( scissor );
@@ -759,4 +758,5 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;
+    ++renderer.statPSOBinds;
 }

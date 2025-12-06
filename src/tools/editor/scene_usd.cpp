@@ -6,13 +6,39 @@
 #include "transform.h"
 #include "vec3.h"
 #include <stdio.h>
+#include <string.h>
 
 unsigned GetTranslateGizmoGoIndex();
 
 void LoadUsdScene( teScene& scene, const char* path )
 {
-    teFile file = teLoadFile( path );
+    FILE* file = fopen( path, "rb" );
+    if (!file)
+    {
+        printf( "Unable to open file %s for reading!\n", path );
+        return;
+    }
 
+    char line[ 255 ];
+
+    while (fgets( line, 255, file ) != nullptr)
+    {
+        char input[ 255 ];
+        sscanf( line, "%254s", input );
+        
+        if (strstr( input, "def Xform" ))
+        {
+            printf("found Xform\n");
+        }
+        else if (strstr( input, "def SphereLight" ))
+        {
+            printf("found SphereLight\n");
+        }
+        else if (strstr( input, "#usda 1.0" ))
+        {
+            printf("found usda\n");
+        }
+    }
 }
 
 void SaveUsdScene( const teScene& scene, const char* path )

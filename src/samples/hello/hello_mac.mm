@@ -361,12 +361,12 @@ void MoveUp( float amount )
         Vec3 lightPos = Vec3( -10, 1, 3 );
         pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
         teTransformSetLocalPosition( pointLight.index, lightPos );
-        tePointLightSetParams( pointLight.index, 3, { 1, 0, 0 } );
+        tePointLightSetParams( pointLight.index, 3, { 1, 0, 0 }, 1.0f );
 
         Vec3 light2Pos = Vec3( -13, 1, 3 );
         pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
         teTransformSetLocalPosition( pointLight2.index, light2Pos );
-        tePointLightSetParams( pointLight2.index, 3, { 0, 1, 0 } );
+        tePointLightSetParams( pointLight2.index, 3, { 0, 1, 0 }, 1.0f );
 
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
