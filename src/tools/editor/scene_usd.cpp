@@ -1,14 +1,50 @@
 #include "file.h"
 #include "gameobject.h"
+#include "material.h"
+#include "mesh.h"
 #include "light.h"
 #include "quaternion.h"
 #include "scene.h"
+#include "texture.h"
 #include "transform.h"
 #include "vec3.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 unsigned GetTranslateGizmoGoIndex();
+
+void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTextureCount, 
+                          unsigned& outMaterialCount, unsigned& outMeshCount )
+{
+    outGoCount = 0;
+    outTextureCount = 0;
+    outMaterialCount = 0;
+    outMeshCount = 0;
+
+    char line[ 255 ];
+
+    while (fgets( line, 255, file ) != nullptr)
+    {
+        char input[ 255 ];
+        sscanf( line, "%254s", input );
+        printf("input: %s\n", input);
+        
+        if (strstr( input, "def Xform" ))
+        {
+            printf("found Xform\n");
+            ++outGoCount;
+        }
+        else if (strstr( input, "def SphereLight" ))
+        {
+            printf("found SphereLight\n");
+        }
+        else if (strstr( input, "#usda 1.0" ))
+        {
+            printf("found usda\n");
+        }
+    }
+}
 
 void LoadUsdScene( teScene& scene, const char* path )
 {
@@ -18,10 +54,30 @@ void LoadUsdScene( teScene& scene, const char* path )
         printf( "Unable to open file %s for reading!\n", path );
         return;
     }
+    
+    unsigned sceneGoCount = 0;
+    unsigned sceneTextureCount = 0;
+    unsigned sceneMaterialCount = 0;
+    unsigned sceneMeshCount = 0;
+    ReadSceneArraySizes( file, sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
+    teGameObject* sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
+    teTexture2D* sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
+    teMaterial* sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
+    teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
+    printf( "gos: %u, textures: %u, materials: %u, meshes: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
+
+    fclose( file );
+    
+    FILE* file2 = fopen( path, "rb" );
+    if (!file2)
+    {
+        printf( "Unable to open file %s for reading!\n", path );
+        return;
+    }
 
     char line[ 255 ];
 
-    while (fgets( line, 255, file ) != nullptr)
+    while (fgets( line, 255, file2 ) != nullptr)
     {
         char input[ 255 ];
         sscanf( line, "%254s", input );
@@ -38,6 +94,13 @@ void LoadUsdScene( teScene& scene, const char* path )
         {
             printf("found usda\n");
         }
+    }
+
+    fclose( file2 );
+    
+    for (unsigned i = 0; i < sceneGoCount; ++i)
+    {
+        teSceneAdd( scene, sceneGos[ i ].index );
     }
 }
 
