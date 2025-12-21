@@ -1233,8 +1233,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
 
         SetObjectName( renderer.device, (uint64_t)images[ i ], VK_OBJECT_TYPE_IMAGE, "swapchain image" );
         SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, renderer.swapchainResources[ i ].image,
-            VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
-
+            VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
     }
 
     teFree( images );
@@ -1658,9 +1657,8 @@ void teBeginFrame()
 
     vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
 
-    //SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
-     //   VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, 1, 0, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
-
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].image,
+        VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
     
     /*FIXME: write - after write hazard
     VkClearColorValue clearValue{};
@@ -1688,6 +1686,9 @@ void teBeginFrame()
 
 void teEndFrame()
 {
+    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].image,
+        VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
 
     VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -1774,7 +1775,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
     imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     imageMemoryBarrier.image = TextureGetImage( color );
@@ -1786,6 +1786,23 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+
+    VkImageMemoryBarrier depthMemoryBarrier = {};
+    depthMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    depthMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    depthMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    depthMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthMemoryBarrier.image = TextureGetImage( depth );
+    // FIXME: check if the depth texture has stencil and adjust the flags accordingly.
+    depthMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    depthMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    depthMemoryBarrier.subresourceRange.levelCount = 1;
+    depthMemoryBarrier.subresourceRange.layerCount = 1;
+    depthMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    depthMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthMemoryBarrier );
 
     // TODO: maybe not needed
     vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
