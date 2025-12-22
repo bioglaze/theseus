@@ -1794,8 +1794,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     depthMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depthMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depthMemoryBarrier.image = TextureGetImage( depth );
-    // FIXME: check if the depth texture has stencil and adjust the flags accordingly.
-    depthMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    depthMemoryBarrier.subresourceRange.aspectMask = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
     depthMemoryBarrier.subresourceRange.baseMipLevel = 0;
     depthMemoryBarrier.subresourceRange.levelCount = 1;
     depthMemoryBarrier.subresourceRange.layerCount = 1;
