@@ -1659,29 +1659,6 @@ void teBeginFrame()
 
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].image,
         VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
-    
-    /*FIXME: write - after write hazard
-    VkClearColorValue clearValue{};
-    clearValue.float32[0] = 1000.0f;
-    clearValue.float32[ 1 ] = 1000.0f;
-    clearValue.float32[ 2 ] = 1000.0f;
-    clearValue.float32[ 3 ] = 1000.0f;
-
-    VkImageSubresourceRange range{};
-    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    range.levelCount = VK_REMAINING_MIP_LEVELS;
-    range.layerCount = 1;
-
-    vkCmdClearColorImage(
-        renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer,
-        TextureGetImage( renderer.defaultTexture2D ),
-        VK_IMAGE_LAYOUT_GENERAL,
-        &clearValue,
-        1,
-        &range );
-
-    SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );*/
 }
 
 void teEndFrame()
@@ -1822,7 +1799,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     renderer.currentDepthFormat = depth.format;
 }
 
-void EndRendering( teTexture2D& color )
+void EndRendering( teTexture2D& color, teTexture2D& depth )
 {
     vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, renderer.queryPool, 1 );
 
@@ -1844,6 +1821,22 @@ void EndRendering( teTexture2D& color )
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+
+    VkImageMemoryBarrier depthMemoryBarrier = {};
+    depthMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    depthMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    depthMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    depthMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthMemoryBarrier.image = TextureGetImage( depth );
+    depthMemoryBarrier.subresourceRange.aspectMask = depth.format == teTextureFormat::Depth32F_S8 ? (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+    depthMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    depthMemoryBarrier.subresourceRange.levelCount = 1;
+    depthMemoryBarrier.subresourceRange.layerCount = 1;
+    depthMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    depthMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthMemoryBarrier );
 }
 
 void teBeginSwapchainRendering()

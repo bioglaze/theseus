@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor );
-void EndRendering( teTexture2D& color );
+void EndRendering( teTexture2D& color, teTexture2D& depth );
 void PushGroupMarker( const char* name );
 void PopGroupMarker();
 
@@ -367,7 +367,7 @@ static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex,
     RenderMeshes( scene, teBlendMode::Alpha, 0, shader );
 
     PopGroupMarker();
-    EndRendering( depthNormals );
+    EndRendering( depthNormals, depth );
 }
 
 // \param skyboxShader if not null, skybox is rendered using it, skyboxMesh and skyboxTexture.
@@ -426,7 +426,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
     PopGroupMarker();
 
-    EndRendering( color );
+    EndRendering( color, depth );
 }
 
 static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, const Vec3& dirLightPosition, Vec3& outColor, unsigned& outShadowMapIndex )
