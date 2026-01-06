@@ -25,6 +25,8 @@
 float bloomThreshold = 0.1f;
 
 double GetMilliseconds();
+void SubmitCommandBuffer();
+void BeginCommandBuffer();
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -55,7 +57,22 @@ struct ImGUIImplCustom
     int width = 0;
     int height = 0;
     const char* name = "jeejee";
+    teTexture2D textures[ 10 ];
+    unsigned textureCount = 0;
 };
+
+ImGUIImplCustom impl;
+
+bool isFontTexUpdating = false;
+
+struct FontTextureUpdate
+{
+    unsigned width = 0;
+    unsigned height = 0;
+    unsigned char* pixels = nullptr;
+};
+
+FontTextureUpdate fontTexUpdate;
 
 void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 {
@@ -66,6 +83,41 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     // Don't render when minimized.
     if (fbWidth <= 0 || fbHeight <= 0)
         return;
+
+    if (drawData->Textures != nullptr)
+    {
+        for (ImTextureData* tex : *drawData->Textures)
+        {
+            if (tex->Status != ImTextureStatus_OK)
+            {
+                //MyImGuiBackend_UpdateTexture( tex );
+                if (tex->Status == ImTextureStatus_WantCreate)
+                {
+                    printf( "ImTextureStatus_WantCreate\n" );
+                    teFile nullFile;
+                    //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
+                    impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
+                    
+                    isFontTexUpdating = true;
+                    fontTexUpdate.width = tex->Width;
+                    fontTexUpdate.height = tex->Height;
+                    fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
+                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
+
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount );
+                    ++impl.textureCount;
+                }
+                if (tex->Status == ImTextureStatus_WantUpdates)
+                {
+                    printf( "ImTextureStatus_WantUpdates\n" );
+                    /*teFile nullFile;
+                    impl.textures[ tex->GetTexID() ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
+                    tex->SetStatus( ImTextureStatus_OK );*/
+                }
+            }
+        }
+    }
 
     if (drawData->TotalVtxCount > 0)
     {
@@ -132,7 +184,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, fontTex/*impl.textures[pcmd->GetTexID()]*/, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
             }
         }
 
@@ -587,24 +639,22 @@ int main()
         }
     }
 
-    ImGUIImplCustom impl;
-
     ImGuiContext* imContext = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
-    io.FontGlobalScale = 2;
+    //io.FontGlobalScale = 2;
     ImGui::StyleColorsDark();
 
-    unsigned char* fontPixels;
-    int fontWidth, fontHeight;
-    io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
     teFile nullFile;
-    teTexture2D fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
-
+    teTexture2D fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";
-    //io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+    io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+
+    //ImGuiStyle& style = ImGui::GetStyle();
+    //style.FontSizeBase = 20.0f;
+    //io.Fonts->AddFontDefault();
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;
@@ -828,6 +878,7 @@ int main()
         }
 
         teBeginFrame();
+
         ImGui::NewFrame();
         const Vec3 dirLightShadowCasterPosition = cubePos;
         teSceneRender( scene, &skyboxShader, &skyTex, &cubeMesh, momentsShader, dirLightShadowCasterPosition, depthNormalsShader, lightCullShader );
@@ -843,7 +894,7 @@ int main()
 
         shaderParams.readTexture = teCameraGetColorTexture( camera3d.index ).index;
         shaderParams.writeTexture = bloomTarget.index;
-        shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
+        shaderParams.bloomThreshold = (float)pow( 2, bloomThreshold ) - 1;
         teShaderDispatch( bloomThresholdShader, width / 8, dh, 1, shaderParams, "bloom threshold" );
         
         // TODO UAV barrier here
@@ -944,7 +995,19 @@ int main()
         ImGui::Render();
 
         RenderImGUIDrawData( uiShader, fontTex );
+
         teEndSwapchainRendering();
+        
+        if (isFontTexUpdating)
+        {
+            SubmitCommandBuffer();
+
+            teFile nullFile2;
+            memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
+            fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
+            isFontTexUpdating = false;
+            BeginCommandBuffer();
+        }
 
         teEndFrame();
     }
