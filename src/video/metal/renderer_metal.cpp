@@ -481,9 +481,19 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
     }
 }
 
-void EndRendering( teTexture2D& color )
+void EndRendering( teTexture2D& color, teTexture2D& depth )
 {
     renderer.renderEncoder->endEncoding();
+}
+
+void BeginCommandBuffer()
+{
+    // Unused on Metal
+}
+
+void SubmitCommandBuffer()
+{
+    // Unused on Metal
 }
 
 void teBeginSwapchainRendering()

@@ -555,6 +555,7 @@ void RenderSceneView( float gridStep )
 {
     teBeginFrame();
     ImGui::NewFrame();
+
     Vec3 dirLightShadowCasterPosition( 0, 25, 0 );
     teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition, sceneView.depthNormalsShader, sceneView.lightCullShader );
 
@@ -595,8 +596,11 @@ void RenderSceneView( float gridStep )
             }
             ImGui::EndMenu();
         }
+
         ImGui::EndMainMenuBar();
     }
+
+    ImGui::PushFont( nullptr, ImGui::GetStyle().FontSizeBase * 2.0f );
 
     if (ImGui::Begin( "Hierarchy" ))
     {
@@ -633,6 +637,9 @@ void RenderSceneView( float gridStep )
     }
 
     ImGui::End();
+    ImGui::PopFont();
+
+    ImGui::PushFont( nullptr, ImGui::GetStyle().FontSizeBase * 2.0f );
 
     if (ImGui::Begin( "Inspector" ))
     {
@@ -736,6 +743,7 @@ void RenderSceneView( float gridStep )
         }
     }
 
+    ImGui::PopFont();
     ImGui::End();
 
     ImGui::Render();

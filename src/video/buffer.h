@@ -1,6 +1,6 @@
 #pragma once
 
-enum class BufferViewType { None, Uint, Ushort, Float2, Float3, Float4 };
+enum class BufferViewType { Invalid, Uint, Ushort, Float2, Float3, Float4 };
 
 struct teBuffer
 {
