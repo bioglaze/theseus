@@ -21,11 +21,14 @@
 #include "window.h"
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
+#include <stdlib.h>
 
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
 void LoadUsdScene( teScene& scene, const char* path );
 void SaveUsdScene( const teScene& scene, const char* path );
+void SubmitCommandBuffer();
+void BeginCommandBuffer();
 
 constexpr unsigned MaxSelectedObjects = 10;
 
@@ -41,6 +44,17 @@ float scale = 1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
 float pointLightColor[ 3 ] = { 1, 1, 1 };
+
+bool isFontTexUpdating = false;
+
+struct FontTextureUpdate
+{
+    unsigned width = 0;
+    unsigned height = 0;
+    unsigned char* pixels = nullptr;
+};
+
+FontTextureUpdate fontTexUpdate;
 
 struct SceneView
 {
@@ -87,6 +101,8 @@ struct ImGUIImplCustom
 {
     int width = 0;
     int height = 0;
+    teTexture2D textures[ 10 ];
+    unsigned textureCount = 0;
     const char* name = "jeejee";
 };
 
@@ -106,6 +122,41 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     // Don't render when minimized.
     if (fbWidth <= 0 || fbHeight <= 0)
         return;
+
+    if (drawData->Textures != nullptr)
+    {
+        for (ImTextureData* tex : *drawData->Textures)
+        {
+            if (tex->Status != ImTextureStatus_OK)
+            {
+                //MyImGuiBackend_UpdateTexture( tex );
+                if (tex->Status == ImTextureStatus_WantCreate)
+                {
+                    printf( "ImTextureStatus_WantCreate\n" );
+                    teFile nullFile;
+                    //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
+                    impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
+
+                    isFontTexUpdating = true;
+                    fontTexUpdate.width = tex->Width;
+                    fontTexUpdate.height = tex->Height;
+                    fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
+                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
+
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount );
+                    ++impl.textureCount;
+                }
+                if (tex->Status == ImTextureStatus_WantUpdates)
+                {
+                    printf( "ImTextureStatus_WantUpdates\n" );
+                    /*teFile nullFile;
+                    impl.textures[ tex->GetTexID() ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
+                    tex->SetStatus( ImTextureStatus_OK );*/
+                }
+            }
+        }
+    }
 
     if (drawData->TotalVtxCount > 0)
     {
@@ -484,17 +535,15 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     io.DisplaySize.x = (float)width * uiScale;
     io.DisplaySize.y = (float)height * uiScale;
     //io.DisplayFramebufferScale = ImVec2( 2, 2 );
-    io.FontGlobalScale = 2;
+    //io.FontGlobalScale = 2;
     ImGui::StyleColorsDark();
 
-    unsigned char* fontPixels;
-    int fontWidth, fontHeight;
-    io.Fonts->GetTexDataAsRGBA32( &fontPixels, &fontWidth, &fontHeight );
-    teFile nullFile;
-    sceneView.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
+    //sceneView.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
+    sceneView.fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
 
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";
+    io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
 }
 
 unsigned SceneViewGetCameraIndex()
@@ -693,6 +742,17 @@ void RenderSceneView( float gridStep )
 
     RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
     teEndSwapchainRendering();
+
+    if (isFontTexUpdating)
+    {
+        SubmitCommandBuffer();
+
+        teFile nullFile2;
+        memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
+        sceneView.fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
+        isFontTexUpdating = false;
+        BeginCommandBuffer();
+    }
 
     teEndFrame();
 }
