@@ -94,7 +94,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
                     printf( "ImTextureStatus_WantCreate\n" );
-                    teFile nullFile;
+                    //teFile nullFile;
                     //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
                     
@@ -644,7 +644,6 @@ int main()
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
 
-    teFile nullFile;
     teTexture2D fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";

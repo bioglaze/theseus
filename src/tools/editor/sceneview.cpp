@@ -133,7 +133,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
                     printf( "ImTextureStatus_WantCreate\n" );
-                    teFile nullFile;
+                    //teFile nullFile;
                     //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
@@ -613,7 +613,6 @@ void RenderSceneView( float gridStep )
         ImGui::Text( "Game objects:" );
 
         unsigned goCount = teSceneGetMaxGameObjects();
-        bool selected = false;
 
         for (unsigned i = 0; i < goCount; ++i)
         {
@@ -623,7 +622,7 @@ void RenderSceneView( float gridStep )
             {
                 ImGui::PushID( i );
 
-                if (ImGui::Selectable( teGameObjectGetName( goIndex ), /*&selected*/selectedGoIndex == goIndex ))
+                if (ImGui::Selectable( teGameObjectGetName( goIndex ), selectedGoIndex == goIndex ))
                 {
                     selectedGoIndex = goIndex;
                     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
