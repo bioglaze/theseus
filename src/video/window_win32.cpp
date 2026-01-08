@@ -102,7 +102,7 @@ static void InitKeyMap()
 {
     for (unsigned keyIndex = 0; keyIndex < 256; ++keyIndex)
     {
-        win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::None;
+        win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::Invalid;
     }
 
     win.keyMap[ VK_RETURN ]     = teWindowEvent::KeyCode::Enter;

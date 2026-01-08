@@ -571,7 +571,6 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         return outTexture;
     }
 
-    unsigned bytesPerPixel = 4;
     VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
 
     if (teStrstr( file.path, ".tga" ) || teStrstr( file.path, ".TGA" ))
@@ -580,7 +579,6 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         unsigned dataBeginOffset = 0;
 
         LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
-        bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
 
         if (bitsPerPixel == 24)
         {
@@ -603,8 +601,6 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 
         tex.width = pixelsWidth;
         tex.height = pixelsHeight;
-
-        bytesPerPixel = bitsPerPixel == bitsPerPixel / 8;
 
         tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( tex.mipLevelCount <= 15 );
@@ -630,6 +626,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
             tex.mipLevelCount = 1;
         }
 
+        unsigned bytesPerPixel = 4;
         GetFormatAndBPP( bcFormat, format, bytesPerPixel );
 
         VkImageCreateInfo imageCreateInfo = {};
