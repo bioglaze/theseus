@@ -643,8 +643,6 @@ int main()
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
-    //io.FontGlobalScale = 2;
-    ImGui::StyleColorsDark();
 
     teFile nullFile;
     teTexture2D fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
@@ -652,9 +650,9 @@ int main()
     io.BackendRendererName = "imgui_impl_vulkan";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
 
-    //ImGuiStyle& style = ImGui::GetStyle();
-    //style.FontSizeBase = 20.0f;
-    //io.Fonts->AddFontDefault();
+    ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FontScaleDpi = 2.0f;
 
     bool shouldQuit = false;
     bool isRightMouseDown = false;

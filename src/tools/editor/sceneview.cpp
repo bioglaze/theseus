@@ -535,11 +535,12 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     io.DisplaySize.x = (float)width * uiScale;
     io.DisplaySize.y = (float)height * uiScale;
     //io.DisplayFramebufferScale = ImVec2( 2, 2 );
-    //io.FontGlobalScale = 2;
+    
     ImGui::StyleColorsDark();
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FontScaleDpi = 2.0f;
 
-    //sceneView.fontTex = teLoadTexture( nullFile, 0, fontPixels, fontWidth, fontHeight, teTextureFormat::RGBA_sRGB );
-    sceneView.fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
+    sceneView.fontTex = sceneView.gliderTex;
 
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";
@@ -600,8 +601,6 @@ void RenderSceneView( float gridStep )
         ImGui::EndMainMenuBar();
     }
 
-    ImGui::PushFont( nullptr, ImGui::GetStyle().FontSizeBase * 2.0f );
-
     if (ImGui::Begin( "Hierarchy" ))
     {
         if (ImGui::Button( "Add Game object" ))
@@ -637,9 +636,6 @@ void RenderSceneView( float gridStep )
     }
 
     ImGui::End();
-    ImGui::PopFont();
-
-    ImGui::PushFont( nullptr, ImGui::GetStyle().FontSizeBase * 2.0f );
 
     if (ImGui::Begin( "Inspector" ))
     {
@@ -743,7 +739,6 @@ void RenderSceneView( float gridStep )
         }
     }
 
-    ImGui::PopFont();
     ImGui::End();
 
     ImGui::Render();
