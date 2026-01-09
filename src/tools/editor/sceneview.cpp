@@ -153,6 +153,16 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                     /*teFile nullFile;
                     impl.textures[ tex->GetTexID() ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     tex->SetStatus( ImTextureStatus_OK );*/
+                    impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
+
+                    isFontTexUpdating = true;
+                    fontTexUpdate.width = tex->Width;
+                    fontTexUpdate.height = tex->Height;
+                    fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
+                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
+                    
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount );
                 }
             }
         }
