@@ -11,6 +11,9 @@
 #include "te_stdlib.h"
 #include "shader.h"
 #include "vec3.h"
+#if VK_USE_PLATFORM_XCB_KHR
+#include <X11/Xlib-xcb.h>
+#endif
 
 teShader teCreateShader( VkDevice device, const struct teFile& vertexFile, const struct teFile& fragmentFile, const char* vertexName, const char* fragmentName );
 teShader teCreateMeshShader( VkDevice device, const teFile& meshShaderFile, const teFile& fragmentShaderFile, const char* meshShaderName, const char* fragmentShaderName );
@@ -41,6 +44,11 @@ teBuffer GetLightIndexBuffer();
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
+
+#if VK_USE_PLATFORM_XCB_KHR
+extern struct xcb_connection_t* connection;
+extern xcb_window_t window;
+#endif
 
 constexpr unsigned DescriptorEntryCount = 5;
 constexpr unsigned SamplerCount = 6;
@@ -1137,7 +1145,13 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     surfaceCreateInfo.hinstance = GetModuleHandle( nullptr );
     surfaceCreateInfo.hwnd = (HWND)windowHandle;
     VK_CHECK( vkCreateWin32SurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
-#else
+#elif VK_USE_PLATFORM_XCB_KHR
+    VkXcbSurfaceCreateInfoKHR surfaceCreateInfo = {};
+    surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+    surfaceCreateInfo.connection = connection;
+    surfaceCreateInfo.window = window;
+    VK_CHECK( vkCreateXcbSurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
+#elif VK_USE_PLATFORM_WAYLAND_KHR
     VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
     surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
     surfaceCreateInfo.surface = gwlSurface;

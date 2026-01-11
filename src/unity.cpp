@@ -6,6 +6,9 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #if VK_USE_PLATFORM_WAYLAND_KHR
 #include "video/window_wayland.cpp"
 #endif
+#if VK_USE_PLATFORM_XCB_KHR
+#include "video/window_xcb.cpp"
+#endif
 #include "core/te_stdlib.cpp"
 #include "core/camera.cpp"
 #include "core/file.cpp"
@@ -18,7 +21,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #include "material.cpp"
 #include "mesh.cpp"
 #include "textureloader.cpp"
-#if VK_USE_PLATFORM_WIN32_KHR || VK_USE_PLATFORM_WAYLAND_KHR
+#if VK_USE_PLATFORM_WIN32_KHR || VK_USE_PLATFORM_WAYLAND_KHR || VK_USE_PLATFORM_XCB_KHR
 #include "vulkan/buffer_vulkan.cpp"
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
