@@ -4,10 +4,12 @@
 void teAddPointLight( unsigned index );
 void teAddSpotLight( unsigned index );
 
+constexpr unsigned MaxNameLength = 100;
+
 struct teGameObjectImpl
 {
     unsigned components = 0;
-    const char* name = "unnamed";
+    char name[ MaxNameLength ] = {};
 };
 
 constexpr unsigned MaxGameObjects = 10000;
@@ -22,7 +24,8 @@ teGameObject teCreateGameObject( const char* name, unsigned components )
     outGo.index = ++gameObjectCount;
     
     gameObjects[ outGo.index ].components = components;
-    gameObjects[ outGo.index ].name = name;
+
+    teGameObjectSetName( outGo.index, name );
     
     if (components & teComponent::PointLight)
     {
@@ -42,6 +45,14 @@ unsigned teGameObjectGetComponents( unsigned index )
     teAssert( index < MaxGameObjects );
 
     return index < MaxGameObjects ? gameObjects[ index ].components : 0;
+}
+
+void teGameObjectSetName( unsigned index, const char* name )
+{
+    unsigned nameLength = teStrlen( name );
+    nameLength = nameLength + 1 < MaxNameLength ? nameLength : MaxNameLength - 1;
+    teMemcpy( gameObjects[ index ].name, name, nameLength );
+    gameObjects[ index ].name[ nameLength ] = 0;
 }
 
 const char* teGameObjectGetName( unsigned index )
