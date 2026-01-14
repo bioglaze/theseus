@@ -757,6 +757,7 @@ void RenderSceneView( float gridStep )
 
     if (isFontTexUpdating)
     {
+        // FIXME: WRITE_AFTER_PRESENT hazard on swapchain image
         SubmitCommandBuffer();
 
         teFile nullFile2;
