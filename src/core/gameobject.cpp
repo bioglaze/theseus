@@ -55,7 +55,7 @@ void teGameObjectSetName( unsigned index, const char* name )
     gameObjects[ index ].name[ nameLength ] = 0;
 }
 
-const char* teGameObjectGetName( unsigned index )
+char* teGameObjectGetName( unsigned index )
 {
     return gameObjects[ index ].name;
 }

@@ -650,7 +650,7 @@ void RenderSceneView( float gridStep )
     {
         if (selectedGoIndex != sceneView.translateGizmoGo.index && selectedGoIndex != sceneView.camera3d.index)
         {
-            ImGui::Text( "%s", teGameObjectGetName( selectedGoIndex ) );
+            ImGui::InputText( "name", teGameObjectGetName( selectedGoIndex ), 100 );
          
             if (ImGui::CollapsingHeader( "Transform" ))
             //ImGui::SeparatorText( "Transform" );
