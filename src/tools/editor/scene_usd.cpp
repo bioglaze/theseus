@@ -22,26 +22,28 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     outMaterialCount = 0;
     outMeshCount = 0;
 
-    char line[ 255 ];
 
-    while (fgets( line, 255, file ) != nullptr)
+    char* line;
+    size_t len = 0;
+    
+    while (getline( &line, &len, file ) != -1)
     {
         char input[ 255 ];
         sscanf( line, "%254s", input );
-        printf("input: %s\n", input);
+        //printf("input: %s\n", input);
         
-        if (strstr( input, "def Xform" ))
+        if (strstr( line, "def Xform" ))
         {
-            printf("found Xform\n");
+            printf("ReadArraySizes: found Xform\n");
             ++outGoCount;
         }
-        else if (strstr( input, "def SphereLight" ))
+        else if (strstr( line, "def SphereLight" ))
         {
-            printf("found SphereLight\n");
+            printf("ReadArraySizes: found SphereLight\n");
         }
-        else if (strstr( input, "#usda 1.0" ))
+        else if (strstr( line, "#usda 1.0" ))
         {
-            printf("found usda\n");
+            printf("ReadArraySizes: found usda\n");
         }
     }
 }
@@ -75,22 +77,29 @@ void LoadUsdScene( teScene& scene, const char* path )
         return;
     }
 
-    char line[ 255 ];
+    char* line;
+    size_t len = 0;
 
-    while (fgets( line, 255, file2 ) != nullptr)
+    unsigned goIndex = 0;
+    
+    while (getline( &line, &len, file2 ) != -1)
     {
+        //printf("read line: %s\n", line );
+        
         char input[ 255 ];
         sscanf( line, "%254s", input );
-        
-        if (strstr( input, "def Xform" ))
+
+        if (strstr( line, "def Xform" ))
         {
             printf("found Xform\n");
+            sceneGos[ goIndex ] = teCreateGameObject( "gameobject", teComponent::Transform );
+            ++goIndex;
         }
-        else if (strstr( input, "def SphereLight" ))
+        else if (strstr( line, "def SphereLight" ))
         {
             printf("found SphereLight\n");
         }
-        else if (strstr( input, "#usda 1.0" ))
+        else if (strstr( line, "#usda 1.0" ))
         {
             printf("found usda\n");
         }

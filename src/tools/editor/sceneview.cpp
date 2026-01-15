@@ -723,7 +723,7 @@ void RenderSceneView( float gridStep )
             else if (ImGui::Button( "Add Point Light" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
-                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 0, 0 ), 1.0f );
+                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
             }
         }
         else
