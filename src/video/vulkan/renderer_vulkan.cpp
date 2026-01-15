@@ -41,6 +41,8 @@ unsigned GetPointLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
 teBuffer GetLightIndexBuffer();
+teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex );
+teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex );
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -2270,6 +2272,14 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
 
+    VkBufferDeviceAddressInfo meshletIndexInfo = {};
+    meshletIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    //meshletIndexInfo.buffer = BufferGetBuffer( GetMeshletTriangleBuffer( meshIndex, subMeshIndex ) );
+
+    VkBufferDeviceAddressInfo meshletVertexInfo = {};
+    meshletVertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    //meshletVertexInfo.buffer = BufferGetBuffer( GetMeshletVertexBuffer( meshIndex, subMeshIndex ) );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
@@ -2281,6 +2291,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
+    //pushConstants.meshletIndexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletIndexInfo );
+    //pushConstants.meshletVertexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletVertexInfo );
 
     if (renderer.meshShaderSupported)
     {

@@ -25,14 +25,21 @@ void unlitMS( out indices uint3 triangles[ 1 ], out vertices VSOutput vertices[ 
 
     triangles[ 0 ] = uint3( 0, 1, 2 );
 
-    vertices[ 0 ].pos = float4( -0.5, 0.5, 0.0, 1.0 );
-    vertices[ 0 ].uv = float2( 1.0, 0.0 );
+    //for (uint i = 0; i < 3; ++i)
+    {
+        float s = 10;
+        vertices[ 0 ].pos = float4( -0.5 * s, 0.5 * s, 0.0, 1.0 );
+        //vertices[ 0 ].pos = mul( uniforms.localToClip, vertices[ 0 ].pos );
+        vertices[ 0 ].uv = float2( 1.0, 0.0 );
 
-    vertices[ 1 ].pos = float4( 0.5, 0.5, 0.0, 1.0 );
-    vertices[ 1 ].uv = float2( 0.0, 1.0 );
+        vertices[ 1 ].pos = float4( 0.5 * s, 0.5 * s, 0.0, 1.0 );
+        //vertices[ 1 ].pos = mul( uniforms.localToClip, vertices[ 1 ].pos );
+        vertices[ 1 ].uv = float2( 0.0, 1.0 );
 
-    vertices[ 2 ].pos = float4( 0.0, -0.5, 0.0, 1.0 );
-    vertices[ 2 ].uv = float2( 0.0, 0.0 );
+        vertices[ 2 ].pos = float4( 0.0, -0.5 * s, 0.0, 1.0 );
+        //vertices[ 2 ].pos = mul( uniforms.localToClip, vertices[ 2 ].pos );
+        vertices[ 2 ].uv = float2( 0.0, 0.0 );
+    }
 }
 
 float4 unlitPS( VSOutput vsOut ) : SV_Target

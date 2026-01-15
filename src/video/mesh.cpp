@@ -80,6 +80,16 @@ static MeshImpl meshes[ MaxMeshes ];
 static unsigned meshIndex = 0;
 static struct MeshRenderer meshRenderers[ MaxMeshes ];
 
+teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex )
+{
+    return meshes[ meshIndex ].subMeshes[ subMeshIndex ].meshletVertexBuffer;
+}
+
+teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex )
+{
+    return meshes[ meshIndex ].subMeshes[ subMeshIndex ].meshletTriangleBuffer;
+}
+
 teMesh teCreateCubeMesh()
 {
     teAssert( meshIndex < MaxMeshes );
