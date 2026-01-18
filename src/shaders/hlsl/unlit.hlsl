@@ -19,26 +19,33 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 
 [outputtopology("triangle")]
 [numthreads(1, 1, 1)]
-void unlitMS( out indices uint3 triangles[ 1 ], out vertices VSOutput vertices[ 3 ] )
+void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices uint3 triangles[ 1 ], out vertices VSOutput vertices[ 3 ] )
 {
+    Meshlet meshlet;// = meshlets[ gid ];
+    meshlet.triangleCount = 1;
+    meshlet.vertexCount = 1;
+    
     SetMeshOutputCounts( 3, 1 ); // 3 vertices, 1 primitive
 
-    triangles[ 0 ] = uint3( 0, 1, 2 );
-
-    //for (uint i = 0; i < 3; ++i)
+    if (gtid < meshlet.triangleCount)
+    {
+        triangles[ gtid ] = uint3( 0, 1, 2 );
+    }
+    
+    if (gtid < meshlet.vertexCount)
     {
         float s = 10;
-        vertices[ 0 ].pos = float4( -0.5 * s, 0.5 * s, 0.0, 1.0 );
-        //vertices[ 0 ].pos = mul( uniforms.localToClip, vertices[ 0 ].pos );
-        vertices[ 0 ].uv = float2( 1.0, 0.0 );
+        vertices[ gtid ].pos = float4( -0.5 * s, 0.5 * s, 0.0, 1.0 );
+    //vertices[ gtid ].pos = mul( uniforms.localToClip, vertices[ 0 ].pos );
+        vertices[ gtid ].uv = float2( 1.0, 0.0 );
 
-        vertices[ 1 ].pos = float4( 0.5 * s, 0.5 * s, 0.0, 1.0 );
-        //vertices[ 1 ].pos = mul( uniforms.localToClip, vertices[ 1 ].pos );
+        /*vertices[ 1 ].pos = float4( 0.5 * s, 0.5 * s, 0.0, 1.0 );
+    //vertices[ 1 ].pos = mul( uniforms.localToClip, vertices[ 1 ].pos );
         vertices[ 1 ].uv = float2( 0.0, 1.0 );
 
         vertices[ 2 ].pos = float4( 0.0, -0.5 * s, 0.0, 1.0 );
-        //vertices[ 2 ].pos = mul( uniforms.localToClip, vertices[ 2 ].pos );
-        vertices[ 2 ].uv = float2( 0.0, 0.0 );
+    //vertices[ 2 ].pos = mul( uniforms.localToClip, vertices[ 2 ].pos );
+        vertices[ 2 ].uv = float2( 0.0, 0.0 );*/
     }
 }
 

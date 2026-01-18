@@ -35,6 +35,14 @@ struct PushConstants
     float2 translate;
 };
 
+struct Meshlet
+{
+    uint vertexOffset;
+    uint triangleOffset;
+    uint vertexCount;
+    uint triangleCount;
+};
+
 #define S_LINEAR_REPEAT 0
 #define S_LINEAR_CLAMP 1
 #define S_NEAREST_REPEAT 2
@@ -50,4 +58,4 @@ struct PushConstants
 [[vk::binding(2)]] Buffer<float3> positions;
 [[vk::binding(3)]] ConstantBuffer< UniformData > uniforms;
 [[vk::binding(4)]] RWTexture2D<float4> rwTexture2d;
-
+//[[vk::binding(5)]] StructuredBuffer<Meshlet> meshlets;

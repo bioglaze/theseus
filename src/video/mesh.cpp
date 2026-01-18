@@ -80,14 +80,14 @@ static MeshImpl meshes[ MaxMeshes ];
 static unsigned meshIndex = 0;
 static struct MeshRenderer meshRenderers[ MaxMeshes ];
 
-teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex )
+teBuffer& GetMeshletVertexBuffer( unsigned index, unsigned subMeshIndex )
 {
-    return meshes[ meshIndex ].subMeshes[ subMeshIndex ].meshletVertexBuffer;
+    return meshes[ index ].subMeshes[ subMeshIndex ].meshletVertexBuffer;
 }
 
-teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex )
+teBuffer& GetMeshletTriangleBuffer( unsigned index, unsigned subMeshIndex )
 {
-    return meshes[ meshIndex ].subMeshes[ subMeshIndex ].meshletTriangleBuffer;
+    return meshes[ index ].subMeshes[ subMeshIndex ].meshletTriangleBuffer;
 }
 
 teMesh teCreateCubeMesh()
