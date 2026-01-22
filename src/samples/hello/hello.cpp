@@ -63,10 +63,9 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom impl;
 
-bool isFontTexUpdating = false;
-
 struct FontTextureUpdate
 {
+    int64_t index = -1;
     unsigned width = 0;
     unsigned height = 0;
     unsigned char* pixels = nullptr;
@@ -74,7 +73,7 @@ struct FontTextureUpdate
 
 FontTextureUpdate fontTexUpdate;
 
-void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
+void RenderImGUIDrawData( const teShader& shader )
 {
     ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -94,18 +93,17 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
                     printf( "ImTextureStatus_WantCreate\n" );
-                    //teFile nullFile;
-                    //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
-                    
-                    isFontTexUpdating = true;
+
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount + 1 );
+
+                    fontTexUpdate.index = impl.textureCount;
                     fontTexUpdate.width = tex->Width;
                     fontTexUpdate.height = tex->Height;
                     fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
                     memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
 
-                    tex->SetStatus( ImTextureStatus_OK );
-                    tex->SetTexID( impl.textureCount );
                     ++impl.textureCount;
                 }
                 if (tex->Status == ImTextureStatus_WantUpdates)
@@ -184,7 +182,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, fontTex/*impl.textures[pcmd->GetTexID()]*/, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
+                teUIDrawCall( shader, impl.textures[ pcmd->GetTexID() - 1 ], (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
             }
         }
 
@@ -644,7 +642,6 @@ int main()
     io.DisplaySize.x = (float)width;
     io.DisplaySize.y = (float)height;
 
-    teTexture2D fontTex = teCreateTexture2D( 512, 512, 0, teTextureFormat::RGBA_sRGB, "default" );
     io.BackendRendererUserData = &impl;
     io.BackendRendererName = "imgui_impl_vulkan";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
@@ -991,18 +988,18 @@ int main()
         ImGui::End();
         ImGui::Render();
 
-        RenderImGUIDrawData( uiShader, fontTex );
+        RenderImGUIDrawData( uiShader );
 
         teEndSwapchainRendering();
         
-        if (isFontTexUpdating)
+        if (fontTexUpdate.index != -1)
         {
             SubmitCommandBuffer();
 
             teFile nullFile2;
-            memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
-            fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
-            isFontTexUpdating = false;
+            memcpy( nullFile2.path, "font texture", strlen( "font texture" ) );
+            impl.textures[ fontTexUpdate.index ] = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
+            fontTexUpdate.index = -1;
             BeginCommandBuffer();
         }
 
