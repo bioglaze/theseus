@@ -90,6 +90,11 @@ teBuffer& GetMeshletTriangleBuffer( unsigned index, unsigned subMeshIndex )
     return meshes[ index ].subMeshes[ subMeshIndex ].meshletTriangleBuffer;
 }
 
+teBuffer& GetMeshletBuffer( unsigned index, unsigned subMeshIndex )
+{
+    return meshes[ index ].subMeshes[ subMeshIndex ].meshletBuffer;
+}
+
 teMesh teCreateCubeMesh()
 {
     teAssert( meshIndex < MaxMeshes );

@@ -21,9 +21,13 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 [numthreads(1, 1, 1)]
 void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices uint3 triangles[ 1 ], out vertices VSOutput vertices[ 3 ] )
 {
-    Meshlet meshlet;// = meshlets[ gid ];
-    meshlet.triangleCount = 1;
-    meshlet.vertexCount = 1;
+    uint4 meshletData = vk::RawBufferLoad < uint4 > (pushConstants.meshletBuf + 16 * gid);
+    
+    Meshlet meshlet;
+    meshlet.vertexOffset = meshletData.x;
+    meshlet.triangleOffset = meshletData.y;
+    meshlet.vertexCount = meshletData.z;
+    meshlet.triangleCount = meshletData.w;
     
     SetMeshOutputCounts( 3, 1 ); // 3 vertices, 1 primitive
 

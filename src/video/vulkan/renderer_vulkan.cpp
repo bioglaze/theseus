@@ -43,6 +43,7 @@ teBuffer GetPointLightColorBuffer();
 teBuffer GetLightIndexBuffer();
 teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex );
 teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex );
+teBuffer& GetMeshletBuffer( unsigned meshIndex, unsigned subMeshIndex );
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -67,6 +68,7 @@ struct PushConstants
     uint64_t lightIndexBuf;
     uint64_t meshletIndexBuf;
     uint64_t meshletVertexBuf;
+    uint64_t meshletBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -2188,7 +2190,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned /* tangentOffset */, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex )
+           unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned renderMeshIndex, unsigned subMeshIndex )
 {
     if (textureIndex != 0)
     {
@@ -2272,14 +2274,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
 
-    VkBufferDeviceAddressInfo meshletIndexInfo = {};
-    meshletIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    //meshletIndexInfo.buffer = BufferGetBuffer( GetMeshletTriangleBuffer( meshIndex, subMeshIndex ) );
-
-    VkBufferDeviceAddressInfo meshletVertexInfo = {};
-    meshletVertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    //meshletVertexInfo.buffer = BufferGetBuffer( GetMeshletVertexBuffer( meshIndex, subMeshIndex ) );
-
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
@@ -2291,11 +2285,31 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
-    //pushConstants.meshletIndexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletIndexInfo );
-    //pushConstants.meshletVertexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletVertexInfo );
+
+    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
+    teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
 
     if (renderer.meshShaderSupported)
     {
+        if (meshInfo.module)
+        {
+            VkBufferDeviceAddressInfo meshletIndexInfo = {};
+            meshletIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+            meshletIndexInfo.buffer = BufferGetBuffer( GetMeshletTriangleBuffer( renderMeshIndex, subMeshIndex ) );
+
+            VkBufferDeviceAddressInfo meshletVertexInfo = {};
+            meshletVertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+            meshletVertexInfo.buffer = BufferGetBuffer( GetMeshletVertexBuffer( renderMeshIndex, subMeshIndex ) );
+
+            VkBufferDeviceAddressInfo meshletInfo = {};
+            meshletInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+            meshletInfo.buffer = BufferGetBuffer( GetMeshletBuffer( renderMeshIndex, subMeshIndex ) );
+
+            pushConstants.meshletIndexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletIndexInfo );
+            pushConstants.meshletVertexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletVertexInfo );
+            pushConstants.meshletBuf = vkGetBufferDeviceAddress( renderer.device, &meshletInfo );
+        }
+
         vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
     }
     else
@@ -2303,9 +2317,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
     }
     
-    VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
-    teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
-
     if (vertexInfo.module)
     {
         vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, indexCount * 3, 1, indexOffset / 2, positionOffset / (3 * 4), 0 );
@@ -2329,7 +2340,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
 }
 
 void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )

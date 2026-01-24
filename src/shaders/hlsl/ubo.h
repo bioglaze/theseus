@@ -27,6 +27,7 @@ struct PushConstants
     uint64_t lightIndexBuf;
     uint64_t meshletIndexBuf;
     uint64_t meshletVertexBuf;
+    uint64_t meshletBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
