@@ -45,13 +45,13 @@ float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
 float pointLightColor[ 3 ] = { 1, 1, 1 };
 
-bool isFontTexUpdating = false;
 
 struct FontTextureUpdate
 {
     unsigned width = 0;
     unsigned height = 0;
     unsigned char* pixels = nullptr;
+    int index = -1;
 };
 
 FontTextureUpdate fontTexUpdate;
@@ -133,36 +133,32 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
                     printf( "ImTextureStatus_WantCreate\n" );
-                    //teFile nullFile;
-                    //impl.textures[ impl.textureCount ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
-                    isFontTexUpdating = true;
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount + 1 );
+
+                    fontTexUpdate.index = impl.textureCount;
                     fontTexUpdate.width = tex->Width;
                     fontTexUpdate.height = tex->Height;
                     fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
                     memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
 
-                    tex->SetStatus( ImTextureStatus_OK );
-                    tex->SetTexID( impl.textureCount );
                     ++impl.textureCount;
                 }
                 if (tex->Status == ImTextureStatus_WantUpdates)
                 {
                     printf( "ImTextureStatus_WantUpdates\n" );
-                    /*teFile nullFile;
-                    impl.textures[ tex->GetTexID() ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
-                    tex->SetStatus( ImTextureStatus_OK );*/
                     impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
-                    isFontTexUpdating = true;
+                    tex->SetStatus( ImTextureStatus_OK );
+                    tex->SetTexID( impl.textureCount + 1 );
+
+                    fontTexUpdate.index = impl.textureCount;
                     fontTexUpdate.width = tex->Width;
                     fontTexUpdate.height = tex->Height;
                     fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
-                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
-                    
-                    tex->SetStatus( ImTextureStatus_OK );
-                    tex->SetTexID( impl.textureCount );
+                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );                    
                 }
             }
         }
@@ -755,7 +751,7 @@ void RenderSceneView( float gridStep )
     RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
     teEndSwapchainRendering();
 
-    if (isFontTexUpdating)
+    if (fontTexUpdate.index != -1)
     {
         // FIXME: WRITE_AFTER_PRESENT hazard on swapchain image
         SubmitCommandBuffer();
@@ -763,7 +759,7 @@ void RenderSceneView( float gridStep )
         teFile nullFile2;
         memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
         sceneView.fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
-        isFontTexUpdating = false;
+        fontTexUpdate.index = -1;
         BeginCommandBuffer();
     }
 
