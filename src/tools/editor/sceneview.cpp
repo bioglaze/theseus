@@ -311,9 +311,12 @@ void SelectObject( unsigned x, unsigned y )
 
 void SceneMoveSelection( Vec3 amount )
 {
-    teTransformMoveRight( selectedGoIndex, amount.x );
-    teTransformMoveUp( selectedGoIndex, amount.y );
-    teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    if (selectedGoIndex != EditorCameraGoIndex)
+    {
+        teTransformMoveRight( selectedGoIndex, amount.x );
+        teTransformMoveUp( selectedGoIndex, amount.y );
+        teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+    }
 }
 
 void SceneViewDuplicate()
@@ -415,7 +418,7 @@ void SelectGizmo( unsigned x, unsigned y )
 
 void DeleteSelectedObject()
 {
-    if (selectedGoIndex != 1)
+    if (selectedGoIndex != EditorCameraGoIndex)
     {
         teSceneRemove( sceneView.scene, selectedGoIndex );
     }
