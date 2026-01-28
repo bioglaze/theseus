@@ -18,8 +18,8 @@ VSOutput unlitVS( uint vertexId : SV_VertexID )
 }
 
 [outputtopology("triangle")]
-[numthreads(1, 1, 1)]
-void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices uint3 triangles[ 1 ], out vertices VSOutput vertices[ 3 ] )
+[numthreads(128, 1, 1)]
+void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices uint3 triangles[ 128 ], out vertices VSOutput vertices[ 64 ] )
 {
     uint4 meshletData = vk::RawBufferLoad < uint4 > (pushConstants.meshletBuf + 16 * gid);
     
@@ -29,27 +29,24 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
     meshlet.vertexCount = meshletData.z;
     meshlet.triangleCount = meshletData.w;
     
-    SetMeshOutputCounts( 3, 1 ); // 3 vertices, 1 primitive
+    SetMeshOutputCounts( meshlet.vertexCount, meshlet.triangleCount );
 
     if (gtid < meshlet.triangleCount)
     {
-        triangles[ gtid ] = uint3( 0, 1, 2 );
+        uint4 triangleData = vk::RawBufferLoad < uint4 > (pushConstants.meshletIndexBuf + 16 * (meshlet.triangleOffset + gtid));
+        
+        triangles[ gtid ] = uint3( triangleData.x, triangleData.y, triangleData.z );
     }
+    
     
     if (gtid < meshlet.vertexCount)
     {
+        float4 vertexData = vk::RawBufferLoad < float4 > (pushConstants.meshletVertexBuf + 16 * (meshlet.vertexOffset + gtid));
+        
         float s = 10;
-        vertices[ gtid ].pos = float4( -0.5 * s, 0.5 * s, 0.0, 1.0 );
-    //vertices[ gtid ].pos = mul( uniforms.localToClip, vertices[ 0 ].pos );
+        vertices[ gtid ].pos = float4( vertexData.x, vertexData.y, vertexData.z, 1.0 );
+        vertices[ gtid ].pos = mul( uniforms.localToClip, vertices[ gtid ].pos );
         vertices[ gtid ].uv = float2( 1.0, 0.0 );
-
-        /*vertices[ 1 ].pos = float4( 0.5 * s, 0.5 * s, 0.0, 1.0 );
-    //vertices[ 1 ].pos = mul( uniforms.localToClip, vertices[ 1 ].pos );
-        vertices[ 1 ].uv = float2( 0.0, 1.0 );
-
-        vertices[ 2 ].pos = float4( 0.0, -0.5 * s, 0.0, 1.0 );
-    //vertices[ 2 ].pos = mul( uniforms.localToClip, vertices[ 2 ].pos );
-        vertices[ 2 ].uv = float2( 0.0, 0.0 );*/
     }
 }
 

@@ -2323,6 +2323,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     }
     else if (meshInfo.module)
     {
+        // FIXME: this draws one meshlet for debugging purposes. The first 1 is the meshlet count.
         renderer.CmdDrawMeshTasksEXT( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 1, 1, 1 );
     }
 

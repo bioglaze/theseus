@@ -542,7 +542,9 @@ int main()
     teTransformSetLocalPosition( cubeGo2.index, cubePos );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
-    teMeshRendererSetMaterial( cubeGo2.index, materialTransMS, 0 );
+    // FIXME: this currently crashes the GPU, because the mesh shader code is buggy.
+    //teMeshRendererSetMaterial( cubeGo2.index, materialTransMS, 0 );
+    teMeshRendererSetMaterial( cubeGo2.index, key0mat, 0 );
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, { 20, 2, 15 } );
