@@ -22,11 +22,9 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     outMaterialCount = 0;
     outMeshCount = 0;
 
-
-    char* line;
-    size_t len = 0;
+    char line[ 512 ];
     
-    while (getline( &line, &len, file ) != -1)
+    while (fgets( line, sizeof( line ), file ))
     {
         char input[ 255 ];
         sscanf( line, "%254s", input );
@@ -77,12 +75,11 @@ void LoadUsdScene( teScene& scene, const char* path )
         return;
     }
 
-    char* line;
-    size_t len = 0;
+    char line[ 512 ];
 
     unsigned goIndex = 0;
     
-    while (getline( &line, &len, file2 ) != -1)
+    while (fgets( line, sizeof( line ), file ))
     {
         //printf("read line: %s\n", line );
         
@@ -98,6 +95,8 @@ void LoadUsdScene( teScene& scene, const char* path )
         else if (strstr( line, "def SphereLight" ))
         {
             printf("found SphereLight\n");
+            teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::PointLight );
+            tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), 1.0f );
         }
         else if (strstr( line, "#usda 1.0" ))
         {
