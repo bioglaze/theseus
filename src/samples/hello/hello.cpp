@@ -548,11 +548,11 @@ int main()
 
     teGameObject pointLight = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight.index, { 20, 2, 15 } );
-    tePointLightSetParams( pointLight.index, 3, { 1, 0, 0 }, 1.0f );
+    tePointLightSetParams( pointLight.index, 4, { 5, 0, 0 }, 1.0f );
     
     teGameObject pointLight2 = teCreateGameObject( "cube2", teComponent::Transform | teComponent::PointLight );
     teTransformSetLocalPosition( pointLight2.index, { 25, 2, 15 } );
-    tePointLightSetParams( pointLight2.index, 3, { 0, 1, 0 }, 1.0f );
+    tePointLightSetParams( pointLight2.index, 4, { 0, 5, 0 }, 1.0f );
     
     teGameObject keypadGo = teCreateGameObject( "keypad", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 keypadPos = Vec3( 20, 4, 15 );

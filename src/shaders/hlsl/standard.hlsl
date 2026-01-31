@@ -142,7 +142,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
     //float depth = (vsOut.projCoord.z + 0.0001f) / vsOut.projCoord.w;
-    float shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
+    float3 shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
     float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xy;
     float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
@@ -164,6 +164,8 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float3 specular = specularStrength * spec;
     accumDiffuseAndSpecular += specular;
     
+    accumDiffuseAndSpecular *= shadow;
+    
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
     
     const uint tileIndex = GetTileIndex( vsOut.pos.xy );
@@ -184,14 +186,14 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         const float3 vecToLightWS = centerAndRadius.xyz - vsOut.positionWS.xyz;
         const float3 lightDirVS = normalize( vecToLightVS );
 
-        const float3 L = normalize( vecToLightVS );
-        const float3 H = normalize( L + V );
+        const float3 iL = normalize( vecToLightVS );
+        const float3 iH = normalize( iL + V );
 
         const float dotNV = abs( dot( N, V ) ) + 1e-5f;
         const float dotNL = saturate( dot( N, lightDirVS ) );
-        const float dotVH = saturate( dot( V, H ) );
-        const float dotLH = saturate( dot( L, H ) );
-        const float dotNH = saturate( dot( N, H ) );
+        const float dotVH = saturate( dot( V, iH ) );
+        const float dotLH = saturate( dot( iL, iH ) );
+        const float dotNH = saturate( dot( N, iH ) );
         
         const float lightDistance = length( vecToLightWS );
 
@@ -209,14 +211,16 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         if (lightDistance < radius)
         {
             const float attenuation = pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
-            const float3 color = Fd + Fr;
+            // FIXME: something wrong with the following line
+            //const float3 color = Fd + Fr;
+            const float3 color = 1.0f;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
-            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
-            return float4( pointLightColor.rgb, 1 );
+            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL * 2.0f;
+            //return float4( pointLightColor.rgb, 1 );
         }
     }
 
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
     
-    return albedo * float4( saturate( accumDiffuseAndSpecular ) * shadow, 1 );
+    return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
 }
