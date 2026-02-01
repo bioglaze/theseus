@@ -148,31 +148,37 @@ void GetSavePath( char* path, const char* extension )
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.x = -0.5f;
+        io.AddInputCharacter( 'a' );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.x = 0.5f;
+        io.AddInputCharacter( 'd' );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.z = 0.5f;
+        io.AddInputCharacter( 'w' );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.z = -0.5f;
+        io.AddInputCharacter( 's' );
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.y = -0.5f;
+        io.AddInputCharacter( 'q' );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
         if (!io.WantCaptureKeyboard)
             inputParams.moveDir.y = 0.5f;
+        io.AddInputCharacter( 'e' );
     }
     else if ([theEvent keyCode] == 123) // Left
     {
@@ -230,7 +236,48 @@ void GetSavePath( char* path, const char* extension )
         io.AddInputCharacter( '8' );
     else if ([theEvent keyCode] == 25) // 9
         io.AddInputCharacter( '9' );
-
+    else if ([theEvent keyCode] == 49) // space
+        io.AddInputCharacter( ' ' );
+    else if ([theEvent keyCode] == 15) // R
+        io.AddInputCharacter( 'r' );
+    else if ([theEvent keyCode] == 17) // T
+        io.AddInputCharacter( 't' );
+    else if ([theEvent keyCode] == 16) // Y
+        io.AddInputCharacter( 'y' );
+    else if ([theEvent keyCode] == 32) // U
+        io.AddInputCharacter( 'u' );
+    else if ([theEvent keyCode] == 34) // I
+        io.AddInputCharacter( 'i' );
+    else if ([theEvent keyCode] == 31) // O
+        io.AddInputCharacter( 'o' );
+    else if ([theEvent keyCode] == 35) // P
+        io.AddInputCharacter( 'p' );
+    else if ([theEvent keyCode] == 3) // F
+        io.AddInputCharacter( 'f' );
+    else if ([theEvent keyCode] == 5) // G
+        io.AddInputCharacter( 'g' );
+    else if ([theEvent keyCode] == 4) // H
+        io.AddInputCharacter( 'h' );
+    else if ([theEvent keyCode] == 38) // J
+        io.AddInputCharacter( 'j' );
+    else if ([theEvent keyCode] == 40) // K
+        io.AddInputCharacter( 'k' );
+    else if ([theEvent keyCode] == 37) // L
+        io.AddInputCharacter( 'l' );
+    else if ([theEvent keyCode] == 6) // Z
+        io.AddInputCharacter( 'z' );
+    else if ([theEvent keyCode] == 7) // X
+        io.AddInputCharacter( 'x' );
+    else if ([theEvent keyCode] == 8) // C
+        io.AddInputCharacter( 'c' );
+    else if ([theEvent keyCode] == 9) // V
+        io.AddInputCharacter( 'v' );
+    else if ([theEvent keyCode] == 11) // B
+        io.AddInputCharacter( 'b' );
+    else if ([theEvent keyCode] == 45) // N
+        io.AddInputCharacter( 'n' );
+    else if ([theEvent keyCode] == 46) // M
+        io.AddInputCharacter( 'm' );
 }
 
 - (void)keyUp:(NSEvent *)theEvent
