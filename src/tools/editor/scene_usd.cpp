@@ -102,6 +102,18 @@ void LoadUsdScene( teScene& scene, const char* path )
         {
             printf("found usda\n");
         }
+        else if (strstr( line, "string name" )) // for example: string name = "gameObject"
+        {
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char name[ 256 ] = {};
+            sscanf( line, "%s %s %s \"%s", a, b, c, name );
+            int len = strlen( name );
+            name[ len - 1 ] = 0;
+            printf( "found string name: %s\n", name );
+            teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
+        }
     }
 
     fclose( file2 );
@@ -143,6 +155,7 @@ void SaveUsdScene( const teScene& scene, const char* path )
 
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
+        fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::PointLight) != 0)
         {
