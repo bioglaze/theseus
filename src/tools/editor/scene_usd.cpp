@@ -79,7 +79,7 @@ void LoadUsdScene( teScene& scene, const char* path )
 
     unsigned goIndex = 0;
     
-    while (fgets( line, sizeof( line ), file ))
+    while (fgets( line, sizeof( line ), file2 ))
     {
         //printf("read line: %s\n", line );
         
