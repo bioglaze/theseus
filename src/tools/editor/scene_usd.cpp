@@ -66,20 +66,13 @@ void LoadUsdScene( teScene& scene, const char* path )
     teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
     printf( "gos: %u, textures: %u, materials: %u, meshes: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
 
-    fclose( file );
-    
-    FILE* file2 = fopen( path, "rb" );
-    if (!file2)
-    {
-        printf( "Unable to open file %s for reading!\n", path );
-        return;
-    }
+    fseek( file, 0, 0 );
 
     char line[ 512 ];
 
     unsigned goIndex = 0;
     
-    while (fgets( line, sizeof( line ), file2 ))
+    while (fgets( line, sizeof( line ), file ))
     {
         //printf("read line: %s\n", line );
         
@@ -116,7 +109,7 @@ void LoadUsdScene( teScene& scene, const char* path )
         }
     }
 
-    fclose( file2 );
+    fclose( file );
     
     for (unsigned i = 0; i < sceneGoCount; ++i)
     {
