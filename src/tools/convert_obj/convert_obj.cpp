@@ -1,6 +1,6 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2024-12-14
+// Modified: 2026-02-09
 // Limitations:
 //   - Only triangulated meshes currently work.
 //   - Face indices are 16-bit.
@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "vec3.h"
 #include "meshoptimizer.h"
 
@@ -73,6 +74,7 @@ struct Mesh
     unsigned         finalFaceCount = 0;
     unsigned int*    meshletVertices = nullptr;
     unsigned char*   meshletTriangles = nullptr;
+    uint32_t*        meshletTrianglesU32 = nullptr; // packed from 3 bytes meshletTriangles into 4 bytes to make GPU access easier.
     unsigned         meshletVerticesCount = 0;
     unsigned         meshletTrianglesCount = 0;
     meshopt_Meshlet* meshlets = nullptr;
@@ -106,7 +108,7 @@ void WriteT3d( const char* path )
         return;
     }
 
-    const char header[] = { "t3d0003" };
+    const char header[] = { "t3d0004" };
     fwrite( header, sizeof( char ), sizeof( header ), file );
     fwrite( &meshCount, 1, 4, file );
 
@@ -134,7 +136,7 @@ void WriteT3d( const char* path )
         fwrite( &meshes[ m ].meshletVerticesCount, 4, 1, file );
         fwrite( meshes[ m ].meshletVertices, meshes[ m ].meshletVerticesCount * sizeof( unsigned ), 1, file );
         fwrite( &meshes[ m ].meshletTrianglesCount, 4, 1, file );
-        fwrite( meshes[ m ].meshletTriangles, meshes[ m ].meshletTrianglesCount * sizeof( unsigned char ), 1, file );
+        fwrite( meshes[ m ].meshletTrianglesU32, meshes[ m ].meshletTrianglesCount * sizeof( uint32_t ), 1, file );
 
         fwrite( &meshes[ m ].nameIndex, 4, 1, file );
     }
@@ -168,10 +170,38 @@ void BuildMeshlets( Mesh& mesh )
     mesh.meshletVertices = new unsigned int[ maxVertices * maxMeshlets ];
     mesh.meshletVerticesCount = maxVertices * maxMeshlets;
     mesh.meshletTriangles = new unsigned char[ maxTriangles * maxMeshlets * 3 ];
-    mesh.meshletTrianglesCount = maxTriangles * maxMeshlets * 3;
+    mesh.meshletTrianglesU32 = new uint32_t[ maxTriangles * maxMeshlets ];
+    mesh.meshletTrianglesCount = maxTriangles * maxMeshlets;
 
     mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
         mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
+
+    // Repack triangles from 3 bytes to 4.
+    uint32_t triangleCounter = 0;
+
+    for (unsigned m = 0; m < mesh.meshletCount; ++m)
+    {
+        uint32_t triangleOffset = triangleCounter;
+
+        for (unsigned i = 0; i < mesh.meshlets[ m ].triangle_count; ++i)
+        {
+            uint32_t i0 = 3 * i + 0 + mesh.meshlets[ m ].triangle_offset;
+            uint32_t i1 = 3 * i + 1 + mesh.meshlets[ m ].triangle_offset;
+            uint32_t i2 = 3 * i + 2 + mesh.meshlets[ m ].triangle_offset;
+
+            uint8_t vIdx0 = mesh.meshletTriangles[ i0 ];
+            uint8_t vIdx1 = mesh.meshletTriangles[ i1 ];
+            uint8_t vIdx2 = mesh.meshletTriangles[ i2 ];
+
+            uint32_t packed = ((static_cast<uint32_t>( vIdx0 ) & 0xFF) << 0) |
+                              ((static_cast<uint32_t>( vIdx1 ) & 0xFF) << 8) |
+                              ((static_cast<uint32_t>( vIdx2 ) & 0xFF) << 16);
+            mesh.meshletTrianglesU32[ triangleCounter ] = packed;
+            ++triangleCounter;
+        }
+
+        mesh.meshlets[ m ].triangle_offset = triangleOffset;
+    }
 }
 
 void CreateFinalGeometry( Mesh& mesh )

@@ -32,7 +32,7 @@ struct SubMesh
 {
     meshopt_Meshlet* meshlets = nullptr;
     unsigned* meshletVertices = nullptr;
-    uint8_t* meshletTriangles = nullptr;
+    uint32_t* meshletTriangles = nullptr;
     
     teBuffer meshletBuffer;
     teBuffer meshletVertexBuffer;
@@ -226,7 +226,7 @@ teMesh teLoadMesh( const teFile& file )
     outMesh.index = ++meshIndex;
 
     // Header is something like "t3d0003" where the last numbers are version that is incremented when reading compatibility breaks.
-    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '3')
+    if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '4')
     {
         printf( "%s has wrong version!\n", file.path );
         return outMesh;
@@ -290,9 +290,9 @@ teMesh teLoadMesh( const teFile& file )
         pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount * sizeof( unsigned );
         meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount = *((unsigned*)pointer);
         pointer += 4;
-        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles = (uint8_t*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t ) );
-        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t ) );
-        pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t );
+        meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles = (uint32_t*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint32_t ) );
+        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint32_t ) );
+        pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint32_t );
 
         meshes[ outMesh.index ].subMeshes[ m ].nameIndex = *((unsigned*)pointer);
         pointer += 4;
@@ -309,7 +309,7 @@ teMesh teLoadMesh( const teFile& file )
         UpdateStagingBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletVertexStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletVertices, meshletVerticesBufferSize, 0 );
         CopyBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletVertexStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletVertexBuffer );
 
-        const unsigned meshletTrianglesBufferSize = meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint8_t );
+        const unsigned meshletTrianglesBufferSize = meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleCount * sizeof( uint32_t );
         meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleBuffer = CreateBuffer( meshletTrianglesBufferSize, "meshletTrianglesBuffer" );
         meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleStagingBuffer = CreateStagingBuffer( meshletTrianglesBufferSize, "meshletTrianglesStagingBuffer" );
         UpdateStagingBuffer( meshes[ outMesh.index ].subMeshes[ m ].meshletTriangleStagingBuffer, meshes[ outMesh.index ].subMeshes[ m ].meshletTriangles, meshletTrianglesBufferSize, 0 );

@@ -378,7 +378,7 @@ int main()
     teMaterialSetTexture2D( gridMaterial, gridTex, 0 );
     teMaterialSetTexture2D( gridMaterial, gridNormalTex, 1 );
 
-    teFile corridorFile = teLoadFile( "assets/meshes/scifi_corridor.t3d" );
+    /*teFile corridorFile = teLoadFile("assets/meshes/scifi_corridor.t3d");
     teMesh corridorMesh = teLoadMesh( corridorFile );
     teGameObject corridorGo = teCreateGameObject( "corridor", teComponent::Transform | teComponent::MeshRenderer );
     printf("materials: %d\n", teMeshGetSubMeshCount( &corridorMesh ) );
@@ -412,7 +412,7 @@ int main()
     teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 24 );
     teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 25 );
     teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 26 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 27 );
+    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 27 );*/
 
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
@@ -516,7 +516,7 @@ int main()
     teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
     teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teFile roomFile = teLoadFile( "assets/meshes/room.t3d" );
+    /*teFile roomFile = teLoadFile("assets/meshes/room.t3d");
     teMesh roomMesh = teLoadMesh( roomFile );
     teGameObject roomGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     teMeshRendererSetMesh( roomGo.index, &roomMesh );
@@ -525,7 +525,7 @@ int main()
     teMeshRendererSetMaterial( roomGo.index, brickMaterial, 2 );
     teMeshRendererSetMaterial( roomGo.index, brickMaterial, 3 );
     teMeshRendererSetMaterial( roomGo.index, brickMaterial, 4 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 5 );
+    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 5 );*/
 
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     teMesh cubeMesh = teLoadMesh( cubeFile );
