@@ -214,6 +214,10 @@ void GetSavePath( char* path, const char* extension )
     }
     else if ([theEvent keyCode] == 51) // Backspace
     {
+        if (!io.WantCaptureKeyboard)
+        {
+            DeleteSelectedObject();
+        }
         io.AddKeyEvent( ImGuiKey::ImGuiKey_Backspace, true );
     }
     else if ([theEvent keyCode] == 29) // 0
