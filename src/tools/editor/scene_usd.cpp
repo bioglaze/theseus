@@ -81,15 +81,23 @@ void LoadUsdScene( teScene& scene, const char* path )
 
         if (strstr( line, "def Xform" ))
         {
-            printf("found Xform\n");
             sceneGos[ goIndex ] = teCreateGameObject( "gameobject", teComponent::Transform );
             ++goIndex;
         }
         else if (strstr( line, "def SphereLight" ))
         {
-            printf("found SphereLight\n");
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::PointLight );
             tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), 1.0f );
+        }
+        else if (strstr( line, "color3f" ))
+        {
+            Vec3 color = Vec3( 1, 1, 1 );
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%s %s %s (%f, %f, %f)", skip1, skip2, skip3, &color.x, &color.y, &color.z );
+
+            tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, color, 1.0f );
         }
         else if (strstr( line, "#usda 1.0" ))
         {
@@ -104,7 +112,6 @@ void LoadUsdScene( teScene& scene, const char* path )
             sscanf( line, "%s %s %s \"%s", a, b, c, name );
             int len = strlen( name );
             name[ len - 1 ] = 0;
-            printf( "found string name: %s\n", name );
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
         }
     }
