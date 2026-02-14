@@ -33,9 +33,12 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
 
     if (gtid < meshlet.triangleCount)
     {
-        uint4 triangleData = vk::RawBufferLoad < uint4 > (pushConstants.meshletIndexBuf + 16 * (meshlet.triangleOffset + gtid));
+        uint packed = vk::RawBufferLoad < uint > (pushConstants.meshletIndexBuf + 4 * (meshlet.triangleOffset + gtid));
+        uint vIdx0 = (packed >> 0) & 0xFF;
+        uint vIdx1 = (packed >> 8) & 0xFF;
+        uint vIdx2 = (packed >> 16) & 0xFF;
         
-        triangles[ gtid ] = uint3( triangleData.x, triangleData.y, triangleData.z );
+        triangles[ gtid ] = uint3( vIdx0, vIdx1, vIdx2 );
     }
     
     
