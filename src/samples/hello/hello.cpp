@@ -16,7 +16,6 @@
 #include "transform.h"
 #include "vec3.h"
 #include "window.h"
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,8 +269,6 @@ teMaterial key7mat;
 teMaterial key8mat;
 teMaterial key9mat;
 
-teMesh keypadMesh;
-
 int main()
 {
     unsigned width =  1920 / 1;
@@ -378,42 +375,6 @@ int main()
     teMaterialSetTexture2D( gridMaterial, gridTex, 0 );
     teMaterialSetTexture2D( gridMaterial, gridNormalTex, 1 );
 
-    /*teFile corridorFile = teLoadFile("assets/meshes/scifi_corridor.t3d");
-    teMesh corridorMesh = teLoadMesh( corridorFile );
-    teGameObject corridorGo = teCreateGameObject( "corridor", teComponent::Transform | teComponent::MeshRenderer );
-    printf("materials: %d\n", teMeshGetSubMeshCount( &corridorMesh ) );
-    teTransformSetLocalPosition( corridorGo.index, { 0, -10, 0 } );
-    teTransformSetLocalScale( corridorGo.index, 0.5f );
-    teMeshRendererSetMesh( corridorGo.index, &corridorMesh );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 0 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 1 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 2 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 3 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 4 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 5 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 6 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 7 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 8 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 9 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 10 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 11 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 12 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 13 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 14 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 15 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 16 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 17 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 18 );
-    teMeshRendererSetMaterial( corridorGo.index, gridMaterial, 19 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 20 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 21 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 22 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 23 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 24 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 25 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 26 );
-    teMeshRendererSetMaterial( corridorGo.index, floorMaterial, 27 );*/
-
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
@@ -485,7 +446,7 @@ int main()
     teMaterialSetTexture2D( key9mat, floorNormalTex, 1 );
 
     teFile keypadFile = teLoadFile( "assets/meshes/keypad.t3d" );
-    keypadMesh = teLoadMesh( keypadFile );
+    teMesh keypadMesh = teLoadMesh( keypadFile );
 
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );
@@ -515,17 +476,6 @@ int main()
 
     teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
     teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-
-    /*teFile roomFile = teLoadFile("assets/meshes/room.t3d");
-    teMesh roomMesh = teLoadMesh( roomFile );
-    teGameObject roomGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-    teMeshRendererSetMesh( roomGo.index, &roomMesh );
-    teMeshRendererSetMaterial( roomGo.index, floorMaterial, 0 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 1 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 2 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 3 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 4 );
-    teMeshRendererSetMaterial( roomGo.index, brickMaterial, 5 );*/
 
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     teMesh cubeMesh = teLoadMesh( cubeFile );
@@ -600,9 +550,7 @@ int main()
     teSceneAdd( scene, camera3d.index );
     teSceneAdd( scene, cubeGo.index );
     teSceneAdd( scene, cubeGo2.index );
-    //teSceneAdd( scene, roomGo.index );
     teSceneAdd( scene, keypadGo.index );
-    //teSceneAdd( scene, corridorGo.index );
     teSceneAdd( scene, pointLight.index );
     teSceneAdd( scene, pointLight2.index );
 
