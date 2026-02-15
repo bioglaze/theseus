@@ -711,12 +711,9 @@ void RenderSceneView( float gridStep )
                     ImGui::InputFloat( "radius", tePointLightAccessRadius( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
 
                     ImGui::Text( "color" );
-                    const bool colorChanged = ImGui::ColorEdit3( "Color", pointLightColor );
+                    ImGui::ColorEdit3("Color", tePointLightAccessColor( selectedGoIndex ) );
 
-                    if (colorChanged)
-                    {
-                        tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( pointLightColor[ 0 ], pointLightColor[ 1 ], pointLightColor[ 2 ] ), 1.0f );
-                    }
+                    tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
                 }
             }
             else if (ImGui::Button( "Add Point Light" ))

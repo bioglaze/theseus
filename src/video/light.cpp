@@ -108,6 +108,18 @@ float* tePointLightAccessRadius( unsigned goIndex )
     return &gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
 }
 
+float* tePointLightAccessColor( unsigned goIndex )
+{
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return nullptr;
+    }
+
+    return &gLightTiler.pointLightColors[ tilerIndex ].x;
+}
+
 void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor, float& outIntensity )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
