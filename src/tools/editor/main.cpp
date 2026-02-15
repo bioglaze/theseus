@@ -307,6 +307,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             if (!io.WantCaptureKeyboard)
             {
                 --inputParams.gridStep;
+                
+                if (inputParams.gridStep < 1)
+                {
+                    inputParams.gridStep = 1;
+                }
             }
             
             io.AddInputCharacter( '-' );
@@ -316,6 +321,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             if (!io.WantCaptureKeyboard)
             {
                 ++inputParams.gridStep;
+
+                if (inputParams.gridStep > 5)
+                {
+                    inputParams.gridStep = 5;
+                }
             }
             
             io.AddInputCharacter( '+' );
