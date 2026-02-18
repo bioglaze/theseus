@@ -281,7 +281,7 @@ teMesh teLoadMesh( const teFile& file )
         meshes[ outMesh.index ].subMeshes[ m ].meshletCount = *((unsigned*)pointer);
         pointer += 4;
         meshes[ outMesh.index ].subMeshes[ m ].meshlets = (meshopt_Meshlet*)teMalloc( meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet ) );
-        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshlets, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletCount );
+        memcpy( meshes[ outMesh.index ].subMeshes[ m ].meshlets, pointer, meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet ) );
         pointer += meshes[ outMesh.index ].subMeshes[ m ].meshletCount * sizeof( meshopt_Meshlet );
         meshes[ outMesh.index ].subMeshes[ m ].meshletVerticesCount = *((unsigned*)pointer);
         pointer += 4;

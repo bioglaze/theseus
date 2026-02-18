@@ -44,7 +44,7 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
     
     if (gtid < meshlet.vertexCount)
     {
-        float4 vertexData = vk::RawBufferLoad < float4 > (pushConstants.meshletVertexBuf + 16 * (meshlet.vertexOffset + gtid));
+        float3 vertexData = vk::RawBufferLoad < float3 > (pushConstants.meshletVertexBuf + 12 * (meshlet.vertexOffset + gtid));
         
         float s = 10;
         vertices[ gtid ].pos = float4( vertexData.x, vertexData.y, vertexData.z, 1.0 );
