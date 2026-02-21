@@ -699,10 +699,10 @@ void RenderSceneView( float gridStep )
                     }
                 }
             }
-            else if (ImGui::Button( "Add Mesh Renderer" ))
+            /*else if (ImGui::Button( "Add Mesh Renderer" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
-            }
+            }*/
 
             if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight)
             {
@@ -716,10 +716,59 @@ void RenderSceneView( float gridStep )
                     tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
                 }
             }
-            else if (ImGui::Button( "Add Point Light" ))
+            /*else if (ImGui::Button( "Add Point Light" ))
             {
                 teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
                 tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
+            }*/
+
+            static const char* itemsMrPl[] = { "None", "MeshRenderer", "PointLight" };
+            static const char* itemsMr[] = { "None", "MeshRenderer" };
+            static const char* itemsPl[] = { "None", "PointLight" };
+            static int selectedItem = 0;
+
+            bool mr = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer);
+            bool pl = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight);
+
+            if (!mr && !pl)
+            {
+                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsMrPl, IM_ARRAYSIZE( itemsMrPl ) );
+            
+                if (check)
+                {
+                    printf("check %s\n", itemsMrPl[ selectedItem ] );
+                    if (selectedItem == 1)
+                    {
+                        teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
+                    }
+                    if (selectedItem == 2)
+                    {
+                        teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
+                        tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
+                    }
+                }
+            }
+            else if (!mr && selectedItem == 1)
+            {
+                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsMr, IM_ARRAYSIZE( itemsMr ) );
+            
+                if (check)
+                {
+                    printf("check mr %s\n", itemsMr[ selectedItem ] );
+                    teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
+                }
+
+            }
+            else if (!pl)
+            {
+                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsPl, IM_ARRAYSIZE( itemsPl ) );
+            
+                if (check && selectedItem == 1)
+                {
+                    printf("check pl %s\n", itemsPl[ selectedItem ] );
+                    teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
+                    tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
+                }
             }
         }
         else
