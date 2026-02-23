@@ -107,7 +107,7 @@ void RenderImGUIDrawData( const teShader& shader )
                 }
                 if (tex->Status == ImTextureStatus_WantUpdates)
                 {
-                    printf( "ImTextureStatus_WantUpdates\n" );
+                    //printf( "ImTextureStatus_WantUpdates\n" );
                     /*teFile nullFile;
                     impl.textures[ tex->GetTexID() ] = teLoadTexture( nullFile, 0, tex->GetPixels(), tex->Width, tex->Height, teTextureFormat::RGBA_sRGB );
                     tex->SetStatus( ImTextureStatus_OK );*/
@@ -292,7 +292,7 @@ int main()
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
     teFile fullscreenAdditivePsFile = teLoadFile( "shaders/fullscreen_additive_ps.spv" );
     teShader fullscreenShader = teCreateShader( fullscreenVsFile, fullscreenPsFile, "fullscreenVS", "fullscreenPS" );
-    teShader fullscreenAdditiveShader = teCreateShader( fullscreenVsFile, fullscreenAdditivePsFile, "fullscreenVS", "fullscreenAdditivePS" );
+    //teShader fullscreenAdditiveShader = teCreateShader( fullscreenVsFile, fullscreenAdditivePsFile, "fullscreenVS", "fullscreenAdditivePS" );
 
     teFile skyboxVsFile = teLoadFile( "shaders/skybox_vs.spv" );
     teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
@@ -474,8 +474,8 @@ int main()
     bc1Tex.sampler = teTextureSampler::NearestRepeat;
     teMaterialSetTexture2D( materialMS, bc1Tex, 0 );
 
-    teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
-    teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    //teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
+    //teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     teMesh cubeMesh = teLoadMesh( cubeFile );
@@ -492,7 +492,6 @@ int main()
     teTransformSetLocalPosition( cubeGo2.index, cubePos );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
     teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
-    // FIXME: this currently crashes the GPU, because the mesh shader code is buggy.
     //teMeshRendererSetMaterial( cubeGo2.index, materialTransMS, 0 );
     teMeshRendererSetMaterial( cubeGo2.index, key0mat, 0 );
 

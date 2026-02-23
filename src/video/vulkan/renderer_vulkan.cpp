@@ -75,6 +75,8 @@ struct PushConstants
     int specularMapIndex;
     float scale[ 2 ];
     float translate[ 2 ];
+    int vertexOffset;
+    int indexOffset;
 };
 
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
@@ -2285,7 +2287,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
-
+    pushConstants.indexOffset = indexOffset / 2;
+    pushConstants.vertexOffset = positionOffset / (3 * 4);
+    
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
 

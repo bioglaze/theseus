@@ -34,6 +34,8 @@ struct PushConstants
     int specularMapIndex;
     float2 scale;
     float2 translate;
+    int vertexOffset;
+    int indexOffset;
 };
 
 struct Meshlet

@@ -33,7 +33,7 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
 
     if (gtid < meshlet.triangleCount)
     {
-        uint packed = vk::RawBufferLoad < uint > (pushConstants.meshletIndexBuf + 4 * (meshlet.triangleOffset + gtid));
+        uint packed = vk::RawBufferLoad < uint > (pushConstants.meshletIndexBuf + 4 * (meshlet.triangleOffset + pushConstants.indexOffset + gtid));
         uint vIdx0 = (packed >> 0) & 0xFF;
         uint vIdx1 = (packed >> 8) & 0xFF;
         uint vIdx2 = (packed >> 16) & 0xFF;
@@ -44,7 +44,7 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
     
     if (gtid < meshlet.vertexCount)
     {
-        uint index = vk::RawBufferLoad < uint > (pushConstants.meshletVertexBuf + 4 * (meshlet.vertexOffset + gtid));
+        uint index = vk::RawBufferLoad < uint > (pushConstants.meshletVertexBuf + 4 * (meshlet.vertexOffset + pushConstants.vertexOffset + gtid));
         float3 pos = vk::RawBufferLoad < float3 > (pushConstants.posBuf + 12 * index);
         float2 uv = vk::RawBufferLoad < float2 > (pushConstants.uvBuf + 8 * index);
         
