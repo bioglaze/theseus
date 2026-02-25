@@ -652,7 +652,6 @@ void RenderSceneView( float gridStep )
             ImGui::InputText( "name", teGameObjectGetName( selectedGoIndex ), 100 );
          
             if (ImGui::CollapsingHeader( "Transform" ))
-            //ImGui::SeparatorText( "Transform" );
             {
                 const bool positionChanged = ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f", ImGuiInputTextFlags_CharsScientific );
                 if (positionChanged)
@@ -699,10 +698,6 @@ void RenderSceneView( float gridStep )
                     }
                 }
             }
-            /*else if (ImGui::Button( "Add Mesh Renderer" ))
-            {
-                teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
-            }*/
 
             if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight)
             {
@@ -716,11 +711,6 @@ void RenderSceneView( float gridStep )
                     tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
                 }
             }
-            /*else if (ImGui::Button( "Add Point Light" ))
-            {
-                teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
-                tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
-            }*/
 
             static const char* itemsMrPl[] = { "None", "MeshRenderer", "PointLight" };
             static const char* itemsMr[] = { "None", "MeshRenderer" };
