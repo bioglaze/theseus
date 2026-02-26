@@ -61,7 +61,7 @@ struct WindowImpl
     GamePad               gamePad;
     bool                  pointerOutsideWindow = false;
     Display*              display = nullptr;
-    xcb_key_symbols_t*    key_symbols = nullptr;
+    xcb_key_symbols_t*    keySymbols = nullptr;
     xcb_atom_t            wm_protocols;
     xcb_atom_t            wm_delete_window;
 
@@ -305,42 +305,74 @@ const teWindowEvent& tePopWindowEvent()
     return win.events[ win.eventIndex + 1 ];
 }
 
-void LoadAtoms()
-{
-    xcb_intern_atom_cookie_t wm_delete_window_cookie = xcb_intern_atom( connection, 0, 16, "WM_DELETE_WINDOW" );
-    xcb_intern_atom_cookie_t wm_protocols_cookie = xcb_intern_atom( connection, 0, strlen("WM_PROTOCOLS"), "WM_PROTOCOLS" );
-
-    xcb_flush( connection );
-    xcb_intern_atom_reply_t* wm_delete_window_cookie_reply = xcb_intern_atom_reply( connection, wm_delete_window_cookie, nullptr );
-    xcb_intern_atom_reply_t* wm_protocols_cookie_reply = xcb_intern_atom_reply( connection, wm_protocols_cookie, nullptr );
-
-    win.wm_protocols = wm_protocols_cookie_reply->atom;
-    win.wm_delete_window = wm_delete_window_cookie_reply->atom;
-}
-
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
-    win.display = XOpenDisplay( nullptr );
+    connection = xcb_connect( nullptr, nullptr );
 
-    if (!win.display)
+    if (xcb_connection_has_error( connection ))
     {
-        printf( "Can't open display\n" );
-        return nullptr;
-    }
-    
-    const int default_screen = DefaultScreen( win.display );
-
-    connection = XGetXCBConnection( win.display );
-    LoadAtoms();
-
-    if (!connection)
-    {
-        XCloseDisplay( win.display );
         printf( "Can't get xcb connection from display\n" );
         return nullptr;
     }
     
-    XSetEventQueueOwner( win.display, XCBOwnsEventQueue );
+    xcb_screen_t* s = xcb_setup_roots_iterator( xcb_get_setup( connection ) ).data;
+    window = xcb_generate_id( connection );
+    win.width = width == 0 ? s->width_in_pixels : width;
+    win.height = height == 0 ? s->height_in_pixels : height;
+    win.keySymbols = xcb_key_symbols_alloc( connection );
 
+    const unsigned mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    const unsigned eventMask = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
+                               XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION;
+    const unsigned values[ 2 ] { s->white_pixel, eventMask };
+    
+    xcb_create_window( connection, s->root_depth, window, s->root,
+                       10, 10,
+                       win.width,
+                       win.height,
+                       1,
+                       XCB_WINDOW_CLASS_INPUT_OUTPUT, s->root_visual,
+                       mask, values );
+
+    xcb_map_window( connection, window );
+    xcb_flush( connection );
+
+    xcb_size_hints_t hints = {};
+    xcb_icccm_size_hints_set_min_size( &hints, win.width, win.height );
+    xcb_icccm_size_hints_set_max_size( &hints, win.width, win.height );
+    xcb_icccm_set_wm_size_hints( connection, window, XCB_ATOM_WM_NORMAL_HINTS, &hints );
+
+    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen( title ), title );
+    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS, XCB_ATOM_STRING, 8, sizeof("Theseus""\0""Theseus"), "theseus\0Theseus" );
+
+    xcb_ewmh_connection_t EWMH;
+    xcb_intern_atom_cookie_t* EWMHCookie = xcb_ewmh_init_atoms( connection, &EWMH );
+
+    if (!xcb_ewmh_init_atoms_replies( &EWMH, EWMHCookie, nullptr ))
+    {
+        return nullptr;
+    }
+
+    xcb_flush( connection );
+
+    if (width == 0 && height == 0)
+    {
+        xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, EWMH._NET_WM_STATE, XCB_ATOM_ATOM, 32, 1, &(EWMH._NET_WM_STATE_FULLSCREEN) );
+        
+        xcb_generic_error_t* error;
+        xcb_get_window_attributes_reply_t* reply = xcb_get_window_attributes_reply( connection,
+                                                                                    xcb_get_window_attributes( connection,
+                                                                                                               window ), &error );
+
+        if (!reply)
+        {
+            return nullptr;
+        }
+
+        free( reply );
+    }
+
+    InitKeyMap();
+    
     return nullptr;
 }
