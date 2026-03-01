@@ -3,8 +3,6 @@
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_ewmh.h>
-#include <X11/keysym.h>
-#include <X11/Xlib-xcb.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/joystick.h>
@@ -60,7 +58,6 @@ struct WindowImpl
 
     GamePad               gamePad;
     bool                  pointerOutsideWindow = false;
-    Display*              display = nullptr;
     xcb_key_symbols_t*    keySymbols = nullptr;
     xcb_atom_t            wm_protocols;
     xcb_atom_t            wm_delete_window;
@@ -169,6 +166,47 @@ static void InitKeyMap()
     win.keyMap[11 ] = teWindowEvent::KeyCode::N0;
 }
 
+teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
+{
+    switch( xcbKey )
+    {
+    case 97: return teWindowEvent::KeyCode::A;
+    case 98: return teWindowEvent::KeyCode::B;
+    case 99: return teWindowEvent::KeyCode::C;
+    case 100: return teWindowEvent::KeyCode::D;
+    case 101: return teWindowEvent::KeyCode::E;
+    case 102: return teWindowEvent::KeyCode::F;
+    case 103: return teWindowEvent::KeyCode::G;
+    case 104: return teWindowEvent::KeyCode::H;
+    case 105: return teWindowEvent::KeyCode::I;
+    case 106: return teWindowEvent::KeyCode::J;
+    case 107: return teWindowEvent::KeyCode::K;
+    case 108: return teWindowEvent::KeyCode::L;
+    case 109: return teWindowEvent::KeyCode::M;
+    case 110: return teWindowEvent::KeyCode::N;
+    case 111: return teWindowEvent::KeyCode::O;
+    case 112: return teWindowEvent::KeyCode::P;
+    case 113: return teWindowEvent::KeyCode::Q;
+    case 114: return teWindowEvent::KeyCode::R;
+    case 115: return teWindowEvent::KeyCode::S;
+    case 116: return teWindowEvent::KeyCode::T;
+    case 117: return teWindowEvent::KeyCode::U;
+    case 118: return teWindowEvent::KeyCode::V;
+    case 119: return teWindowEvent::KeyCode::W;
+    case 120: return teWindowEvent::KeyCode::X;
+    case 121: return teWindowEvent::KeyCode::Y;
+    case 122: return teWindowEvent::KeyCode::Z;
+    case 32: return teWindowEvent::KeyCode::Space;
+    case 65293: return teWindowEvent::KeyCode::Enter;
+    case 65361: return teWindowEvent::KeyCode::Left;
+    case 65362: return teWindowEvent::KeyCode::Up;
+    case 65363: return teWindowEvent::KeyCode::Right;
+    case 65364: return teWindowEvent::KeyCode::Down;
+    case 65307: return teWindowEvent::KeyCode::Escape;
+    default: return teWindowEvent::KeyCode::A;
+    }
+}
+
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
 {
     outWidth = win.width;
@@ -177,6 +215,69 @@ void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
 
 void tePushWindowEvents()
 {
+    xcb_generic_event_t* event;
+    
+    while ((event = xcb_poll_for_event( connection )))
+    {
+        if (win.eventIndex >= 14)
+        {
+            free( event );
+            return;
+        }
+        
+        const uint8_t responseType = event->response_type & ~0x80;
+
+        if (responseType == XCB_BUTTON_PRESS || responseType == XCB_BUTTON_RELEASE)
+        {
+            xcb_button_press_event_t* bp = (xcb_button_press_event_t *)event;
+            IncEventIndex();
+            
+            if (bp->detail == 2)
+            {
+                win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse3Up : teWindowEvent::Type::Mouse3Down;
+            }
+            else if (bp->detail == 3)
+            {
+                win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse2Up : teWindowEvent::Type::Mouse2Down;
+            }
+            else
+            {
+                win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse1Up : teWindowEvent::Type::Mouse1Down;
+            }
+            
+            win.events[ win.eventIndex ].x = bp->event_x;
+            win.events[ win.eventIndex ].y = bp->event_y;
+        }
+        else if (responseType == XCB_KEY_PRESS)
+        {
+            IncEventIndex();
+            xcb_key_press_event_t* kp = (xcb_key_press_event_t *)event;
+            const xcb_keysym_t keysym = xcb_key_symbols_get_keysym( win.keySymbols, kp->detail, 0 );
+            
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+            win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
+        }
+        else if (responseType == XCB_KEY_RELEASE)
+        {
+            IncEventIndex();
+            xcb_key_press_event_t* kp = (xcb_key_press_event_t *)event;
+            const xcb_keysym_t keysym = xcb_key_symbols_get_keysym( win.keySymbols, kp->detail, 0 );
+
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+            win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
+        }
+        else if (responseType == XCB_MOTION_NOTIFY)
+        {
+            IncEventIndex();
+            xcb_motion_notify_event_t* motion = (xcb_motion_notify_event_t *)event;
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+            win.events[ win.eventIndex ].x = motion->event_x;
+            win.events[ win.eventIndex ].y = motion->event_y;
+        }
+        
+        free( event );
+    }
+
     if (!win.gamePad.isActive)
     {
         return;
