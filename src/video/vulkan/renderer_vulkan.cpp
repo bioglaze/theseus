@@ -2290,7 +2290,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
     pushConstants.indexOffset = indexOffset / 2;
-    pushConstants.vertexOffset = positionOffset / (3 * 4);
+    pushConstants.vertexOffset = positionOffset;
     
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
