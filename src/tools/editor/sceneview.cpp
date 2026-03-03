@@ -409,7 +409,7 @@ void SelectGizmo( unsigned x, unsigned y )
     if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
     {
         gizmoAxisSelected = closestSubMesh;
-        printf( "gizmo submesh %d\n", closestSubMesh );
+        printf( "gizmo submesh %u\n", closestSubMesh );
     }
 
     printf("Gizmo axis selected: %d\n", gizmoAxisSelected );

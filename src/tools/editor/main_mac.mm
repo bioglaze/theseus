@@ -123,7 +123,7 @@ void GetSavePath( char* path, const char* extension )
     renderPassDescriptor = self.currentRenderPassDescriptor;
 
     gDrawable = self.currentDrawable;
-    RenderSceneView( 1 );
+    RenderSceneView( inputParams.gridStep );
 }
 @end
 
@@ -282,6 +282,35 @@ void GetSavePath( char* path, const char* extension )
         io.AddInputCharacter( 'n' );
     else if ([theEvent keyCode] == 46) // M
         io.AddInputCharacter( 'm' );
+    else if ([theEvent keyCode] == 27) // +
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            ++inputParams.gridStep;
+
+            if (inputParams.gridStep > 5)
+            {
+                inputParams.gridStep = 5;
+            }
+        }
+
+        io.AddInputCharacter( '+' );
+    }
+    else if ([theEvent keyCode] == 44) // -
+    {
+        if (!io.WantCaptureKeyboard)
+        {
+            --inputParams.gridStep;
+            
+            if (inputParams.gridStep < 1)
+            {
+                inputParams.gridStep = 1;
+            }
+        }
+        
+        io.AddInputCharacter( '-' );
+
+    }
 }
 
 - (void)keyUp:(NSEvent *)theEvent

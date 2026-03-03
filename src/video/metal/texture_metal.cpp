@@ -202,7 +202,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         MTL::TextureDescriptor::texture2DDescriptor( tex.format,
                                                            tex.width,
                                                           tex.height,
-                                                       (flags & teTextureFlags::GenerateMips ? true : false) );
+                                                       (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.height );
@@ -243,7 +243,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         MTL::TextureDescriptor::texture2DDescriptor( tex.format,
                                                            tex.width,
                                                           tex.height,
-                                                       (flags & teTextureFlags::GenerateMips ? true : false));
+                                                       (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
         multiplier = 4; // FIXME: Other than RGBA formats probably need to change this.
@@ -291,7 +291,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         MTL::TextureDescriptor::texture2DDescriptor( tex.format,
                                                            tex.width,
                                                           tex.height,
-                                                       (flags & teTextureFlags::GenerateMips ? true : false ) );
+                                                       (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
         for (unsigned mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
@@ -383,7 +383,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         MTL::TextureDescriptor* stagingDescriptor =
         MTL::TextureDescriptor::textureCubeDescriptor( tex.format,
                                                            tex.width,
-                                                       (flags & teTextureFlags::GenerateMips ? true : false));
+                                                       (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
         const unsigned char* datas[ 6 ] = { negX.data, posX.data, negY.data, posY.data, negZ.data, posZ.data };
