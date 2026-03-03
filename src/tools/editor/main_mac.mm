@@ -20,6 +20,7 @@
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
+void SceneViewDuplicate();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
@@ -146,25 +147,27 @@ void GetSavePath( char* path, const char* extension )
 
     if ([theEvent keyCode] == 0x00) // A
     {
-        if (!io.WantCaptureKeyboard)
+        if (!io.WantCaptureKeyboard && !isCmdDown)
             inputParams.moveDir.x = -0.5f;
         io.AddInputCharacter( 'a' );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        if (!io.WantCaptureKeyboard)
+        if (!io.WantCaptureKeyboard && !isCmdDown)
             inputParams.moveDir.x = 0.5f;
+        else if (isCmdDown)
+            SceneViewDuplicate();
         io.AddInputCharacter( 'd' );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
-        if (!io.WantCaptureKeyboard)
+        if (!io.WantCaptureKeyboard && !isCmdDown)
             inputParams.moveDir.z = 0.5f;
         io.AddInputCharacter( 'w' );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
-        if (!io.WantCaptureKeyboard)
+        if (!io.WantCaptureKeyboard && !isCmdDown)
             inputParams.moveDir.z = -0.5f;
         io.AddInputCharacter( 's' );
     }
