@@ -380,7 +380,7 @@ int main()
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
     teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teMaterial materialTransMS = teCreateMaterial( unlitMeshShader );
-    materialTransMS.blendMode = teBlendMode::Alpha;
+    //materialTransMS.blendMode = teBlendMode::Alpha;
     teMaterialSetTexture2D( materialTransMS, transTex, 0 );
 
     teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );

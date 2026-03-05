@@ -46,7 +46,7 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
     {
         uint index = vk::RawBufferLoad < uint > (pushConstants.meshletVertexBuf + 4 * (meshlet.vertexOffset + gtid));
         float3 pos = vk::RawBufferLoad < float3 > (pushConstants.posBuf + 12 * index + pushConstants.vertexOffset);
-        float2 uv = vk::RawBufferLoad < float2 > (pushConstants.uvBuf + 8 * index + pushConstants.vertexOffset);
+        float2 uv = vk::RawBufferLoad < float2 > (pushConstants.uvBuf + 8 * index + (pushConstants.vertexOffset / (3 * 4)) * 8);
         
         vertices[ gtid ].pos = mul( uniforms.localToClip, float4( pos.x, pos.y, pos.z, 1.0 ) );
         vertices[ gtid ].uv = uv;
