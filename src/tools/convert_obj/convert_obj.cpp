@@ -176,6 +176,11 @@ void BuildMeshlets( Mesh& mesh )
     mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
         mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
 
+    // Trims the unused space from meshlets.
+    const meshopt_Meshlet& last = mesh.meshlets[ mesh.meshletCount - 1 ];
+    mesh.meshletVerticesCount = last.vertex_offset + last.vertex_count;
+    mesh.meshletTrianglesCount = last.triangle_offset + last.triangle_count * 3;
+
     // Repack triangles from 3 bytes to 4.
     uint32_t triangleCounter = 0;
 
