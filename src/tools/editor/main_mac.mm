@@ -32,6 +32,8 @@ extern MTLRenderPassDescriptor* renderPassDescriptor;
 extern id<MTLCommandBuffer> gCommandBuffer;
 
 unsigned width = 800*2, height = 450*2;
+unsigned frameWidth = 0, frameHeight = 0;
+
 const int uiScale = 1;
 
 struct InputParams
@@ -105,7 +107,7 @@ void GetSavePath( char* path, const char* extension )
     self = [super initWithFrame:inFrame device:device];
     if (self)
     {
-        InitSceneView( width, height, nullptr, 2 );
+        InitSceneView( frameWidth, frameHeight, nullptr, 2 );
         teFinalizeMeshBuffers();
     }
     return self;
@@ -471,12 +473,14 @@ int main()
         [window makeKeyAndOrderFront:nil];
         [window setAcceptsMouseMovedEvents:YES];
 
+        frameWidth = (unsigned)window.frame.size.width;
+        frameHeight = (unsigned)window.frame.size.height;
+
         HelloMetalView* view = [[HelloMetalView alloc] initWithFrame:frame];
         window.contentView = view;
         const float scale = [view.window backingScaleFactor];
         
         printf( "Scale: %f\n", scale );
-
         id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
             printf("window resize: %.0fx%.0f\n", window.frame.size.width, window.frame.size.height );
         }];
