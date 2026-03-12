@@ -82,17 +82,34 @@ static struct MeshRenderer meshRenderers[ MaxMeshes ];
 
 teBuffer& GetMeshletVertexBuffer( unsigned index, unsigned subMeshIndex )
 {
+    teAssert( index < MaxMeshes );
+    teAssert( subMeshIndex < meshes[ index ].subMeshCount );
+
     return meshes[ index ].subMeshes[ subMeshIndex ].meshletVertexBuffer;
 }
 
 teBuffer& GetMeshletTriangleBuffer( unsigned index, unsigned subMeshIndex )
 {
+    teAssert( index < MaxMeshes );
+    teAssert( subMeshIndex < meshes[ index ].subMeshCount );
+
     return meshes[ index ].subMeshes[ subMeshIndex ].meshletTriangleBuffer;
 }
 
 teBuffer& GetMeshletBuffer( unsigned index, unsigned subMeshIndex )
 {
+    teAssert( index < MaxMeshes );
+    teAssert( subMeshIndex < meshes[ index ].subMeshCount );
+
     return meshes[ index ].subMeshes[ subMeshIndex ].meshletBuffer;
+}
+
+unsigned GetMeshletCount( unsigned index, unsigned subMeshIndex )
+{
+    teAssert( index < MaxMeshes );
+    teAssert( subMeshIndex < meshes[ index ].subMeshCount );
+    
+    return meshes[ index ].subMeshes[ subMeshIndex ].meshletCount;
 }
 
 teMesh teCreateCubeMesh()

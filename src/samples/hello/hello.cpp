@@ -478,7 +478,9 @@ int main()
     //teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
+    teFile moleculeFile = teLoadFile( "assets/meshes/molecule.t3d" );
     teMesh cubeMesh = teLoadMesh( cubeFile );
+    teMesh moleculeMesh = teLoadMesh( moleculeFile );
     //teMesh cubeMesh = teCreateCubeMesh();
     teGameObject cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
     Vec3 cubePos1 = Vec3( 0, 4, 0 );
@@ -491,7 +493,7 @@ int main()
     Vec3 cubePos = Vec3( 0, 45, 0 );
     teTransformSetLocalPosition( cubeGo2.index, cubePos );
     //teTransformSetLocalScale( cubeGo2.index, 2 );
-    teMeshRendererSetMesh( cubeGo2.index, &cubeMesh );
+    teMeshRendererSetMesh( cubeGo2.index, &moleculeMesh );
     //teMeshRendererSetMaterial( cubeGo2.index, materialTransMS, 0 );
     teMeshRendererSetMaterial( cubeGo2.index, key0mat, 0 );
 

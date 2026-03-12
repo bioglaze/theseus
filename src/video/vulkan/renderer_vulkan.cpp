@@ -44,6 +44,7 @@ teBuffer GetLightIndexBuffer();
 teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex );
 teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex );
 teBuffer& GetMeshletBuffer( unsigned meshIndex, unsigned subMeshIndex );
+unsigned GetMeshletCount( unsigned index, unsigned subMeshIndex );
 
 extern struct wl_display* gwlDisplay;
 extern struct wl_surface* gwlSurface;
@@ -2329,8 +2330,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     }
     else if (meshInfo.module)
     {
-        // FIXME: this draws one meshlet for debugging purposes. The first 1 is the meshlet count.
-        renderer.CmdDrawMeshTasksEXT( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 1, 1, 1 );
+        renderer.CmdDrawMeshTasksEXT( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, GetMeshletCount( renderMeshIndex, subMeshIndex ), 1, 1);
     }
 
     MoveToNextUboOffset();
