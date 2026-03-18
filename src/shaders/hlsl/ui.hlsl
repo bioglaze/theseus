@@ -37,5 +37,5 @@ VSOutput uiVS( uint vertexId : SV_VertexID )
 
 float4 uiPS( VSOutput vsOut ) : SV_Target
 {
-    return vsOut.color * texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.textureIndex ], vsOut.uv );
+    return vsOut.color * texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
 }

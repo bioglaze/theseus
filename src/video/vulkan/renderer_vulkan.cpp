@@ -1272,7 +1272,7 @@ void CreateDescriptorSets()
 
     bindings[ 1 ].binding = 1;
     bindings[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    bindings[ 1 ].descriptorCount = TextureCount;
+    bindings[ 1 ].descriptorCount = SamplerCount;
     bindings[ 1 ].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
     bindings[ 2 ].binding = 2;
@@ -1302,7 +1302,7 @@ void CreateDescriptorSets()
     typeCounts[ 0 ].type = bindings[ 0 ].descriptorType;
     typeCounts[ 0 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 1 ].type = bindings[ 1 ].descriptorType;
-    typeCounts[ 1 ].descriptorCount = renderer.swapchainImageCount * TextureCount * renderer.swapchainResources[ 0 ].SetCount;
+    typeCounts[ 1 ].descriptorCount = renderer.swapchainImageCount * SamplerCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 2 ].type = bindings[ 2 ].descriptorType;
     typeCounts[ 2 ].descriptorCount = renderer.swapchainImageCount * renderer.swapchainResources[ 0 ].SetCount;
     typeCounts[ 3 ].type = bindings[ 3 ].descriptorType;
@@ -1655,10 +1655,7 @@ void teBeginFrame()
     for (unsigned i = 0; i < TextureCount; ++i)
     {
         renderer.samplerInfos[ i ].imageView = TextureGetView( renderer.defaultTexture2D );
-        renderer.samplerInfos[ i ].sampler = renderer.samplerLinearRepeat;
         renderer.samplerInfos[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        //renderer.samplerInfosCube[ i ].sampler = renderer.samplerLinearRepeat;
-        //renderer.samplerInfosCube[ i ].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
     // These indices are defined in ubo.h shader header.
@@ -1993,7 +1990,7 @@ static void UpdateDescriptors( const teBuffer& binding2, const teTexture2D& writ
 
     sets[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     sets[ 1 ].dstSet = dstSet;
-    sets[ 1 ].descriptorCount = TextureCount;
+    sets[ 1 ].descriptorCount = SamplerCount;
     sets[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
     sets[ 1 ].pImageInfo = &renderer.samplerInfos[ 0 ];
     sets[ 1 ].dstBinding = 1;
@@ -2207,7 +2204,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
             renderer.samplerInfos[ i ].imageView = TextureGetView( tex );
         }
 
-        renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
+        // FIXME: maybe have to set sampler index into push constants instead of the following line:
+        //renderer.samplerInfos[ textureIndex ].sampler = GetSampler( sampler );
     }
 
     if (normalMapIndex != 0)
@@ -2220,7 +2218,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
             renderer.samplerInfos[ normalMapIndex ].imageView = TextureGetView( tex );
         }
 
-        renderer.samplerInfos[ normalMapIndex ].sampler = GetSampler( sampler );
+        // FIXME: maybe have to set sampler index into push constants instead of the following line:
+        //renderer.samplerInfos[ normalMapIndex ].sampler = GetSampler( sampler );
     }
 
     if (shadowMapIndex != 0)
@@ -2368,8 +2367,6 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     {
         renderer.samplerInfos[ i ].imageView = TextureGetView( fontTex );
     }
-
-    renderer.samplerInfos[ fontTex.index ].sampler = renderer.samplerNearestRepeat;
 
     VkRect2D scissor;
     scissor.offset.x = scissorX;

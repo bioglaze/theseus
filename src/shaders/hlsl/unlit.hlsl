@@ -55,5 +55,5 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
 
 float4 unlitPS( VSOutput vsOut ) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ pushConstants.textureIndex ], vsOut.uv ) * uniforms.tint;
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ) * uniforms.tint;
 }
