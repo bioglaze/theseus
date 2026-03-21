@@ -703,7 +703,7 @@ static int GetPSO( const teShader& shader, teBlendMode blendMode, teCullMode cul
             renderer.psos[ i ].topology == topology && renderer.psos[ i ].fillMode == fillMode &&
             renderer.psos[ i ].colorFormat == colorFormat && renderer.psos[ i ].depthFormat == depthFormat &&
             renderer.psos[ i ].vertexModule == vertexInfo.module && renderer.psos[ i ].fragmentModule == fragmentInfo.module &&
-            renderer.psos[ i ].meshModule == meshInfo.module && renderer.psos[ i ].meshModule == meshInfo.module)
+            renderer.psos[ i ].meshModule == meshInfo.module )
         {
             psoIndex = i;
             break;
