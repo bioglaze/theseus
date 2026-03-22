@@ -4,6 +4,7 @@ struct VSOutput
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+    float3 color : COLOR0; // for debugging
 };
 
 VSOutput unlitVS( uint vertexId : SV_VertexID )
@@ -50,10 +51,18 @@ void unlitMS( uint gtid : SV_GroupThreadID, uint gid : SV_GroupID, out indices u
         
         vertices[ gtid ].pos = mul( uniforms.localToClip, float4( pos.x, pos.y, pos.z, 1.0 ) );
         vertices[ gtid ].uv = uv;
+        
+        float3 color = float3(
+            float( gid & 1 ),
+            float( gid & 3 ) / 4,
+            float( gid & 7 ) / 8 );
+        vertices[ gtid ].color = color;
     }
 }
 
 float4 unlitPS( VSOutput vsOut ) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ) * uniforms.tint;
+    //return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ) * uniforms.tint;
+    return float4( vsOut.color, 1 );
+
 }
