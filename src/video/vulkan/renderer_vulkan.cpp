@@ -180,6 +180,7 @@ struct Renderer
     teBuffer staticMeshTangentStagingBuffer;
     teBuffer staticMeshIndexBuffer;
     teBuffer staticMeshIndexStagingBuffer;
+    teBuffer lineVertexBuffer;
     teBuffer uiVertexBuffer;
     teBuffer uiIndexBuffer;
     float* uiVertices = nullptr;
@@ -240,7 +241,8 @@ struct Renderer
     unsigned statPSOBinds = 0;
 
     bool meshShaderSupported = false;
-    
+    unsigned lineCount = 0;
+
     static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
 
@@ -1359,7 +1361,8 @@ void CreateBuffers()
     renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float4, "staticMeshTangentStagingBuffer" );
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
+    renderer.lineVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "lineVertexBuffer" );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
     renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "uiIndexBuffer" );
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
@@ -2421,6 +2424,44 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     ++renderer.statDrawCalls;
 }
 
+void DrawLines( const teShader& shader )
+{
+    teTexture2D nullUAV;
+    nullUAV.index = (renderer.shaderParams.writeTexture != 0) ? renderer.shaderParams.writeTexture : renderer.nullUAV.index;
+
+    UpdateDescriptors( renderer.lineVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
+
+    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Lines, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
+
+    if (renderer.boundPSO != pso)
+    {
+        renderer.boundPSO = pso;
+        vkCmdBindPipeline( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pso );
+        ++renderer.statPSOBinds;
+    }
+
+    VkBufferDeviceAddressInfo vertexInfo = {};
+    vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    vertexInfo.buffer = BufferGetBuffer( renderer.lineVertexBuffer );
+
+    PushConstants pushConstants{};
+    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo );
+
+    if (renderer.meshShaderSupported)
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+    else
+    {
+        vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
+    }
+
+    vkCmdDraw( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.lineCount, 1, 0, 0 );
+
+    ++renderer.statDrawCalls;
+}
+
 float teRendererGetStat( teStat stat )
 {
     if (stat == teStat::DrawCalls) return (float)renderer.statDrawCalls;
@@ -2428,6 +2469,12 @@ float teRendererGetStat( teStat stat )
     
 
     return 0;
+}
+
+void teRendererUpdateLineBuffer( const struct Vec3* lines, unsigned count )
+{
+    renderer.lineCount = count;
+    UpdateStagingBuffer( renderer.lineVertexBuffer, &lines[ 0 ].x, count * sizeof( Vec3 ), 0 );
 }
 
 void teLoadMetalShaderLibrary()

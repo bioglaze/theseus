@@ -26,3 +26,4 @@ enum class teStat
 };
 
 float teRendererGetStat( teStat stat );
+void teRendererUpdateLineBuffer( const struct Vec3* lines, unsigned count );

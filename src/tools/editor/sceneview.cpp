@@ -93,6 +93,8 @@ struct SceneView
     teTextureCube skyTex;
     teGameObject camera3d;
     teGameObject selectedGos[ MaxSelectedObjects ];
+
+    Vec3 lineBuffer[ 100 ];
 };
 
 SceneView sceneView;
@@ -563,6 +565,12 @@ unsigned SceneViewGetCameraIndex()
 
 void RenderSceneView( float gridStep )
 {
+    sceneView.lineBuffer[ 0 ] = { 0, 0, 0 };
+    sceneView.lineBuffer[ 1 ] = { 100, 0, 0 };
+    sceneView.lineBuffer[ 2 ] = { 100, 100, 0 };
+
+    teRendererUpdateLineBuffer( sceneView.lineBuffer, 3 );
+
     teBeginFrame();
     ImGui::NewFrame();
 
