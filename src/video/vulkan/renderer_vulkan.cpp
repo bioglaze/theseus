@@ -2448,6 +2448,7 @@ void DrawLines()
 
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo );
+    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo ); // NOTE: dummy uv, line drawing doesn't use UVs.
 
     if (renderer.meshShaderSupported)
     {
