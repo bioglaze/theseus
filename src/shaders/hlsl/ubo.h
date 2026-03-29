@@ -58,7 +58,5 @@ struct Meshlet
 [[vk::binding(0)]] Texture2D<float4> texture2ds[ 80 ];
 [[vk::binding(0)]] TextureCube<float4> textureCubes[ 80 ];
 [[vk::binding(1)]] SamplerState samplers[ 6 ];
-[[vk::binding(2)]] Buffer<float3> positions;
-[[vk::binding(3)]] ConstantBuffer< UniformData > uniforms;
-[[vk::binding(4)]] RWTexture2D<float4> rwTexture2d;
-//[[vk::binding(5)]] StructuredBuffer<Meshlet> meshlets;
+[[vk::binding(2)]] ConstantBuffer< UniformData > uniforms;
+[[vk::binding(3)]] RWTexture2D<float4> rwTexture2d;
