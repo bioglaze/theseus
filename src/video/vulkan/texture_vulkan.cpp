@@ -22,7 +22,7 @@ struct teTextureImpl
     unsigned mipLevelCount = 1;
 };
 
-teTextureImpl textures[ 100 ];
+teTextureImpl textures[ TextureCount ];
 unsigned textureCount = 0;
 
 static inline unsigned Max2( unsigned x, unsigned y ) noexcept
@@ -194,6 +194,7 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
 teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     const unsigned index = ++textureCount;
+    teAssert( index < TextureCount );
 
     teTextureImpl& tex = textures[ index ];
     tex.width = width;
@@ -271,6 +272,7 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
 teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned dimension, unsigned flags, teTextureFormat format, const char* debugName )
 {
     const unsigned index = ++textureCount;
+    teAssert( index < TextureCount );
 
     teTextureImpl& tex = textures[ index ];
     tex.width = dimension;
@@ -555,14 +557,16 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice device, VkBuffer stagingBuffer, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer, const VkPhysicalDeviceProperties& properties,
                            void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
-    teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTexture2D outTexture;
     outTexture.index = ++textureCount;
+    teAssert( outTexture.index < TextureCount );
+
     outTexture.format = teTextureFormat::BGRA_sRGB;
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
+
 
     if (file.data == nullptr && pixels == nullptr)
     {
@@ -707,11 +711,11 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags,
                              VkDevice device, VkBuffer* stagingBuffers, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkQueue graphicsQueue, VkCommandBuffer cmdBuffer )
 {
-    teAssert( textureCount < 100 );
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTextureCube outTexture;
     outTexture.index = ++textureCount;
+    teAssert( outTexture.index < TextureCount );
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
 
