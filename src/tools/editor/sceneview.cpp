@@ -569,7 +569,7 @@ void RenderSceneView( float gridStep )
     sceneView.lineBuffer[ 1 ] = { 100, 0, 0 };
     sceneView.lineBuffer[ 2 ] = { 100, 100, 0 };
 
-    teRendererUpdateLineBuffer( sceneView.lineBuffer, 3 );
+    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 3 );
 
     teBeginFrame();
     ImGui::NewFrame();

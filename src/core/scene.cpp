@@ -21,6 +21,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 void EndRendering( teTexture2D& color, teTexture2D& depth );
 void PushGroupMarker( const char* name );
 void PopGroupMarker();
+void DrawLines();
 
 void MeshRendererSetCulled( unsigned gameObjectIndex, unsigned subMeshIndex, bool isCulled );
 bool MeshRendererIsCulled( unsigned gameObjectIndex, unsigned subMeshIndex );
@@ -425,6 +426,25 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex, momentsShader );
 
     PopGroupMarker();
+
+    // render lines begin
+    /*Matrix localToView;
+    Matrix localToShadowClip;
+
+    Matrix localToClip;
+    Matrix view;
+    Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
+    cameraRot.GetMatrix( view );
+    const Matrix& projection = teCameraGetProjection( cameraGOIndex );
+    Matrix::Multiply( view, projection, localToClip );
+    Matrix localToWorld;
+
+    ShaderParams shaderParams{};
+
+    UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+
+    DrawLines();*/
+    // render lines end
 
     EndRendering( color, depth );
 }

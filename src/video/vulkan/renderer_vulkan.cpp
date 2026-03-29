@@ -242,6 +242,7 @@ struct Renderer
 
     bool meshShaderSupported = false;
     unsigned lineCount = 0;
+    teShader lineShader;
 
     static constexpr unsigned uboSizeBytes = sizeof( PerObjectUboStruct ) * 10000;
 };
@@ -2424,7 +2425,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     ++renderer.statDrawCalls;
 }
 
-void DrawLines( const teShader& shader )
+void DrawLines()
 {
     teTexture2D nullUAV;
     nullUAV.index = (renderer.shaderParams.writeTexture != 0) ? renderer.shaderParams.writeTexture : renderer.nullUAV.index;
@@ -2432,7 +2433,7 @@ void DrawLines( const teShader& shader )
     UpdateDescriptors( renderer.lineVertexBuffer, nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( shader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Lines, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( renderer.lineShader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Lines, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
 
     if (renderer.boundPSO != pso)
     {
@@ -2471,8 +2472,9 @@ float teRendererGetStat( teStat stat )
     return 0;
 }
 
-void teRendererUpdateLineBuffer( const struct Vec3* lines, unsigned count )
+void teRendererUpdateLineBuffer( const teShader& shader, const struct Vec3* lines, unsigned count )
 {
+    renderer.lineShader = shader;
     renderer.lineCount = count;
     UpdateStagingBuffer( renderer.lineVertexBuffer, &lines[ 0 ].x, count * sizeof( Vec3 ), 0 );
 }
