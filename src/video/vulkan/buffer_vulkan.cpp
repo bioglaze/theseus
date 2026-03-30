@@ -8,17 +8,11 @@ void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSiz
 struct BufferImpl
 {
     VkBuffer buffer = VK_NULL_HANDLE;
-    VkBufferView view = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
 };
 
 BufferImpl buffers[ 10000 ];
 unsigned bufferCount = 0;
-
-VkBufferView BufferGetView( const teBuffer& buffer )
-{
-    return buffers[ buffer.index ].view;
-}
 
 VkBuffer BufferGetBuffer( const teBuffer& buffer )
 {
@@ -30,7 +24,7 @@ VkDeviceMemory BufferGetMemory( const teBuffer& buffer )
     return buffers[ buffer.index ].memory;
 }
 
-teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName )
+teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName )
 {
     teAssert( bufferCount < 10000 );
 
@@ -69,59 +63,12 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
     bufferViewInfo.buffer = buffers[ outBuffer.index ].buffer;
     bufferViewInfo.range = VK_WHOLE_SIZE;
 
-    if (viewType == BufferViewType::Uint)
-    {
-        bufferViewInfo.format = VK_FORMAT_R32_UINT;
-        outBuffer.count = sizeBytes / 4;
-        outBuffer.stride = 4;
-    }
-    else if (viewType == BufferViewType::Ushort)
-    {
-        bufferViewInfo.format = VK_FORMAT_R16_UINT;
-        outBuffer.count = sizeBytes / 2;
-        outBuffer.stride = 2;
-    }
-    else if (viewType == BufferViewType::Float2)
-    {
-        bufferViewInfo.format = VK_FORMAT_R32G32_SFLOAT;
-        outBuffer.count = sizeBytes / (2 * 4);
-        outBuffer.stride = 2 * 4;
-    }
-    else if (viewType == BufferViewType::Float3)
-    {
-        bufferViewInfo.format = VK_FORMAT_R32G32B32_SFLOAT;
-        outBuffer.count = sizeBytes / (3 * 4);
-        outBuffer.stride = 3 * 4;
-    }
-    else if (viewType == BufferViewType::Float4)
-    {
-        bufferViewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        outBuffer.count = sizeBytes / (4 * 4);
-        outBuffer.stride = 4 * 4;
-    }
-    else if (viewType == BufferViewType::Invalid)
-    {
-        outBuffer.count = sizeBytes;
-        outBuffer.stride = 1;
-    }
-    else
-    {
-        teAssert( !"Unhandled buffer view type!" );
-    }
-
-    if (viewType != BufferViewType::Invalid && ((usageFlags & VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT) || (usageFlags & VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT)))
-    {
-        VK_CHECK( vkCreateBufferView( device, &bufferViewInfo, nullptr, &buffers[ outBuffer.index ].view ) );
-        SetObjectName( device, (uint64_t)buffers[ outBuffer.index ].view, VK_OBJECT_TYPE_BUFFER_VIEW, debugName );
-    }
-
     return outBuffer;
 }
 
 void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
-    teAssert( source.stride == destination.stride );
     teAssert( source.memoryUsage <= destination.memoryUsage );
 
-    CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.count * source.stride );
+    CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.memoryUsage );
 }

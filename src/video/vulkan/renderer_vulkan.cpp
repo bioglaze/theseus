@@ -31,7 +31,7 @@ VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
 unsigned TextureGetFlags( unsigned index );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
-teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, BufferViewType viewType, const char* debugName );
+teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName );
 VkBufferView BufferGetView( const teBuffer& buffer );
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
@@ -1334,36 +1334,36 @@ void CreateDescriptorSets()
 
 teBuffer CreateBuffer( unsigned size, const char* debugName )
 {
-    return CreateBuffer( renderer.device, renderer.deviceMemoryProperties, size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Invalid, debugName );
+    return CreateBuffer( renderer.device, renderer.deviceMemoryProperties, size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, debugName );
 }
 
 teBuffer CreateStagingBuffer( unsigned size, const char* debugName )
 {
-    return CreateBuffer( renderer.device, renderer.deviceMemoryProperties, size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Invalid, debugName );
+    return CreateBuffer( renderer.device, renderer.deviceMemoryProperties, size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, debugName );
 }
 
 void CreateBuffers()
 {
     unsigned bufferBytes = 1024 * 1024 * 250;
-    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshPositionBuffer" );
-    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshPositionStagingBuffer" );
-    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float2, "staticMeshUVBuffer" );
-    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float2, "staticMeshUVStagingBuffer" );
-    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float3, "staticMeshNormalBuffer" );
-    renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "staticMeshNormalStagingBuffer" );
-    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Float4, "staticMeshTangentBuffer" );
-    renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float4, "staticMeshTangentStagingBuffer" );
-    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, BufferViewType::Ushort, "staticMeshIndexBuffer" );
-    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "staticMeshIndexStagingBuffer" );
-    renderer.lineVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "lineVertexBuffer" );
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Float3, "uiVertexBuffer" );
-    renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferViewType::Ushort, "uiIndexBuffer" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshPositionStagingBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshUVBuffer" );
+    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshUVStagingBuffer" );
+    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshNormalBuffer" );
+    renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshNormalStagingBuffer" );
+    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshTangentBuffer" );
+    renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshTangentStagingBuffer" );
+    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshIndexBuffer" );
+    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshIndexStagingBuffer" );
+    renderer.lineVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "lineVertexBuffer" );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiIndexBuffer" );
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
 
     for (unsigned i = 0; i < 4; ++i)
     {
-        renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, renderer.uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, BufferViewType::Uint, "UBO" );
+        renderer.swapchainResources[ i ].ubo.buffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, renderer.uboSizeBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, "UBO" );
         VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( renderer.swapchainResources[ i ].ubo.buffer ), 0, renderer.uboSizeBytes, 0, (void**)&renderer.swapchainResources[ i ].ubo.uboData ) );
     }
 }
@@ -1560,7 +1560,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
     renderer.defaultTextureCube = teCreateTextureCube( 32, 0, teTextureFormat::RGBA_sRGB, "default texture Cube" );
     renderer.nullUAV = teCreateTexture2D( 16, 16, teTextureFlags::UAV, teTextureFormat::R32F, "nullUAV" );
-    renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BufferViewType::Ushort, "nullBuffer" );;
+    renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, "nullBuffer" );;
 
     for (unsigned i = 0; i < TextureCount; ++i)
     {

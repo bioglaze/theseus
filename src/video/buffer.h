@@ -1,12 +1,8 @@
 #pragma once
 
-enum class BufferViewType { Invalid, Uint, Ushort, Float2, Float3, Float4 };
-
 struct teBuffer
 {
     unsigned index = 0;
-    unsigned count = 0;
-    unsigned stride = 0;
     unsigned memoryUsage = 0;
 };
 
