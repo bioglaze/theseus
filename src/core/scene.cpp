@@ -428,7 +428,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     PopGroupMarker();
 
     // render lines begin
-    /*Matrix localToView;
+    Matrix localToView;
     Matrix localToShadowClip;
 
     Matrix localToClip;
@@ -440,10 +440,14 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     Matrix localToWorld;
 
     ShaderParams shaderParams{};
+    shaderParams.tint[ 0 ] = 1;
+    shaderParams.tint[ 1 ] = 1;
+    shaderParams.tint[ 2 ] = 1;
+    shaderParams.tint[ 3 ] = 1;
 
     UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
-    DrawLines();*/
+    DrawLines();
     // render lines end
 
     EndRendering( color, depth );

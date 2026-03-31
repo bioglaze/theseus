@@ -32,7 +32,6 @@ VkImage TextureGetImage( teTexture2D texture );
 unsigned TextureGetFlags( unsigned index );
 void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName );
-VkBufferView BufferGetView( const teBuffer& buffer );
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
 void WaylandDispatch();

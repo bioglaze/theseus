@@ -1,6 +1,3 @@
-//#define NS_PRIVATE_IMPLEMENTATION
-//#define CA_PRIVATE_IMPLEMENTATION
-//#define MTL_PRIVATE_IMPLEMENTATION
 #include <Foundation/Foundation.hpp>
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
@@ -118,7 +115,10 @@ struct Renderer
     uint16_t*   uiIndices = nullptr;
 
     teTexture2D defaultTexture2D;
-    
+    teShader lineShader;
+    teBuffer lineVertexBuffer;
+    unsigned lineCount = 0;
+
     unsigned statDrawCalls = 0;
     unsigned statPSOBinds = 0;
 };
@@ -297,6 +297,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
     renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
 
+    renderer.lineVertexBuffer = CreateBuffer( renderer.device, 1024 * 1024 * 4, true, "lineVertexBuffer" );
+    
     for (unsigned i = 0; i < 2; ++i)
     {
 #if !TARGET_OS_IPHONE
@@ -769,4 +771,40 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;
     ++renderer.statPSOBinds;
+}
+
+void DrawLines()
+{
+    if (renderer.lineCount == 0 || renderer.lineShader.index == 0)
+    {
+        return;
+    }
+
+    MTL::PixelFormat colorFormat = renderer.renderPassDescriptorFBO->colorAttachments()->object( 0 )->texture()->pixelFormat();
+    MTL::PixelFormat depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( renderer.lineShader ), teShaderGetPixelProgram( renderer.lineShader ), teBlendMode::Alpha, teTopology::Lines, colorFormat, depthFormat, true );
+
+    renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
+    renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
+    renderer.renderEncoder->setCullMode( MTL::CullModeNone );
+    //renderer.renderEncoder->setScissorRect( scissor );
+    renderer.renderEncoder->setDepthStencilState( renderer.depthStateNoneWriteOff );
+    renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
+    renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 0 );
+    renderer.renderEncoder->setVertexBufferOffset( 0, 0 );
+    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 1 );
+    //renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( fontTex.index ), 0 );
+
+    renderer.renderEncoder->drawPrimitives( MTL::PrimitiveTypeLine, 0, renderer.lineCount, 1 );
+    
+    MoveToNextUboOffset();
+    ++renderer.statDrawCalls;
+    ++renderer.statPSOBinds;
+}
+
+void teRendererUpdateLineBuffer( const teShader& shader, const struct Vec3* lines, unsigned count )
+{
+    renderer.lineShader = shader;
+    renderer.lineCount = count;
+    UpdateStagingBuffer( renderer.lineVertexBuffer, &lines[ 0 ].x, count * sizeof( Vec3 ), 0 );
 }
