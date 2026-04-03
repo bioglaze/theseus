@@ -2350,6 +2350,8 @@ void teUnmapUiMemory()
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
+    PushGroupMarker( "ImGui" );
+
     for (unsigned i = 0; i < TextureCount; ++i)
     {
         renderer.samplerInfos[ i ].imageView = TextureGetView( fontTex );
@@ -2405,6 +2407,8 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     
     vkCmdDrawIndexed( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, elementCount, 1, indexOffset, vertexOffset, 0 );
 
+    PopGroupMarker();
+
     ++renderer.statDrawCalls;
 }
 
@@ -2414,6 +2418,8 @@ void DrawLines()
     {
         return;
     }
+
+    PushGroupMarker( "Lines" );
 
     teTexture2D nullUAV;
     nullUAV.index = (renderer.shaderParams.writeTexture != 0) ? renderer.shaderParams.writeTexture : renderer.nullUAV.index;
@@ -2448,6 +2454,10 @@ void DrawLines()
     }
 
     vkCmdDraw( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.lineCount, 1, 0, 0 );
+
+    MoveToNextUboOffset();
+
+    PopGroupMarker();
 
     ++renderer.statDrawCalls;
 }

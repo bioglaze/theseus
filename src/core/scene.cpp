@@ -428,26 +428,29 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     PopGroupMarker();
 
     // render lines begin
-    Matrix localToView;
-    Matrix localToShadowClip;
+    if (!momentsShader)
+    {
+        Matrix localToView;
+        Matrix localToShadowClip;
 
-    Matrix localToClip;
-    Matrix view;
-    Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
-    cameraRot.GetMatrix( view );
-    const Matrix& projection = teCameraGetProjection( cameraGOIndex );
-    Matrix::Multiply( view, projection, localToClip );
-    Matrix localToWorld;
+        Matrix localToClip;
+        Matrix view;
+        Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
+        cameraRot.GetMatrix( view );
+        const Matrix& projection = teCameraGetProjection( cameraGOIndex );
+        Matrix::Multiply( view, projection, localToClip );
+        Matrix localToWorld;
 
-    ShaderParams shaderParams{};
-    shaderParams.tint[ 0 ] = 1;
-    shaderParams.tint[ 1 ] = 1;
-    shaderParams.tint[ 2 ] = 1;
-    shaderParams.tint[ 3 ] = 1;
+        ShaderParams shaderParams{};
+        shaderParams.tint[ 0 ] = 1;
+        shaderParams.tint[ 1 ] = 1;
+        shaderParams.tint[ 2 ] = 1;
+        shaderParams.tint[ 3 ] = 1;
 
-    UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+        UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
 
-    DrawLines();
+        DrawLines();
+    }
     // render lines end
 
     EndRendering( color, depth );
