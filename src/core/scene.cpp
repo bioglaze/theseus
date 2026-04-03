@@ -432,14 +432,11 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     {
         Matrix localToView;
         Matrix localToShadowClip;
-
         Matrix localToClip;
-        Matrix view;
-        Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
-        cameraRot.GetMatrix( view );
-        const Matrix& projection = teCameraGetProjection( cameraGOIndex );
-        Matrix::Multiply( view, projection, localToClip );
         Matrix localToWorld;
+
+        Matrix::Multiply( localToWorld, teTransformGetMatrix( cameraGOIndex ), localToView );
+        Matrix::Multiply( localToView, teCameraGetProjection( cameraGOIndex ), localToClip );
 
         ShaderParams shaderParams{};
         shaderParams.tint[ 0 ] = 1;
