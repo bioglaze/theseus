@@ -302,6 +302,24 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             io.AddInputCharacter( 'r' );
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Dot)
             io.AddInputCharacter( '.' );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::PageUp)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { 0, inputParams.gridStep, 0 } );
+            }
+
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_PageUp, true );
+        }
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::PageDown)
+        {
+            if (!io.WantCaptureKeyboard)
+            {
+                SceneMoveSelection( { 0, -inputParams.gridStep, 0 } );
+            }
+
+            io.AddKeyEvent( ImGuiKey::ImGuiKey_PageDown, true );
+        }
         else if (event.type == teWindowEvent::Type::KeyDown && (event.keyCode == teWindowEvent::KeyCode::Minus || event.keyCode == teWindowEvent::KeyCode::NumpadMinus))
         {
             if (!io.WantCaptureKeyboard)
