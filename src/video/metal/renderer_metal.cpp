@@ -191,7 +191,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 1 );
-    //samplerDescriptor.label = @"linear repeat";
+    samplerDescriptor->setLabel( NS::String::string( "linearRepeat", NS::UTF8StringEncoding ) );
     renderer.linearRepeat = renderer.device->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -316,14 +316,11 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
 void PushGroupMarker( const char* name )
 {
-    //NSString* fName = [NSString stringWithUTF8String: name];
-    //[renderer.renderEncoder pushDebugGroup:fName];
     renderer.renderEncoder->pushDebugGroup( NS::String::string( name, NS::UTF8StringEncoding ) );
 }
 
 void PopGroupMarker()
 {
-    //[renderer.renderEncoder popDebugGroup];
     renderer.renderEncoder->popDebugGroup();
 }
 
@@ -780,9 +777,11 @@ void DrawLines()
         return;
     }
 
+    PushGroupMarker( "Lines" );
+
     MTL::PixelFormat colorFormat = renderer.renderPassDescriptorFBO->colorAttachments()->object( 0 )->texture()->pixelFormat();
     MTL::PixelFormat depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
-    const int psoIndex = GetPSO( teShaderGetVertexProgram( renderer.lineShader ), teShaderGetPixelProgram( renderer.lineShader ), teBlendMode::Alpha, teTopology::Lines, colorFormat, depthFormat, true );
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( renderer.lineShader ), teShaderGetPixelProgram( renderer.lineShader ), teBlendMode::Off, teTopology::Lines, colorFormat, depthFormat, true );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
@@ -790,9 +789,9 @@ void DrawLines()
     //renderer.renderEncoder->setScissorRect( scissor );
     renderer.renderEncoder->setDepthStencilState( renderer.depthStateNoneWriteOff );
     renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
-    renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 0 );
+    renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 1 );
     renderer.renderEncoder->setVertexBufferOffset( 0, 0 );
-    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 1 );
+    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
     //renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( fontTex.index ), 0 );
 
     renderer.renderEncoder->drawPrimitives( MTL::PrimitiveTypeLine, 0, renderer.lineCount, 1 );
@@ -800,6 +799,8 @@ void DrawLines()
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;
     ++renderer.statPSOBinds;
+
+    PopGroupMarker();
 }
 
 void teRendererUpdateLineBuffer( const teShader& shader, const struct Vec3* lines, unsigned count )
