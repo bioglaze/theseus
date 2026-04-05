@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2025-06-15
+// Modified: 2026-04-05
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -550,13 +550,17 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         }
         else if (event.type == teWindowEvent::Type::MouseWheel)
         {
+            if (io.WantCaptureMouse)
+            {
+                io.AddMouseWheelEvent( 0, event.wheelDelta ); // on Windows this works right if it's (0, event.wheelDelta)
+                continue;
+            }
+
             inputParams.x = event.x;
             inputParams.y = event.y;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
             inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100 : 100;
-
-            io.AddMouseWheelEvent( 0, -event.wheelDelta );
         }
     }
 
@@ -577,8 +581,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
 int main()
 {
-    unsigned width = 1920 / 1;
-    unsigned height = 1080 / 1;
+    unsigned width = 2560 / 1;
+    unsigned height = 1440 / 1;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
     teWindowGetSize( width, height );
 
