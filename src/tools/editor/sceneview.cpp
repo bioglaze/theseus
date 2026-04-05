@@ -563,13 +563,29 @@ unsigned SceneViewGetCameraIndex()
     return sceneView.camera3d.index;
 }
 
+void AddGridLines()
+{
+    unsigned i = 0;
+
+    for (int x = 0; x < 10; ++x)
+    {
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x - 5, 0, 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x - 5, 0, 10 );
+        ++i;
+    }
+
+    for (int z = 0; z < 10; ++z)
+    {
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( -5, 0, z + 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( 5, 0, z + 0 );
+        ++i;
+    }
+}
+
 void RenderSceneView( float gridStep )
 {
-    sceneView.lineBuffer[ 0 ] = { 0, 0, 0 };
-    sceneView.lineBuffer[ 1 ] = { 100, 0, 0 };
-    sceneView.lineBuffer[ 2 ] = { 100, 100, 0 };
-
-    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 3 );
+    AddGridLines();
+    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 40 );
 
     teBeginFrame();
     ImGui::NewFrame();
