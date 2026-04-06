@@ -309,8 +309,14 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
         renderer.frameResources[ i ].uniformBuffer->setLabel( NS::String::string( "uniform buffer", NS::UTF8StringEncoding ) );
     }
     
-    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
-
+    unsigned char pixels[ 32 * 32 * 4 ];
+    for (unsigned i = 0; i < 32 * 32 * 4; ++i)
+    {
+        pixels[ i ] = 0xFF;
+    }
+    teFile nullFile;
+    memcpy( nullFile.path, "defaultTexture2D", strlen( "defaultTexture2D" ) );
+    renderer.defaultTexture2D = teLoadTexture( nullFile, 0, pixels, 32, 32, teTextureFormat::RGBA_sRGB );
     InitLightTiler( width, height );
 }
 
@@ -786,13 +792,12 @@ void DrawLines()
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
     renderer.renderEncoder->setCullMode( MTL::CullModeNone );
-    //renderer.renderEncoder->setScissorRect( scissor );
     renderer.renderEncoder->setDepthStencilState( renderer.depthStateNoneWriteOff );
     renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
     renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 1 );
     renderer.renderEncoder->setVertexBufferOffset( 0, 0 );
     renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
-    //renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( fontTex.index ), 0 );
+    renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( renderer.defaultTexture2D.index ), 0 );
 
     renderer.renderEncoder->drawPrimitives( MTL::PrimitiveTypeLine, 0, renderer.lineCount, 1 );
     
