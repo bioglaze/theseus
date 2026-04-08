@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include "camera.h"
 #include "file.h"
@@ -21,7 +22,6 @@
 #include "window.h"
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
-#include <stdlib.h>
 
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
@@ -31,12 +31,14 @@ void SubmitCommandBuffer();
 void BeginCommandBuffer();
 
 constexpr unsigned MaxSelectedObjects = 10;
+constexpr unsigned MaxMaterials = 20;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
 char text[ 100 ];
 char openFilePath[ 280 ];
 unsigned selectedGoIndex = EditorCameraGoIndex;
+int selectedMaterialIndex = -1;
 int gizmoAxisSelected = -1;
 int gizmoAxisHovered = -1;
 float pos[ 3 ];
@@ -44,7 +46,6 @@ float scale = 1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
 float pointLightColor[ 3 ] = { 1, 1, 1 };
-
 
 struct FontTextureUpdate
 {
@@ -93,6 +94,8 @@ struct SceneView
     teTextureCube skyTex;
     teGameObject camera3d;
     teGameObject selectedGos[ MaxSelectedObjects ];
+
+    teMaterial materials[ MaxMaterials ];
 
     Vec3 lineBuffer[ 100 ];
 };
@@ -671,7 +674,16 @@ void RenderSceneView( float gridStep )
 
     if (ImGui::Begin( "Inspector" ))
     {
-        if (selectedGoIndex != sceneView.translateGizmoGo.index && selectedGoIndex != sceneView.camera3d.index)
+        if (selectedMaterialIndex != -1 && selectedGoIndex == EditorCameraGoIndex)
+        {
+            ImGui::Text( "Material %d", selectedMaterialIndex );
+            ImGui::Separator();
+            float f = 0.0f;
+            ImGui::SliderFloat( "specular", &f, 0.0f, 1.0f, "%.3f" );
+            float r = 0.0f;
+            ImGui::SliderFloat( "roughness", &r, 0.0f, 1.0f, "%.3f" );
+        }
+        else if (selectedGoIndex != sceneView.translateGizmoGo.index && selectedGoIndex != sceneView.camera3d.index)
         {
             ImGui::InputText( "name", teGameObjectGetName( selectedGoIndex ), 100 );
          
@@ -808,6 +820,46 @@ void RenderSceneView( float gridStep )
     }
 
     ImGui::End();
+
+    if (ImGui::Begin( "Assets" ))
+    {
+        ImGui::BeginGroup();
+        ImGui::Text( "Materials" );
+        ImGui::Text( "Meshes" );
+        ImGui::Text( "Audio Clips" );
+        ImGui::EndGroup();
+        ImGui::SameLine();
+
+        {
+            ImVec2 size = ImGui::GetItemRectSize();
+
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+            ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
+            ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
+            if (ImGui::BeginTable( "split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    char buf[ 32 ];
+                    sprintf( buf, "%03d", i );
+                    ImGui::TableNextColumn();
+                    if (ImGui::Button( buf, ImVec2( -FLT_MIN, 0.0f ) ))
+                    {
+                        printf( "edit material %d\n", i );
+                        selectedMaterialIndex = i;
+                        selectedGoIndex = EditorCameraGoIndex;
+                    }
+                }
+                ImGui::EndTable();
+            }
+            ImGui::EndChild();
+            ImGui::PopStyleVar();
+        }
+    }
+
+    ImGui::End();
+
+    //ImGui::ShowDemoWindow();
 
     ImGui::Render();
 

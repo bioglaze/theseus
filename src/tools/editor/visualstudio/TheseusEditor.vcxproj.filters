@@ -16,6 +16,9 @@
     </ClCompile>
     <ClCompile Include="..\sceneview.cpp" />
     <ClCompile Include="..\scene_usd.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
