@@ -1,0 +1,8 @@
+Bugs:
+  * Editor
+    * macOS: deleting cube changes grid to black.
+    * gizmo drag direction depends on camera angle.
+  * Wayland: not HiDPI, for example ImGui and cursor too big.
+  * Metal: bloom looks weirdly pixelated.
+  * scene loading could malloc 0 bytes if object count is 0.
+  * Vulkan: bloom blur h leaves ~8 pixels unhandled

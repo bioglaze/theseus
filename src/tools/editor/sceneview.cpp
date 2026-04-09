@@ -826,7 +826,7 @@ void RenderSceneView( float gridStep )
         ImGui::BeginGroup();
         ImGui::Text( "Materials" );
         ImGui::Text( "Meshes" );
-        ImGui::Text( "Audio Clips" );
+        //ImGui::Text( "Audio Clips" );
         ImGui::EndGroup();
         ImGui::SameLine();
 
