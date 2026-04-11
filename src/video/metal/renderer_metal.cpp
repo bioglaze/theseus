@@ -792,7 +792,7 @@ void DrawLines()
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
     renderer.renderEncoder->setCullMode( MTL::CullModeNone );
-    renderer.renderEncoder->setDepthStencilState( renderer.depthStateNoneWriteOff );
+    renderer.renderEncoder->setDepthStencilState( renderer.depthStateLessEqualWriteOff );
     renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
     renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 1 );
     renderer.renderEncoder->setVertexBufferOffset( 0, 0 );

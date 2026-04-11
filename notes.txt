@@ -6,3 +6,10 @@ Bugs:
   * Metal: bloom looks weirdly pixelated.
   * scene loading could malloc 0 bytes if object count is 0.
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
+  * standard shader samplers are hardcoded.
+  
+TODO:
+* Editor
+  * macOS: camera rotation with arrow keys.
+  * macOS: ImGui scrolling.
+  * grid viz should respect grid step.

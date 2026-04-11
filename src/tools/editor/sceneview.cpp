@@ -113,6 +113,11 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom impl;
 
+bool SceneViewNothingSelected()
+{
+    return selectedGoIndex == EditorCameraGoIndex;
+}
+
 unsigned GetTranslateGizmoGoIndex()
 {
     return sceneView.translateGizmoGo.index;
@@ -566,28 +571,31 @@ unsigned SceneViewGetCameraIndex()
     return sceneView.camera3d.index;
 }
 
-void AddGridLines()
+void AddGridLines( float gridStep )
 {
     unsigned i = 0;
 
+    //const float d = 5.0f * gridStep;
+    const float d = 5.0f;
+
     for (int x = 0; x < 10; ++x)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x - 5, 0, 0 );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x - 5, 0, 10 );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x - d, 0, 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x - d, 0, 10 );
         ++i;
     }
 
     for (int z = 0; z < 10; ++z)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( -5, 0, z + 0 );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( 5, 0, z + 0 );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( -d, 0, z + 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( d, 0, z + 0 );
         ++i;
     }
 }
 
 void RenderSceneView( float gridStep )
 {
-    AddGridLines();
+    AddGridLines( gridStep );
     teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 40 );
 
     teBeginFrame();
@@ -756,6 +764,8 @@ void RenderSceneView( float gridStep )
             bool mr = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer);
             bool pl = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight);
 
+            ImGui::Separator();
+
             if (!mr && !pl)
             {
                 bool check = ImGui::Combo( "Add Component", &selectedItem, itemsMrPl, IM_ARRAYSIZE( itemsMrPl ) );
@@ -825,7 +835,7 @@ void RenderSceneView( float gridStep )
     {
         ImGui::BeginGroup();
         ImGui::Text( "Materials" );
-        ImGui::Text( "Meshes" );
+        ImGui::Text( "Textures" );
         //ImGui::Text( "Audio Clips" );
         ImGui::EndGroup();
         ImGui::SameLine();
@@ -841,7 +851,7 @@ void RenderSceneView( float gridStep )
                 for (int i = 0; i < 20; i++)
                 {
                     char buf[ 32 ];
-                    sprintf( buf, "%03d", i );
+                    snprintf( buf, 32, "%03d", i );
                     ImGui::TableNextColumn();
                     if (ImGui::Button( buf, ImVec2( -FLT_MIN, 0.0f ) ))
                     {

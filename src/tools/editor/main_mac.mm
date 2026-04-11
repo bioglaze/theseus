@@ -21,6 +21,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SceneViewDuplicate();
+bool SceneViewNothingSelected();
 void SelectObject( unsigned x, unsigned y );
 void SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
@@ -189,7 +190,10 @@ void GetSavePath( char* path, const char* extension )
     {
         if (!io.WantCaptureKeyboard)
         {
-            SceneMoveSelection( { -inputParams.gridStep, 0, 0 } );
+            if (!SceneViewNothingSelected())
+                SceneMoveSelection( { -inputParams.gridStep, 0, 0 } );
+            else
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), 0.5f );
         }
         io.AddKeyEvent( ImGuiKey::ImGuiKey_LeftArrow, true );
     }
@@ -197,7 +201,10 @@ void GetSavePath( char* path, const char* extension )
     {
         if (!io.WantCaptureKeyboard)
         {
-            SceneMoveSelection( { inputParams.gridStep, 0, 0 } );
+            if (!SceneViewNothingSelected())
+                SceneMoveSelection( { inputParams.gridStep, 0, 0 } );
+            else
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -0.5f );
         }
         io.AddKeyEvent( ImGuiKey::ImGuiKey_RightArrow, true );
     }
@@ -205,7 +212,10 @@ void GetSavePath( char* path, const char* extension )
     {
         if (!io.WantCaptureKeyboard)
         {
-            SceneMoveSelection( { 0, inputParams.gridStep, 0 } );
+            if (!SceneViewNothingSelected())
+                SceneMoveSelection( { 0, inputParams.gridStep, 0 } );
+            else
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), 0.5f );
         }
         io.AddKeyEvent( ImGuiKey::ImGuiKey_UpArrow, true );
     }
@@ -213,7 +223,10 @@ void GetSavePath( char* path, const char* extension )
     {
         if (!io.WantCaptureKeyboard)
         {
-            SceneMoveSelection( { 0, -inputParams.gridStep, 0 } );
+            if (!SceneViewNothingSelected())
+                SceneMoveSelection( { 0, -inputParams.gridStep, 0 } );
+            else
+                teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 1, 0, 0 ), -0.5f );
         }
         io.AddKeyEvent( ImGuiKey::ImGuiKey_DownArrow, true );
     }

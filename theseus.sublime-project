@@ -1,0 +1,20 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+		}
+	],
+	"settings": {
+	},
+	"debugger_configurations":
+	[
+		{
+		    "name": "Launch",
+		    "type": "lldb",
+		    "request": "attach",
+		    "program": "${project_path}/build/editor_mac",
+		    "args": [],
+		}
+	],
+}
