@@ -118,12 +118,12 @@ void RenderImGUIDrawData( const teShader& shader )
 
     if (drawData->TotalVtxCount > 0)
     {
-        //size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
-        //size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+        const size_t vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        const size_t indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
         void* vertexMemory = nullptr;
         void* indexMemory = nullptr;
-        teMapUiMemory( &vertexMemory, &indexMemory );
+        teMapUiMemory( vertexBytes, indexBytes, &vertexMemory, &indexMemory );
         ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
         ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
 

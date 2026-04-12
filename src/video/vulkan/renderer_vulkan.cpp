@@ -55,6 +55,7 @@ extern xcb_window_t window;
 
 constexpr unsigned DescriptorEntryCount = 4;
 constexpr unsigned SamplerCount = 6;
+constexpr unsigned UiBufferBytes = 1024 * 1024 * 8;
 
 // Must match ubo.h shader header!
 struct PushConstants
@@ -1355,10 +1356,10 @@ void CreateBuffers()
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, "staticMeshIndexBuffer" );
     renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, bufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "staticMeshIndexStagingBuffer" );
     renderer.lineVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "lineVertexBuffer" );
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiVertexBuffer" );
-    renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 1024 * 1024 * 8, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiIndexBuffer" );
-    renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
-    renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, UiBufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, UiBufferBytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "uiIndexBuffer" );
+    renderer.uiVertices = (float*)teMalloc( UiBufferBytes );
+    renderer.uiIndices = (uint16_t*)teMalloc( UiBufferBytes );
 
     for (unsigned i = 0; i < 4; ++i)
     {
@@ -2336,7 +2337,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
 }
 
-void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
+void teMapUiMemory( size_t vertexBytes, size_t indexBytes, void** outVertexMemory, void** outIndexMemory )
 {
     *outVertexMemory = renderer.uiVertices;
     *outIndexMemory = renderer.uiIndices;
@@ -2344,8 +2345,8 @@ void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
 
 void teUnmapUiMemory()
 {
-    UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, 8 * 1024 * 1024, 0 );
-    UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, 8 * 1024 * 1024, 0 );
+    UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, UiBufferBytes, 0 );
+    UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, UiBufferBytes, 0 );
 }
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )

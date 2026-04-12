@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -111,7 +110,7 @@ struct ImGUIImplCustom
     const char* name = "jeejee";
 };
 
-ImGUIImplCustom impl;
+ImGUIImplCustom imguiImpl;
 
 bool SceneViewNothingSelected()
 {
@@ -139,32 +138,31 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
         {
             if (tex->Status != ImTextureStatus_OK)
             {
-                //MyImGuiBackend_UpdateTexture( tex );
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
                     printf( "ImTextureStatus_WantCreate\n" );
-                    impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
+                    imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
                     tex->SetStatus( ImTextureStatus_OK );
-                    tex->SetTexID( impl.textureCount + 1 );
+                    tex->SetTexID( imguiImpl.textureCount + 1 );
 
-                    fontTexUpdate.index = impl.textureCount;
+                    fontTexUpdate.index = imguiImpl.textureCount;
                     fontTexUpdate.width = tex->Width;
                     fontTexUpdate.height = tex->Height;
                     fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
                     memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
 
-                    ++impl.textureCount;
+                    ++imguiImpl.textureCount;
                 }
                 if (tex->Status == ImTextureStatus_WantUpdates)
                 {
                     printf( "ImTextureStatus_WantUpdates\n" );
-                    impl.textures[ impl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
+                    imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
                     tex->SetStatus( ImTextureStatus_OK );
-                    tex->SetTexID( impl.textureCount + 1 );
+                    tex->SetTexID( imguiImpl.textureCount + 1 );
 
-                    fontTexUpdate.index = impl.textureCount;
+                    fontTexUpdate.index = imguiImpl.textureCount;
                     fontTexUpdate.width = tex->Width;
                     fontTexUpdate.height = tex->Height;
                     fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
@@ -176,12 +174,12 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
     if (drawData->TotalVtxCount > 0)
     {
-        //size_t vertex_size = drawData->TotalVtxCount * sizeof( ImDrawVert );
-        //size_t index_size = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+        size_t vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        size_t indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
         void* vertexMemory = nullptr;
         void* indexMemory = nullptr;
-        teMapUiMemory( &vertexMemory, &indexMemory );
+        teMapUiMemory( vertexBytes, indexBytes, &vertexMemory, &indexMemory );
         ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
         ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
 
@@ -561,8 +559,8 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 
     sceneView.fontTex = sceneView.gliderTex;
 
-    io.BackendRendererUserData = &impl;
-    io.BackendRendererName = "imgui_impl_vulkan";
+    io.BackendRendererUserData = &imguiImpl;
+    io.BackendRendererName = "imgui_impl";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
 }
 
@@ -576,19 +574,19 @@ void AddGridLines( float gridStep )
     unsigned i = 0;
 
     //const float d = 5.0f * gridStep;
-    const float d = 5.0f;
+    const float d = 5;
 
     for (int x = 0; x < 10; ++x)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x - d, 0, 0 );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x - d, 0, 10 );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x * gridStep, 0, 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x * gridStep, 0, 20 );
         ++i;
     }
 
     for (int z = 0; z < 10; ++z)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( -d, 0, z + 0 );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( d, 0, z + 0 );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( 0, 0, z * gridStep + 5 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( 10, 0, z * gridStep + 5 );
         ++i;
     }
 }
@@ -626,7 +624,6 @@ void RenderSceneView( float gridStep )
         {
             if (ImGui::MenuItem( "Load Scene", nullptr, nullptr ))
             {
-                printf( "load scene\n" );
                 openFilePath[ 0 ] = 0;
                 GetOpenPath( openFilePath, "usda" );
                 LoadUsdScene( sceneView.scene, openFilePath );
@@ -634,7 +631,6 @@ void RenderSceneView( float gridStep )
 
             if (ImGui::MenuItem( "Save Scene", nullptr, nullptr ))
             {
-                printf( "save scene\n" );
                 openFilePath[ 0 ] = 0;
                 GetSavePath( openFilePath, "usda" );
                 SaveUsdScene( sceneView.scene, openFilePath );
@@ -690,6 +686,10 @@ void RenderSceneView( float gridStep )
             ImGui::SliderFloat( "specular", &f, 0.0f, 1.0f, "%.3f" );
             float r = 0.0f;
             ImGui::SliderFloat( "roughness", &r, 0.0f, 1.0f, "%.3f" );
+            ImGui::Text( "albedo map" );
+            ImGui::Image( 0, ImVec2( 128, 128 ) );
+            ImGui::Text( "normal map" );
+            ImGui::Image( 0, ImVec2( 128, 128 ) );
         }
         else if (selectedGoIndex != sceneView.translateGizmoGo.index && selectedGoIndex != sceneView.camera3d.index)
         {
@@ -835,8 +835,8 @@ void RenderSceneView( float gridStep )
     {
         ImGui::BeginGroup();
         ImGui::Text( "Materials" );
+        ImGui::Text( "Meshes" );
         ImGui::Text( "Textures" );
-        //ImGui::Text( "Audio Clips" );
         ImGui::EndGroup();
         ImGui::SameLine();
 

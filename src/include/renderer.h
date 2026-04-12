@@ -13,7 +13,7 @@ void teDrawFullscreenTriangle( struct teShader& shader, struct teTexture2D& text
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode );
 void teBeginSwapchainRendering();
 void teEndSwapchainRendering();
-void teMapUiMemory( void** outVertexMemory, void** outIndexMemory );
+void teMapUiMemory( size_t vertexBytes, size_t indexBytes, void** outVertexMemory, void** outIndexMemory );
 void teUnmapUiMemory();
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
 // This is needed if you don't use an Xcode project that includes shaders.

@@ -26,6 +26,7 @@ teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
 
 static const unsigned MaxPSOs = 100;
+static constexpr unsigned UiBufferBytes = 1024 * 1024 * 8;
 
 // Must match shader header ubo.h
 struct PerObjectUboStruct
@@ -289,13 +290,11 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshNormalStagingBuffer" );
     renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshTangentBuffer" );
     renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshTangentStagingBuffer" );
-
-    const unsigned uiBufferBytes = 1024 * 1024 * 8;
     
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true, "uiVertexBuffer" );
-    renderer.uiIndexBuffer = CreateBuffer( renderer.device, uiBufferBytes, true, "uiIndexBuffer" );
-    renderer.uiVertices = (float*)teMalloc( 1024 * 1024 * 8 );
-    renderer.uiIndices = (uint16_t*)teMalloc( 1024 * 1024 * 8 );
+    renderer.uiVertexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiIndexBuffer" );
+    renderer.uiVertices = (float*)teMalloc( UiBufferBytes );
+    renderer.uiIndices = (uint16_t*)teMalloc( UiBufferBytes );
 
     renderer.lineVertexBuffer = CreateBuffer( renderer.device, 1024 * 1024 * 4, true, "lineVertexBuffer" );
     
@@ -692,8 +691,11 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
 }
 
-void teMapUiMemory( void** outVertexMemory, void** outIndexMemory )
+void teMapUiMemory( size_t vertexBytes, size_t indexBytes, void** outVertexMemory, void** outIndexMemory )
 {
+    teAssert( vertexBytes < UiBufferBytes );
+    teAssert( indexBytes < UiBufferBytes );
+
     *outVertexMemory = BufferGetBuffer( renderer.uiVertexBuffer )->contents();
     *outIndexMemory = BufferGetBuffer( renderer.uiIndexBuffer )->contents();
 }

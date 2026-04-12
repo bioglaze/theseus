@@ -13,3 +13,6 @@ TODO:
   * macOS: camera rotation with arrow keys.
   * macOS: ImGui scrolling.
   * grid viz should respect grid step.
+  * asset browser could read assets from build/assets
+  * line colors
+* macOS: index renderer.frameResources[]
