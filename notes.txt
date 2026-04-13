@@ -2,8 +2,10 @@ Bugs:
   * Editor
     * macOS: deleting cube changes grid to black.
     * gizmo drag direction depends on camera angle.
+    * scene properties cannot be changed after editing a material.
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
+  * Metal: MBP 2013 black screen.
   * scene loading could malloc 0 bytes if object count is 0.
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
   * standard shader samplers are hardcoded.
@@ -12,7 +14,9 @@ TODO:
 * Editor
   * macOS: camera rotation with arrow keys.
   * macOS: ImGui scrolling.
-  * grid viz should respect grid step.
   * asset browser could read assets from build/assets
   * line colors
 * macOS: index renderer.frameResources[]
+* wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
+-> xdg_toplevel_icon_manager, set_icon
+* vulkan: vk::BufferPointer when it's in Vulkan SDK.
