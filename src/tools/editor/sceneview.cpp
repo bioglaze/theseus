@@ -331,7 +331,7 @@ void SceneViewDuplicate()
 {
     if (selectedGoIndex != EditorCameraGoIndex)
     {
-        const unsigned components = teGameObjectGetComponents( selectedGoIndex );
+        const unsigned components = teGameObjectGetComponents( selectedGoIndex );        
         teGameObject go = teCreateGameObject( "gameobject", components );
         teTransformSetLocalPosition( go.index, teTransformGetLocalPosition( selectedGoIndex ) );
 
@@ -344,6 +344,13 @@ void SceneViewDuplicate()
             {
                 teMeshRendererSetMaterial( go.index, teMeshRendererGetMaterial( selectedGoIndex, i ), i );
             }
+        }
+        
+        if (components & teComponent::PointLight)
+        {
+            float* color = tePointLightAccessColor( selectedGoIndex );
+            float* radius = tePointLightAccessRadius( selectedGoIndex );
+            tePointLightSetParams( go.index, *radius, Vec3( color[ 0 ], color[ 1 ], color[ 2 ] ), 1.0f );
         }
 
         teSceneAdd( sceneView.scene, go.index );
