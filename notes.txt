@@ -12,7 +12,6 @@ Bugs:
   
 TODO:
 * Editor
-  * macOS: camera rotation with arrow keys.
   * macOS: ImGui scrolling.
   * asset browser could read assets from build/assets
   * line colors

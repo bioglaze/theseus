@@ -111,3 +111,39 @@ void teHotReload()
         }
     }
 }
+
+#if _MSC_VER
+struct DirectoryHandle
+{
+    WIN32_FIND_DATA ffd;
+    HANDLE handle = INVALID_HANDLE_VALUE;
+};
+
+DirectoryHandle dirHandles[ 100 ];
+unsigned dirHandleCount = 0;
+
+unsigned teReadDirectory( const char* root )
+{
+    if (dirHandleCount == 99)
+        dirHandleCount = 0;
+
+    dirHandles[ dirHandleCount ].handle = FindFirstFile( root, &dirHandles[ dirHandleCount ].ffd );
+    return dirHandleCount++;
+}
+
+bool teGetNextFile( unsigned handle, char** outPath )
+{
+    int n = FindNextFile( dirHandles[ handle ].handle, &dirHandles[ handle ].ffd );
+    if (n != 0)
+        *outPath = dirHandles[ handle ].ffd.cFileName;
+    return n;
+}
+
+void teCloseDirectory( unsigned handle )
+{
+    FindClose( dirHandles[ handle ].handle );
+    
+    if (dirHandleCount > 0)
+        --dirHandleCount;
+}
+#endif

@@ -855,18 +855,23 @@ void RenderSceneView( float gridStep )
             ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
             if (ImGui::BeginTable( "split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
             {
-                for (int i = 0; i < 20; i++)
+                unsigned handle = teReadDirectory( "assets\\materials\\*" );
+                char* path = nullptr;
+
+                while( teGetNextFile( handle, &path ) )
                 {
-                    char buf[ 32 ];
-                    snprintf( buf, 32, "%03d", i );
+                    char buf[ 256 ] = {};
+                    snprintf( buf, 256, "%s", path );
                     ImGui::TableNextColumn();
                     if (ImGui::Button( buf, ImVec2( -FLT_MIN, 0.0f ) ))
                     {
-                        printf( "edit material %d\n", i );
-                        selectedMaterialIndex = i;
+                        //selectedMaterialIndex = i;
                         selectedGoIndex = EditorCameraGoIndex;
                     }
                 }
+
+                teCloseDirectory( handle );
+
                 ImGui::EndTable();
             }
             ImGui::EndChild();

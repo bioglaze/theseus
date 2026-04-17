@@ -12,3 +12,6 @@ struct teFile
 teFile teLoadFile( const char* path );
 // Reloads shaders, textures etc. that have changed on disk.
 void teHotReload();
+unsigned teReadDirectory( const char* root );
+bool teGetNextFile( unsigned handle, char** outPath );
+void teCloseDirectory( unsigned handle );
