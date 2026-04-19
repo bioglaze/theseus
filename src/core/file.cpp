@@ -136,7 +136,7 @@ bool teGetNextFile( unsigned handle, char** outPath )
     int n = FindNextFile( dirHandles[ handle ].handle, &dirHandles[ handle ].ffd );
     if (n != 0)
         *outPath = dirHandles[ handle ].ffd.cFileName;
-    return n;
+    return n != 0;
 }
 
 void teCloseDirectory( unsigned handle )
@@ -145,5 +145,63 @@ void teCloseDirectory( unsigned handle )
     
     if (dirHandleCount > 0)
         --dirHandleCount;
+}
+#else
+#include <dirent.h>
+
+struct DirectoryHandle
+{
+    DIR* dirFile = nullptr;
+    dirent* handle = nullptr;
+};
+
+DirectoryHandle dirHandles[ 100 ];
+unsigned dirHandleCount = 0;
+
+unsigned teReadDirectory( const char* root )
+{
+    if (dirHandleCount == 99)
+        dirHandleCount = 0;
+
+    dirHandles[ dirHandleCount ].dirFile = opendir( root );
+
+    if (dirHandles[ dirHandleCount ].dirFile == nullptr)
+    {
+        printf("teReadDirectory fail!\n");
+    }
+
+    return dirHandleCount++;
+}
+
+bool teGetNextFile( unsigned handle, char** outPath )
+{
+    teAssert( handle < 100 );
+
+    if (dirHandles[ handle ].dirFile == nullptr)
+    {
+        return false;
+    }
+
+    dirHandles[ handle ].handle = readdir( dirHandles[ handle ].dirFile );
+
+    if(dirHandles[ handle ].handle != nullptr)
+    {
+        *outPath = dirHandles[ handle ].handle->d_name;
+        return true;
+    }
+
+    return false;
+}
+
+void teCloseDirectory( unsigned handle )
+{
+    teAssert( handle < 100 );
+
+    if (dirHandles[ handle ].dirFile != nullptr)
+    {
+        closedir( dirHandles[ handle ].dirFile );
+        dirHandles[ dirHandleCount ].dirFile = nullptr;
+        dirHandles[ dirHandleCount ].handle = nullptr;
+    }
 }
 #endif
