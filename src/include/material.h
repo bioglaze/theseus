@@ -12,6 +12,7 @@ struct teMaterial
     teCullMode cullMode = teCullMode::CCW;
     teDepthMode depthMode = teDepthMode::LessOrEqualWriteOn;
     teFillMode fillMode = teFillMode::Solid;
+    char name[ 30 ] = {};
 };
 
 teMaterial teCreateMaterial( const struct teShader& shader );

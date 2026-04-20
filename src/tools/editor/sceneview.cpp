@@ -95,6 +95,7 @@ struct SceneView
     teGameObject selectedGos[ MaxSelectedObjects ];
 
     teMaterial materials[ MaxMaterials ];
+    unsigned materialCount = 0;
 
     Vec3 lineBuffer[ 100 ];
 };
@@ -512,6 +513,27 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
 
+    unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    char* path = nullptr;
+
+    while (teGetNextFile( handle, &path ))
+    {
+        char buf[ 256 ] = {};
+        snprintf( buf, 256, "%s", path );
+        
+        char matPath[ 260 ] = {};
+        snprintf( matPath, 256, "assets\\materials\\%s", path );
+        teFile matFile = teLoadFile( matPath );
+
+        sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
+
+        strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
+        teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
+        ++sceneView.materialCount;
+    }
+
+    teCloseDirectory( handle );
+
     teFile redFile = teLoadFile( "assets/textures/red.tga" );
     teFile greenFile = teLoadFile( "assets/textures/green.tga" );
     teFile blueFile = teLoadFile( "assets/textures/blue.tga" );
@@ -746,6 +768,31 @@ void RenderSceneView( float gridStep )
                     for (unsigned i = 0; i < teMeshGetSubMeshCount( mesh ); ++i)
                     {
                         ImGui::Text( "%s", teMeshGetSubMeshName( *mesh, i ) );
+                        ImGui::SameLine();
+                        ImGui::Text( "|" );
+                        ImGui::SameLine();
+
+                        //const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
+                        static int item_selected_idx = 0; // Here we store our selection data as an index.
+                        const char* combo_preview_value = sceneView.materials[ item_selected_idx ].name;
+                        if (ImGui::BeginCombo( "material", combo_preview_value, 0 ))
+                        {
+                            for (int n = 0; n < sceneView.materialCount; ++n)
+                            {
+                                const bool is_selected = (item_selected_idx == n);
+
+                                if (ImGui::Selectable( sceneView.materials[ n ].name, item_selected_idx))
+                                {
+                                    item_selected_idx = n;
+                                }
+
+                                if (is_selected)
+                                {
+                                    ImGui::SetItemDefaultFocus();
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
                     }
                 }
             }

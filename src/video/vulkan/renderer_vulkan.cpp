@@ -2339,6 +2339,18 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 
 void teMapUiMemory( size_t vertexBytes, size_t indexBytes, void** outVertexMemory, void** outIndexMemory )
 {
+    if (vertexBytes > UiBufferBytes)
+    {
+        tePrint( "UI vertex buffer is too small!\n" );
+        vertexBytes = UiBufferBytes;
+    }
+
+    if (indexBytes > UiBufferBytes)
+    {
+        tePrint( "UI index buffer is too small!\n" );
+        indexBytes = UiBufferBytes;
+    }
+
     *outVertexMemory = renderer.uiVertices;
     *outIndexMemory = renderer.uiIndices;
 }
