@@ -31,6 +31,7 @@ void BeginCommandBuffer();
 
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
+constexpr unsigned MaxTextures = 40;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
@@ -96,7 +97,8 @@ struct SceneView
 
     teMaterial materials[ MaxMaterials ];
     unsigned materialCount = 0;
-
+    teTexture2D textures[ MaxTextures ];
+    unsigned textureCount = 0;
     Vec3 lineBuffer[ 100 ];
 };
 
@@ -444,6 +446,105 @@ void DeleteSelectedObject()
     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, false );
 }
 
+void ReadMaterials()
+{
+    unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    char* path = nullptr;
+
+    while (teGetNextFile( handle, &path ))
+    {
+        char buf[ 256 ] = {};
+        snprintf( buf, 256, "%s", path );
+
+        char matPath[ 260 ] = {};
+        snprintf( matPath, 256, "assets\\materials\\%s", path );
+        teFile matFile = teLoadFile( matPath );
+
+        if (matFile.data)
+        {
+            sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
+            teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
+
+            char line[ 255 ] = {};
+            unsigned cursor = 0;
+            unsigned i = 0;
+
+            while (cursor < matFile.size)
+            {
+                line[ i ] = matFile.data[ cursor ];
+                ++i;
+
+                if (matFile.data[ cursor ] == '\n')
+                {
+                    line[ i - 1 ] = 0;
+                    i = 0;
+
+                    if (strstr( line, "name" ) == line)
+                    {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "name " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        printf( "material name: %s\n", name );
+                        strcpy( sceneView.materials[ sceneView.materialCount ].name, name );
+                        sceneView.materials[ sceneView.materialCount ].name[ nameCursor ] = 0;
+                    }
+                    else if (strstr( line, "albedo" ) == line)
+                    {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "albedo " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        printf( "albedo: %s\n", name );
+                        char texPath[ 260 ] = {};
+                        snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        teFile texFile = teLoadFile( texPath );
+                        if (texFile.data)
+                        {
+                            assert( sceneView.textureCount < MaxTextures );
+                            sceneView.textures[ sceneView.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                            teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.textures[ sceneView.textureCount ], 0 );
+                            ++sceneView.textureCount;
+                        }
+                    }
+                    else if (strstr( line, "normal" ) == line)
+                    {
+
+                    }
+                    else if (strstr( line, "specular" ) == line)
+                    {
+
+                    }
+                    else if (strstr( line, "smoothness" ) == line)
+                    {
+
+                    }
+                }
+
+                ++cursor;
+            }
+        }
+        else
+        {
+            strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
+        }
+
+        ++sceneView.materialCount;
+    }
+
+    teCloseDirectory( handle );
+}
+
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )
 {
     teCreateRenderer( 1, windowHandle, width, height );
@@ -513,26 +614,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
 
-    unsigned handle = teReadDirectory( "assets\\materials\\*" );
-    char* path = nullptr;
-
-    while (teGetNextFile( handle, &path ))
-    {
-        char buf[ 256 ] = {};
-        snprintf( buf, 256, "%s", path );
-        
-        char matPath[ 260 ] = {};
-        snprintf( matPath, 256, "assets\\materials\\%s", path );
-        teFile matFile = teLoadFile( matPath );
-
-        sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
-
-        strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
-        teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
-        ++sceneView.materialCount;
-    }
-
-    teCloseDirectory( handle );
+    ReadMaterials();
 
     teFile redFile = teLoadFile( "assets/textures/red.tga" );
     teFile greenFile = teLoadFile( "assets/textures/green.tga" );
@@ -772,18 +854,19 @@ void RenderSceneView( float gridStep )
                         ImGui::Text( "|" );
                         ImGui::SameLine();
 
-                        //const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
                         static int item_selected_idx = 0; // Here we store our selection data as an index.
                         const char* combo_preview_value = sceneView.materials[ item_selected_idx ].name;
+                        ImGui::PushID( i );
                         if (ImGui::BeginCombo( "material", combo_preview_value, 0 ))
                         {
-                            for (int n = 0; n < sceneView.materialCount; ++n)
+                            for (unsigned n = 0; n < sceneView.materialCount; ++n)
                             {
                                 const bool is_selected = (item_selected_idx == n);
 
                                 if (ImGui::Selectable( sceneView.materials[ n ].name, item_selected_idx))
                                 {
                                     item_selected_idx = n;
+                                    teMeshRendererSetMaterial( selectedGoIndex, sceneView.materials[ n ], i );
                                 }
 
                                 if (is_selected)
@@ -793,6 +876,8 @@ void RenderSceneView( float gridStep )
                             }
                             ImGui::EndCombo();
                         }
+
+                        ImGui::PopID();
                     }
                 }
             }
