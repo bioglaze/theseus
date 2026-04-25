@@ -3,6 +3,7 @@ Bugs:
     * macOS: deleting cube changes grid to black.
     * gizmo drag direction depends on camera angle.
     * scene properties cannot be changed after editing a material.
+    * Lights are not visible (tested on Vulkan)
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: MBP 2013 black screen.

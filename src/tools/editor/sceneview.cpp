@@ -855,13 +855,15 @@ void RenderSceneView( float gridStep )
                         ImGui::SameLine();
 
                         static int item_selected_idx = 0; // Here we store our selection data as an index.
-                        const char* combo_preview_value = sceneView.materials[ item_selected_idx ].name;
+                        const char* comboPreviewValue = sceneView.materials[ item_selected_idx ].name;
                         ImGui::PushID( i );
-                        if (ImGui::BeginCombo( "material", combo_preview_value, 0 ))
+                        const teMaterial& mat = teMeshRendererGetMaterial( selectedGoIndex, i );
+
+                        if (ImGui::BeginCombo( "material", mat.name, 0 ))
                         {
                             for (unsigned n = 0; n < sceneView.materialCount; ++n)
                             {
-                                const bool is_selected = (item_selected_idx == n);
+                                const bool isSelected = (item_selected_idx == n);
 
                                 if (ImGui::Selectable( sceneView.materials[ n ].name, item_selected_idx))
                                 {
@@ -869,7 +871,7 @@ void RenderSceneView( float gridStep )
                                     teMeshRendererSetMaterial( selectedGoIndex, sceneView.materials[ n ], i );
                                 }
 
-                                if (is_selected)
+                                if (isSelected)
                                 {
                                     ImGui::SetItemDefaultFocus();
                                 }
