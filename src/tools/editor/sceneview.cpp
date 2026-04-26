@@ -684,17 +684,17 @@ void AddGridLines( float gridStep )
 {
     unsigned i = 0;
 
-    for (int x = 0; x < 11; ++x)
+    for (int x = 0; x < 21; ++x)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x * gridStep, 0, 0 );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x * gridStep, 0, 10 * gridStep );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( x * gridStep - gridStep * 10, 0, 0 );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( x * gridStep - gridStep * 10, 0, 20 * gridStep );
         ++i;
     }
 
-    for (int z = 0; z < 11; ++z)
+    for (int z = 0; z < 21; ++z)
     {
-        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( 0, 0, z * gridStep );
-        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( 10 * gridStep, 0, z * gridStep );
+        sceneView.lineBuffer[ i * 2 + 0 ] = Vec3( 0 - gridStep * 10, 0, z * gridStep );
+        sceneView.lineBuffer[ i * 2 + 1 ] = Vec3( 20 * gridStep - gridStep * 10, 0, z * gridStep );
         ++i;
     }
 }
@@ -702,7 +702,7 @@ void AddGridLines( float gridStep )
 void RenderSceneView( float gridStep )
 {
     AddGridLines( gridStep );
-    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 60 );
+    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 100 );
 
     teBeginFrame();
     ImGui::NewFrame();
