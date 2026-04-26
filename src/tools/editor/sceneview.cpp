@@ -392,6 +392,9 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
         return;
     }
 
+    const Vec3 viewDir = teTransformGetViewDirection( sceneView.camera3d.index );
+    const float sign = viewDir.z > 0 ? 1 : -1;
+
     if (gizmoAxisSelected == 0)
     {
         teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
@@ -401,13 +404,14 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     else if (gizmoAxisSelected == 2)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveRight( selectedGoIndex, dx * 0.5f );
+        teTransformMoveRight( selectedGoIndex, dx * 0.5f * sign );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
     else if (gizmoAxisSelected == 1)
     {
+        const float signX = viewDir.x > 0 ? 1 : -1;
         teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
-        teTransformMoveForward( selectedGoIndex, dx * 0.5f, false, false, false );
+        teTransformMoveForward( selectedGoIndex, dx * 0.5f * signX, false, false, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
 }
