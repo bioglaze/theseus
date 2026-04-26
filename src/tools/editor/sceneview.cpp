@@ -324,7 +324,10 @@ void SceneMoveSelection( Vec3 amount )
 {
     if (selectedGoIndex != EditorCameraGoIndex)
     {
-        teTransformMoveRight( selectedGoIndex, amount.x );
+        const Vec3 viewDir = teTransformGetViewDirection( sceneView.camera3d.index );
+        const float sign = viewDir.z > 0 ? 1 : -1;
+
+        teTransformMoveRight( selectedGoIndex, amount.x * sign );
         teTransformMoveUp( selectedGoIndex, amount.y );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }

@@ -10,6 +10,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 
   - Modern Vulkan 1.3 and Metal 3 renderers
   - Mesh Shaders on Vulkan on supported hardware.
+  - Forward+ light culling.
   - Fast compile times
   - Loads .tga and .dds textures
   - Scene Editor implemented using Dear ImGui
