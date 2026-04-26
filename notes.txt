@@ -1,7 +1,8 @@
 Bugs:
   * Editor
     * macOS: deleting cube changes grid to black.
-    * gizmo drag direction depends on camera angle.
+    * object wasd-movement should depend on camera direction.
+    * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * Lights are not visible (tested on Vulkan)
   * Wayland: not HiDPI, for example ImGui and cursor too big.
