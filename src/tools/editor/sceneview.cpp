@@ -526,7 +526,26 @@ void ReadMaterials()
                     }
                     else if (strstr( line, "normal" ) == line)
                     {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "normal " );
 
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        printf( "normal: %s\n", name );
+                        char texPath[ 260 ] = {};
+                        snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        teFile texFile = teLoadFile( texPath );
+                        if (texFile.data)
+                        {
+                            assert( sceneView.textureCount < MaxTextures );
+                            sceneView.textures[ sceneView.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                            teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.textures[ sceneView.textureCount ], 1 );
+                            ++sceneView.textureCount;
+                        }
                     }
                     else if (strstr( line, "specular" ) == line)
                     {
