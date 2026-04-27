@@ -142,6 +142,7 @@ struct SwapchainResource
     VkSemaphore renderCompleteSemaphore = VK_NULL_HANDLE;
     VkSemaphore imageAcquiredSemaphore = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
+    VkFence submitFence = VK_NULL_HANDLE;
     VkImage depthStencilImage = VK_NULL_HANDLE;
     VkDeviceMemory depthStencilMem = VK_NULL_HANDLE;
     VkImageView depthStencilView = VK_NULL_HANDLE;
@@ -1041,7 +1042,7 @@ void CreateDevice()
         }
     }
     
-    free( queueProps );
+    teFree( queueProps );
 
     float queuePriorities = 0;
     VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -1146,6 +1147,9 @@ void CreateCommandBuffers()
         VkFenceCreateInfo fenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, VK_FENCE_CREATE_SIGNALED_BIT };
 
         VK_CHECK( vkCreateFence( renderer.device, &fenceCreateInfo, nullptr, &renderer.swapchainResources[ i ].fence ) );
+
+        VkFenceCreateInfo submitFenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, 0 };
+        VK_CHECK( vkCreateFence( renderer.device, &submitFenceCreateInfo, nullptr, &renderer.swapchainResources[ i ].submitFence ) );
     }
 }
 
@@ -1680,15 +1684,18 @@ void teBeginFrame()
 
 void SubmitCommandBuffer()
 {
-    vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
+    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
+
+    VkFence submitFence = renderer.swapchainResources[ renderer.frameIndex ].submitFence;
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer;
-    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) );
-    
-    vkDeviceWaitIdle( renderer.device );
+    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, submitFence ) );
+
+    VK_CHECK( vkWaitForFences( renderer.device, 1, &submitFence, VK_TRUE, UINT64_MAX ) );
+    VK_CHECK( vkResetFences( renderer.device, 1, &submitFence ) );
 }
 
 void BeginCommandBuffer()
