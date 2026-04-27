@@ -3,7 +3,7 @@
 struct teBuffer
 {
     unsigned index = 0;
-    unsigned memoryUsage = 0;
+    unsigned sizeBytes = 0;
 };
 
 teBuffer CreateBuffer( unsigned size, const char* debugName );

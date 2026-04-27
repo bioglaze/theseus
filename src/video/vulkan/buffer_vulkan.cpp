@@ -42,7 +42,7 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
     VkMemoryRequirements memReqs;
     vkGetBufferMemoryRequirements( device, buffers[ outBuffer.index ].buffer, &memReqs );
 
-    outBuffer.memoryUsage = (unsigned int)memReqs.size;
+    outBuffer.sizeBytes = sizeBytes;
 
     VkMemoryAllocateFlagsInfo flagsInfo = {};
     flagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
@@ -68,7 +68,7 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 
 void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
-    teAssert( source.memoryUsage <= destination.memoryUsage );
+    teAssert( source.sizeBytes <= destination.sizeBytes );
 
-    CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.memoryUsage );
+    CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.sizeBytes );
 }

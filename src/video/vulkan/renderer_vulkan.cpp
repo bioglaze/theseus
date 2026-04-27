@@ -1476,7 +1476,7 @@ void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSiz
 void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
 {
     teAssert( BufferGetMemory( buffer ) != VK_NULL_HANDLE );
-    teAssert( dataBytes + offset <= buffer.memoryUsage );
+    teAssert( dataBytes + offset <= buffer.sizeBytes );
 
     void* bufferData = nullptr;
     VK_CHECK( vkMapMemory( renderer.device, BufferGetMemory( buffer ), offset, dataBytes, 0, &bufferData ) );
