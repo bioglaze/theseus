@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -35,17 +36,13 @@ constexpr unsigned MaxTextures = 40;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
-char text[ 100 ];
 char openFilePath[ 280 ];
 unsigned selectedGoIndex = EditorCameraGoIndex;
 int selectedMaterialIndex = -1;
 int gizmoAxisSelected = -1;
 int gizmoAxisHovered = -1;
-float pos[ 3 ];
-float scale = 1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
-float pointLightColor[ 3 ] = { 1, 1, 1 };
 
 struct FontTextureUpdate
 {
@@ -143,6 +140,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
             {
                 if (tex->Status == ImTextureStatus_WantCreate)
                 {
+                    assert( imguiImpl.textureCount < 10 );
+
                     printf( "ImTextureStatus_WantCreate\n" );
                     imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
@@ -159,6 +158,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 }
                 if (tex->Status == ImTextureStatus_WantUpdates)
                 {
+                    assert( imguiImpl.textureCount < 10 );
+
                     printf( "ImTextureStatus_WantUpdates\n" );
                     imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
@@ -203,8 +204,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 //clip_scale.x = 1;
 //clip_scale.y = 1;
-    int global_vtx_offset = 0;
-    int global_idx_offset = 0;
+    int globalVtxOffset = 0;
+    int globalIdxOffset = 0;
 
     for (int n = 0; n < drawData->CmdListsCount; ++n)
     {
@@ -241,12 +242,12 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
-                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset );
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + globalIdxOffset, pcmd->VtxOffset + globalVtxOffset );
             }
         }
 
-        global_idx_offset += cmd_list->IdxBuffer.Size;
-        global_vtx_offset += cmd_list->VtxBuffer.Size;
+        globalIdxOffset += cmd_list->IdxBuffer.Size;
+        globalVtxOffset += cmd_list->VtxBuffer.Size;
     }
 }
 
@@ -448,7 +449,7 @@ void DeleteSelectedObject()
         teSceneRemove( sceneView.scene, selectedGoIndex );
     }
     
-    selectedGoIndex = 1;
+    selectedGoIndex = EditorCameraGoIndex;
     sceneView.selectedGos[ 0 ].index = selectedGoIndex;
     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, false );
 }
@@ -464,7 +465,7 @@ void ReadMaterials()
         snprintf( buf, 256, "%s", path );
 
         char matPath[ 260 ] = {};
-        snprintf( matPath, 256, "assets\\materials\\%s", path );
+        snprintf( matPath, sizeof( matPath ), "assets\\materials\\%s", path );
         teFile matFile = teLoadFile( matPath );
 
         if (matFile.data)
@@ -877,8 +878,8 @@ void RenderSceneView( float gridStep )
                         ImGui::Text( "|" );
                         ImGui::SameLine();
 
-                        static int item_selected_idx = 0; // Here we store our selection data as an index.
-                        const char* comboPreviewValue = sceneView.materials[ item_selected_idx ].name;
+                        static int itemSelectedIdx = 0; // Here we store our selection data as an index.
+                        const char* comboPreviewValue = sceneView.materials[ itemSelectedIdx ].name;
                         ImGui::PushID( i );
                         const teMaterial& mat = teMeshRendererGetMaterial( selectedGoIndex, i );
 
@@ -886,11 +887,11 @@ void RenderSceneView( float gridStep )
                         {
                             for (unsigned n = 0; n < sceneView.materialCount; ++n)
                             {
-                                const bool isSelected = (item_selected_idx == n);
+                                const bool isSelected = (itemSelectedIdx == n);
 
-                                if (ImGui::Selectable( sceneView.materials[ n ].name, item_selected_idx))
+                                if (ImGui::Selectable( sceneView.materials[ n ].name, itemSelectedIdx == n ))
                                 {
-                                    item_selected_idx = n;
+                                    itemSelectedIdx = n;
                                     teMeshRendererSetMaterial( selectedGoIndex, sceneView.materials[ n ], i );
                                 }
 
@@ -1022,6 +1023,7 @@ void RenderSceneView( float gridStep )
                     ImGui::TableNextColumn();
                     if (ImGui::Button( buf, ImVec2( -FLT_MIN, 0.0f ) ))
                     {
+                        // FIXME: allow enabling the following line
                         //selectedMaterialIndex = i;
                         selectedGoIndex = EditorCameraGoIndex;
                     }
