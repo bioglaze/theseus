@@ -200,8 +200,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     }
 
     // Will project scissor/clipping rectangles into framebuffer space
-    ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
-    ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+    ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 //clip_scale.x = 1;
 //clip_scale.y = 1;
     int globalVtxOffset = 0;
@@ -221,7 +221,6 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
                 {
                     printf( "ImDrawCallback_ResetRenderState not implemented\n" );
-                    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fb_width, fb_height );
                 }
                 else
                 {
@@ -231,18 +230,18 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
             else
             {
                 // Project scissor/clipping rectangles into framebuffer space
-                ImVec2 clip_min( (pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y );
-                ImVec2 clip_max( (pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y );
+                ImVec2 clipMin( (pcmd->ClipRect.x - clipOff.x) * clipScale.x, (pcmd->ClipRect.y - clipOff.y) * clipScale.y );
+                ImVec2 clipMax( (pcmd->ClipRect.z - clipOff.x) * clipScale.x, (pcmd->ClipRect.w - clipOff.y) * clipScale.y );
 
                 // Clamp to viewport as vkCmdSetScissor() won't accept values that are off bounds
-                if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
-                if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
-                if (clip_max.x > fbWidth) { clip_max.x = (float)fbWidth; }
-                if (clip_max.y > fbHeight) { clip_max.y = (float)fbHeight; }
-                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+                if (clipMin.x < 0.0f) { clipMin.x = 0.0f; }
+                if (clipMin.y < 0.0f) { clipMin.y = 0.0f; }
+                if (clipMax.x > fbWidth) { clipMax.x = (float)fbWidth; }
+                if (clipMax.y > fbHeight) { clipMax.y = (float)fbHeight; }
+                if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
                     continue;
 
-                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clip_min.x, (int32_t)clip_min.y, (uint32_t)(clip_max.x - clip_min.x), (uint32_t)(clip_max.y - clip_min.y), pcmd->ElemCount, pcmd->IdxOffset + globalIdxOffset, pcmd->VtxOffset + globalVtxOffset );
+                teUIDrawCall( shader, fontTex, (int)drawData->DisplaySize.x, (int)drawData->DisplaySize.y, (int32_t)clipMin.x, (int32_t)clipMin.y, (uint32_t)(clipMax.x - clipMin.x), (uint32_t)(clipMax.y - clipMin.y), pcmd->ElemCount, pcmd->IdxOffset + globalIdxOffset, pcmd->VtxOffset + globalVtxOffset );
             }
         }
 
@@ -1013,23 +1012,17 @@ void RenderSceneView( float gridStep )
             ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
             if (ImGui::BeginTable( "split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
             {
-                unsigned handle = teReadDirectory( "assets\\materials\\*" );
-                char* path = nullptr;
-
-                while( teGetNextFile( handle, &path ) )
+                for (unsigned i = 0; i < sceneView.materialCount; ++i)
                 {
-                    char buf[ 256 ] = {};
-                    snprintf( buf, 256, "%s", path );
                     ImGui::TableNextColumn();
-                    if (ImGui::Button( buf, ImVec2( -FLT_MIN, 0.0f ) ))
+
+                    if (ImGui::Button( sceneView.materials[ i ].name, ImVec2( -FLT_MIN, 0.0f ) ))
                     {
                         // FIXME: allow enabling the following line
                         //selectedMaterialIndex = i;
                         selectedGoIndex = EditorCameraGoIndex;
                     }
                 }
-
-                teCloseDirectory( handle );
 
                 ImGui::EndTable();
             }
