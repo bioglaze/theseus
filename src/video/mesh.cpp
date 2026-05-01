@@ -241,6 +241,7 @@ teMesh teLoadMesh( const teFile& file )
 
     teMesh outMesh;
     outMesh.index = ++meshIndex;
+    strncpy( outMesh.path, file.path, sizeof( outMesh.path ) );
 
     // Header is something like "t3d0003" where the last numbers are version that is incremented when reading compatibility breaks.
     if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '4')

@@ -6,6 +6,7 @@ struct teMesh
 {
     unsigned index = 0;
     teTopology topology = teTopology::Triangles;
+    char path[ 260 ] = {};
 };
 
 teMesh teCreateCubeMesh();

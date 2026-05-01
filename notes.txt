@@ -17,6 +17,9 @@ Bugs:
   
 TODO:
 * Editor
+  * show scene name in title bar
+  * ctrl-s and ctrl-o
+  * scene.usda:an mesh file name
   * macOS: ImGui scrolling.
   * asset browser could read assets from build/assets
   * line colors

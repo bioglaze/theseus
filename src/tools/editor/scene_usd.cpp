@@ -110,7 +110,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char c[ 256 ] = {};
             char name[ 256 ] = {};
             sscanf( line, "%s %s %s \"%s", a, b, c, name );
-            int len = strlen( name );
+            size_t len = strlen( name );
             name[ len - 1 ] = 0;
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
         }
@@ -156,6 +156,16 @@ void SaveUsdScene( const teScene& scene, const char* path )
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
         fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
+        
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
+        {
+            fprintf( outFile, "    string mesh = \"%s\"\n", teMeshRendererGetMesh( sceneGo )->path );
+
+            for (unsigned m = 0; m < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++m)
+            {
+                fprintf( outFile, "    string material%u = \"%s\"\n", m, teMeshRendererGetMaterial( sceneGo, m ).name ); // FIXME: maybe path instead of name?
+            }
+        }
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::PointLight) != 0)
         {
