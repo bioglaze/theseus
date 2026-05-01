@@ -455,7 +455,8 @@ void DeleteSelectedObject()
 
 void ReadMaterials()
 {
-    unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    //unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    unsigned handle = teReadDirectory( "assets/materials" );
     char* path = nullptr;
 
     while (teGetNextFile( handle, &path ))
@@ -464,10 +465,11 @@ void ReadMaterials()
         snprintf( buf, 256, "%s", path );
 
         char matPath[ 260 ] = {};
-        snprintf( matPath, sizeof( matPath ), "assets\\materials\\%s", path );
+        //snprintf( matPath, sizeof( matPath ), "assets\\materials\\%s", path );
+        snprintf( matPath, sizeof( matPath ), "assets/materials/%s", path );
         teFile matFile = teLoadFile( matPath );
 
-        if (matFile.data)
+        if (matFile.data && strstr( matFile.path, ".mat" ))
         {
             sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
             teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
@@ -514,7 +516,8 @@ void ReadMaterials()
                         }
                         printf( "albedo: %s\n", name );
                         char texPath[ 260 ] = {};
-                        snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        //snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
                         if (texFile.data)
                         {
@@ -537,7 +540,8 @@ void ReadMaterials()
                         }
                         printf( "normal: %s\n", name );
                         char texPath[ 260 ] = {};
-                        snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        //snprintf( texPath, 256, "assets\\textures\\%s", name );
+                        snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
                         if (texFile.data)
                         {
