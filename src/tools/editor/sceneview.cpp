@@ -467,9 +467,16 @@ void ReadMaterials()
         char matPath[ 260 ] = {};
         //snprintf( matPath, sizeof( matPath ), "assets\\materials\\%s", path );
         snprintf( matPath, sizeof( matPath ), "assets/materials/%s", path );
-        teFile matFile = teLoadFile( matPath );
+        const bool isMaterial = strstr( matPath, ".mat" );
 
-        if (matFile.data && strstr( matFile.path, ".mat" ))
+        teFile matFile;
+
+        if (isMaterial)
+        {
+            matFile = teLoadFile( matPath );
+        }
+        
+        if (matFile.data && isMaterial)
         {
             sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
             teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
@@ -881,8 +888,7 @@ void RenderSceneView( float gridStep )
                         ImGui::Text( "|" );
                         ImGui::SameLine();
 
-                        static int itemSelectedIdx = 0; // Here we store our selection data as an index.
-                        const char* comboPreviewValue = sceneView.materials[ itemSelectedIdx ].name;
+                        static unsigned itemSelectedIdx = 0;
                         ImGui::PushID( i );
                         const teMaterial& mat = teMeshRendererGetMaterial( selectedGoIndex, i );
 
@@ -1009,8 +1015,6 @@ void RenderSceneView( float gridStep )
         ImGui::SameLine();
 
         {
-            ImVec2 size = ImGui::GetItemRectSize();
-
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
             ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
             ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
