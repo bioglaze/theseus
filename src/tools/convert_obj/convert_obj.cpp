@@ -506,7 +506,8 @@ void InitMeshArrays( FILE* file )
 
             if (meshCount > 0)
             {
-                meshes[ meshCount - 1 ].nameIndex = InsertString( name );
+                meshes[ meshCount ].nameIndex = InsertString( name );
+                // FIXME: are these two lines needed? they are set below.
                 meshes[ meshCount - 1 ].faceCount = faceCount;
                 meshes[ meshCount - 1 ].faces = new Face[ faceCount ];
                 faceCount = 0;
