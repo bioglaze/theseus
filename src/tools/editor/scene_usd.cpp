@@ -114,6 +114,24 @@ void LoadUsdScene( teScene& scene, const char* path )
             name[ len - 1 ] = 0;
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
         }
+        else if (strstr( line, "string mesh" ))
+        {
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char path[ 256 ] = {};
+            sscanf( line, "%s %s %s \"%s", a, b, c, path );
+            size_t len = strlen( path );
+            path[ len - 1 ] = 0;
+            teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::MeshRenderer );
+            teFile meshFile = teLoadFile( path );
+            if (meshFile.data)
+            {
+                teMesh* mesh = (teMesh*)malloc( sizeof( teMesh ) );
+                *mesh = teLoadMesh( meshFile );
+                teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
+            }
+        }
     }
 
     fclose( file );

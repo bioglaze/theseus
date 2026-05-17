@@ -75,7 +75,7 @@ void GetOpenPath( char* path, const char* extension )
     ofn.lpstrFileTitle = nullptr;
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = nullptr;
-    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (GetOpenFileName( &ofn ) != FALSE)
     {
@@ -560,7 +560,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             inputParams.y = event.y;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
-            inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100 : 100;
+            inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100.0f : 100.0f;
         }
     }
 

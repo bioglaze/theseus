@@ -455,8 +455,8 @@ void DeleteSelectedObject()
 
 void ReadMaterials()
 {
-    //unsigned handle = teReadDirectory( "assets\\materials\\*" );
-    unsigned handle = teReadDirectory( "assets/materials" );
+    unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    //unsigned handle = teReadDirectory( "assets/materials" );
     char* path = nullptr;
 
     while (teGetNextFile( handle, &path ))
@@ -465,7 +465,6 @@ void ReadMaterials()
         snprintf( buf, 256, "%s", path );
 
         char matPath[ 260 ] = {};
-        //snprintf( matPath, sizeof( matPath ), "assets\\materials\\%s", path );
         snprintf( matPath, sizeof( matPath ), "assets/materials/%s", path );
         const bool isMaterial = strstr( matPath, ".mat" );
 
@@ -523,7 +522,6 @@ void ReadMaterials()
                         }
                         printf( "albedo: %s\n", name );
                         char texPath[ 260 ] = {};
-                        //snprintf( texPath, 256, "assets\\textures\\%s", name );
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
                         if (texFile.data)
@@ -547,7 +545,6 @@ void ReadMaterials()
                         }
                         printf( "normal: %s\n", name );
                         char texPath[ 260 ] = {};
-                        //snprintf( texPath, 256, "assets\\textures\\%s", name );
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
                         if (texFile.data)
@@ -560,11 +557,11 @@ void ReadMaterials()
                     }
                     else if (strstr( line, "specular" ) == line)
                     {
-
+                        //sceneView.materials[ sceneView.materialCount ].specular =
                     }
                     else if (strstr( line, "smoothness" ) == line)
                     {
-
+                        //sceneView.materials[ sceneView.materialCount ].smoothness =
                     }
                 }
 
@@ -772,6 +769,7 @@ void RenderSceneView( float gridStep )
                 openFilePath[ 0 ] = 0;
                 GetOpenPath( openFilePath, "usda" );
                 LoadUsdScene( sceneView.scene, openFilePath );
+                teFinalizeMeshBuffers();
             }
 
             if (ImGui::MenuItem( "Save Scene", nullptr, nullptr ))
@@ -1036,6 +1034,11 @@ void RenderSceneView( float gridStep )
             }
             ImGui::EndChild();
             ImGui::PopStyleVar();
+
+            if (ImGui::Button( "Shader Reload" ))
+            {
+                teHotReload();
+            }
         }
     }
 
