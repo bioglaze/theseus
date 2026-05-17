@@ -13,26 +13,6 @@ teFile teLoadFile( const char* path )
         return outFile;
     }
 
-    char osPath[ sizeof( outFile.path ) ] = {};
-    const unsigned pathLength = teStrlen( path );
-    teMemcpy( osPath, path, pathLength );
-    
-    for (unsigned i = 0; i < pathLength; ++i)
-    {
-#if _MSC_VER
-        if (osPath[ i ] == '/')
-        {
-            osPath[ i ] = '\\';
-        }
-#else
-        if (osPath[ i ] == '\\')
-        {
-            osPath[ i ] = '/';
-        }
-
-#endif
-    }
-
     FILE* file = fopen( path, "rb" );
 
     for (unsigned i = 0; i < 260; ++i)
