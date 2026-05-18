@@ -132,6 +132,15 @@ void LoadUsdScene( teScene& scene, const char* path )
                 teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
             }
         }
+        else if (strstr( line, "xformOp:translate" ))
+        {
+            Vec3 pos;
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%s %s %s (%f, %f, %f)", skip1, skip2, skip3, &pos.x, &pos.y, &pos.z );
+            teTransformSetLocalPosition( sceneGos[ goIndex - 1 ].index, pos );
+        }
     }
 
     fclose( file );
