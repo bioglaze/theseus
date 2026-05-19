@@ -419,7 +419,7 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     }
 }
 
-void SelectGizmo( unsigned x, unsigned y )
+bool SelectGizmo( unsigned x, unsigned y )
 {
     gizmoAxisSelected = -1;
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
@@ -438,6 +438,7 @@ void SelectGizmo( unsigned x, unsigned y )
     }
 
     printf("Gizmo axis selected: %d\n", gizmoAxisSelected );
+    return gizmoAxisSelected != -1;
     //sceneView.selectedGos[ 0 ].index = selectedGoIndex;
 }
 

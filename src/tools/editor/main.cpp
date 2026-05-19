@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2026-04-05
+// Modified: 2026-05-19
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -10,7 +10,6 @@
 #include "imgui.h"
 #include "vec3.h"
 #include "transform.h"
-
 
 #if _MSC_VER
 #include <Windows.h>
@@ -22,7 +21,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
-void SelectGizmo( unsigned x, unsigned y );
+bool SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
@@ -42,6 +41,7 @@ struct InputState
     bool isRightMouseDown = false;
     bool isLeftMouseDown = false;
     float gridStep = 1;
+    bool isMovingGizmo = false;
 };
 
 #if _MSC_VER
@@ -454,7 +454,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
             if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
             {
-                SelectGizmo( event.x, event.y );
+                inputParams.isMovingGizmo = SelectGizmo( event.x, event.y );
             }
         }
         else if (event.type == teWindowEvent::Type::Mouse1Up)
@@ -470,7 +470,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
             io.AddMouseButtonEvent( 0, false );
 
-            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
+            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !inputParams.isMovingGizmo)
             {
                 SelectObject( event.x, event.y );
             }
