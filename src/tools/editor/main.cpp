@@ -432,7 +432,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::GamePadLeftThumbState)
         {
             inputParams.gamepadMoveDir.z = event.gamePadThumbY;
-            inputParams.gamepadMoveDir.x = -event.gamePadThumbX;
+            inputParams.gamepadMoveDir.x = event.gamePadThumbX;
         }
         else if (event.type == teWindowEvent::Type::GamePadRightThumbState)
         {
