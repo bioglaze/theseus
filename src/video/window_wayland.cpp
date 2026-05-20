@@ -498,7 +498,7 @@ static void pointerAxis( void*       data,
 {
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
-    win.events[ win.eventIndex ].wheelDelta = (int)wl_fixed_to_double( value );    
+    win.events[ win.eventIndex ].wheelDelta = -(int)wl_fixed_to_double( value );    
 }
 
 static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr };
