@@ -27,8 +27,6 @@ void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
 void LoadUsdScene( teScene& scene, const char* path );
 void SaveUsdScene( const teScene& scene, const char* path );
-void SubmitCommandBuffer();
-void BeginCommandBuffer();
 
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
@@ -1054,14 +1052,10 @@ void RenderSceneView( float gridStep )
 
     if (fontTexUpdate.index != -1)
     {
-        // FIXME: WRITE_AFTER_PRESENT hazard on swapchain image
-        SubmitCommandBuffer();
-
         teFile nullFile2;
         memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
         sceneView.fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
         fontTexUpdate.index = -1;
-        BeginCommandBuffer();
     }
 
     teEndFrame();

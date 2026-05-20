@@ -575,7 +575,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         return outTexture;
     }
 
-    VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
+    VkFormat format = strstr( file.path, "_n" ) ? VK_FORMAT_B8G8R8A8_UNORM : VK_FORMAT_B8G8R8A8_SRGB;
 
     if (teStrstr( file.path, ".tga" ) || teStrstr( file.path, ".TGA" ))
     {

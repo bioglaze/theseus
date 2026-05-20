@@ -217,6 +217,7 @@ struct Renderer
     VkDeviceMemory textureStagingMemories[ 6 ];
     VkMemoryAllocateInfo textureStagingMemAllocInfos[ 6 ];
     VkQueryPool queryPool;
+    VkCommandBuffer texCommandBuffer = VK_NULL_HANDLE;
 
     static constexpr unsigned MaxPSOs = 250;
     PSO psos[ MaxPSOs ];
@@ -778,7 +779,7 @@ teTextureCube teCreateTextureCube( unsigned dimension, unsigned flags, teTexture
 
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
-    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.properties,
+    teTexture2D outTexture = teLoadTexture( file, flags, renderer.device, renderer.textureStagingBuffers[ 0 ], renderer.deviceMemoryProperties, renderer.graphicsQueue, /*renderer.swapchainResources[renderer.frameIndex].drawCommandBuffer*/renderer.texCommandBuffer, renderer.properties,
                                             pixels, pixelsWidth, pixelsHeight, pixelsFormat );
     
     return outTexture;
@@ -1151,6 +1152,14 @@ void CreateCommandBuffers()
         VkFenceCreateInfo submitFenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, 0 };
         VK_CHECK( vkCreateFence( renderer.device, &submitFenceCreateInfo, nullptr, &renderer.swapchainResources[ i ].submitFence ) );
     }
+
+    VkCommandBufferAllocateInfo texCommandBufferAllocateInfo = {};
+    texCommandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    texCommandBufferAllocateInfo.commandPool = renderer.cmdPool;
+    texCommandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    texCommandBufferAllocateInfo.commandBufferCount = 1;
+
+    VK_CHECK( vkAllocateCommandBuffers( renderer.device, &texCommandBufferAllocateInfo, &renderer.texCommandBuffer ) );
 }
 
 void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsigned presentInterval )
@@ -1262,8 +1271,8 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
         renderer.swapchainResources[ i ].image = images[ i ];
 
         SetObjectName( renderer.device, (uint64_t)images[ i ], VK_OBJECT_TYPE_IMAGE, "swapchain image" );
-        SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, renderer.swapchainResources[ i ].image,
-            VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
+        //SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, renderer.swapchainResources[ i ].image,
+        //    VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
     }
 
     teFree( images );
@@ -1680,29 +1689,6 @@ void teBeginFrame()
 
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image,
         VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
-}
-
-void SubmitCommandBuffer()
-{
-    VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
-
-    VkFence submitFence = renderer.swapchainResources[ renderer.frameIndex ].submitFence;
-
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer;
-    VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, submitFence ) );
-
-    VK_CHECK( vkWaitForFences( renderer.device, 1, &submitFence, VK_TRUE, UINT64_MAX ) );
-    VK_CHECK( vkResetFences( renderer.device, 1, &submitFence ) );
-}
-
-void BeginCommandBuffer()
-{
-    VkCommandBufferBeginInfo cmdBufInfo = {};
-    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 }
 
 void teEndFrame()
@@ -2230,10 +2216,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         shadowMapIndex = renderer.defaultTexture2D.index;
     }
 
-    teTexture2D nullUAV;
-    nullUAV.index = renderer.nullUAV.index;
-
-    UpdateDescriptors( nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
+    UpdateDescriptors( renderer.nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
     const VkPipeline pso = renderer.psos[ GetPSO( shader, blendMode, cullMode, depthMode, fillMode, topology, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;

@@ -24,8 +24,6 @@
 float bloomThreshold = 0.1f;
 
 double GetMilliseconds();
-void SubmitCommandBuffer();
-void BeginCommandBuffer();
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -947,13 +945,10 @@ int main()
         
         if (fontTexUpdate.index != -1)
         {
-            SubmitCommandBuffer();
-
             teFile nullFile2;
             memcpy( nullFile2.path, "font texture", strlen( "font texture" ) );
             impl.textures[ fontTexUpdate.index ] = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
             fontTexUpdate.index = -1;
-            BeginCommandBuffer();
         }
 
         teEndFrame();
