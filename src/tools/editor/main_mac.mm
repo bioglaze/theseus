@@ -23,14 +23,14 @@ unsigned SceneViewGetCameraIndex();
 void SceneViewDuplicate();
 bool SceneViewNothingSelected();
 void SelectObject( unsigned x, unsigned y );
-void SelectGizmo( unsigned x, unsigned y );
+bool SelectGizmo( unsigned x, unsigned y );
 void DeleteSelectedObject();
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
+bool SceneViewNothingSelected();
 
 extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
-extern id<MTLCommandBuffer> gCommandBuffer;
 
 unsigned width = 800*2, height = 450*2;
 unsigned frameWidth = 0, frameHeight = 0;
@@ -48,6 +48,7 @@ struct InputParams
     bool isLeftMouseDown = false;
     float gridStep = 1;
     Vec3 moveDir;
+    bool isMovingGizmo = false;
 } inputParams;
 
 void GetOpenPath( char* path, const char* extension )
@@ -108,6 +109,9 @@ void GetSavePath( char* path, const char* extension )
     self = [super initWithFrame:inFrame device:device];
     if (self)
     {
+        self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+        self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
+
         InitSceneView( frameWidth, frameHeight, nullptr, 2 );
         teFinalizeMeshBuffers();
     }
@@ -146,7 +150,7 @@ void GetSavePath( char* path, const char* extension )
     io.KeyShift = isShiftDown;
     io.KeySuper = isCmdDown;
 
-    printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
+    //printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
 
     if ([theEvent keyCode] == 0x00) // A
     {
@@ -392,8 +396,7 @@ void GetSavePath( char* path, const char* extension )
 
     if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
     {
-        printf("selectgizmo\n");
-        SelectGizmo( (int)inputParams.x * uiScale, (int)(height - inputParams.y) * uiScale );
+        inputParams.isMovingGizmo = SelectGizmo( (int)inputParams.x * uiScale, (int)(height - inputParams.y) * uiScale );
     }
 }
 
@@ -406,9 +409,9 @@ void GetSavePath( char* path, const char* extension )
     inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     inputParams.isLeftMouseDown = false;
 
-    if (!io.WantCaptureKeyboard)
+    if (!io.WantCaptureKeyboard && !inputParams.isMovingGizmo)
     {
-        printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
+        //printf("mouseUp x: %d, y: %d\n", (int)theEvent.locationInWindow.x * uiScale, (int)theEvent.locationInWindow.y * uiScale);
         SelectObject( (int)inputParams.x * uiScale, (int)(height - inputParams.y) * uiScale );
     }
 }
@@ -430,15 +433,14 @@ void GetSavePath( char* path, const char* extension )
 
     inputParams.x = theEvent.locationInWindow.x;
     inputParams.y = theEvent.locationInWindow.y;
-    inputParams.deltaX = theEvent.deltaX;//float( inputParams.x - inputParams.lastMouseX );
-    inputParams.deltaY = theEvent.deltaY;//float( inputParams.y - inputParams.lastMouseY );
+    inputParams.deltaX = theEvent.deltaX;
+    inputParams.deltaY = theEvent.deltaY;
     inputParams.lastMouseX = inputParams.x;
     inputParams.lastMouseY = inputParams.y;
 
     io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale * 2, (height - (int)theEvent.locationInWindow.y) * uiScale * 2 );
 
-    // TODO: don't rotate camera if gizmo is selected.
-    if (/*inputParams.isRightMouseDown &&*/ !io.WantCaptureMouse)
+    if (!inputParams.isMovingGizmo && !io.WantCaptureMouse)
     {
         float dt = 2;
         teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
@@ -493,12 +495,10 @@ int main()
         window.contentView = view;
         const float scale = [view.window backingScaleFactor];
         
-        printf( "Scale: %f\n", scale );
         id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *){
             printf("window resize: %.0fx%.0f\n", window.frame.size.width, window.frame.size.height );
         }];
         [NSApp run];
-        NSLog(@"run()");
     }
     
     return 0;
