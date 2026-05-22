@@ -65,7 +65,7 @@ double GetMilliseconds()
 {
     timespec spec;
     clock_gettime( CLOCK_MONOTONIC, &spec );
-    return spec.tv_nsec / 1000000;
+    return spec.tv_sec * 1000.0 + spec.tv_nsec / 1000000.0;
 }
 
 void IncEventIndex()
@@ -472,8 +472,8 @@ void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x
 {
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-    win.events[ win.eventIndex ].x = (float)wl_fixed_to_double( x );
-    win.events[ win.eventIndex ].y = (float)wl_fixed_to_double( y );
+    win.events[ win.eventIndex ].x = (int)wl_fixed_to_double( x );
+    win.events[ win.eventIndex ].y = (int)wl_fixed_to_double( y );
 
     win.lastMouseX = win.events[ win.eventIndex ].x;
     win.lastMouseY = win.events[ win.eventIndex ].y;
@@ -702,7 +702,7 @@ void registry_handle_global_remove( void* data, struct wl_registry* registry, ui
     {
         if (output->id == name)
         {
-            wl_list_for_each( window_output, &outputs, link )
+            wl_list_for_each( window_output, &window.outputs, link )
             {
                 if (window_output->output == output)
                 {
