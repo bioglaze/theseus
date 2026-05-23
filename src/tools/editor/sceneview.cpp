@@ -50,8 +50,6 @@ struct FontTextureUpdate
     int index = -1;
 };
 
-FontTextureUpdate fontTexUpdate;
-
 struct SceneView
 {
     unsigned width;
@@ -106,6 +104,7 @@ struct ImGUIImplCustom
     teTexture2D textures[ 10 ];
     unsigned textureCount = 0;
     const char* name = "jeejee";
+    FontTextureUpdate fontTexUpdate;
 };
 
 ImGUIImplCustom imguiImpl;
@@ -146,11 +145,11 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                     tex->SetStatus( ImTextureStatus_OK );
                     tex->SetTexID( imguiImpl.textureCount + 1 );
 
-                    fontTexUpdate.index = imguiImpl.textureCount;
-                    fontTexUpdate.width = tex->Width;
-                    fontTexUpdate.height = tex->Height;
-                    fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
-                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
+                    imguiImpl.fontTexUpdate.index = imguiImpl.textureCount;
+                    imguiImpl.fontTexUpdate.width = tex->Width;
+                    imguiImpl.fontTexUpdate.height = tex->Height;
+                    imguiImpl.fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
+                    memcpy( imguiImpl.fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );
 
                     ++imguiImpl.textureCount;
                 }
@@ -164,11 +163,11 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                     tex->SetStatus( ImTextureStatus_OK );
                     tex->SetTexID( imguiImpl.textureCount + 1 );
 
-                    fontTexUpdate.index = imguiImpl.textureCount;
-                    fontTexUpdate.width = tex->Width;
-                    fontTexUpdate.height = tex->Height;
-                    fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
-                    memcpy( fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );                    
+                    imguiImpl.fontTexUpdate.index = imguiImpl.textureCount;
+                    imguiImpl.fontTexUpdate.width = tex->Width;
+                    imguiImpl.fontTexUpdate.height = tex->Height;
+                    imguiImpl.fontTexUpdate.pixels = (unsigned char*)malloc( tex->GetSizeInBytes() );
+                    memcpy( imguiImpl.fontTexUpdate.pixels, tex->GetPixels(), tex->GetSizeInBytes() );                    
                 }
             }
         }
@@ -187,11 +186,11 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
         for (int n = 0; n < drawData->CmdListsCount; ++n)
         {
-            const ImDrawList* cmd_list = drawData->CmdLists[ n ];
-            memcpy( vtxDst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
-            memcpy( idxDst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof( ImDrawIdx ) );
-            vtxDst += cmd_list->VtxBuffer.Size;
-            idxDst += cmd_list->IdxBuffer.Size;
+            const ImDrawList* cmdList = drawData->CmdLists[ n ];
+            memcpy( vtxDst, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof( ImDrawVert ) );
+            memcpy( idxDst, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof( ImDrawIdx ) );
+            vtxDst += cmdList->VtxBuffer.Size;
+            idxDst += cmdList->IdxBuffer.Size;
         }
 
         teUnmapUiMemory();
@@ -200,18 +199,16 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clipOff = drawData->DisplayPos;         // (0,0) unless using multi-viewports
     ImVec2 clipScale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
-//clip_scale.x = 1;
-//clip_scale.y = 1;
     int globalVtxOffset = 0;
     int globalIdxOffset = 0;
 
     for (int n = 0; n < drawData->CmdListsCount; ++n)
     {
-        const ImDrawList* cmd_list = drawData->CmdLists[ n ];
+        const ImDrawList* cmdList = drawData->CmdLists[ n ];
 
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i)
+        for (int c = 0; c < cmdList->CmdBuffer.Size; ++c)
         {
-            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[ cmd_i ];
+            const ImDrawCmd* pcmd = &cmdList->CmdBuffer[ c ];
 
             if (pcmd->UserCallback != nullptr)
             {
@@ -222,7 +219,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 }
                 else
                 {
-                    pcmd->UserCallback( cmd_list, pcmd );
+                    pcmd->UserCallback( cmdList, pcmd );
                 }
             }
             else
@@ -243,8 +240,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
             }
         }
 
-        globalIdxOffset += cmd_list->IdxBuffer.Size;
-        globalVtxOffset += cmd_list->VtxBuffer.Size;
+        globalIdxOffset += cmdList->IdxBuffer.Size;
+        globalVtxOffset += cmdList->VtxBuffer.Size;
     }
 }
 
@@ -454,8 +451,8 @@ void DeleteSelectedObject()
 
 void ReadMaterials()
 {
-    unsigned handle = teReadDirectory( "assets\\materials\\*" );
-    //unsigned handle = teReadDirectory( "assets/materials" );
+    //unsigned handle = teReadDirectory( "assets\\materials\\*" );
+    unsigned handle = teReadDirectory( "assets/materials" );
     char* path = nullptr;
 
     while (teGetNextFile( handle, &path ))
@@ -476,6 +473,8 @@ void ReadMaterials()
         
         if (matFile.data && isMaterial)
         {
+            assert( sceneView.materialCount < MaxMaterials );
+
             sceneView.materials[ sceneView.materialCount ] = teCreateMaterial( sceneView.standardShader );
             teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.gliderTex, 0 );
 
@@ -505,7 +504,7 @@ void ReadMaterials()
                             ++nameCursor;
                         }
                         printf( "material name: %s\n", name );
-                        strcpy( sceneView.materials[ sceneView.materialCount ].name, name );
+                        strncpy( sceneView.materials[ sceneView.materialCount ].name, name, sizeof( sceneView.materials[ sceneView.materialCount ].name ) );
                         sceneView.materials[ sceneView.materialCount ].name[ nameCursor ] = 0;
                     }
                     else if (strstr( line, "albedo" ) == line)
@@ -566,13 +565,14 @@ void ReadMaterials()
 
                 ++cursor;
             }
+            ++sceneView.materialCount;
         }
         else
         {
-            strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
+            //strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
         }
 
-        ++sceneView.materialCount;
+        //++sceneView.materialCount;
     }
 
     teCloseDirectory( handle );
@@ -1050,12 +1050,14 @@ void RenderSceneView( float gridStep )
     RenderImGUIDrawData( sceneView.uiShader, sceneView.fontTex );
     teEndSwapchainRendering();
 
-    if (fontTexUpdate.index != -1)
+    if (imguiImpl.fontTexUpdate.index != -1)
     {
         teFile nullFile2;
         memcpy( nullFile2.path, "tempFontTex", strlen( "tempFontTex" ) );
-        sceneView.fontTex = teLoadTexture( nullFile2, 0, fontTexUpdate.pixels, fontTexUpdate.width, fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
-        fontTexUpdate.index = -1;
+        sceneView.fontTex = teLoadTexture( nullFile2, 0, imguiImpl.fontTexUpdate.pixels, imguiImpl.fontTexUpdate.width, imguiImpl.fontTexUpdate.height, teTextureFormat::RGBA_sRGB );
+        free( imguiImpl.fontTexUpdate.pixels );
+        imguiImpl.fontTexUpdate.pixels = nullptr;
+        imguiImpl.fontTexUpdate.index = -1;
     }
 
     teEndFrame();
