@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 unsigned GetTranslateGizmoGoIndex();
+teMaterial& GetMaterial( const char* name );
 
 void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTextureCount, 
                           unsigned& outMaterialCount, unsigned& outMeshCount )
@@ -131,6 +132,18 @@ void LoadUsdScene( teScene& scene, const char* path )
                 *mesh = teLoadMesh( meshFile );
                 teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
             }
+        }
+        else if (strstr( line, "string material" ))
+        {
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char name[ 256 ] = {};
+            sscanf( line, "%s %s %s \"%s", a, b, c, name );
+            size_t len = strlen( name );
+            name[ len - 1 ] = 0;
+            // FIXME: this only reads material for the first submesh.
+            teMeshRendererSetMaterial( sceneGos[ goIndex - 1 ].index, GetMaterial( name ), 0 );
         }
         else if (strstr( line, "xformOp:translate" ))
         {

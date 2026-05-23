@@ -4,9 +4,7 @@ Bugs:
     * object wasd-movement should depend on camera direction.
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
-    * Lights are not visible (tested on Vulkan)
-    * material list should only show .mat files, for example now it also shows .DS_Store
-    * macOS: material reading crashes
+    * macOS: editing point light color moves the gizmo
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: MBP 2013 black screen.
@@ -27,3 +25,8 @@ TODO:
 * wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
+
+Code Quality issues:
+* obj converter hardcodes array sizes.
+* magic numbers everywhere, for example in out-of-bounds checks.
+* big list of function prototypes at the beginning of each file.

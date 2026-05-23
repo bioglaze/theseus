@@ -12,6 +12,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Mesh Shaders on Vulkan on supported hardware.
   - Forward+ light culling.
   - Fast compile times
+  - Bloom
   - Loads .tga and .dds textures
   - Scene Editor implemented using Dear ImGui
   - OBJ mesh converter
@@ -21,7 +22,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 
   - Windows, only AMD64 tested, but ARM64 might also work.
   - macOS (Apple silicon)
-  - Linux support (requires Wayland)
+  - Linux support (defaults to Wayland but XCB also available)
 
 # Building
 

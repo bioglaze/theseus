@@ -109,6 +109,20 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom imguiImpl;
 
+teMaterial& GetMaterial( const char* name )
+{
+    for (unsigned i = 0; i < sceneView.materialCount; ++i)
+    {
+        if (strstr( sceneView.materials[ i ].name, name ))
+        {
+            return sceneView.materials[ i ];
+        }
+    }
+
+    printf( "Could not find material %s\n", name );
+    return sceneView.materials[ 0 ];
+}
+
 bool SceneViewNothingSelected()
 {
     return selectedGoIndex == EditorCameraGoIndex;
