@@ -39,7 +39,7 @@ void tePrint( const char* format, ... )
     float f = 0;
     unsigned int u = 0;
 
-    char* output = (char*)calloc( 260, 1 );
+    char output[ 260 ] = {};
     char* outPtr = output;
 
     for (ptr = format; *ptr != '\0'; ++ptr)
@@ -51,7 +51,7 @@ void tePrint( const char* format, ... )
 
             if (*ptr == '\0')
                 break;
-}
+        }
 
         if (*ptr == '\0')
             break;
@@ -79,6 +79,8 @@ void tePrint( const char* format, ... )
             break;
         case 's':
             s = va_arg( arg, char* );
+            teMemcpy( outPtr, s, teStrlen( s ) );
+            outPtr += teStrlen( s );
             break;
         case 'f':
             f = (float)va_arg( arg, double );
