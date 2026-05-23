@@ -1,8 +1,8 @@
 // Theseus engine OBJ converter.
 // Author: Timo Wiren
-// Modified: 2026-02-09
+// Modified: 2026-05-23
 // Limitations:
-//   - Only triangulated meshes currently work.
+//   - Only triangulated and quad meshes currently work.
 //   - Face indices are 16-bit.
 #include <assert.h>
 #include <math.h>
@@ -52,8 +52,8 @@ struct UV
 struct Face
 {
     unsigned posInd[ 3 ] = {};
-	unsigned uvInd[ 3 ] = {};
-	unsigned normInd[ 3 ] = {};
+    unsigned uvInd[ 3 ] = {};
+    unsigned normInd[ 3 ] = {};
 };
 
 struct VertexInd
@@ -82,8 +82,8 @@ struct Mesh
     Vec4*            tangents = nullptr; // Size of array is faceCount
     Vec3*            bitangents = nullptr; // Size of array is faceCount
 
-    Vec3             aabbMin{ 99999, 99999, 99999 };
-    Vec3             aabbMax{ -99999, -99999, -99999 };
+    Vec3             aabbMin{ 100000, 100000, 100000 };
+    Vec3             aabbMax{ -100000, -100000, -100000 };
 
     unsigned         nameIndex = 0;
 };
@@ -98,14 +98,14 @@ unsigned totalPositionCount = 0;
 unsigned totalUVCount = 0;
 unsigned totalNormalCount = 0;
 
-void WriteT3d( const char* path )
+int WriteT3d( const char* path )
 {
     FILE* file = fopen( path, "wb" );
 
     if (file == nullptr)
     {
         printf( "Could not open file for writing: %s\n", path );
-        return;
+        return 1;
     }
 
     const char header[] = { "t3d0004" };
@@ -145,6 +145,8 @@ void WriteT3d( const char* path )
     fwrite( gStrings, 1, gNextFreeString, file );
 
     fclose( file );
+
+    return 0;
 }
 
 bool AlmostEquals( const Vec3& v1, const Vec3& v2 )
@@ -449,13 +451,33 @@ void SolveVertexTangents( Mesh& mesh )
         const Vec3 cp = Vec3::Cross( normal, Vec3( tangent.x, tangent.y, tangent.z ) );
         tangent.w = Vec3::Dot( cp, vbitangents[ v ] ) >= 0 ? 1.0f : -1.0f;
     }
+
+    delete[] vbitangents;
 }
 
 void InitMeshArrays( FILE* file )
 {
     char line[ 255 ];
 
-    meshes = new Mesh[ 10000 ];
+    unsigned meshAllocCount = 1;
+    
+    // read mesh count
+    {
+        while (fgets( line, 255, file ) != nullptr)
+        {
+            char input[ 255 ];
+            sscanf( line, "%254s", input );
+            
+            if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
+            {
+                ++meshAllocCount;
+            }
+        }
+
+        fseek( file, 0, SEEK_SET );
+    }
+
+    meshes = new Mesh[ meshAllocCount ];
     
     unsigned faceCount = 0;
     
@@ -488,7 +510,7 @@ void InitMeshArrays( FILE* file )
             char smoothName[ 128 ];
             sscanf( line, "%127s %127s", str1, smoothName );
             
-            if (strstr( smoothName, "off" ) == nullptr)
+            if (strstr( smoothName, "off" ) == nullptr && strstr( smoothName, "0" ) == nullptr)
             {
                 printf( "Warning: The file contains smoothing groups. They are not supported by the converter.\n" );
             }
@@ -506,6 +528,8 @@ void InitMeshArrays( FILE* file )
 
             if (meshCount > 0)
             {
+                assert( meshCount < meshAllocCount );
+
                 meshes[ meshCount ].nameIndex = InsertString( name );
                 // FIXME: are these two lines needed? they are set below.
                 meshes[ meshCount - 1 ].faceCount = faceCount;
@@ -521,6 +545,7 @@ void InitMeshArrays( FILE* file )
         }
     }
 
+    // FIXME: if the mesh doesn't contain lines with 'o' or 'g' geometry definitions, this causes an array-out-of-bounds error.
     meshes[ meshCount - 1 ].faceCount = faceCount;
     meshes[ meshCount - 1 ].faces = new Face[ faceCount ];
 
@@ -589,7 +614,7 @@ int main( int argc, char* argv[] )
     
     while (fgets( line, 255, file ) != nullptr)
     {
-		char input[ 255 ] = {};
+        char input[ 255 ] = {};
         sscanf( line, "%254s", input );
 
         if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
@@ -649,7 +674,7 @@ int main( int argc, char* argv[] )
     
     fclose( file );
     
-	char outPath[ 260 ] = {};
+    char outPath[ 260 ] = {};
     strncpy( outPath, argv[ 1 ], 259 );
     char* extension = strstr( outPath, ".obj" );
     assert( extension );
@@ -665,7 +690,6 @@ int main( int argc, char* argv[] )
         BuildMeshlets( meshes[ m ] );
     }
     
-    WriteT3d( outPath );
-    return 0;
+    return WriteT3d( outPath );
 }
 
