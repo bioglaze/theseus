@@ -478,6 +478,7 @@ void InitMeshArrays( FILE* file )
     }
 
     meshes = new Mesh[ meshAllocCount ];
+    meshes[ 0 ].nameIndex = InsertString( "unnamed" );
     
     unsigned faceCount = 0;
     
@@ -545,7 +546,10 @@ void InitMeshArrays( FILE* file )
         }
     }
 
-    // FIXME: if the mesh doesn't contain lines with 'o' or 'g' geometry definitions, this causes an array-out-of-bounds error.
+    if (meshCount == 0)
+    {
+        meshCount = 1;
+    }
     meshes[ meshCount - 1 ].faceCount = faceCount;
     meshes[ meshCount - 1 ].faces = new Face[ faceCount ];
 
@@ -624,6 +628,11 @@ int main( int argc, char* argv[] )
         }
         else if (strchr( input, 'f' ))
         {
+            if (meshCount == 0)
+            {
+                meshCount = 1;
+            }
+
             Face& face = meshes[ meshCount - 1 ].faces[ faceIndex ];
             Face& face2 = meshes[ meshCount - 1 ].faces[ faceIndex + 1 ];
             const int err = sscanf( line, "%254s %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
