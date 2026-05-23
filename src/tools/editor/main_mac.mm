@@ -150,7 +150,7 @@ void GetSavePath( char* path, const char* extension )
     io.KeyShift = isShiftDown;
     io.KeySuper = isCmdDown;
 
-    //printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
+    printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
 
     if ([theEvent keyCode] == 0x00) // A
     {
@@ -304,6 +304,8 @@ void GetSavePath( char* path, const char* extension )
         io.AddInputCharacter( 'n' );
     else if ([theEvent keyCode] == 46) // M
         io.AddInputCharacter( 'm' );
+    else if ([theEvent keyCode] == 47) // .
+        io.AddInputCharacter( '.' );
     else if ([theEvent keyCode] == 27) // +
     {
         if (!io.WantCaptureKeyboard)
