@@ -51,9 +51,9 @@ struct UV
 
 struct Face
 {
-    unsigned posInd[ 3 ] = {};
-    unsigned uvInd[ 3 ] = {};
-    unsigned normInd[ 3 ] = {};
+    int posInd[ 3 ] = {};
+    int uvInd[ 3 ] = {};
+    int normInd[ 3 ] = {};
 };
 
 struct VertexInd
@@ -177,6 +177,7 @@ void BuildMeshlets( Mesh& mesh )
 
     mesh.meshletCount = meshopt_buildMeshlets( mesh.meshlets, mesh.meshletVertices, mesh.meshletTriangles, &mesh.finalFaces[ 0 ].a,
         mesh.finalFaceCount * 3, &mesh.finalPositions[ 0 ].x, mesh.finalVertexCount, sizeof( Vec3 ), maxVertices, maxTriangles, coneWeight );
+    assert( mesh.meshletCount > 0 );
 
     // Trims the unused space from meshlets.
     const meshopt_Meshlet& last = mesh.meshlets[ mesh.meshletCount - 1 ];
@@ -479,7 +480,7 @@ void InitMeshArrays( FILE* file )
 
     meshes = new Mesh[ meshAllocCount ];
     meshes[ 0 ].nameIndex = InsertString( "unnamed" );
-    
+
     unsigned faceCount = 0;
     
     while (fgets( line, 255, file ) != nullptr)
@@ -502,6 +503,7 @@ void InitMeshArrays( FILE* file )
             const int res = sscanf( line, "%254s %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
                 &face.posInd[ 1 ], &face.uvInd[ 1 ], &face.normInd[ 1 ], &face.posInd[ 2 ], &face.uvInd[ 2 ], &face.normInd[ 2 ],
                 &face2.posInd[ 0 ], &face2.uvInd[ 0 ], &face2.normInd[ 0 ] );
+
             const bool isQuad = res == 13;
             faceCount += isQuad ? 2 : 1;
         }
@@ -616,6 +618,10 @@ int main( int argc, char* argv[] )
     unsigned faceIndex = 0;
     meshCount = 0;
     
+    int posCount = 0;
+    int normCount = 0;
+    int uvCount = 0;
+
     while (fgets( line, 255, file ) != nullptr)
     {
         char input[ 255 ] = {};
@@ -626,6 +632,19 @@ int main( int argc, char* argv[] )
             ++meshCount;
             faceIndex = 0;
         }
+        if (strstr( input, "vn" ))
+        {
+            ++normCount;
+        }
+        else if (strstr( input, "vt" ))
+        {
+            ++uvCount;
+        }
+        else if (strchr( input, 'v' ))
+        {
+            ++posCount;
+        }
+
         else if (strchr( input, 'f' ))
         {
             if (meshCount == 0)
@@ -635,9 +654,22 @@ int main( int argc, char* argv[] )
 
             Face& face = meshes[ meshCount - 1 ].faces[ faceIndex ];
             Face& face2 = meshes[ meshCount - 1 ].faces[ faceIndex + 1 ];
-            const int err = sscanf( line, "%254s %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
+            const int err = sscanf( line, "%254s %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
                                     &face.posInd[ 1 ], &face.uvInd[ 1 ], &face.normInd[ 1 ], &face.posInd[ 2 ], &face.uvInd[ 2 ], &face.normInd[ 2 ],
                                     &face2.posInd[ 1 ], &face2.uvInd[ 1 ], &face2.normInd[ 1 ] );
+            
+            if (face.posInd[ 0 ] < 0) face.posInd[ 0 ] = face.posInd[ 0 ] + posCount;
+            if (face.posInd[ 1 ] < 0) face.posInd[ 1 ] = face.posInd[ 1 ] + posCount;
+            if (face.posInd[ 2 ] < 0) face.posInd[ 2 ] = face.posInd[ 2 ] + posCount;
+            if (face.uvInd[ 0 ] < 0) face.uvInd[ 0 ] = face.uvInd[ 0 ] + uvCount;
+            if (face.uvInd[ 1 ] < 0) face.uvInd[ 1 ] = face.uvInd[ 1 ] + uvCount;
+            if (face.uvInd[ 2 ] < 0) face.uvInd[ 2 ] = face.uvInd[ 2 ] + uvCount;
+            if (face.normInd[ 0 ] < 0) face.normInd[ 0 ] = face.normInd[ 0 ] + normCount;
+            if (face.normInd[ 1 ] < 0) face.normInd[ 1 ] = face.normInd[ 1 ] + normCount;
+            if (face.normInd[ 2 ] < 0) face.normInd[ 2 ] = face.normInd[ 2 ] + normCount;
+            printf("posInd: %d %d %d\n", face.posInd[0], face.posInd[1], face.posInd[2]);
+            // TODO: face2
+
             bool isQuad = err == 13;
             
             if (isQuad)
