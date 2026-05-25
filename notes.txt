@@ -5,6 +5,7 @@ Bugs:
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * macOS: editing point light color moves the gizmo
+    * Wayland: duplicate doesn't work, moves the camera instead.
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: MBP 2013 black screen.

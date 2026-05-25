@@ -120,12 +120,12 @@ void LoadUsdScene( teScene& scene, const char* path )
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
-            char path[ 256 ] = {};
-            sscanf( line, "%s %s %s \"%s", a, b, c, path );
-            size_t len = strlen( path );
-            path[ len - 1 ] = 0;
+            char meshPath[ 256 ] = {};
+            sscanf( line, "%s %s %s \"%s", a, b, c, meshPath );
+            size_t len = strlen( meshPath );
+            meshPath[ len - 1 ] = 0;
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::MeshRenderer );
-            teFile meshFile = teLoadFile( path );
+            teFile meshFile = teLoadFile( meshPath );
             if (meshFile.data)
             {
                 teMesh* mesh = (teMesh*)malloc( sizeof( teMesh ) );

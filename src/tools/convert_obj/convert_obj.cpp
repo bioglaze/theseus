@@ -15,7 +15,7 @@
 char gStrings[ 20000 ];
 unsigned gNextFreeString = 0;
 
-unsigned InsertString( char* str )
+unsigned InsertString( const char* str )
 {
     size_t len = strlen( str );
     assert( gNextFreeString + len < 20000 );
@@ -212,7 +212,7 @@ void BuildMeshlets( Mesh& mesh )
     }
 }
 
-void CreateFinalGeometry( Mesh& mesh )
+int CreateFinalGeometry( Mesh& mesh )
 {
     VertexInd newFace = {};
 
@@ -223,7 +223,13 @@ void CreateFinalGeometry( Mesh& mesh )
     mesh.finalTangents = new Vec4[ 153636 ];
     mesh.finalFaces = new VertexInd[ 128343 ];
     mesh.finalFaceCount = 0;
-    
+
+    if (mesh.faceCount == 0)
+    {
+        printf( "Mesh doesn't contain any faces! Could be a parser error.\n" );
+        return 1;
+    }
+
     for (unsigned f = 0; f < mesh.faceCount; ++f)
     {
         Vec3 pos = allPositions[ mesh.faces[ f ].posInd[ 0 ] ];
@@ -353,6 +359,8 @@ void CreateFinalGeometry( Mesh& mesh )
             mesh.aabbMax.z = mesh.finalPositions[ i ].z;
         }
     }
+
+    return 0;
 }
 
 void SolveFaceTangents( Mesh& mesh )
@@ -523,6 +531,7 @@ void InitMeshArrays( FILE* file )
             ++totalPositionCount;
         }
         
+        // FIXME: if a file contains both 'o' and 'g' for a single mesh this doesn't work. For example bmw.obj does.
         if (strcmp( input, "o" ) == 0 || strcmp( input, "g" ) == 0)
         {
             char name[ 128 ] = {};
@@ -658,7 +667,7 @@ int main( int argc, char* argv[] )
                                     &face.posInd[ 1 ], &face.uvInd[ 1 ], &face.normInd[ 1 ], &face.posInd[ 2 ], &face.uvInd[ 2 ], &face.normInd[ 2 ],
                                     &face2.posInd[ 1 ], &face2.uvInd[ 1 ], &face2.normInd[ 1 ] );
             
-            if (face.posInd[ 0 ] < 0) face.posInd[ 0 ] = face.posInd[ 0 ] + posCount;
+            /*if (face.posInd[ 0 ] < 0) face.posInd[ 0 ] = face.posInd[ 0 ] + posCount;
             if (face.posInd[ 1 ] < 0) face.posInd[ 1 ] = face.posInd[ 1 ] + posCount;
             if (face.posInd[ 2 ] < 0) face.posInd[ 2 ] = face.posInd[ 2 ] + posCount;
             if (face.uvInd[ 0 ] < 0) face.uvInd[ 0 ] = face.uvInd[ 0 ] + uvCount;
@@ -667,7 +676,7 @@ int main( int argc, char* argv[] )
             if (face.normInd[ 0 ] < 0) face.normInd[ 0 ] = face.normInd[ 0 ] + normCount;
             if (face.normInd[ 1 ] < 0) face.normInd[ 1 ] = face.normInd[ 1 ] + normCount;
             if (face.normInd[ 2 ] < 0) face.normInd[ 2 ] = face.normInd[ 2 ] + normCount;
-            printf("posInd: %d %d %d\n", face.posInd[0], face.posInd[1], face.posInd[2]);
+            printf("posInd: %d %d %d\n", face.posInd[0], face.posInd[1], face.posInd[2]);*/
             // TODO: face2
 
             bool isQuad = err == 13;
@@ -725,7 +734,11 @@ int main( int argc, char* argv[] )
 
     for (unsigned m = 0; m < meshCount; ++m)
     {
-        CreateFinalGeometry( meshes[ m ] );
+        int res = CreateFinalGeometry( meshes[ m ] );
+        if (res != 0)
+        {
+            return res;
+        }
         SolveFaceTangents( meshes[ m ] );
         SolveVertexTangents( meshes[ m ] );
         BuildMeshlets( meshes[ m ] );

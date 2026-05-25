@@ -21,7 +21,6 @@
 
 extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
-extern id<MTLCommandBuffer> gCommandBuffer;
 
 unsigned width = 800, height = 450;
 

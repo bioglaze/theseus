@@ -124,8 +124,9 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap ) );
     //shadow = 1;
 
-    float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
-    float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
+    //float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
+    float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f) );
+    //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
     
     const float3 N = normalize( normalVS );
@@ -164,14 +165,16 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         const float radius = center.w;
         const float3 vecToLightWS = center.xyz - in.positionWS.xyz;
         const float lightDistance = length( vecToLightWS );
-        
+        const float3 lightDirVS = normalize( vecToLightWS );
+
         if (lightDistance < radius)
         {
             const float3 vecToLightVS = (uniforms.localToView * float4( vecToLightWS, 0 )).xyz;
             const float3 L = normalize( -vecToLightVS );
             const float3 H = normalize( L + V );
             
-            const float dotNL = saturate( dot( N, -L ) );
+            //const float dotNL = saturate( dot( N, -L ) );
+            const float dotNL = saturate( dot( N, lightDirVS ) );
             const float dotLH = saturate( dot( L, H ) );
             const float dotNH = saturate( dot( N, H ) );
             
@@ -185,10 +188,10 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float3 Fr = (D * v) * F;
             const float3 Fd = Fd_Lambert();
 
-            const float attenuation = pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
-            const float3 color = Fd + Fr;
+            const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
+            const float3 color = float3( 1, 1, 1 );//Fd + Fr;
             accumDiffuseAndSpecular.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
-            return pointLightBufferColors[ lightIndex ];
+            //return pointLightBufferColors[ lightIndex ];
         }
     }
 

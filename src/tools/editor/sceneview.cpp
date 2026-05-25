@@ -334,7 +334,7 @@ void SceneMoveSelection( Vec3 amount )
     if (selectedGoIndex != EditorCameraGoIndex)
     {
         const Vec3 viewDir = teTransformGetViewDirection( sceneView.camera3d.index );
-        const float sign = viewDir.z > 0 ? 1 : -1;
+        const float sign = viewDir.z > 0.0f ? 1.0f : -1.0f;
 
         teTransformMoveRight( selectedGoIndex, amount.x * sign );
         teTransformMoveUp( selectedGoIndex, amount.y );
@@ -405,7 +405,7 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     }
 
     const Vec3 viewDir = teTransformGetViewDirection( sceneView.camera3d.index );
-    const float sign = viewDir.z > 0 ? 1 : -1;
+    const float sign = viewDir.z > 0.0f ? 1.0f : -1.0f;
 
     float distanceToGizmo = (teTransformGetLocalPosition( sceneView.translateGizmoGo.index ) - teTransformGetLocalPosition( sceneView.camera3d.index ) ).Length();
 
@@ -426,7 +426,7 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     }
     else if (gizmoAxisSelected == 1)
     {
-        const float signX = viewDir.x > 0 ? 1 : -1;
+        const float signX = viewDir.x > 0.0f ? 1.0f : -1.0f;
         teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
         teTransformMoveForward( selectedGoIndex, dx * 0.5f * signX * acc, false, false, false );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );

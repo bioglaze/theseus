@@ -21,6 +21,11 @@ Vec3 Vec3::Normalized() const
     return res;
 }
 
+float Vec3::Length() const
+{
+        return sqrtf( x * x + y * y + z * z );
+}
+
 void Vec4::Normalize()
 {
     const float invLen = 1.0f / sqrtf( x * x + y * y + z * z );
