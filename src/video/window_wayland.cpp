@@ -57,6 +57,7 @@ struct WindowImpl
 
     GamePad               gamePad;
     bool                  pointerOutsideWindow = false;
+    bool                  ctrlPressed = false;
 };
 
 WindowImpl win;
@@ -526,11 +527,14 @@ void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint k
     IncEventIndex();
     win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
     win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
+    win.events[ win.eventIndex ].keyModifiers = win.ctrlPressed ? (unsigned)teWindowEvent::KeyModifier::Control : (unsigned)teWindowEvent::KeyModifier::Empty;
 }
 
 void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group )
 {
-    printf("keyModifiers\n");
+    //printf("latched: %u, depressed: %u, locked: %u\n", modsLatched, modsDepressed, modsLocked );
+
+    win.ctrlPressed = modsDepressed == 4;    
 }
 
 void keyRepeat( void* data, wl_keyboard* wlKeyboard, int rate, int delay )
@@ -674,7 +678,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
         {
             fprintf( stderr, "%s version 3 required but only version %u is available\n", interface, version );
             exit( EXIT_FAILURE );
-		}
+        }
 
         Output* output = (Output*)malloc( sizeof( Output ) );
         output->id = id;
@@ -688,7 +692,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
     {
         xdgWmBase = (xdg_wm_base*)wl_registry_bind( wl_registry, id, &xdg_wm_base_interface, 1 );
         xdg_wm_base_add_listener( xdgWmBase, &xdg_wm_base_listener, nullptr );
-	}
+    }
     
     printf( "registry handle interface: %s\n", interface );
 }
@@ -747,7 +751,7 @@ void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
     Output* outpu = (Output*)wl_output_get_user_data( wlOutput );
 
     if (outpu == nullptr)
-		return;
+        return;
 
     WindowOutput* windowOutput = (WindowOutput*)malloc( sizeof( WindowOutput ) ); // FIXME: Does this need to be dynamically allocated?
     windowOutput->output = outpu;
@@ -797,8 +801,8 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
     printf( "handle_configure 2: width: %d, height %d\n", width, height );
 
     libdecor_state* decState = libdecor_state_new( width, height );
-	libdecor_frame_commit( frame, decState, configuration );
-	libdecor_state_free( decState );
+    libdecor_frame_commit( frame, decState, configuration );
+    libdecor_state_free( decState );
 
     window.isConfigured = true;
 }
