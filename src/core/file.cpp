@@ -127,7 +127,13 @@ unsigned teReadDirectory( const char* root )
     if (dirHandleCount == 99)
         dirHandleCount = 0;
 
-    dirHandles[ dirHandleCount ].handle = FindFirstFile( root, &dirHandles[ dirHandleCount ].ffd );
+    char path[ 260 ] = {};
+    unsigned len = teStrlen( root );
+    teMemcpy( path, root, len );
+    path[ len ] = '/';
+    path[ len + 1 ] = '*';
+
+    dirHandles[ dirHandleCount ].handle = FindFirstFile( path, &dirHandles[ dirHandleCount ].ffd );
     return dirHandleCount++;
 }
 

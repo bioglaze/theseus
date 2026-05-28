@@ -470,7 +470,6 @@ void DeleteSelectedObject()
 
 void ReadMaterials()
 {
-    //unsigned handle = teReadDirectory( "assets\\materials\\*" );
     unsigned handle = teReadDirectory( "assets/materials" );
     char* path = nullptr;
 
