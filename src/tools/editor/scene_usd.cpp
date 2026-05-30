@@ -140,10 +140,12 @@ void LoadUsdScene( teScene& scene, const char* path )
             char c[ 256 ] = {};
             char name[ 256 ] = {};
             sscanf( line, "%s %s %s \"%s", a, b, c, name );
+            const char* matEnd = strstr( line, "material" ) + strlen( "material" );
+            int matIndex = 0;
+            sscanf( matEnd, "%d", &matIndex );
             size_t len = strlen( name );
             name[ len - 1 ] = 0;
-            // FIXME: this only reads material for the first submesh.
-            teMeshRendererSetMaterial( sceneGos[ goIndex - 1 ].index, GetMaterial( name ), 0 );
+            teMeshRendererSetMaterial( sceneGos[ goIndex - 1 ].index, GetMaterial( name ), matIndex );
         }
         else if (strstr( line, "xformOp:translate" ))
         {
@@ -203,7 +205,7 @@ void SaveUsdScene( const teScene& scene, const char* path )
 
             for (unsigned m = 0; m < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++m)
             {
-                fprintf( outFile, "    string material%u = \"%s\"\n", m, teMeshRendererGetMaterial( sceneGo, m ).name ); // FIXME: maybe path instead of name?
+                fprintf( outFile, "    string material%u = \"%s\"\n", m, teMeshRendererGetMaterial( sceneGo, m ).name );
             }
         }
 
