@@ -346,7 +346,7 @@ int main()
     teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
     teTexture2D brickTex = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.dds" );
+    teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.tga" );
     teTexture2D brickNormalTex = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teFile floorFile = teLoadFile( "assets/textures/plaster_d.dds" );
@@ -366,7 +366,7 @@ int main()
     teFile gridFile = teLoadFile( "assets/textures/metal_grid.dds" );
     teTexture2D gridTex = teLoadTexture( gridFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teFile gridNormalFile = teLoadFile( "assets/textures/metal_grid_n.dds" );
+    teFile gridNormalFile = teLoadFile( "assets/textures/metal_grid_n.tga" );
     teTexture2D gridNormalTex = teLoadTexture( gridNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teMaterial gridMaterial = teCreateMaterial( standardShader );

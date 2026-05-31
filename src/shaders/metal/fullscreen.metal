@@ -21,7 +21,7 @@ vertex ColorInOut fullscreenVS( uint vid [[ vertex_id ]],
     //out.position = float4( out.texCoords * 2.0f + -1.0f, 0.0f, 1.0f );
     vsOut.position = float4( positions[ vid ], 1 );
     vsOut.position.xy *= uniforms.tilesXY.xy;
-    vsOut.position.xy += uniforms.tilesXY.wz;
+    vsOut.position.xy += uniforms.tilesXY.zw;
     vsOut.texCoords = uvs[ vid ];
 
     return vsOut;

@@ -5,17 +5,16 @@ Bugs:
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * macOS: editing point light color moves the gizmo
-    * Wayland: duplicate doesn't work, moves the camera instead.
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: MBP 2013 black screen.
   * scene loading could malloc 0 bytes if object count is 0.
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
   * standard shader samplers are hardcoded.
-  * filesystem: path separators should be converted to the runtime OS.
   
 TODO:
 * Editor
+  * draw sprites
   * show scene name in title bar
   * ctrl-s and ctrl-o
   * scene.usda:an mesh file name
