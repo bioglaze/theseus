@@ -38,7 +38,6 @@ char openFilePath[ 280 ];
 unsigned selectedGoIndex = EditorCameraGoIndex;
 int selectedMaterialIndex = -1;
 int gizmoAxisSelected = -1;
-int gizmoAxisHovered = -1;
 float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
 float lightColor[ 3 ] = { 1, 1, 1 };
 

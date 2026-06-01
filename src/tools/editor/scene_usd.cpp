@@ -44,6 +44,24 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
         {
             printf("ReadArraySizes: found usda\n");
         }
+        else if (strstr( line, "string mesh" ))
+        {
+            ++outMeshCount;
+        }
+    }
+
+    // Prevent malloc'ing 0 bytes
+    if (outMeshCount == 0)
+    {
+        outMeshCount = 1;
+    }
+    if (outMaterialCount == 0)
+    {
+        outMaterialCount = 1;
+    }
+    if (outTextureCount == 0)
+    {
+        outTextureCount = 1;
     }
 }
 
@@ -72,7 +90,8 @@ void LoadUsdScene( teScene& scene, const char* path )
     char line[ 512 ];
 
     unsigned goIndex = 0;
-    
+    unsigned meshIndex = 0;
+
     while (fgets( line, sizeof( line ), file ))
     {
         //printf("read line: %s\n", line );
@@ -128,7 +147,8 @@ void LoadUsdScene( teScene& scene, const char* path )
             teFile meshFile = teLoadFile( meshPath );
             if (meshFile.data)
             {
-                teMesh* mesh = (teMesh*)malloc( sizeof( teMesh ) );
+                teMesh* mesh = &sceneMeshes[ meshIndex ];
+                ++meshIndex;
                 *mesh = teLoadMesh( meshFile );
                 teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
             }
