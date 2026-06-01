@@ -70,6 +70,7 @@ struct SceneView
     teTexture2D redTex;
     teTexture2D greenTex;
     teTexture2D blueTex;
+    teTexture2D lightTex;
 
     teMesh cubeMesh;
     teMesh translateGizmoMesh;
@@ -670,10 +671,12 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teFile redFile = teLoadFile( "assets/textures/red.tga" );
     teFile greenFile = teLoadFile( "assets/textures/green.tga" );
     teFile blueFile = teLoadFile( "assets/textures/blue.tga" );
+    teFile lightFile = teLoadFile( "assets/textures/light.tga" );
 
     sceneView.redTex = teLoadTexture( redFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     sceneView.greenTex = teLoadTexture( greenFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     sceneView.blueTex = teLoadTexture( blueFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    sceneView.lightTex = teLoadTexture( lightFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     sceneView.redMaterial = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.redMaterial, sceneView.redTex, 0 );
@@ -769,6 +772,26 @@ void RenderSceneView( float gridStep )
     shaderParams.tilesXY[ 2 ] = -1.0f;
     shaderParams.tilesXY[ 3 ] = -1.0f;
     teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
+
+    for (unsigned i = 0; i < teSceneGetMaxGameObjects(); ++i)
+    {
+        unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
+
+        if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
+        {
+            const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), sceneView.width, sceneView.height );
+
+            //float x = sceneView.width / 2, y = 150;
+            float x = screenPoint.x;
+            float y = sceneView.height - screenPoint.y;
+            shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
+            shaderParams.tilesXY[ 1 ] = 0.2f;
+            shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
+            shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
+            teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Off );
+        }
+    }
+
     shaderParams.tilesXY[ 0 ] = 4.0f;
     shaderParams.tilesXY[ 1 ] = 4.0f;
     shaderParams.tint[ 0 ] = 1.0f;

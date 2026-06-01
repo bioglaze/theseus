@@ -1,8 +1,10 @@
 #include "camera.h"
 #include "frustum.h"
 #include "matrix.h"
+#include "quaternion.h"
 #include "te_stdlib.h"
 #include "texture.h"
+#include "transform.h"
 #include "vec3.h"
 
 struct CameraImpl
@@ -71,6 +73,24 @@ teTexture2D& teCameraGetDepthTexture( unsigned index )
 {
     teAssert( index < MaxCameras );
     return cameras[ index ].depth;
+}
+
+Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewWidth, float viewHeight )
+{
+    teAssert( index < MaxCameras );
+
+    Matrix worldToClip;
+
+    Matrix::Multiply( teTransformGetMatrix( index ), cameras[ index ].projection, worldToClip );
+    Vec4 pos{ worldPoint.x, worldPoint.y, worldPoint.z, 1.0f };
+    Matrix::TransformPoint( pos, worldToClip, pos );
+    pos.x /= pos.w;
+    pos.y /= pos.w;
+
+    const float halfWidth = viewWidth * 0.5f;
+    const float halfHeight = viewHeight * 0.5f;
+
+    return Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
 }
 
 void teCameraSetProjectionType( unsigned index, teProjectionType projectionType )

@@ -15,3 +15,8 @@ struct Matrix& teCameraGetProjection( unsigned index );
 struct teTexture2D& teCameraGetColorTexture( unsigned index );
 teTexture2D& teCameraGetDepthTexture( unsigned index );
 teTexture2D& teCameraGetDepthNormalsTexture( unsigned index );
+/// \param worldPoint Point in the world.
+/// \param viewWidth Camera's viewport width.
+/// \param viewHeight Camera's viewport height.
+/// \return Screen point for worldPoint.
+struct Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewWidth, float viewHeight );

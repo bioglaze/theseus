@@ -30,3 +30,4 @@ Code Quality issues:
 * obj converter hardcodes array sizes.
 * magic numbers everywhere, for example in out-of-bounds checks.
 * big list of function prototypes at the beginning of each file.
+* Draw() takes way too much arguments
