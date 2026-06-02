@@ -406,8 +406,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
-    uboStruct.tilesXY.w = shaderParams.tilesXY[ 2 ];
-    uboStruct.tilesXY.z = shaderParams.tilesXY[ 3 ];
+    uboStruct.tilesXY.z = shaderParams.tilesXY[ 2 ];
+    uboStruct.tilesXY.w = shaderParams.tilesXY[ 3 ];
     uboStruct.lightDir = lightDir;
     uboStruct.lightColor = lightColor;
     uboStruct.lightPosition = lightPosition;

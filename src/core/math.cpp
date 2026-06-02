@@ -145,6 +145,18 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     Matrix::TransformPoint( outRayTarget, invView, outRayTarget );
 }
 
+void Matrix::TransformPoint( const Vec4& vec, const Matrix& mat, Vec4& out )
+{
+    Vec4 res;
+
+    res.x = mat.m[ 0 ] * vec.x + mat.m[ 4 ] * vec.y + mat.m[ 8 ] * vec.z + mat.m[ 12 ] * vec.w;
+    res.y = mat.m[ 1 ] * vec.x + mat.m[ 5 ] * vec.y + mat.m[ 9 ] * vec.z + mat.m[ 13 ] * vec.w;
+    res.z = mat.m[ 2 ] * vec.x + mat.m[ 6 ] * vec.y + mat.m[ 10 ] * vec.z + mat.m[ 14 ] * vec.w;
+    res.w = mat.m[ 3 ] * vec.x + mat.m[ 7 ] * vec.y + mat.m[ 11 ] * vec.z + mat.m[ 15 ] * vec.w;
+
+    out = res;
+}
+
 #ifdef SIMD_SSE3
 #include <pmmintrin.h>
 
@@ -170,18 +182,6 @@ void Matrix::Multiply( const Matrix& ma, const Matrix& mb, Matrix& out )
     }
 
     out = result;
-}
-
-void Matrix::TransformPoint( const Vec4& vec, const Matrix& mat, Vec4& out )
-{
-    Vec4 res;
-
-    res.x = mat.m[ 0 ] * vec.x + mat.m[ 4 ] * vec.y + mat.m[ 8 ] * vec.z + mat.m[ 12 ] * vec.w;
-    res.y = mat.m[ 1 ] * vec.x + mat.m[ 5 ] * vec.y + mat.m[ 9 ] * vec.z + mat.m[ 13 ] * vec.w;
-    res.z = mat.m[ 2 ] * vec.x + mat.m[ 6 ] * vec.y + mat.m[ 10 ] * vec.z + mat.m[ 14 ] * vec.w;
-    res.w = mat.m[ 3 ] * vec.x + mat.m[ 7 ] * vec.y + mat.m[ 11 ] * vec.z + mat.m[ 15 ] * vec.w;
-
-    out = res;
 }
 
 void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
