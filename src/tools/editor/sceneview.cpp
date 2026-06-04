@@ -261,6 +261,28 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
 void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outClosestSceneGo, unsigned& outClosestSubMesh )
 {
+    // Try to select a light under pointer.
+    {
+        for (unsigned i = 0; i < teSceneGetMaxGameObjects(); ++i)
+        {
+            unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
+
+            if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
+            {
+                const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), sceneView.width, sceneView.height );
+                float x = screenPoint.x;
+                float y = sceneView.height - screenPoint.y;
+
+                if (screenX > x && screenX < x + 100 &&
+                    screenY > y && screenY < y + 100)
+                {
+                    outClosestSceneGo = goIndex;
+                    return;
+                }
+            }
+        }
+    }
+
     Vec3 rayOrigin, rayTarget;
     ScreenPointToRay( screenX, screenY, (float)sceneView.width, (float)sceneView.height, sceneView.camera3d.index, rayOrigin, rayTarget );
 
@@ -780,7 +802,6 @@ void RenderSceneView( float gridStep )
         {
             const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), sceneView.width, sceneView.height );
 
-            //float x = sceneView.width / 2, y = 150;
             float x = screenPoint.x;
             float y = sceneView.height - screenPoint.y;
             shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
