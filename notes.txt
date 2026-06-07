@@ -31,3 +31,5 @@ Code Quality issues:
 * magic numbers everywhere, for example in out-of-bounds checks.
 * big list of function prototypes at the beginning of each file.
 * Draw() takes way too much arguments
+* buffers could be combined, for example meshlet stuff and lights
+* staging buffers could maybe be combined, for example point light color and position buffer maybe don't need their own staging buffer.

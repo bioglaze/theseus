@@ -28,6 +28,9 @@ struct PushConstants
     uint64_t meshletIndexBuf;
     uint64_t meshletVertexBuf;
     uint64_t meshletBuf;
+    uint64_t spotLightCenterAndRadiusBuf;
+    uint64_t spotLightColorBuf;
+    uint64_t spotLightParamBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;

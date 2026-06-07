@@ -171,14 +171,14 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
     // Spot lights.
     uint pointLightsInThisTile = ldsLightIdxCounter;
 
-    /*for (uint j = 0; j < uniforms.spotLightCount; j += NUM_THREADS_PER_TILE)
+    for (uint j = 0; j < uniforms.spotLightCount; j += NUM_THREADS_PER_TILE)
     {
         uint jl = localIdxFlattened + j;
 
         if (jl < uniforms.spotLightCount)
         {
             // FIXME: replace pointLight with spotLight
-            float4 cen = vk::RawBufferLoad < float4 > (pushConstants.pointLightCenterAndRadiusBuf + 16 * jl);
+            float4 cen = vk::RawBufferLoad < float4 > (pushConstants.spotLightCenterAndRadiusBuf + 16 * jl);
             float4 center = cen;
 
             float radius = center.w;
@@ -204,7 +204,7 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
                 }
             }
         }
-    }*/
+    }
 
     GroupMemoryBarrierWithGroupSync();
 

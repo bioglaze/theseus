@@ -70,6 +70,9 @@ struct PushConstants
     uint64_t meshletIndexBuf;
     uint64_t meshletVertexBuf;
     uint64_t meshletBuf;
+    uint64_t spotLightCenterAndRadiusBuf;
+    uint64_t spotLightColorBuf;
+    uint64_t spotLightParamBuf;
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
@@ -2125,6 +2128,14 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
 
+    VkBufferDeviceAddressInfo spotLightCenterAndRadiusInfo = {};
+    spotLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetSpotLightCenterAndRadiusBuffer() );
+
+    VkBufferDeviceAddressInfo spotLightParamInfo = {};
+    spotLightParamInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightParamInfo.buffer = BufferGetBuffer( GetSpotLightParamBuffer() );
+
     VkBufferDeviceAddressInfo lightIndexInfo = {};
     lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
@@ -2141,6 +2152,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.specularMapIndex = (int)specularMapIndex;
+    pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
+    pushConstants.spotLightParamBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightParamInfo );
 
     if (renderer.meshShaderSupported)
     {
@@ -2252,6 +2265,18 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
 
+    VkBufferDeviceAddressInfo spotLightCenterAndRadiusInfo = {};
+    spotLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetSpotLightCenterAndRadiusBuffer() );
+
+    VkBufferDeviceAddressInfo spotLightColorInfo = {};
+    spotLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightColorInfo.buffer = BufferGetBuffer( GetSpotLightColorBuffer() );
+
+    VkBufferDeviceAddressInfo spotLightParamInfo = {};
+    spotLightParamInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightParamInfo.buffer = BufferGetBuffer( GetSpotLightParamBuffer() );
+
     VkBufferDeviceAddressInfo lightIndexInfo = {};
     lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
@@ -2269,7 +2294,10 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
     pushConstants.indexOffset = indexOffset / 2;
     pushConstants.vertexOffset = positionOffset;
-    
+    pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
+    pushConstants.spotLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightColorInfo );
+    pushConstants.spotLightParamBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightParamInfo );
+
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );
 

@@ -28,8 +28,18 @@ struct LightTiler
     teBuffer pointLightCenterAndRadiusStagingBuffer;
     teBuffer pointLightColorStagingBuffer;
 
+    teBuffer spotLightCenterAndRadiusBuffer;
+    teBuffer spotLightColorBuffer;
+    teBuffer spotLightCenterAndRadiusStagingBuffer;
+    teBuffer spotLightColorStagingBuffer;
+    teBuffer spotLightParamBuffer;
+    teBuffer spotLightParamStagingBuffer;
+
     Vec4 pointLightCenterAndRadius[ MaxLights ];
     Vec4 pointLightColors[ MaxLights ];
+    Vec4 spotLightCenterAndRadius[ MaxLights ];
+    Vec4 spotLightColors[ MaxLights ];
+    Vec4 spotLightParams[ MaxLights ];
 } gLightTiler;
 
 teBuffer GetPointLightCenterAndRadiusBuffer()
@@ -40,6 +50,21 @@ teBuffer GetPointLightCenterAndRadiusBuffer()
 teBuffer GetPointLightColorBuffer()
 {
     return gLightTiler.pointLightColorBuffer;
+}
+
+teBuffer GetSpotLightCenterAndRadiusBuffer()
+{
+    return gLightTiler.spotLightCenterAndRadiusBuffer;
+}
+
+teBuffer GetSpotLightParamBuffer()
+{
+    return gLightTiler.spotLightParamBuffer;
+}
+
+teBuffer GetSpotLightColorBuffer()
+{
+    return gLightTiler.spotLightColorBuffer;
 }
 
 teBuffer GetLightIndexBuffer()
@@ -168,6 +193,12 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
     gLightTiler.pointLightColorBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorBuffer" );
     gLightTiler.pointLightCenterAndRadiusStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightCenterAndRadiusStagingBuffer" );
     gLightTiler.pointLightColorStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "pointLightColorStagingBuffer" );
+    gLightTiler.spotLightCenterAndRadiusBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightCenterAndRadiusBuffer" );
+    gLightTiler.spotLightColorBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightColorBuffer" );
+    gLightTiler.spotLightCenterAndRadiusStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightCenterAndRadiusStagingBuffer" );
+    gLightTiler.spotLightColorStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightColorStagingBuffer" );
+    gLightTiler.spotLightParamBuffer = CreateBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightParamBuffer" );
+    gLightTiler.spotLightParamStagingBuffer = CreateStagingBuffer( LightTiler::MaxLights * 4 * sizeof( float ), "spotLightParamStagingBuffer" );
 }
 
 void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels, unsigned depthNormalsTextureIndex )
@@ -175,8 +206,15 @@ void CullLights( const teShader& shader, const Matrix& localToView, const Matrix
     UpdateStagingBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
     UpdateStagingBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
 
+    UpdateStagingBuffer( gLightTiler.spotLightCenterAndRadiusStagingBuffer, gLightTiler.spotLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
+    UpdateStagingBuffer( gLightTiler.spotLightColorStagingBuffer, gLightTiler.spotLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
+    UpdateStagingBuffer( gLightTiler.spotLightParamStagingBuffer, gLightTiler.spotLightParams, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
+
     CopyBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadiusBuffer );
     CopyBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColorBuffer );
+    CopyBuffer( gLightTiler.spotLightCenterAndRadiusStagingBuffer, gLightTiler.spotLightCenterAndRadiusBuffer );
+    CopyBuffer( gLightTiler.spotLightColorStagingBuffer, gLightTiler.spotLightColorBuffer );
+    CopyBuffer( gLightTiler.spotLightParamStagingBuffer, gLightTiler.spotLightParamBuffer );
 
     ShaderParams params = {};
 
