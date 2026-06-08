@@ -232,6 +232,7 @@ void CullLights( const teShader& shader, const Matrix& localToView, const Matrix
     
     params.readTexture = depthNormalsTextureIndex;
     params.readBuffer = gLightTiler.pointLightCenterAndRadiusBuffer.index;
+    params.readBuffer3 = gLightTiler.spotLightCenterAndRadiusBuffer.index;
     params.writeBuffer = gLightTiler.lightIndexBuffer.index;
     
     teShaderDispatch( shader, GetLightTileCount( widthPixels ), GetLightTileCount( heightPixels ), 1, params, "Cull Lights" );

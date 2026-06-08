@@ -116,7 +116,10 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
                             texture2d<float, access::sample> shadowMap [[texture(2)]],
                             const device uint* lightIndexBuf [[ buffer(1) ]],
                             const device float4* pointLightBufferCenterAndRadius [[ buffer(2) ]],
-                            const device float4* pointLightBufferColors [[ buffer(3) ]])
+                            const device float4* pointLightBufferColors [[ buffer(3) ]],
+                            const device float4* spotLightBufferCenterAndRadius [[ buffer(4) ]],
+                            const device float4* spotLightBufferColors [[ buffer(5) ]],
+                            const device float4* spotLightBufferParams [[ buffer(6) ]])
 {
     constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
     

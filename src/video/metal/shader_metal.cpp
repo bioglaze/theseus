@@ -147,6 +147,15 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     {
         commandEncoder->setBuffer( readBuffer, 0, 1 );
     }
+
+    teBuffer readBuf3;
+    readBuf3.index = params.readBuffer3;
+    MTL::Buffer* readBuffer3 = BufferGetBuffer( readBuf3 );
+    
+    if (readBuffer3)
+    {
+        commandEncoder->setBuffer( readBuffer3, 0, 3 );
+    }
     
     teBuffer writeBuf;
     writeBuf.index = params.writeBuffer;
@@ -157,8 +166,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
         commandEncoder->setBuffer( writeBuffer, 0, 2 );        
     }
 
-    // FIXME: bind point light color buffer and light index buffer for standard shader.
-    
     commandEncoder->setComputePipelineState( shaders[ shader.index ].computePipeline );
 
     commandEncoder->dispatchThreadgroups( threadgroups, shaders[ shader.index ].threadgroupCounts );

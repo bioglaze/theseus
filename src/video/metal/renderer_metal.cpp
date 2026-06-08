@@ -671,6 +671,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetLightIndexBuffer() ), 0, 1 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() ), 0, 2 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightColorBuffer() ), 0, 3 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetSpotLightCenterAndRadiusBuffer() ), 0, 4 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetSpotLightColorBuffer() ), 0, 5 );
+    renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetSpotLightParamBuffer() ), 0, 6 );
     renderer.renderEncoder->setVertexBuffers( buffers, offsets, rangeOffsets );
     renderer.renderEncoder->drawIndexedPrimitives( MTL::PrimitiveTypeTriangle,
                               indexCount * 3,

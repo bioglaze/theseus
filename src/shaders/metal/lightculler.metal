@@ -43,6 +43,7 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
                   constant Uniforms& uniforms [[ buffer(0) ]],
                   const device float4* pointLightBufferCenterAndRadius [[ buffer(1) ]],
                   device uint* perTileLightIndexBufferOut [[ buffer(2) ]],
+                  const device float4* spotLightBufferCenterAndRadius [[ buffer(3) ]],
                   ushort2 gid [[thread_position_in_grid]],
                   ushort2 tid [[thread_position_in_threadgroup]],
                   ushort2 dtid [[threadgroup_position_in_grid]])
@@ -162,6 +163,36 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
 
     uint pointLightsInThisTile = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
 
+    for (uint i = 0; i < uniforms.spotLightCount; i += NUM_THREADS_PER_TILE)
+    {
+        uint il = localIdxFlattened + i;
+
+        if (il < uniforms.spotLightCount)
+        {
+            float4 center = spotLightBufferCenterAndRadius[ il ];
+            float radius = center.w;
+            center.xyz = (uniforms.localToView * float4( center.xyz, 1.0f ) ).xyz;
+
+#if USE_MINMAX_Z
+            if (-center.z + minZ < radius && center.z - maxZ < radius)
+#else
+            if (center.z < radius)
+#endif
+            {
+                if ((GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 0 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 1 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 2 ] ) < radius) &&
+                    (GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 3 ] ) < radius))
+                {
+                    // do a thread-safe increment of the list counter
+                    // and put the index of this light into the list
+                    int dstIdx = atomic_fetch_add_explicit( &ldsLightIdxCounter, 1, memory_order::memory_order_relaxed );
+                    ldsLightIdx[ dstIdx ] = il;
+                }
+            }
+        }
+    }
+
     // write back
     int startOffset = uniforms.maxLightsPerTile * tileIdxFlattened;
 
@@ -170,6 +201,7 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
         // per-tile list of light indices
         perTileLightIndexBufferOut[ startOffset + i ] = ldsLightIdx[ i ];
     }
+
 
     int jMax = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
     for (int j = localIdxFlattened + pointLightsInThisTile; j < jMax; j += NUM_THREADS_PER_TILE)

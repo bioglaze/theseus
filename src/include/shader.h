@@ -18,6 +18,7 @@ struct ShaderParams
     float tilesXY[ 4 ];
     float tint[ 4 ];
     unsigned readBuffer;
+    unsigned readBuffer3;
     unsigned writeBuffer;
 };
 

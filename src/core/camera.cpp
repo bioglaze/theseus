@@ -90,7 +90,11 @@ Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewW
     const float halfWidth = viewWidth * 0.5f;
     const float halfHeight = viewHeight * 0.5f;
 
-    return Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
+    Vec3 out = Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
+#if API_METAL
+    out.y = viewHeight - out.y;
+#endif
+    return out;
 }
 
 void teCameraSetProjectionType( unsigned index, teProjectionType projectionType )
