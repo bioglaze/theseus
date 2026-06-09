@@ -155,15 +155,7 @@ void RenderImGUIDrawData( const teShader& shader )
             if (pcmd->UserCallback != nullptr)
             {
                 printf( "UserCallback not implemented\n" );
-                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                {
-                    printf( "ImDrawCallback_ResetRenderState not implemented\n" );
-                    //ImGui_ImplVulkan_SetupRenderState( draw_data, pipeline, command_buffer, rb, fb_width, fb_height );
-                }
-                else
-                {
-                    pcmd->UserCallback( cmd_list, pcmd );
-                }
+                pcmd->UserCallback( cmd_list, pcmd );
             }
             else
             {
@@ -889,22 +881,22 @@ int main()
         // Downsample 1
         shaderParams.readTexture = bloomTarget.index;
         shaderParams.writeTexture = downsampleTarget.index;
-        shaderParams.tilesXY[ 0 ] = width / 2;
-        shaderParams.tilesXY[ 1 ] = height / 2;
+        shaderParams.tilesXY[ 0 ] = width / 2.0f;
+        shaderParams.tilesXY[ 1 ] = height / 2.0f;
         teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 1" );
 
         // Downsample 2
         shaderParams.readTexture = downsampleTarget.index;
         shaderParams.writeTexture = downsampleTarget2.index;
-        shaderParams.tilesXY[ 0 ] = width / 4;
-        shaderParams.tilesXY[ 1 ] = height / 4;
+        shaderParams.tilesXY[ 0 ] = width / 4.0f;
+        shaderParams.tilesXY[ 1 ] = height / 4.0f;
         teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 2" );
 
         // Downsample 3
         shaderParams.readTexture = downsampleTarget2.index;
         shaderParams.writeTexture = downsampleTarget3.index;
-        shaderParams.tilesXY[ 0 ] = width / 8;
-        shaderParams.tilesXY[ 1 ] = height / 8;
+        shaderParams.tilesXY[ 0 ] = width / 8.0f;
+        shaderParams.tilesXY[ 1 ] = height / 8.0f;
         teShaderDispatch( downsampleShader, width / 8, dh, 1, shaderParams, "bloom downsample 3" );
 
         // Combine
@@ -913,8 +905,8 @@ int main()
         shaderParams.readTexture3 = downsampleTarget2.index;
         shaderParams.readTexture4 = downsampleTarget3.index;
         shaderParams.writeTexture = bloomComposeTarget.index;
-        shaderParams.tilesXY[ 0 ] = width / 2;
-        shaderParams.tilesXY[ 1 ] = height / 2;
+        shaderParams.tilesXY[ 0 ] = width / 2.0f;
+        shaderParams.tilesXY[ 1 ] = height / 2.0f;
         teShaderDispatch( bloomCombineShader, width / 8, dh, 1, shaderParams, "bloom combine" );
 #endif
 

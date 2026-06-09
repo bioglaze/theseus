@@ -227,14 +227,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
             if (pcmd->UserCallback != nullptr)
             {
                 printf( "UserCallback not implemented\n" );
-                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                {
-                    printf( "ImDrawCallback_ResetRenderState not implemented\n" );
-                }
-                else
-                {
-                    pcmd->UserCallback( cmdList, pcmd );
-                }
+                pcmd->UserCallback( cmdList, pcmd );
             }
             else
             {
@@ -269,7 +262,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
 
             if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
             {
-                const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), sceneView.width, sceneView.height );
+                const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height );
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
 
@@ -800,7 +793,7 @@ void RenderSceneView( float gridStep )
 
         if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
         {
-            const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), sceneView.width, sceneView.height );
+            const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height );
 
             float x = screenPoint.x;
             float y = sceneView.height - screenPoint.y;
@@ -988,55 +981,63 @@ void RenderSceneView( float gridStep )
                 }
             }
 
-            static const char* itemsMrPl[] = { "None", "MeshRenderer", "PointLight" };
-            static const char* itemsMr[] = { "None", "MeshRenderer" };
-            static const char* itemsPl[] = { "None", "PointLight" };
-            static int selectedItem = 0;
+            if (teGameObjectGetComponents( selectedGoIndex ) & teComponent::SpotLight)
+            {
+                if (ImGui::CollapsingHeader( "Spot Light" ))
+                {
+                    ImGui::InputFloat( "radius", teSpotLightAccessRadius( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
 
+                    ImGui::Text( "color" );
+                    ImGui::ColorEdit3( "Color", teSpotLightAccessColor( selectedGoIndex ) );
+
+                    //teSpotLightSetParams( selectedGoIndex, *teSpotLightAccessRadius( selectedGoIndex ), Vec3( teSpotLightAccessColor( selectedGoIndex )[ 0 ], teSpotLightAccessColor( selectedGoIndex )[ 1 ], teSpotLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
+                }
+            }
+
+            const char* pointLight = "PointLight";
+            const char* none = "None";
+            const char* meshRenderer = "MeshRenderer";
+            const char* spotLight = "SpotLight";
+            const char* items[ 4 ];
+            items[ 0 ] = none;
             bool mr = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::MeshRenderer);
             bool pl = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::PointLight);
+            bool sl = (teGameObjectGetComponents( selectedGoIndex ) & teComponent::SpotLight);
+            int itemIndex = 1;
+            if (!mr)
+            {
+                items[ itemIndex++ ] = meshRenderer;
+            }
+            if (!pl)
+            {
+                items[ itemIndex++ ] = pointLight;
+            }
+            if (!sl)
+            {
+                items[ itemIndex++ ] = spotLight;
+            }
 
             ImGui::Separator();
-
-            if (!mr && !pl)
+            static int selectedItem = 0;
+            bool check = ImGui::Combo( "Add Component", &selectedItem, items, itemIndex );
+            if (check)
             {
-                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsMrPl, IM_ARRAYSIZE( itemsMrPl ) );
-            
-                if (check)
+                if (items[ selectedItem ] == meshRenderer)
                 {
-                    printf("check %s\n", itemsMrPl[ selectedItem ] );
-                    if (selectedItem == 1)
-                    {
-                        teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
-                    }
-                    if (selectedItem == 2)
-                    {
-                        teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
-                        tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
-                    }
-                }
-            }
-            else if (!mr && selectedItem == 1)
-            {
-                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsMr, IM_ARRAYSIZE( itemsMr ) );
-            
-                if (check)
-                {
-                    printf("check mr %s\n", itemsMr[ selectedItem ] );
                     teGameObjectAddComponent( selectedGoIndex, teComponent::MeshRenderer );
                 }
-
-            }
-            else if (!pl)
-            {
-                bool check = ImGui::Combo( "Add Component", &selectedItem, itemsPl, IM_ARRAYSIZE( itemsPl ) );
-            
-                if (check && selectedItem == 1)
+                else if (items[ selectedItem ] == pointLight)
                 {
-                    printf("check pl %s\n", itemsPl[ selectedItem ] );
                     teGameObjectAddComponent( selectedGoIndex, teComponent::PointLight );
                     tePointLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
                 }
+                else if (items[ selectedItem ] == spotLight)
+                {
+                    teGameObjectAddComponent( selectedGoIndex, teComponent::SpotLight );
+                    //teSpotLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
+                }
+
+                selectedItem = 0;
             }
         }
         else

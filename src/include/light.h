@@ -4,3 +4,5 @@ void tePointLightSetParams( unsigned goIndex, float radius, const struct Vec3& c
 void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor, float& outIntensity );
 float* tePointLightAccessRadius( unsigned goIndex );
 float* tePointLightAccessColor( unsigned goIndex );
+float* teSpotLightAccessRadius( unsigned goIndex );
+float* teSpotLightAccessColor( unsigned goIndex );

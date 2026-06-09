@@ -222,6 +222,25 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         }
     }
 
+    // move past the first sentinel to get to the spot lights
+    ++index;
+    nextLightIndex = vk::RawBufferLoad < uint > (pushConstants.lightIndexBuf + 4 * index);
+
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        uint lightIndex = nextLightIndex;
+        ++index;
+        nextLightIndex = vk::RawBufferLoad < uint > (pushConstants.lightIndexBuf + 4 * index);
+    
+        float4 centerAndRadius = vk::RawBufferLoad < float4 > (pushConstants.spotLightCenterAndRadiusBuf + 16 * lightIndex);
+        float4 spotParams = vk::RawBufferLoad < float4 > (pushConstants.spotLightParamBuf + 16 * lightIndex);
+        float3 spotLightDir = spotParams.xyz;
+    
+
+        float4 spotLightColor = vk::RawBufferLoad < float4 > (pushConstants.spotLightColorBuf + 16 * lightIndex);
+        accumDiffuseAndSpecular.rgb = spotLightColor.rgb;
+    }
+
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
     
     return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
