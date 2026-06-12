@@ -6,3 +6,5 @@ float* tePointLightAccessRadius( unsigned goIndex );
 float* tePointLightAccessColor( unsigned goIndex );
 float* teSpotLightAccessRadius( unsigned goIndex );
 float* teSpotLightAccessColor( unsigned goIndex );
+void teSpotLightSetParams( unsigned goIndex, Vec3& position, const Vec3& color, float coneAngleDegrees, const Vec3& direction, float falloffRadius );
+float* teSpotLightAccessConeAngle( unsigned goIndex );

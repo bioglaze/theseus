@@ -990,7 +990,11 @@ void RenderSceneView( float gridStep )
                     ImGui::Text( "color" );
                     ImGui::ColorEdit3( "Color", teSpotLightAccessColor( selectedGoIndex ) );
 
-                    //teSpotLightSetParams( selectedGoIndex, *teSpotLightAccessRadius( selectedGoIndex ), Vec3( teSpotLightAccessColor( selectedGoIndex )[ 0 ], teSpotLightAccessColor( selectedGoIndex )[ 1 ], teSpotLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
+                    ImGui::InputFloat( "cone angle", teSpotLightAccessConeAngle( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
+
+                    Vec3 color = Vec3( teSpotLightAccessColor( selectedGoIndex )[ 0 ], teSpotLightAccessColor( selectedGoIndex )[ 1 ], teSpotLightAccessColor( selectedGoIndex )[ 2 ] );
+                    Vec3 dir = { 0, 0, 1 };
+                    teSpotLightSetParams( selectedGoIndex, color, Vec3( 1, 1, 1 ), *teSpotLightAccessConeAngle( selectedGoIndex ), dir, 2.0f );
                 }
             }
 
@@ -1034,7 +1038,9 @@ void RenderSceneView( float gridStep )
                 else if (items[ selectedItem ] == spotLight)
                 {
                     teGameObjectAddComponent( selectedGoIndex, teComponent::SpotLight );
-                    //teSpotLightSetParams( selectedGoIndex, 2, Vec3( 1, 1, 1 ), 1.0f );
+                    Vec3 pos = teTransformGetLocalPosition( selectedGoIndex );
+                    Vec3 dir = { 0, 0, 1 };
+                    teSpotLightSetParams( selectedGoIndex, pos, Vec3( 1, 1, 1 ), 45.0f, dir, 2.0f );
                 }
 
                 selectedItem = 0;

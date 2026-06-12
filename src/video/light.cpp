@@ -8,6 +8,10 @@ struct LightImpl
 {
     unsigned tilerIndex = 0;
     float intensity = 1.0f;
+
+    // SpotLight specific stuff
+    float coneAngle;
+    Vec3 direction;
 };
 
 LightImpl pointLights[ 10000 ];
@@ -107,6 +111,21 @@ void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color, f
     gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
 }
 
+void teSpotLightSetParams( unsigned goIndex, Vec3& position, const Vec3& color, float coneAngleDegrees, const Vec3& direction, float falloffRadius )
+{
+    unsigned tilerIndex = spotLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return;
+    }
+
+
+    gLightTiler.spotLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, falloffRadius );
+    gLightTiler.spotLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );
+    gLightTiler.spotLightParams[ tilerIndex ] = Vec4( direction.x, direction.y, direction.z, (float)cos( coneAngleDegrees * 3.14159265f / 180.0f ) );
+}
+
 void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS )
 {
     unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
@@ -181,6 +200,18 @@ float* teSpotLightAccessColor( unsigned goIndex )
     }
 
     return &gLightTiler.spotLightColors[ tilerIndex ].x;
+}
+
+float* teSpotLightAccessConeAngle( unsigned goIndex )
+{
+    unsigned tilerIndex = spotLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return nullptr;
+    }
+
+    return &spotLights[ goIndex ].coneAngle;
 }
 
 void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor, float& outIntensity )
