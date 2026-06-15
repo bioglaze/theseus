@@ -121,14 +121,14 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
                             const device float4* spotLightBufferColors [[ buffer(5) ]],
                             const device float4* spotLightBufferParams [[ buffer(6) ]])
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear, mip_filter::linear );
     
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap ) );
     //shadow = 1;
 
     //float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
-    float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f) );
+    float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f ) );
     //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
     

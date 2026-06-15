@@ -34,3 +34,4 @@ Code Quality issues:
 * buffers could be combined, for example meshlet stuff and lights
 * staging buffers could maybe be combined, for example point light color and position buffer maybe don't need their own staging buffer.
 * Metal: buffer setting for dispatch is very hacky.
+* macOS: input handling is not like Windows/Linux (doesn't use teWindowEvent)

@@ -131,7 +131,6 @@ CA::MetalDrawable* gDrawable;
 MTL::Device* gDevice;
 MTL::CommandQueue* gCommandQueue;
 MTL::RenderPassDescriptor* renderPassDescriptor; // This comes from the application
-MTL::CommandBuffer* gCommandBuffer; // This is used by the application.
 
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset )
 {
@@ -433,7 +432,6 @@ void teBeginFrame()
     renderer.frameResources[ 0 ].commandBuffer = renderer.commandQueue->commandBuffer();
     renderer.frameResources[ 0 ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
     renderer.frameResources[ 0 ].uboOffset = 0;
-    gCommandBuffer = renderer.frameResources[ 0 ].commandBuffer;
 
     renderer.statDrawCalls = 0;
     renderer.statPSOBinds = 0;
