@@ -93,6 +93,7 @@ struct SceneView
     teTexture2D textures[ MaxTextures ];
     unsigned textureCount = 0;
     Vec3 lineBuffer[ 100 ];
+    bool flipSprites = false;
 };
 
 SceneView sceneView;
@@ -600,18 +601,12 @@ void ReadMaterials()
             }
             ++sceneView.materialCount;
         }
-        else
-        {
-            //strcpy( sceneView.materials[ sceneView.materialCount ].name, path );
-        }
-
-        //++sceneView.materialCount;
     }
 
     teCloseDirectory( handle );
 }
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale )
+void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites )
 {
     teCreateRenderer( 1, windowHandle, width, height );
     teLoadMetalShaderLibrary();
@@ -737,6 +732,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     style.FontScaleDpi = 2.0f;
 
     sceneView.fontTex = sceneView.gliderTex;
+    sceneView.flipSprites = flipSprites;
 
     io.BackendRendererUserData = &imguiImpl;
     io.BackendRendererName = "imgui_impl";
@@ -798,7 +794,7 @@ void RenderSceneView( float gridStep )
             float x = screenPoint.x;
             float y = sceneView.height - screenPoint.y;
             shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
-            shaderParams.tilesXY[ 1 ] = 0.2f;
+            shaderParams.tilesXY[ 1 ] = sceneView.flipSprites ? -0.2f : 0.2f;
             shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
             shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
             teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Off );

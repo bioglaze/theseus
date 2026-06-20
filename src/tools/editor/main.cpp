@@ -17,7 +17,7 @@
 
 double GetMilliseconds();
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
+void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites );
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
@@ -586,7 +586,7 @@ int main()
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
     teWindowGetSize( width, height );
 
-    InitSceneView( width, height, windowHandle, 1 );
+    InitSceneView( width, height, windowHandle, 1, false );
 
     double theTime = GetMilliseconds();
     double dt = 0;

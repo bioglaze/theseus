@@ -17,7 +17,7 @@
 #include "transform.h"
 #include "vec3.h"
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale );
+void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites );
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SceneViewDuplicate();
@@ -112,7 +112,7 @@ void GetSavePath( char* path, const char* extension )
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
 
-        InitSceneView( frameWidth, frameHeight, nullptr, 2 );
+        InitSceneView( frameWidth, frameHeight, nullptr, 2, true );
         teFinalizeMeshBuffers();
     }
     return self;
