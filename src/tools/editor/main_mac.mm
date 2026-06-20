@@ -131,6 +131,11 @@ void GetSavePath( char* path, const char* extension )
     renderPassDescriptor = self.currentRenderPassDescriptor;
 
     gDrawable = self.currentDrawable;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = (float)CGRectGetWidth( rect ) * 2.0f;
+    io.DisplaySize.y = (float)CGRectGetHeight( rect ) * 2.0f;
+
     RenderSceneView( inputParams.gridStep );
 }
 @end
