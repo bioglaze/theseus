@@ -10,6 +10,8 @@ Bugs:
   * Metal: MBP 2013 black screen.
   * scene loading could malloc 0 bytes if object count is 0.
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
+  * Vulkan: point light intensity changes with distance from origin
+    * repro: line up some cubes, drag a point light in front of them.
   * standard shader samplers are hardcoded.
   
 TODO:
@@ -17,7 +19,6 @@ TODO:
   * draw sprites
   * show scene name in title bar
   * ctrl-s and ctrl-o
-  * scene.usda:an mesh file name
   * macOS: ImGui scrolling.
   * asset browser could read assets from build/assets
   * line colors

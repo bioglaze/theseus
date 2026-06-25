@@ -34,12 +34,7 @@ constexpr unsigned MaxTextures = 40;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
-char openFilePath[ 280 ];
 unsigned selectedGoIndex = EditorCameraGoIndex;
-int selectedMaterialIndex = -1;
-int gizmoAxisSelected = -1;
-float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
-float lightColor[ 3 ] = { 1, 1, 1 };
 
 struct FontTextureUpdate
 {
@@ -94,6 +89,12 @@ struct SceneView
     unsigned textureCount = 0;
     Vec3 lineBuffer[ 100 ];
     bool flipSprites = false;
+    char openFilePath[ 280 ];
+    int gizmoAxisSelected = -1;
+    int selectedMaterialIndex = -1;
+
+    float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
+    float lightColor[ 3 ] = { 1, 1, 1 };
 };
 
 SceneView sceneView;
@@ -428,19 +429,19 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
     float acc = distanceToGizmo / 20.0f * 0.05f; // This value has been tested on macOS to be better than nothing.
     //printf("distance: %f, acc: %f\n", distanceToGizmo, acc);
 
-    if (gizmoAxisSelected == 0)
+    if (sceneView.gizmoAxisSelected == 0)
     {
         teMaterialSetTint( sceneView.greenMaterial, { 2, 2, 2, 1 } );
         teTransformMoveUp( selectedGoIndex, -dy * 0.5f * acc );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
-    else if (gizmoAxisSelected == 2)
+    else if (sceneView.gizmoAxisSelected == 2)
     {
         teMaterialSetTint( sceneView.redMaterial, { 2, 2, 2, 1 } );
         teTransformMoveRight( selectedGoIndex, dx * 0.5f * sign * acc );
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
-    else if (gizmoAxisSelected == 1)
+    else if (sceneView.gizmoAxisSelected == 1)
     {
         const float signX = viewDir.x > 0.0f ? 1.0f : -1.0f;
         teMaterialSetTint( sceneView.blueMaterial, { 2, 2, 2, 1 } );
@@ -451,7 +452,7 @@ void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown 
 
 bool SelectGizmo( unsigned x, unsigned y )
 {
-    gizmoAxisSelected = -1;
+    sceneView.gizmoAxisSelected = -1;
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.blueMaterial, { 1, 1, 1, 1 } );
@@ -463,13 +464,12 @@ bool SelectGizmo( unsigned x, unsigned y )
 
     if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
     {
-        gizmoAxisSelected = closestSubMesh;
+        sceneView.gizmoAxisSelected = closestSubMesh;
         printf( "gizmo submesh %u\n", closestSubMesh );
     }
 
-    printf("Gizmo axis selected: %d\n", gizmoAxisSelected );
-    return gizmoAxisSelected != -1;
-    //sceneView.selectedGos[ 0 ].index = selectedGoIndex;
+    printf("Gizmo axis selected: %d\n", sceneView.gizmoAxisSelected );
+    return sceneView.gizmoAxisSelected != -1;
 }
 
 void DeleteSelectedObject()
@@ -815,17 +815,17 @@ void RenderSceneView( float gridStep )
         {
             if (ImGui::MenuItem( "Load Scene", nullptr, nullptr ))
             {
-                openFilePath[ 0 ] = 0;
-                GetOpenPath( openFilePath, "usda" );
-                LoadUsdScene( sceneView.scene, openFilePath );
+                sceneView.openFilePath[ 0 ] = 0;
+                GetOpenPath( sceneView.openFilePath, "usda" );
+                LoadUsdScene( sceneView.scene, sceneView.openFilePath );
                 teFinalizeMeshBuffers();
             }
 
             if (ImGui::MenuItem( "Save Scene", nullptr, nullptr ))
             {
-                openFilePath[ 0 ] = 0;
-                GetSavePath( openFilePath, "usda" );
-                SaveUsdScene( sceneView.scene, openFilePath );
+                sceneView.openFilePath[ 0 ] = 0;
+                GetSavePath( sceneView.openFilePath, "usda" );
+                SaveUsdScene( sceneView.scene, sceneView.openFilePath );
             }
             ImGui::EndMenu();
         }
@@ -870,9 +870,10 @@ void RenderSceneView( float gridStep )
 
     if (ImGui::Begin( "Inspector" ))
     {
-        if (selectedMaterialIndex != -1 && selectedGoIndex == EditorCameraGoIndex)
+        // FIXME selectedMaterialIndex is never set.
+        if (sceneView.selectedMaterialIndex != -1 && selectedGoIndex == EditorCameraGoIndex)
         {
-            ImGui::Text( "Material %d", selectedMaterialIndex );
+            ImGui::Text( "Material %d", sceneView.selectedMaterialIndex );
             ImGui::Separator();
             float f = 0.0f;
             ImGui::SliderFloat( "specular", &f, 0.0f, 1.0f, "%.3f" );
@@ -907,12 +908,12 @@ void RenderSceneView( float gridStep )
                     
                     if (ImGui::Button( "Load" ))
                     {
-                        openFilePath[ 0 ] = 0;
-                        GetOpenPath( openFilePath, "t3d" );
+                        sceneView.openFilePath[ 0 ] = 0;
+                        GetOpenPath( sceneView.openFilePath, "t3d" );
 
-                        if (openFilePath[ 0 ] != 0)
+                        if (sceneView.openFilePath[ 0 ] != 0)
                         {
-                            teFile meshFile = teLoadFile( openFilePath );
+                            teFile meshFile = teLoadFile( sceneView.openFilePath );
 
                             teMesh* mesh = new teMesh; // TODO: better place to store the created meshes than the heap.
                             *mesh = teLoadMesh( meshFile );
@@ -1045,19 +1046,19 @@ void RenderSceneView( float gridStep )
         else
         {
             ImGui::Text( "Sunlight direction" );
-            const bool dirChanged = ImGui::InputFloat3( "##dir", lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
+            const bool dirChanged = ImGui::InputFloat3( "##dir", sceneView.lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
 
             if (dirChanged)
             {
-                teSceneSetupDirectionalLight( sceneView.scene, Vec3( lightColor[ 0 ], lightColor[ 1 ], lightColor[ 2 ] ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
+                teSceneSetupDirectionalLight( sceneView.scene, Vec3( sceneView.lightColor[ 0 ], sceneView.lightColor[ 1 ], sceneView.lightColor[ 2 ] ), Vec3( sceneView.lightDir[ 0 ], sceneView.lightDir[ 1 ], sceneView.lightDir[ 2 ] ).Normalized() );
             }
 
             ImGui::Text( "Sunlight color" );
-            const bool colorChanged = ImGui::ColorEdit3( "Color", lightColor );
+            const bool colorChanged = ImGui::ColorEdit3( "Color", sceneView.lightColor );
 
             if (colorChanged)
             {
-                teSceneSetupDirectionalLight( sceneView.scene, Vec3( lightColor[ 0 ], lightColor[ 1 ], lightColor[ 2 ] ), Vec3( lightDir[ 0 ], lightDir[ 1 ], lightDir[ 2 ] ).Normalized() );
+                teSceneSetupDirectionalLight( sceneView.scene, Vec3( sceneView.lightColor[ 0 ], sceneView.lightColor[ 1 ], sceneView.lightColor[ 2 ] ), Vec3( sceneView.lightDir[ 0 ], sceneView.lightDir[ 1 ], sceneView.lightDir[ 2 ] ).Normalized() );
             }
 
             ImGui::Text( "Grid: %d", (int)gridStep );
