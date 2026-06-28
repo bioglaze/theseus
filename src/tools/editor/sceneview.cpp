@@ -31,6 +31,7 @@ void SaveUsdScene( const teScene& scene, const char* path );
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
 constexpr unsigned MaxTextures = 40;
+constexpr unsigned MaxEntities = 100; // Should be at least as many as gameobjects.
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
@@ -95,6 +96,8 @@ struct SceneView
 
     float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
     float lightColor[ 3 ] = { 1, 1, 1 };
+
+    char* entityNames[ MaxEntities ] = {};
 };
 
 SceneView sceneView;
@@ -737,6 +740,11 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     io.BackendRendererUserData = &imguiImpl;
     io.BackendRendererName = "imgui_impl";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+
+    for (unsigned i = 0; i < MaxEntities; ++i)
+    {
+        sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
+    }
 }
 
 unsigned SceneViewGetCameraIndex()
@@ -1042,6 +1050,14 @@ void RenderSceneView( float gridStep )
 
                 selectedItem = 0;
             }
+
+            ImGui::SeparatorText( "Entity" );
+            ImGui::PushID( selectedGoIndex );
+            ImGui::InputText( "name", sceneView.entityNames[ selectedGoIndex ], 100 );
+            ImGui::PopID();
+            static int type = 0;
+            const char* types[ 3 ] = { "None", "Door", "Button" };
+            bool check2 = ImGui::Combo( "Type", &type, types, 3 );
         }
         else
         {
@@ -1089,7 +1105,7 @@ void RenderSceneView( float gridStep )
                     if (ImGui::Button( sceneView.materials[ i ].name, ImVec2( -FLT_MIN, 0.0f ) ))
                     {
                         // FIXME: allow enabling the following line
-                        //selectedMaterialIndex = i;
+                        //sceneView.selectedMaterialIndex = i;
                         selectedGoIndex = EditorCameraGoIndex;
                     }
                 }

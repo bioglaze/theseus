@@ -811,7 +811,7 @@ void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, c
 void CreateDepthStencil( uint32_t width, uint32_t height )
 {
     const VkFormat depthFormats[ 4 ] = { VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM };
-    const teTextureFormat depthTexFormats[ 4 ] = { teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8 }; // FIXME: Implement missing formats.
+    const teTextureFormat depthTexFormats[ 4 ] = { teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8, teTextureFormat::Depth32F_S8 };
     VkFormat depthFormat = VK_FORMAT_UNDEFINED;
 
     int depthIndex = 0;
@@ -2212,7 +2212,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
             renderer.samplerInfos[ normalMapIndex ].imageView = TextureGetView( tex );
         }
 
-        // FIXME: maybe have to set sampler index into push constants instead of the following line:
         //renderer.samplerInfos[ normalMapIndex ].sampler = GetSampler( sampler );
     }
 

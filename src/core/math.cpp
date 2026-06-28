@@ -134,7 +134,6 @@ void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screen
     Matrix::Multiply( translation, view, view );
 
     Matrix invView;
-    // FIXME: does this need to be a proper invert or will a simpler function do?
     Matrix::Invert( view, invView );
 
     const float farp = teCameraGetFar( cameraIndex );

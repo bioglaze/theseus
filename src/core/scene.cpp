@@ -323,7 +323,6 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             for (unsigned i = 0; i < 16; ++i)
             {
                 shaderParams.localToView[ i ] = localToView.m[ i ];
-                // FIXME: Add clipToView if it's needed.
                 //shaderParams.clipToView[ i ] = clipToView.m[ i ];
             }
 
