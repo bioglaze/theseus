@@ -7,8 +7,8 @@ struct teShader
 
 struct ShaderParams
 {
-    float clipToView[ 16  ];
-    float localToView[ 16 ];
+    alignas(16) float clipToView[ 16  ];
+    alignas(16) float localToView[ 16 ];
     unsigned readTexture;
     unsigned readTexture2;
     unsigned readTexture3;
