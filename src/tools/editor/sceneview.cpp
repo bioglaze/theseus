@@ -98,6 +98,8 @@ struct SceneView
     float lightColor[ 3 ] = { 1, 1, 1 };
 
     char* entityNames[ MaxEntities ] = {};
+    char* doorInputs[ MaxEntities ] = {};
+    char* buttonOutputs[ MaxEntities ] = {};
 };
 
 SceneView sceneView;
@@ -744,6 +746,8 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     for (unsigned i = 0; i < MaxEntities; ++i)
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
+        sceneView.doorInputs[ i ] = (char*)calloc( 100, sizeof( char ) );
+        sceneView.buttonOutputs[ i ] = (char*)calloc( 100, sizeof( char ) );
     }
 }
 
@@ -1058,6 +1062,15 @@ void RenderSceneView( float gridStep )
             static int type = 0;
             const char* types[ 3 ] = { "None", "Door", "Button" };
             bool check2 = ImGui::Combo( "Type", &type, types, 3 );
+
+            if (type == 1)
+            {
+                ImGui::InputText( "input", sceneView.doorInputs[ selectedGoIndex ], 100 );
+            }
+            else if (type == 2)
+            {
+                ImGui::InputText( "target", sceneView.buttonOutputs[ selectedGoIndex ], 100 );
+            }
         }
         else
         {
