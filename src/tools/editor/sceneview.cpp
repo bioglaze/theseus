@@ -116,6 +116,34 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom imguiImpl;
 
+void ExportScene( const teScene& scene, const char* path )
+{
+    FILE* outFile = fopen( path, "wb" );
+    if (!outFile)
+    {
+        printf( "Unable to open file %s for writing!\n", path );
+        return;
+    }
+
+    unsigned goCount = teSceneGetMaxGameObjects();
+
+    for (unsigned i = 0; i < goCount; ++i)
+    {
+        unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
+
+        if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index)
+        {
+            fwrite( "gameobject", strlen( "gameobject" ), 1, outFile );
+            //if (ImGui::Selectable( teGameObjectGetName( goIndex ), selectedGoIndex == goIndex ))
+            teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+            
+
+        }
+    }
+
+    fclose( outFile );
+}
+
 teMaterial& GetMaterial( const char* name )
 {
     for (unsigned i = 0; i < sceneView.materialCount; ++i)
@@ -839,6 +867,13 @@ void RenderSceneView( float gridStep )
                 GetSavePath( sceneView.openFilePath, "usda" );
                 SaveUsdScene( sceneView.scene, sceneView.openFilePath );
             }
+
+            if (ImGui::MenuItem( "Export Scene", nullptr, nullptr ))
+            {
+                sceneView.openFilePath[ 0 ] = 0;
+                GetSavePath( sceneView.openFilePath, "tscene" );
+                ExportScene( sceneView.scene, sceneView.openFilePath );
+            }
             ImGui::EndMenu();
         }
 
@@ -1060,16 +1095,19 @@ void RenderSceneView( float gridStep )
             ImGui::InputText( "name", sceneView.entityNames[ selectedGoIndex ], 100 );
             ImGui::PopID();
             static int type = 0;
-            const char* types[ 3 ] = { "None", "Door", "Button" };
-            bool check2 = ImGui::Combo( "Type", &type, types, 3 );
+            const char* types[ 4 ] = { "None", "Door", "Button", "Player Start" };
+            bool check2 = ImGui::Combo( "Type", &type, types, 4 );
 
-            if (type == 1)
+            if (check2)
             {
-                ImGui::InputText( "input", sceneView.doorInputs[ selectedGoIndex ], 100 );
-            }
-            else if (type == 2)
-            {
-                ImGui::InputText( "target", sceneView.buttonOutputs[ selectedGoIndex ], 100 );
+                if (type == 1)
+                {
+                    ImGui::InputText( "input", sceneView.doorInputs[ selectedGoIndex ], 100 );
+                }
+                else if (type == 2)
+                {
+                    ImGui::InputText( "target", sceneView.buttonOutputs[ selectedGoIndex ], 100 );
+                }
             }
         }
         else
