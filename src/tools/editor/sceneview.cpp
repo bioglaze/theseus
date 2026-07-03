@@ -100,6 +100,7 @@ struct SceneView
     char* entityNames[ MaxEntities ] = {};
     char* doorInputs[ MaxEntities ] = {};
     char* buttonOutputs[ MaxEntities ] = {};
+    int entityTypes[ MaxEntities ] = {};
 };
 
 SceneView sceneView;
@@ -133,11 +134,13 @@ void ExportScene( const teScene& scene, const char* path )
 
         if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index)
         {
-            fwrite( "gameobject", strlen( "gameobject" ), 1, outFile );
-            //if (ImGui::Selectable( teGameObjectGetName( goIndex ), selectedGoIndex == goIndex ))
-            teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
+            fprintf( outFile, "gameobject %s\n", teGameObjectGetName( goIndex ) );
+            fprintf( outFile, "position %f %f %f\n", teTransformGetLocalPosition( goIndex ).x, teTransformGetLocalPosition( goIndex ).y, teTransformGetLocalPosition( goIndex ).z );
             
-
+            if (teGameObjectGetComponents( goIndex ) & teComponent::MeshRenderer)
+            {
+                fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path ); // Note: in teSceneReadScene() this is mesh name, not path, but the format is not finalized yet.
+            }
         }
     }
 
@@ -1094,7 +1097,7 @@ void RenderSceneView( float gridStep )
             ImGui::PushID( selectedGoIndex );
             ImGui::InputText( "name", sceneView.entityNames[ selectedGoIndex ], 100 );
             ImGui::PopID();
-            static int type = 0;
+            int& type = sceneView.entityTypes[ selectedGoIndex ];
             const char* types[ 4 ] = { "None", "Door", "Button", "Player Start" };
             bool check2 = ImGui::Combo( "Type", &type, types, 4 );
 
