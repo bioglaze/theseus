@@ -140,13 +140,13 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = ( uniforms.localToView * uniforms.lightDir ).xyz;
-    float dotNL = saturate( dot( normalVS, -surfaceToLightVS ) );
+    const float3 surfaceToLightVS = -( uniforms.localToView * uniforms.lightDir ).xyz;
+    float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     const float dotNV = abs( dot( N, V ) ) + 1e-5f;
     
     accumDiffuseAndSpecular *= dotNL;
     
-    float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
+    float3 reflectDir = reflect( -surfaceToLightVS, N );
     float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
     float3 specular = specularStrength * spec;
     accumDiffuseAndSpecular += specular;
@@ -168,8 +168,9 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         const float radius = center.w;
         const float3 vecToLightWS = center.xyz - in.positionWS.xyz;
         const float lightDistance = length( vecToLightWS );
+        //const float3 lightDirVS = normalize( uniforms.localToView * float4( vecToLightWS, 0 ) ).xyz;
         const float3 lightDirVS = normalize( vecToLightWS );
-
+        
         if (lightDistance < radius)
         {
             const float3 vecToLightVS = (uniforms.localToView * float4( vecToLightWS, 0 )).xyz;

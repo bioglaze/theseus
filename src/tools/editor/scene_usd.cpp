@@ -126,7 +126,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char skip1[ 255 ] = {};
             char skip2[ 255 ] = {};
             char skip3[ 255 ] = {};
-            sscanf( line, "%s %s %s (%f, %f, %f)", skip1, skip2, skip3, &color.x, &color.y, &color.z );
+            sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &color.x, &color.y, &color.z );
 
             tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, color, 1.0f );
         }
@@ -140,7 +140,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char name[ 256 ] = {};
-            sscanf( line, "%s %s %s \"%s", a, b, c, name );
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, name );
             size_t len = strlen( name );
             name[ len - 1 ] = 0;
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
@@ -151,7 +151,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char meshPath[ 256 ] = {};
-            sscanf( line, "%s %s %s \"%s", a, b, c, meshPath );
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, meshPath );
             size_t len = strlen( meshPath );
             meshPath[ len - 1 ] = 0;
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::MeshRenderer );
@@ -193,7 +193,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char name[ 256 ] = {};
-            sscanf( line, "%s %s %s \"%s", a, b, c, name );
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, name );
             const char* matEnd = strstr( line, "material" ) + strlen( "material" );
             int matIndex = 0;
             sscanf( matEnd, "%d", &matIndex );
@@ -207,7 +207,7 @@ void LoadUsdScene( teScene& scene, const char* path )
             char skip1[ 255 ] = {};
             char skip2[ 255 ] = {};
             char skip3[ 255 ] = {};
-            sscanf( line, "%s %s %s (%f, %f, %f)", skip1, skip2, skip3, &pos.x, &pos.y, &pos.z );
+            sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &pos.x, &pos.y, &pos.z );
             teTransformSetLocalPosition( sceneGos[ goIndex - 1 ].index, pos );
         }
     }

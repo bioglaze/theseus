@@ -170,10 +170,10 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
     teTexture2D outTexture;
     outTexture.index = ++textureCount;
-    outTexture.format = teTextureFormat::BGRA_sRGB;
+    outTexture.format = strstr( file.path, "_n." ) ? teTextureFormat::BGRA : teTextureFormat::BGRA_sRGB;
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
-    tex.format = MTL::PixelFormatBGRA8Unorm_sRGB;
+    tex.format = strstr( file.path, "_n." ) ? MTL::PixelFormatBGRA8Unorm : MTL::PixelFormatBGRA8Unorm_sRGB;
     
     if (file.data == nullptr && pixels == nullptr)
     {
@@ -186,6 +186,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
     unsigned bitsPerPixel = 0;
     unsigned offset = 0;
     
+
     if (strstr( file.path, ".tga" ) || strstr( file.path, ".TGA" ))
     {
         LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel );
