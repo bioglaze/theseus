@@ -692,7 +692,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
 }
 
-void teMapUiMemory( size_t vertexBytes, size_t indexBytes, void** outVertexMemory, void** outIndexMemory )
+void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )
 {
     teAssert( vertexBytes < UiBufferBytes );
     teAssert( indexBytes < UiBufferBytes );

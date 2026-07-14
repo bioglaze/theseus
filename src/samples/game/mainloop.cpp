@@ -25,12 +25,14 @@ struct Resources
     teGameObject camera3d;
 } gResources;
 
-void Init()
+void Init( unsigned width, unsigned height )
 {
-    unsigned width = 1920 / 1;
-    unsigned height = 1080 / 1;
+#if !API_METAL
     void* windowHandle = teCreateWindow( width, height, "Game" );
     teWindowGetSize( width, height );
+#else
+    void* windowHandle = nullptr;
+#endif
     teCreateRenderer( 1, windowHandle, width, height );
     teLoadMetalShaderLibrary();
 
