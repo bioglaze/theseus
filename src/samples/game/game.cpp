@@ -1,11 +1,12 @@
 #include "window.h"
 
-void Init();
+void HandleEvent( const teWindowEvent& event );
+void Init( unsigned width, unsigned height );
 void Render();
 
 int main()
 {
-    Init();
+    Init( 1920, 1080 );
 
     bool shouldQuit = false;
 
@@ -27,6 +28,10 @@ int main()
             if ((event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Escape) || event.type == teWindowEvent::Type::Close)
             {
                 shouldQuit = true;
+            }
+            else
+            {
+                HandleEvent( event );
             }
         }
 

@@ -11,6 +11,8 @@
 #include "vec3.h"
 #include "window.h"
 
+double GetMilliseconds();
+
 struct Resources
 {
     teShader unlitShader;
@@ -24,6 +26,23 @@ struct Resources
     teMesh cubeMesh;
     teGameObject camera3d;
 } gResources;
+
+struct InputState
+{
+    int x = 0;
+    int y = 0;
+    float deltaX = 0;
+    float deltaY = 0;
+    int lastMouseX = 0;
+    int lastMouseY = 0;
+    Vec3 moveDir;
+} gInput;
+
+struct GameState
+{
+    double theTime;
+    double dt;
+} gGameState;
 
 void Init( unsigned width, unsigned height )
 {
@@ -88,10 +107,21 @@ void Init( unsigned width, unsigned height )
     teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
     teFinalizeMeshBuffers();
+
+    gGameState.theTime = GetMilliseconds();
 }
 
 void Render()
 {
+    double lastTime = gGameState.theTime;
+    gGameState.theTime = GetMilliseconds();
+    gGameState.dt = gGameState.theTime - lastTime;
+
+    if (gGameState.dt < 0)
+    {
+        gGameState.dt = 0;
+    }
+
     teBeginFrame();
 
     Vec3 dirLightShadowCasterPosition;
@@ -109,4 +139,51 @@ void Render()
     teEndSwapchainRendering();
     
     teEndFrame();
+}
+
+void HandleEvent( const teWindowEvent& event )
+{
+    if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
+    {
+        gInput.moveDir.z = -0.5f;
+    }
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
+    {
+        gInput.moveDir.z = 0;
+    }
+    else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
+    {
+        gInput.moveDir.z = 0.5f;
+    }
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
+    {
+        gInput.moveDir.z = 0;
+    }
+    else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
+    {
+        gInput.moveDir.x = -0.5f;
+    }
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
+    {
+        gInput.moveDir.x = 0;
+    }
+    else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::D)
+    {
+        gInput.moveDir.x = 0.5f;
+    }
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
+    {
+        gInput.moveDir.x = 0;
+    }
+    else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
+    {
+        gInput.moveDir.y = -0.5f;
+    }
+
+    bool fpsCamera = false;
+    const float speed = fpsCamera ? 0.25f : 0.5f;
+
+    teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, false );
+    teTransformMoveRight( gResources.camera3d.index, gInput.moveDir.x * (float)gGameState.dt * speed );
+    teTransformMoveUp( gResources.camera3d.index, gInput.moveDir.y * (float)gGameState.dt * speed );
 }
