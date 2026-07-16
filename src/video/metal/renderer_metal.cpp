@@ -132,6 +132,11 @@ MTL::Device* gDevice;
 MTL::CommandQueue* gCommandQueue;
 MTL::RenderPassDescriptor* renderPassDescriptor; // This comes from the application
 
+double GetMilliseconds()
+{
+    return CFAbsoluteTimeGetCurrent() * 1000;
+}
+
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset )
 {
     outOffset = renderer.frameResources[ 0 ].uboOffset;
