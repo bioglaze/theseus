@@ -9,8 +9,12 @@
 #include <libdecor.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
+#ifdef OS_FREEBSD
+#include <dev/evdev/input.h>
+#else
 #include <linux/input.h>
 #include <linux/joystick.h>
+#endif
 
 // TODO: rename link, conflicts with some header
 
@@ -473,8 +477,8 @@ void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x
 {
     IncEventIndex();
     win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-    win.events[ win.eventIndex ].x = (int)wl_fixed_to_double( x );
-    win.events[ win.eventIndex ].y = (int)wl_fixed_to_double( y );
+    win.events[ win.eventIndex ].x = wl_fixed_to_int( x );
+    win.events[ win.eventIndex ].y = wl_fixed_to_int( y );
 
     win.lastMouseX = win.events[ win.eventIndex ].x;
     win.lastMouseY = win.events[ win.eventIndex ].y;
@@ -534,7 +538,7 @@ void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDe
 {
     //printf("latched: %u, depressed: %u, locked: %u\n", modsLatched, modsDepressed, modsLocked );
 
-    win.ctrlPressed = modsDepressed == 4;    
+    win.ctrlPressed = modsDepressed & 4;
 }
 
 void keyRepeat( void* data, wl_keyboard* wlKeyboard, int rate, int delay )
@@ -907,6 +911,7 @@ static void InitKeyMap()
 
 static void InitGamePad()
 {
+#ifndef OS_FREEBSD
     DIR* dir = opendir( "/dev/input" );
     dirent* result = readdir( dir );
 
@@ -967,6 +972,7 @@ static void InitGamePad()
     }
 
     closedir( dir );
+#endif
 }
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
@@ -1008,9 +1014,11 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     gwlSurface = window.wlSurface;
     wl_surface_add_listener( window.wlSurface, &surfaceListener, &window );
 
+    const char* appId = "theseus";
+
     decorContext = libdecor_new( gwlDisplay, &libdecor_iface );
     window.frame = libdecor_decorate( decorContext, window.wlSurface, &decorFrameInterface, &window );
-    libdecor_frame_set_app_id( window.frame, "theseus" );
+    libdecor_frame_set_app_id( window.frame, appId );
     libdecor_frame_set_title( window.frame, "Theseus Engine" );
     libdecor_frame_map( window.frame );
 
@@ -1022,7 +1030,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
             exit( 1 );
         }
     }
-
+    
     return nullptr;
 }
 
@@ -1032,7 +1040,7 @@ void tePushWindowEvents()
     {
         return;
     }
-    
+#ifndef OS_FREEBSD
     js_event j;
 
     while (read( win.gamePad.fd, &j, sizeof( js_event ) ) == sizeof( js_event ))
@@ -1142,6 +1150,7 @@ void tePushWindowEvents()
             }
         }
     }
+#endif
 }
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
