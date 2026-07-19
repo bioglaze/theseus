@@ -148,7 +148,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
 
-    const float3 N = normalVS;
+    const float3 N = normalize( normalVS );
     const float3 V = normalize( vsOut.positionVS );
     const float3 L = -uniforms.lightDirection.xyz;
     const float3 H = normalize( L + V );
@@ -156,8 +156,8 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = mul( uniforms.localToView, uniforms.lightDirection ).xyz;
-    float dotNL = saturate( dot( normalVS, -surfaceToLightVS ) );
+    const float3 surfaceToLightVS = -mul( uniforms.localToView, uniforms.lightDirection ).xyz;
+    float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     accumDiffuseAndSpecular *= dotNL;
     
     float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
@@ -183,41 +183,42 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         float4 centerAndRadius = vk::RawBufferLoad < float4 > (pushConstants.pointLightCenterAndRadiusBuf + 16 * lightIndex);
         const float radius = centerAndRadius.w;
 
-        const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
         const float3 vecToLightWS = centerAndRadius.xyz - vsOut.positionWS.xyz;
-        const float3 lightDirVS = normalize( vecToLightVS );
-
-        const float3 iL = normalize( vecToLightVS );
-        const float3 iH = normalize( iL + V );
+        const float lightDistance = length( vecToLightWS );        
 
         const float dotNV = abs( dot( N, V ) ) + 1e-5f;
-        const float dotNL = saturate( dot( N, lightDirVS ) );
-        const float dotVH = saturate( dot( V, iH ) );
-        const float dotLH = saturate( dot( iL, iH ) );
-        const float dotNH = saturate( dot( N, iH ) );
-        
-        const float lightDistance = length( vecToLightWS );
-
-        float f0 = 0.04f;
-        float roughness = 0.5f;
-        
-        float3 f0v = float3( f0, f0, f0 );
-        float a = roughness * roughness;
-        float D = D_GGX( dotNH, a );
-        float3 F = F_Schlick( dotLH, f0v );
-        float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
-        float3 Fr = (D * v) * F;
-        float3 Fd = Fd_Lambert();
         
         if (lightDistance < radius)
         {
-            float attenuation = pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
-            attenuation = 1.0;
+            const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
+            const float3 iL = normalize( vecToLightVS );
+            const float3 iH = normalize( iL + V );
+
+            const float3 lightDirVS = normalize( vecToLightVS );
+            
+            const float dotNL = saturate( dot( N, lightDirVS ) );
+            
+            const float dotVH = saturate( dot( V, iH ) );
+            const float dotLH = saturate( dot( iL, iH ) );
+            const float dotNH = saturate( dot( N, iH ) );
+        
+            float f0 = 0.04f;
+            float roughness = 0.5f;
+        
+            float3 f0v = float3( f0, f0, f0 );
+            float a = roughness * roughness;
+            float D = D_GGX( dotNH, a );
+            float3 F = F_Schlick( dotLH, f0v );
+            float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
+            float3 Fr = (D * v) * F;
+            float3 Fd = Fd_Lambert();
+
+            float attenuation = 1.0f;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
             // FIXME: something wrong with the following line
             //const float3 color = Fd + Fr;
             const float3 color = 1.0f;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
-            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL * 1.0f;
+            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
             //return float4( pointLightColor.rgb, 1 );
         }
     }
