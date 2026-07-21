@@ -1101,10 +1101,11 @@ void RenderSceneView( float gridStep )
             const char* types[ 4 ] = { "None", "Door", "Button", "Player Start" };
             bool check2 = ImGui::Combo( "Type", &type, types, 4 );
 
-            if (check2)
+            //if (check2)
             {
                 if (type == 1)
                 {
+                    // TODO: change into non-editable and just display the names of the entities that have this door as a target.
                     ImGui::InputText( "input", sceneView.doorInputs[ selectedGoIndex ], 100 );
                 }
                 else if (type == 2)

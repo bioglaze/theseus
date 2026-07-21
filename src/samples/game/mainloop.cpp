@@ -36,6 +36,7 @@ struct InputState
     int lastMouseX = 0;
     int lastMouseY = 0;
     Vec3 moveDir;
+    bool isRightMouseDown = false;
 } gInput;
 
 struct GameState
@@ -44,17 +45,8 @@ struct GameState
     double dt;
 } gGameState;
 
-void Init( unsigned width, unsigned height )
+void LoadResources( unsigned width, unsigned height )
 {
-#if !API_METAL
-    void* windowHandle = teCreateWindow( width, height, "Game" );
-    teWindowGetSize( width, height );
-#else
-    void* windowHandle = nullptr;
-#endif
-    teCreateRenderer( 1, windowHandle, width, height );
-    teLoadMetalShaderLibrary();
-
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     gResources.unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
@@ -107,6 +99,20 @@ void Init( unsigned width, unsigned height )
     teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
     teFinalizeMeshBuffers();
+}
+
+void Init( unsigned width, unsigned height )
+{
+#if !API_METAL
+    void* windowHandle = teCreateWindow( width, height, "Game" );
+    teWindowGetSize( width, height );
+#else
+    void* windowHandle = nullptr;
+#endif
+    teCreateRenderer( 1, windowHandle, width, height );
+    teLoadMetalShaderLibrary();
+
+    LoadResources( width, height );
 
     gGameState.theTime = GetMilliseconds();
 }
@@ -178,6 +184,42 @@ void HandleEvent( const teWindowEvent& event )
     else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
     {
         gInput.moveDir.y = -0.5f;
+    }
+
+    if (event.type == teWindowEvent::Type::Mouse2Down)
+    {
+        gInput.x = event.x;
+        gInput.y = event.y;
+        gInput.isRightMouseDown = true;
+        gInput.lastMouseX = gInput.x;
+        gInput.lastMouseY = gInput.y;
+        gInput.deltaX = 0;
+        gInput.deltaY = 0;
+    }
+    else if (event.type == teWindowEvent::Type::Mouse2Up)
+    {
+        gInput.x = event.x;
+        gInput.y = event.y;
+        gInput.isRightMouseDown = false;
+        gInput.deltaX = 0;
+        gInput.deltaY = 0;
+        gInput.lastMouseX = gInput.x;
+        gInput.lastMouseY = gInput.y;
+    }
+    else if (event.type == teWindowEvent::Type::MouseMove)
+    {
+        gInput.x = event.x;
+        gInput.y = event.y;
+        gInput.deltaX = float( gInput.x - gInput.lastMouseX );
+        gInput.deltaY = float( gInput.y - gInput.lastMouseY );
+        gInput.lastMouseX = gInput.x;
+        gInput.lastMouseY = gInput.y;
+
+        if (gInput.isRightMouseDown)
+        {
+            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 0, 1, 0 ), -gInput.deltaX / 100.0f * (float)gGameState.dt );
+            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY / 100.0f * (float)gGameState.dt );
+        }
     }
 
     bool fpsCamera = false;
