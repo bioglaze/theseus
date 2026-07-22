@@ -32,6 +32,12 @@ constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
 constexpr unsigned MaxTextures = 40;
 constexpr unsigned MaxEntities = 100; // Should be at least as many as gameobjects.
+constexpr unsigned MaxDoorInputs = 3;
+
+constexpr unsigned EntityNone = 0;
+constexpr unsigned EntityDoor = 1;
+constexpr unsigned EntityButton = 2;
+constexpr unsigned EntityStart = 3;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
@@ -98,7 +104,7 @@ struct SceneView
     float lightColor[ 3 ] = { 1, 1, 1 };
 
     char* entityNames[ MaxEntities ] = {};
-    char* doorInputs[ MaxEntities ] = {};
+    char* doorInputs[ MaxEntities ][ MaxDoorInputs ] = {};
     char* buttonOutputs[ MaxEntities ] = {};
     int entityTypes[ MaxEntities ] = {};
 };
@@ -116,6 +122,32 @@ struct ImGUIImplCustom
 };
 
 ImGUIImplCustom imguiImpl;
+
+void RefreshEntities()
+{
+    // Fill selected gameobject's doorInputs from buttonOutputs. TODO: need to fill all gameobjects doorInputs before saving file to scene.
+    if (sceneView.entityTypes[ selectedGoIndex ] == EntityDoor)
+    {
+        for (unsigned j = 0; j < MaxEntities; ++j)
+        {
+
+        }
+    }
+
+    /*for (unsigned i = 0; i < MaxEntities; ++i)
+    {
+        if (sceneView.entityTypes[ i ] == EntityButton)
+        {
+            for (unsigned j = 0; j < MaxEntities; ++j)
+            {
+                if (sceneView.entityTypes[ j ] == EntityDoor && strcmp( sceneView.buttonOutputs[ j ], sceneView.entityNames[ j ] ) )
+                {
+                    sceneView.doorInputs[ selectedGoIndex ][ doorInputIndex ] = "";
+                }
+            }
+        }
+    }*/
+}
 
 void ExportScene( const teScene& scene, const char* path )
 {
@@ -191,7 +223,6 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 {
                     assert( imguiImpl.textureCount < 10 );
 
-                    printf( "ImTextureStatus_WantCreate\n" );
                     imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
                     tex->SetStatus( ImTextureStatus_OK );
@@ -209,7 +240,6 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
                 {
                     assert( imguiImpl.textureCount < 10 );
 
-                    printf( "ImTextureStatus_WantUpdates\n" );
                     imguiImpl.textures[ imguiImpl.textureCount ] = teCreateTexture2D( tex->Width, tex->Height, 0, teTextureFormat::RGBA_sRGB, "default" );
 
                     tex->SetStatus( ImTextureStatus_OK );
@@ -227,8 +257,8 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
 
     if (drawData->TotalVtxCount > 0)
     {
-        size_t vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
-        size_t indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+        unsigned vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        unsigned indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
         void* vertexMemory = nullptr;
         void* indexMemory = nullptr;
@@ -374,6 +404,7 @@ void SelectObject( unsigned x, unsigned y )
     if (closestSceneGo != -1)
     {
         selectedGoIndex = closestSceneGo;
+        RefreshEntities();
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
 
@@ -777,8 +808,12 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     for (unsigned i = 0; i < MaxEntities; ++i)
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
-        sceneView.doorInputs[ i ] = (char*)calloc( 100, sizeof( char ) );
         sceneView.buttonOutputs[ i ] = (char*)calloc( 100, sizeof( char ) );
+
+        for (unsigned j = 0; j < MaxDoorInputs; ++j)
+        {
+            sceneView.doorInputs[ i ][ j ] = (char*)calloc( 100, sizeof( char ) );
+        }
     }
 }
 
@@ -907,6 +942,7 @@ void RenderSceneView( float gridStep )
                 if (ImGui::Selectable( teGameObjectGetName( goIndex ), selectedGoIndex == goIndex ))
                 {
                     selectedGoIndex = goIndex;
+                    RefreshEntities();
                     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
                     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
                 }
@@ -1103,12 +1139,15 @@ void RenderSceneView( float gridStep )
 
             //if (check2)
             {
-                if (type == 1)
+                if (type == EntityDoor)
                 {
-                    // TODO: change into non-editable and just display the names of the entities that have this door as a target.
-                    ImGui::InputText( "input", sceneView.doorInputs[ selectedGoIndex ], 100 );
+                    char label[ 100 ] = {};
+                    const char* l0 = sceneView.doorInputs[ selectedGoIndex ][ 0 ] ? sceneView.doorInputs[ selectedGoIndex ][ 0 ] : "<none>";
+                    const char* l1 = sceneView.doorInputs[ selectedGoIndex ][ 1 ] ? sceneView.doorInputs[ selectedGoIndex ][ 1 ] : "<none>";
+                    const char* l2 = sceneView.doorInputs[ selectedGoIndex ][ 2 ] ? sceneView.doorInputs[ selectedGoIndex ][ 2 ] : "<none>";
+                    ImGui::Text( "inputs: %s, %s, %s", l0, l1, l2 );
                 }
-                else if (type == 2)
+                else if (type == EntityButton)
                 {
                     ImGui::InputText( "target", sceneView.buttonOutputs[ selectedGoIndex ], 100 );
                 }
