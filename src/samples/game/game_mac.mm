@@ -2,10 +2,12 @@
 #import <AppKit/AppKit.h>
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/CAMetalLayer.h>
+#include "window.h"
 
 extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 
+void HandleEvent( const teWindowEvent& event );
 void Init( unsigned width, unsigned height );
 void Render();
 
@@ -44,74 +46,103 @@ unsigned width = 800, height = 450;
 
 - (void)keyDown:(NSEvent *)theEvent
 {
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::KeyDown;
+
     if ([theEvent keyCode] == 0x00) // A
     {
-        //MoveRight( -1 );
+        event.keyCode = teWindowEvent::KeyCode::A;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        //MoveRight( 1 );
+        event.keyCode = teWindowEvent::KeyCode::D;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
-        //MoveForward( 1 );
+        event.keyCode = teWindowEvent::KeyCode::W;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
-        //MoveForward( -1 );
+        event.keyCode = teWindowEvent::KeyCode::S;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
-        //MoveUp( -1 );
+        event.keyCode = teWindowEvent::KeyCode::Q;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
-        //MoveUp( 1 );
+        event.keyCode = teWindowEvent::KeyCode::E;
+        HandleEvent( event );
     }
 }
 
 - (void)keyUp:(NSEvent *)theEvent
 {
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::KeyUp;
+
     if ([theEvent keyCode] == 0x00) // A
     {
-        //MoveRight( 0 );
+        event.keyCode = teWindowEvent::KeyCode::A;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x02) // D
     {
-        //MoveRight( 0 );
+        event.keyCode = teWindowEvent::KeyCode::D;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0D) // W
     {
-        //MoveForward( 0 );
+        event.keyCode = teWindowEvent::KeyCode::W;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x01) // S
     {
-        //MoveForward( 0 );
+        event.keyCode = teWindowEvent::KeyCode::S;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0C) // Q
     {
-        //MoveUp( 0 );
+        event.keyCode = teWindowEvent::KeyCode::Q;
+        HandleEvent( event );
     }
     else if ([theEvent keyCode] == 0x0E) // E
     {
-        //MoveUp( 0 );
+        event.keyCode = teWindowEvent::KeyCode::E;
+        HandleEvent( event );
     }
 }
 
-- (void)mouseDown:(NSEvent *)event
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    int x = (int)event.locationInWindow.x;
-    int y = height - (int)event.locationInWindow.y;
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::Mouse1Down;
+    event.x = (int)theEvent.locationInWindow.x;
+    event.y = height - (int)theEvent.locationInWindow.y;
+    HandleEvent( event );
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    //MouseUp( (int)theEvent.locationInWindow.x, (int)theEvent.locationInWindow.y );
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::Mouse1Up;
+    event.x = (int)theEvent.locationInWindow.x;
+    event.y = height - (int)theEvent.locationInWindow.y;
+    HandleEvent( event );
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-    //MouseMove( (int)theEvent.locationInWindow.x, self.view.bounds.size.height - (int)theEvent.locationInWindow.y );
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::MouseMove;
+    event.x = (int)theEvent.locationInWindow.x;
+    event.y = height - (int)theEvent.locationInWindow.y;
+    HandleEvent( event );
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
