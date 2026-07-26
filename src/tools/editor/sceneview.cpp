@@ -26,7 +26,7 @@
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
 void LoadUsdScene( teScene& scene, const char* path );
-void SaveUsdScene( const teScene& scene, const char* path );
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
@@ -903,7 +903,7 @@ void RenderSceneView( float gridStep )
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetSavePath( sceneView.openFilePath, "usda" );
-                SaveUsdScene( sceneView.scene, sceneView.openFilePath );
+                SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes );
             }
 
             if (ImGui::MenuItem( "Export Scene", nullptr, nullptr ))

@@ -26,6 +26,15 @@ constexpr unsigned MaxLoadedMeshes = 100;
 LoadedMesh gLoadedMeshes[ MaxLoadedMeshes ];
 unsigned gLoadedMeshCount = 0;
 
+const char* EntitTypeToString( int type )
+{
+    if (type == 0) return "none";
+    if (type == 1) return "door";
+    if (type == 2) return "button";
+    if (type == 3) return "start";
+    return "none";
+}
+
 void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTextureCount, 
                           unsigned& outMaterialCount, unsigned& outMeshCount )
 {
@@ -220,7 +229,7 @@ void LoadUsdScene( teScene& scene, const char* path )
     }
 }
 
-void SaveUsdScene( const teScene& scene, const char* path )
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] )
 {
     FILE* outFile = fopen( path, "wb" );
     if (!outFile)
@@ -252,7 +261,8 @@ void SaveUsdScene( const teScene& scene, const char* path )
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
         fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
-        
+        fprintf( outFile, "    string entityType = \"%s\"\n", EntitTypeToString( entityTypes[ sceneGo ] ) );
+
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
         {
             fprintf( outFile, "    string mesh = \"%s\"\n", teMeshRendererGetMesh( sceneGo )->path );
