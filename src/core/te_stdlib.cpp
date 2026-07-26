@@ -25,7 +25,7 @@ char* convert( unsigned int num, int base, char** output )
         ++ptr;
     }
 
-    return(ptr);
+    return ptr;
 }
 
 void tePrint( const char* format, ... )

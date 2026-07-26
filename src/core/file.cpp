@@ -38,7 +38,7 @@ teFile teLoadFile( const char* path )
     }
     else
     {
-        printf( "Could not open file %s\n", path );
+        tePrint( "Could not open file %s\n", path );
     }
     
     return outFile;
@@ -173,7 +173,7 @@ unsigned teReadDirectory( const char* root )
 
     if (dirHandles[ dirHandleCount ].dirFile == nullptr)
     {
-        printf("teReadDirectory fail!\n");
+        tePrint( "teReadDirectory fail!\n" );
     }
 
     return dirHandleCount++;

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdint.h>
 #include "file.h"
 #include "texture.h"
@@ -164,7 +163,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 
     if (fileContents.size < (unsigned)sizeof( header ))
     {
-        printf( "DDS loader error: Texture %s file length is less than DDS header length.\n", fileContents.path );
+        tePrint( "DDS loader error: Texture %s file length is less than DDS header length.\n", fileContents.path );
         return false;
     }
 
@@ -175,7 +174,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 
     if (!(header.sHeader.dwFlags & DDSD_PIXELFORMAT) || !(header.sHeader.dwFlags & DDSD_CAPS))
     {
-        printf( "DDS loader error: Texture %s doesn't contain pixelformat or caps.\n", fileContents.path );
+        tePrint( "DDS loader error: Texture %s doesn't contain pixelformat or caps.\n", fileContents.path );
         outWidth = 32;
         outHeight = 32;
         return false;
@@ -247,7 +246,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     }
     else
     {
-        printf( "DDS loader error: Texture %s has unknown pixelformat.\n", fileContents.path );
+        tePrint( "DDS loader error: Texture %s has unknown pixelformat.\n", fileContents.path );
         outWidth = 32;
         outHeight = 32;
         outFormat = teTextureFormat::Invalid;
@@ -266,7 +265,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 
     if (size == 0)
     {
-        printf( "DDS loader error: Texture %s contents are empty.\n", fileContents.path );
+        tePrint( "DDS loader error: Texture %s contents are empty.\n", fileContents.path );
         outWidth = 32;
         outHeight = 32;
         return false;
@@ -297,7 +296,7 @@ void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsig
 
     if (imageType != 2)
     {
-        printf( "Incompatible .tga file: %s. Must be truecolor and not use RLE.\n", file.path );
+        tePrint( "Incompatible .tga file: %s. Must be truecolor and not use RLE.\n", file.path );
         return;
     }
 
@@ -318,7 +317,7 @@ void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsig
 
     if (topLeft != 32)
     {
-        printf( "%s image origin is not top left.\n", file.path );
+        tePrint( "%s image origin is not top left.\n", file.path );
     }
 
     outDataBeginOffset = offs;

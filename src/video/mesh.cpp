@@ -4,7 +4,6 @@
 #include "file.h"
 #include "te_stdlib.h"
 #include "vec3.h"
-#include <stdio.h>
 #include <stdint.h>
 
 unsigned AddPositions( const float* positions, unsigned bytes );
@@ -246,7 +245,7 @@ teMesh teLoadMesh( const teFile& file )
     // Header is something like "t3d0003" where the last numbers are version that is incremented when reading compatibility breaks.
     if (file.data[ 0 ] != 't' || file.data[ 1 ] != '3' || file.data[ 2 ] != 'd' || file.data[ 6 ] != '4')
     {
-        printf( "%s has wrong version!\n", file.path );
+        tePrint( "%s has wrong version!\n", file.path );
         return outMesh;
     }
 

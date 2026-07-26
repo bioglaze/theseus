@@ -1,5 +1,4 @@
 #include <vulkan/vulkan.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "renderer.h"
 #include "buffer.h"
@@ -302,41 +301,41 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
 {
     if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        printf( "ERROR: %s\n", callbackData->pMessage );
+        tePrint( "ERROR: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-        printf( "WARNING: %s\n", callbackData->pMessage );
+        tePrint( "WARNING: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
     {
-        printf( "INFO: %s\n", callbackData->pMessage );
+        tePrint( "INFO: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
     {
-        printf( "VERBOSE: %s\n", callbackData->pMessage );
+        tePrint( "VERBOSE: %s\n", callbackData->pMessage );
     }
 
     if (msgType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
     {
-        printf( "GENERAL: %s\n", callbackData->pMessage );
+        tePrint( "GENERAL: %s\n", callbackData->pMessage );
     }
     else if (msgType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
     {
-        //printf( "PERF: %s\n", callbackData->pMessage );
+        //tePrint( "PERF: %s\n", callbackData->pMessage );
     }
 
     if (callbackData->objectCount > 0)
     {
         for (uint32_t l = 0; l < callbackData->cmdBufLabelCount; ++l)
         {
-            printf( "Command Buffer label: %s\n", callbackData->pCmdBufLabels[ l ].pLabelName );
+            tePrint( "Command Buffer label: %s\n", callbackData->pCmdBufLabels[ l ].pLabelName );
         }
 
         for (uint32_t i = 0; i < callbackData->objectCount; ++i)
         {
             const char* name = callbackData->pObjects[ i ].pObjectName ? callbackData->pObjects[ i ].pObjectName : "unnamed";
-            printf( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
+            tePrint( "Object %u: name: %s, type: %s\n", i, name, getObjectType( callbackData->pObjects[ i ].objectType ) );
         }
     }
     
@@ -978,12 +977,13 @@ void CreateInstance()
 
     if (result != VK_SUCCESS)
     {
-        printf( "Unable to create instance!\n" );
-        if (result == VK_ERROR_EXTENSION_NOT_PRESENT) printf( "VK_ERROR_EXTENSION_NOT_PRESENT\n" );
-        if (result == VK_ERROR_OUT_OF_HOST_MEMORY) printf( "VK_ERROR_OUT_OF_HOST_MEMORY\n" );
-        if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY) printf( "VK_ERROR_OUT_OF_DEVICE_MEMORY\n" );
-        if (result == VK_ERROR_INITIALIZATION_FAILED) printf( "VK_ERROR_INITIALIZATION_FAILED\n" );
-        if (result == VK_ERROR_LAYER_NOT_PRESENT) printf( "VK_ERROR_LAYER_NOT_PRESENT\n" );
+        tePrint( "Unable to create instance!\n" );
+        if (result == VK_ERROR_EXTENSION_NOT_PRESENT) tePrint( "VK_ERROR_EXTENSION_NOT_PRESENT\n" );
+        else if (result == VK_ERROR_OUT_OF_HOST_MEMORY) tePrint( "VK_ERROR_OUT_OF_HOST_MEMORY\n" );
+        else if (result == VK_ERROR_OUT_OF_DEVICE_MEMORY) tePrint( "VK_ERROR_OUT_OF_DEVICE_MEMORY\n" );
+        else if (result == VK_ERROR_INITIALIZATION_FAILED) tePrint( "VK_ERROR_INITIALIZATION_FAILED\n" );
+        else if (result == VK_ERROR_LAYER_NOT_PRESENT) tePrint( "VK_ERROR_LAYER_NOT_PRESENT\n" );
+        else tePrint( "unhandled error code\n" );
 
         return;
     }
@@ -1018,7 +1018,7 @@ void CreateDevice()
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties( renderer.physicalDevice, &queueCount, nullptr );
 
-    printf( "GPU: %s\n", renderer.properties.deviceName );
+    tePrint( "GPU: %s\n", renderer.properties.deviceName );
 
     uint32_t deviceExtensionCount = 0;
     vkEnumerateDeviceExtensionProperties( renderer.physicalDevice, nullptr, &deviceExtensionCount, nullptr );
@@ -1031,7 +1031,7 @@ void CreateDevice()
         if (teStrstr( availableExtensions[ i ].extensionName, VK_EXT_MESH_SHADER_EXTENSION_NAME ))
         {
             renderer.meshShaderSupported = true;
-            printf( "mesh shader is supported\n" );
+            tePrint( "mesh shader is supported\n" );
         }
     }
 
@@ -1434,7 +1434,7 @@ void CreateSamplers()
 
     if (renderer.features.samplerAnisotropy == VK_FALSE)
     {
-        printf( "Anisotropy is not supported! Anisotropic samplers are not using anisotropy.\n" );
+        tePrint( "Anisotropy is not supported! Anisotropic samplers are not using anisotropy.\n" );
     }
 
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -1650,15 +1650,15 @@ void teBeginFrame()
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        printf( "Swapchain is out of date!\n" );
+        tePrint( "Swapchain is out of date!\n" );
     }
     else if (err == VK_TIMEOUT)
     {
-        printf( "Swapchain timeout!\n" );
+        tePrint( "Swapchain timeout!\n" );
     }
     else if (err == VK_SUBOPTIMAL_KHR)
     {
-        printf( "Swapchain is suboptimal!\n" );
+        tePrint( "Swapchain is suboptimal!\n" );
     }
     else
     {
@@ -1731,7 +1731,7 @@ void teEndFrame()
 
     uint64_t timestamps[ 2 ] = {};
     VkResult res = vkGetQueryPoolResults( renderer.device, renderer.queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
-    //printf( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
+    //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1744,11 +1744,11 @@ void teEndFrame()
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR)
     {
-        printf( "Swapchain is out of date!\n" );
+        tePrint( "Swapchain is out of date!\n" );
     }
     else if (err == VK_SUBOPTIMAL_KHR)
     {
-        printf( "Swapchain is suboptimal!\n" );
+        tePrint( "Swapchain is suboptimal!\n" );
     }
     else
     {
