@@ -11,6 +11,8 @@
 #include "vec3.h"
 #include "window.h"
 
+#include "game.h"
+
 double GetMilliseconds();
 
 struct Resources

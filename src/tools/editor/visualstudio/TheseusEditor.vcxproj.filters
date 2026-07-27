@@ -77,5 +77,6 @@
     <ClInclude Include="..\..\..\include\mathutil.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\samples\game\include\game.h" />
   </ItemGroup>
 </Project>

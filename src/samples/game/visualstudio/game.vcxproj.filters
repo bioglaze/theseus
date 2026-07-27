@@ -4,4 +4,7 @@
     <ClCompile Include="..\game.cpp" />
     <ClCompile Include="..\mainloop.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\game.h" />
+  </ItemGroup>
 </Project>

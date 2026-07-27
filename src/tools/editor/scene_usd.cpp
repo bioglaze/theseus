@@ -13,6 +13,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "game.h"
+
 unsigned GetTranslateGizmoGoIndex();
 teMaterial& GetMaterial( const char* name );
 
@@ -25,15 +27,6 @@ struct LoadedMesh
 constexpr unsigned MaxLoadedMeshes = 100;
 LoadedMesh gLoadedMeshes[ MaxLoadedMeshes ];
 unsigned gLoadedMeshCount = 0;
-
-const char* EntitTypeToString( int type )
-{
-    if (type == 0) return "none";
-    if (type == 1) return "door";
-    if (type == 2) return "button";
-    if (type == 3) return "start";
-    return "none";
-}
 
 void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTextureCount, 
                           unsigned& outMaterialCount, unsigned& outMeshCount )
@@ -261,7 +254,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] )
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
         fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
-        fprintf( outFile, "    string entityType = \"%s\"\n", EntitTypeToString( entityTypes[ sceneGo ] ) );
+        fprintf( outFile, "    string entityType = \"%s\"\n", EntityTypeToString( entityTypes[ sceneGo ] ) );
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
         {

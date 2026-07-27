@@ -23,6 +23,8 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 
+#include "game.h"
+
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
 void LoadUsdScene( teScene& scene, const char* path );
@@ -32,12 +34,6 @@ constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
 constexpr unsigned MaxTextures = 40;
 constexpr unsigned MaxEntities = 100; // Should be at least as many as gameobjects.
-constexpr unsigned MaxDoorInputs = 3;
-
-constexpr unsigned EntityNone = 0;
-constexpr unsigned EntityDoor = 1;
-constexpr unsigned EntityButton = 2;
-constexpr unsigned EntityStart = 3;
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
@@ -149,7 +145,7 @@ void RefreshEntities()
     }*/
 }
 
-void ExportScene( const teScene& scene, const char* path )
+void ExportGameScene( const teScene& scene, const char* path )
 {
     FILE* outFile = fopen( path, "wb" );
     if (!outFile)
@@ -173,6 +169,8 @@ void ExportScene( const teScene& scene, const char* path )
             {
                 fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path ); // Note: in teSceneReadScene() this is mesh name, not path, but the format is not finalized yet.
             }
+
+            fprintf( outFile, "entity %s", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
         }
     }
 
@@ -910,7 +908,7 @@ void RenderSceneView( float gridStep )
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetSavePath( sceneView.openFilePath, "tscene" );
-                ExportScene( sceneView.scene, sceneView.openFilePath );
+                ExportGameScene( sceneView.scene, sceneView.openFilePath );
             }
             ImGui::EndMenu();
         }
