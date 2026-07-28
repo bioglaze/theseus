@@ -55,9 +55,7 @@ teTexture2D   m_bilinearTestTex;
 teTextureCube m_skyTex;
 teGameObject  m_camera3d;
 teGameObject  m_cubeGo;
-teGameObject  m_roomGo;
 teScene       m_scene;
-teMesh        m_roomMesh;
 teMesh        m_cubeMesh;
 teGameObject pointLight;
 teGameObject pointLight2;
@@ -233,17 +231,6 @@ void MoveUp( float amount )
         teMaterialSetTexture2D( m_brickMaterial, m_brickTex, 0 );
         teMaterialSetTexture2D( m_brickMaterial, m_floorNormalTex, 1 );
 
-        teFile roomFile = teLoadFile( "assets/meshes/room.t3d" );
-        m_roomMesh = teLoadMesh( roomFile );
-        m_roomGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
-        teMeshRendererSetMesh( m_roomGo.index, &m_roomMesh );
-        teMeshRendererSetMaterial( m_roomGo.index, m_floorMaterial, 0 );
-        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 1 );
-        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 2 );
-        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 3 );
-        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 4 );
-        teMeshRendererSetMaterial( m_roomGo.index, m_brickMaterial, 5 );
-
         m_cubeMesh = teCreateCubeMesh();
         m_cubeGo = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
         teMeshRendererSetMesh( m_cubeGo.index, &m_cubeMesh );
@@ -370,7 +357,6 @@ void MoveUp( float amount )
         m_scene = teCreateScene( 2048 );
         teSceneAdd( m_scene, m_camera3d.index );
         teSceneAdd( m_scene, m_cubeGo.index );
-        //teSceneAdd( m_scene, m_roomGo.index );
         teSceneAdd( m_scene, keypadGo.index );
         teSceneAdd( m_scene, pointLight.index );
         teSceneAdd( m_scene, pointLight2.index );
