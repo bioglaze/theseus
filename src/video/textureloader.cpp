@@ -17,7 +17,7 @@
 
 //  DDS_header.sPixelFormat.dwFlags
 #define DDPF_ALPHAPIXELS            0x00000001 
-#define DDPF_FOURCC                 0x00000004
+#define DDPF_FOURCC2                0x00000004
 #define DDPF_INDEXED                0x00000020 
 #define DDPF_RGB                    0x00000040 
 
@@ -48,16 +48,16 @@
 ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) |       \
 ((uint32_t)(uint8_t)(ch2) << 16) | ((uint32_t)(uint8_t)(ch3) << 24))
 
-#define PF_IS_DXT1(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == D3DFMT_DXT1))
-#define PF_IS_DXT3(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == D3DFMT_DXT3))
-#define PF_IS_DXT5(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == D3DFMT_DXT5))
-#define PF_IS_BC4U(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '4', 'U') ))
-#define PF_IS_BC4S(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '4', 'S') ))
-#define PF_IS_BC5U(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '5', 'U') ))
-#define PF_IS_BC5S(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '5', 'S') ))
-#define PF_IS_ATI1(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '1') ))
-#define PF_IS_ATI2(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '2') ))
-#define PF_IS_DX10(pf) ((pf.dwFlags & DDPF_FOURCC) && (pf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0') ))
+#define PF_IS_DXT1(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == D3DFMT_DXT1))
+#define PF_IS_DXT3(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == D3DFMT_DXT3))
+#define PF_IS_DXT5(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == D3DFMT_DXT5))
+#define PF_IS_BC4U(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '4', 'U') ))
+#define PF_IS_BC4S(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '4', 'S') ))
+#define PF_IS_BC5U(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '5', 'U') ))
+#define PF_IS_BC5S(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('B', 'C', '5', 'S') ))
+#define PF_IS_ATI1(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '1') ))
+#define PF_IS_ATI2(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('A', 'T', 'I', '2') ))
+#define PF_IS_DX10(pf) ((pf.dwFlags & DDPF_FOURCC2) && (pf.dwFourCC == MAKEFOURCC('D', 'X', '1', '0') ))
 
 constexpr unsigned dxgiFormat_BC1_UNORM = 71;
 constexpr unsigned dxgiFormat_BC1_UNORM_SRGB = 72;

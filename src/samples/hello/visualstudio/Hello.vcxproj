@@ -67,7 +67,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\build;%VULKAN_SDK%\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>theseus_vulkan_d.lib;user32.lib;gdi32.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>theseus_vulkan_d.lib;Ole32.lib;user32.lib;gdi32.lib;vulkan-1.lib</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -90,7 +90,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\build;%VULKAN_SDK%\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>theseus_vulkan_r.lib;user32.lib;gdi32.lib;vulkan-1.lib</AdditionalDependencies>
+      <AdditionalDependencies>theseus_vulkan_r.lib;Ole32.lib;user32.lib;gdi32.lib;vulkan-1.lib</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>

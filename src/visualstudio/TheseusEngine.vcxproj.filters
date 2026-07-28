@@ -67,6 +67,9 @@
     <ClCompile Include="..\core\te_stdlib.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\audio_wasapi.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\renderer.h">
