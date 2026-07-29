@@ -10,6 +10,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #include "video/window_xcb.cpp"
 #endif
 #include "core/te_stdlib.cpp"
+#include "core/audio_common.cpp"
 #include "core/camera.cpp"
 #include "core/file.cpp"
 #include "core/frustum.cpp"
@@ -27,7 +28,6 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
 #include "core/audio_wasapi.cpp"
-#include "core/audio_common.cpp"
 #else
 #include "metal/buffer_metal.cpp"
 #include "metal/renderer_metal.cpp"
