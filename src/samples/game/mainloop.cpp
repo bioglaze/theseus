@@ -14,6 +14,7 @@
 #include "game.h"
 
 double GetMilliseconds();
+void InitAudio();
 
 struct Resources
 {
@@ -115,6 +116,8 @@ void Init( unsigned width, unsigned height )
     teLoadMetalShaderLibrary();
 
     LoadResources( width, height );
+
+    InitAudio();
 
     gGameState.theTime = GetMilliseconds();
 }
