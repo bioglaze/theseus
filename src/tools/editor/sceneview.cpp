@@ -170,7 +170,7 @@ void ExportGameScene( const teScene& scene, const char* path )
                 fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path ); // Note: in teSceneReadScene() this is mesh name, not path, but the format is not finalized yet.
             }
 
-            fprintf( outFile, "entity %s", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
+            fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
         }
     }
 

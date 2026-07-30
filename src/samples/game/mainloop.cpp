@@ -13,6 +13,8 @@
 
 #include "game.h"
 
+#include <string.h>
+
 double GetMilliseconds();
 void InitAudio();
 
@@ -47,6 +49,55 @@ struct GameState
     double theTime;
     double dt;
 } gGameState;
+
+void ZeroMem( char* dst, size_t size )
+{
+    for (unsigned i = 0; i < size; ++i)
+    {
+        dst[ i ] = 0;
+    }
+}
+
+void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outMeshCount )
+{
+    outGoCount = 0;
+    outMeshCount = 0;
+
+    char line[ 255 ] = {};
+    unsigned cursor = 0;
+    unsigned i = 0;
+
+    while (cursor < sceneFile.size)
+    {
+        line[ i ] = sceneFile.data[ cursor ];
+        ++i;
+
+        if (sceneFile.data[ cursor ] == '\n')
+        {
+            line[ i - 1 ] = 0;
+            i = 0;
+            if (strstr( line, "gameobject" ) == line)
+            {
+                ++outGoCount;
+            }
+            else if (strstr( line, "meshrenderer" ) == line)
+            {
+                //++outMeshCount;
+            }
+            else if (strstr( line, "meshmaterial" ) == line)
+            {
+                //++outMeshCount;
+            }
+            else if (strstr( line, "mesh" ) == line)
+            {
+                ++outMeshCount;
+            }
+            ZeroMem( line, 255 );
+        }
+
+        ++cursor;
+    }
+}
 
 void LoadResources( unsigned width, unsigned height )
 {
@@ -98,6 +149,11 @@ void LoadResources( unsigned width, unsigned height )
     teCameraGetDepthNormalsTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
 
     teSceneAdd( gResources.scene, gResources.camera3d.index );
+
+    teFile sceneFile = teLoadFile( "game_proto.tscene" );
+    unsigned goCount = 0;
+    unsigned meshCount = 0;
+    GameSceneReadArraySizes( sceneFile, goCount, meshCount );
 
     teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 

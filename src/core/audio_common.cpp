@@ -48,6 +48,10 @@ uint16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& 
     outChannelCount = wav->numChannels;
     outSampleRate = wav->sampleRate;
 
+    constexpr unsigned WAVE_FORMAT_PCM = 1;
+    constexpr unsigned WAVE_FORMAT_IEEE_FLOAT = 0x0003;
+    constexpr unsigned WAVE_FORMAT_EXTENSIBLE = 0xFFFE;
+
     if (wav->audioFormat == WAVE_FORMAT_PCM)
     {
         tePrint( "File is PCM\n" );
