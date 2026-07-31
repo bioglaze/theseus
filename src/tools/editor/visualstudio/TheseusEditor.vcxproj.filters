@@ -78,5 +78,8 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\samples\game\include\game.h" />
+    <ClInclude Include="..\..\..\include\audio.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

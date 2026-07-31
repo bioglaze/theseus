@@ -1,3 +1,4 @@
+#include "audio.h"
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
@@ -16,7 +17,7 @@
 #include <string.h>
 
 double GetMilliseconds();
-void InitAudio();
+void LoadAudioWAV( const char* path ); // TEMP
 
 struct Resources
 {
@@ -174,6 +175,7 @@ void Init( unsigned width, unsigned height )
     LoadResources( width, height );
 
     InitAudio();
+    //LoadAudioWAV( "assets/sine340.wav" );
 
     gGameState.theTime = GetMilliseconds();
 }

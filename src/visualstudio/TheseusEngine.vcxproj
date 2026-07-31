@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClInclude Include="..\core\frustum.h" />
     <ClInclude Include="..\core\te_stdlib.h" />
+    <ClInclude Include="..\include\audio.h" />
     <ClInclude Include="..\include\camera.h" />
     <ClInclude Include="..\include\file.h" />
     <ClInclude Include="..\include\gameobject.h" />

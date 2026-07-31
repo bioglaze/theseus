@@ -2,11 +2,12 @@
 
 enum teComponent : unsigned
 {
-    Transform = 1,
-    Camera = 2,
+    Transform    = 1,
+    Camera       = 2,
     MeshRenderer = 4,
-    PointLight = 8,
-    SpotLight = 16
+    PointLight   = 8,
+    SpotLight    = 16,
+    AudioSource  = 32,
 };
 
 struct teGameObject

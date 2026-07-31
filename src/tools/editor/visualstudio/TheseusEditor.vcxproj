@@ -143,6 +143,7 @@
     <ClCompile Include="..\scene_usd.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\audio.h" />
     <ClInclude Include="..\..\..\include\camera.h" />
     <ClInclude Include="..\..\..\include\file.h" />
     <ClInclude Include="..\..\..\include\gameobject.h" />

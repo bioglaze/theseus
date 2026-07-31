@@ -69,5 +69,8 @@
     <ClInclude Include="..\..\..\include\mathutil.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\audio.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

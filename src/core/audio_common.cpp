@@ -2,6 +2,14 @@
 #include "file.h"
 #include "te_stdlib.h"
 
+struct AudioSource
+{
+
+};
+
+static constexpr unsigned MaxAudioSources = 10000;
+static struct AudioSource gAudioSources[ MaxAudioSources ];
+
 struct WAVE
 {
     uint8_t chunkID[ 4 ];
@@ -24,11 +32,17 @@ struct WAVE
     int dataOffset; // Chunk data.
 };
 
-uint16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outSampleCount )
+// FIXME: int16_t* is wrong for 8-bit data.
+int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outFrameCount )
 {
+    if (!file.data)
+    {
+        return nullptr;
+    }
+
     WAVE* wav = reinterpret_cast< WAVE* >( file.data );
 
-    if (wav->chunkID[ 0 ] != 'R' && wav->chunkID[ 1 ] != 'I' && wav->chunkID[ 2 ] != 'F' && wav->chunkID[ 3 ] != 'F')
+    if (wav->chunkID[ 0 ] != 'R' || wav->chunkID[ 1 ] != 'I' || wav->chunkID[ 2 ] != 'F' || wav->chunkID[ 3 ] != 'F')
     {
         tePrint( "%s doesn't contain valid header!\n", file.path );
         return nullptr;
@@ -40,7 +54,7 @@ uint16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& 
         return nullptr;
     }
 
-    if (wav->subchunk2ID[ 0 ] != 'd' && wav->subchunk2ID[ 1 ] != 'a' && wav->subchunk2ID[ 2 ] != 't' && wav->subchunk2ID[ 3 ] != 'a')
+    if (wav->subchunk2ID[ 0 ] != 'd' || wav->subchunk2ID[ 1 ] != 'a' || wav->subchunk2ID[ 2 ] != 't' || wav->subchunk2ID[ 3 ] != 'a')
     {
         tePrint( "Warning! %s doesn't have an expected type of subchunk!\n", file.path );
     }
@@ -87,10 +101,9 @@ uint16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& 
         return nullptr;
     }
 
-    // FIXME: check
-    outSampleCount = wav->subchunk2Size / (wav->numChannels * sizeof( uint16_t ));
+    outFrameCount = wav->subchunk2Size / (wav->numChannels * sizeof( uint16_t )); // FIXME: wrong for 8-bit
 
-    return reinterpret_cast< uint16_t* >( file.data + sizeof( WAVE ));
-    //return &wav->dataOffset;
-    //return data + wav->dataOffset + 48;
+    tePrint( "sample rate: %d, channel count: %d, frame count: %d, bitsPerSample: %d\n", outSampleRate, outChannelCount, outFrameCount, wav->bitsPerSample );
+
+    return reinterpret_cast< int16_t* >( file.data + sizeof( WAVE ));
 }
