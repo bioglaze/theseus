@@ -116,8 +116,8 @@ void RenderImGUIDrawData( const teShader& shader )
 
     if (drawData->TotalVtxCount > 0)
     {
-        const size_t vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
-        const size_t indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
+        const unsigned vertexBytes = drawData->TotalVtxCount * sizeof( ImDrawVert );
+        const unsigned indexBytes = drawData->TotalIdxCount * sizeof( ImDrawIdx );
 
         void* vertexMemory = nullptr;
         void* indexMemory = nullptr;
@@ -125,7 +125,7 @@ void RenderImGUIDrawData( const teShader& shader )
         ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
         ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
 
-        for (int n = 0; n < drawData->CmdListsCount; ++n)
+        for (int n = 0; n < drawData->CmdLists.Size; ++n)
         {
             const ImDrawList* cmd_list = drawData->CmdLists[ n ];
             memcpy( vtxDst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
@@ -144,7 +144,7 @@ void RenderImGUIDrawData( const teShader& shader )
     int global_vtx_offset = 0;
     int global_idx_offset = 0;
 
-    for (int n = 0; n < drawData->CmdListsCount; ++n)
+    for (int n = 0; n < drawData->CmdLists.Size; ++n)
     {
         const ImDrawList* cmd_list = drawData->CmdLists[ n ];
 

@@ -28,7 +28,7 @@
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
 void LoadUsdScene( teScene& scene, const char* path );
-void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] );
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
@@ -121,7 +121,7 @@ ImGUIImplCustom imguiImpl;
 
 void RefreshEntities()
 {
-    // Fill selected gameobject's doorInputs from buttonOutputs. TODO: need to fill all gameobjects doorInputs before saving file to scene.
+    // Fill selected gameobject's doorInputs from buttonOutputs.
     if (sceneView.entityTypes[ selectedGoIndex ] == EntityDoor)
     {
         for (unsigned j = 0; j < MaxEntities; ++j)
@@ -171,6 +171,7 @@ void ExportGameScene( const teScene& scene, const char* path )
             }
 
             fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
+            fprintf( outFile, "entityName %s\n", sceneView.entityNames[ goIndex ] );
         }
     }
 
@@ -264,7 +265,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
         ImDrawVert* vtxDst = (ImDrawVert*)vertexMemory;
         ImDrawIdx* idxDst = (ImDrawIdx*)indexMemory;
 
-        for (int n = 0; n < drawData->CmdListsCount; ++n)
+        for (int n = 0; n < drawData->CmdLists.Size; ++n)
         {
             const ImDrawList* cmdList = drawData->CmdLists[ n ];
             memcpy( vtxDst, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof( ImDrawVert ) );
@@ -282,7 +283,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
     int globalVtxOffset = 0;
     int globalIdxOffset = 0;
 
-    for (int n = 0; n < drawData->CmdListsCount; ++n)
+    for (int n = 0; n < drawData->CmdLists.Size; ++n)
     {
         const ImDrawList* cmdList = drawData->CmdLists[ n ];
 
@@ -901,7 +902,7 @@ void RenderSceneView( float gridStep )
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetSavePath( sceneView.openFilePath, "usda" );
-                SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes );
+                SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
             }
 
             if (ImGui::MenuItem( "Export Scene", nullptr, nullptr ))

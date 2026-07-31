@@ -15,6 +15,8 @@
 #include "game.h"
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 double GetMilliseconds();
 void LoadAudioWAV( const char* path ); // TEMP
@@ -83,17 +85,54 @@ void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, uns
             }
             else if (strstr( line, "meshrenderer" ) == line)
             {
-                //++outMeshCount;
-            }
-            else if (strstr( line, "meshmaterial" ) == line)
-            {
-                //++outMeshCount;
-            }
-            else if (strstr( line, "mesh" ) == line)
-            {
                 ++outMeshCount;
             }
             ZeroMem( line, 255 );
+        }
+
+        ++cursor;
+    }
+}
+
+void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos, teMesh* meshes )
+{
+    unsigned goCount = 0;
+    unsigned meshCount = 0;
+
+    char line[ 255 ] = {};
+    unsigned cursor = 0;
+    unsigned i = 0;
+
+    while (cursor < sceneFile.size)
+    {
+        line[ i ] = sceneFile.data[ cursor ];
+        ++i;
+
+        if (sceneFile.data[ cursor ] == '\n')
+        {
+            line[ i - 1 ] = 0;
+            i = 0;
+
+            if (strstr( line, "gameobject" ) == line)
+            {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = strlen( "gameobject " );
+
+                while (nameCursor + offset < strlen( line ) &&
+                    line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                printf( "gameobject name: %s\n", name );
+                gos[ goCount ] = teCreateGameObject( "gameobject", teComponent::Transform );
+                teGameObjectSetName( gos[ goCount ].index, name );
+                ++goCount;
+            }
+            else if (strstr( line, "entity" ) == line)
+            {
+            }
         }
 
         ++cursor;
@@ -155,6 +194,14 @@ void LoadResources( unsigned width, unsigned height )
     unsigned goCount = 0;
     unsigned meshCount = 0;
     GameSceneReadArraySizes( sceneFile, goCount, meshCount );
+    teGameObject* sceneGos = (teGameObject*)malloc( goCount * sizeof( teGameObject ) );
+    teMesh* sceneMeshes = (teMesh*)malloc( meshCount * sizeof( teMesh ) );
+    GameSceneReadScene( sceneFile, sceneGos, sceneMeshes );
+
+    for (unsigned i = 0; i < goCount; ++i)
+    {
+        teSceneAdd( gResources.scene, sceneGos[ i ].index );
+    }
 
     teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 

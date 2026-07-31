@@ -222,7 +222,7 @@ void LoadUsdScene( teScene& scene, const char* path )
     }
 }
 
-void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] )
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[] )
 {
     FILE* outFile = fopen( path, "wb" );
     if (!outFile)
@@ -254,6 +254,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[] )
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
         fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
+        fprintf( outFile, "    string entityName = \"%s\"\n", entityNames[ sceneGo ] );
         fprintf( outFile, "    string entityType = \"%s\"\n", EntityTypeToString( entityTypes[ sceneGo ] ) );
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
