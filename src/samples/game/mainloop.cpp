@@ -345,8 +345,15 @@ void Init( unsigned width, unsigned height )
     gGameState.theTime = GetMilliseconds();
 }
 
-void Render()
+void Tick()
 {
+    bool fpsCamera = false;
+    const float speed = fpsCamera ? 0.25f : 0.5f;
+
+    teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, false );
+    teTransformMoveRight( gResources.camera3d.index, gInput.moveDir.x * (float)gGameState.dt * speed );
+    teTransformMoveUp( gResources.camera3d.index, gInput.moveDir.y * (float)gGameState.dt * speed );
+
     double lastTime = gGameState.theTime;
     gGameState.theTime = GetMilliseconds();
     gGameState.dt = gGameState.theTime - lastTime;
@@ -355,7 +362,10 @@ void Render()
     {
         gGameState.dt = 0;
     }
+}
 
+void Render()
+{
     teBeginFrame();
 
     Vec3 dirLightShadowCasterPosition;
@@ -449,11 +459,4 @@ void HandleEvent( const teWindowEvent& event )
             teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY / 100.0f * (float)gGameState.dt );
         }
     }
-
-    bool fpsCamera = false;
-    const float speed = fpsCamera ? 0.25f : 0.5f;
-
-    teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, false );
-    teTransformMoveRight( gResources.camera3d.index, gInput.moveDir.x * (float)gGameState.dt * speed );
-    teTransformMoveUp( gResources.camera3d.index, gInput.moveDir.y * (float)gGameState.dt * speed );
 }

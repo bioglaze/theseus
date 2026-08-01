@@ -10,6 +10,7 @@ extern MTLRenderPassDescriptor* renderPassDescriptor;
 void HandleEvent( const teWindowEvent& event );
 void Init( unsigned width, unsigned height );
 void Render();
+void Tick();
 
 unsigned width = 800, height = 450;
 
@@ -35,6 +36,7 @@ unsigned width = 800, height = 450;
 {
     renderPassDescriptor = self.currentRenderPassDescriptor;
     gDrawable = self.currentDrawable;
+    Tick();
     Render();
 }
 @end

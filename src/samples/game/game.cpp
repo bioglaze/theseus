@@ -3,6 +3,7 @@
 void HandleEvent( const teWindowEvent& event );
 void Init( unsigned width, unsigned height );
 void Render();
+void Tick();
 
 int main()
 {
@@ -35,6 +36,7 @@ int main()
             }
         }
 
+        Tick();
         Render();
     }
 }
