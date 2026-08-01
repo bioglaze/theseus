@@ -5,9 +5,11 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #endif
 #if VK_USE_PLATFORM_WAYLAND_KHR
 #include "video/window_wayland.cpp"
+#include "core/audio_alsa.cpp"
 #endif
 #if VK_USE_PLATFORM_XCB_KHR
 #include "video/window_xcb.cpp"
+#include "core/audio_alsa.cpp"
 #endif
 #include "core/te_stdlib.cpp"
 #include "core/audio_common.cpp"
@@ -27,10 +29,12 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #include "vulkan/renderer_vulkan.cpp"
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
-#include "core/audio_wasapi.cpp"
 #else
 #include "metal/buffer_metal.cpp"
 #include "metal/renderer_metal.cpp"
 #include "metal/shader_metal.cpp"
 #include "metal/texture_metal.cpp"
+#endif
+#if VK_USE_PLATFORM_WIN32_KHR
+#include "core/audio_wasapi.cpp"
 #endif
