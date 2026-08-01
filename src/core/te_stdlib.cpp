@@ -39,7 +39,8 @@ void tePrint( const char* format, ... )
     float f = 0;
     unsigned int u = 0;
 
-    char output[ 260 ] = {};
+    constexpr unsigned length = 1260;
+    char output[ length ] = {};
     char* outPtr = output;
 
     for (ptr = format; *ptr != '\0'; ++ptr)
@@ -83,6 +84,7 @@ void tePrint( const char* format, ... )
             break;
         case 's':
             s = va_arg( arg, char* );
+            teAssert( teStrlen( output ) + teStrlen( s ) < length );
             teMemcpy( outPtr, s, teStrlen( s ) );
             outPtr += teStrlen( s );
             break;

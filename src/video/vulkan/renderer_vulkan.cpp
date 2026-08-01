@@ -301,25 +301,24 @@ VKAPI_ATTR VkBool32 VKAPI_CALL dbgFunc( VkDebugUtilsMessageSeverityFlagBitsEXT m
 {
     if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
     {
-        // FIXME: this crashes with tePrint, figure out why
-        printf( "ERROR: %s\n", callbackData->pMessage );
+        tePrint( "ERROR: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
     {
-        printf( "WARNING: %s\n", callbackData->pMessage );
+        tePrint( "WARNING: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
     {
-        printf( "INFO: %s\n", callbackData->pMessage );
+        tePrint( "INFO: %s\n", callbackData->pMessage );
     }
     else if (msgSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
     {
-        printf( "VERBOSE: %s\n", callbackData->pMessage );
+        tePrint( "VERBOSE: %s\n", callbackData->pMessage );
     }
 
     if (msgType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
     {
-        printf( "GENERAL: %s\n", callbackData->pMessage );
+        tePrint( "GENERAL: %s\n", callbackData->pMessage );
     }
     else if (msgType & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
     {
