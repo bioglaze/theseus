@@ -29,7 +29,6 @@ struct WAVE
     // Data sub chunk
     uint8_t subchunk2ID[ 4 ]; // Data sub chunk ID.
     uint32_t subchunk2Size; // Data sub chunk size.
-    int dataOffset; // Chunk data.
 };
 
 // FIXME: int16_t* is wrong for 8-bit data.

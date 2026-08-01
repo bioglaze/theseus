@@ -159,7 +159,10 @@ void LoadAudioWAV( const char* path )
         for (uint32_t frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
         {
             *buffer++ = data[ wavPlaybackSample ]; // left
-            *buffer++ = data[ wavPlaybackSample ]; // right
+            if (channelCount == 2)
+            {
+                *buffer++ = data[ wavPlaybackSample ]; // right
+            }
 
             ++wavPlaybackSample;
             wavPlaybackSample %= frameCount;
