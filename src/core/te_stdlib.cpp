@@ -77,6 +77,10 @@ void tePrint( const char* format, ... )
 
             convert( i, 10, &outPtr );
             break;
+        case 'u':
+            i = va_arg( arg, unsigned );
+            convert( i, 10, &outPtr );
+            break;
         case 's':
             s = va_arg( arg, char* );
             teMemcpy( outPtr, s, teStrlen( s ) );
