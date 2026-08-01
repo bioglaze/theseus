@@ -14,6 +14,7 @@ Bugs:
     * repro: line up some cubes, drag a point light in front of them.
       -> doesn't seem to repro on macOS.
   * standard shader samplers are hardcoded.
+  * tePrint crashes in Vulkan validation error printing.
   
 TODO:
 * Editor

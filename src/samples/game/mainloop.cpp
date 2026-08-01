@@ -23,6 +23,8 @@ void LoadAudioWAV( const char* path ); // TEMP
 
 struct Resources
 {
+    static constexpr unsigned MaxSceneMeshes = 30;
+
     teShader unlitShader;
     teShader fullscreenShader;
     teScene scene;
@@ -30,9 +32,13 @@ struct Resources
     teShader momentsShader;
     teShader depthNormalsShader;
     teShader lightCullShader;
+    teShader standardShader;
     teTextureCube skyTex;
+    teTexture2D defaultTexture2D;
     teMesh cubeMesh;
     teGameObject camera3d;
+    teMaterial defaultMaterial;
+    teMesh sceneMeshes[ MaxSceneMeshes ];
 } gResources;
 
 struct InputState
@@ -61,10 +67,9 @@ void ZeroMem( char* dst, size_t size )
     }
 }
 
-void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outMeshCount )
+void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount )
 {
     outGoCount = 0;
-    outMeshCount = 0;
 
     char line[ 255 ] = {};
     unsigned cursor = 0;
@@ -85,7 +90,6 @@ void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, uns
             }
             else if (strstr( line, "meshrenderer" ) == line)
             {
-                ++outMeshCount;
             }
             ZeroMem( line, 255 );
         }
@@ -94,10 +98,9 @@ void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, uns
     }
 }
 
-void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos, teMesh* meshes )
+void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 {
     unsigned goCount = 0;
-    unsigned meshCount = 0;
 
     char line[ 255 ] = {};
     unsigned cursor = 0;
@@ -117,7 +120,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos, teMesh* mes
             {
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
-                unsigned offset = strlen( "gameobject " );
+                unsigned offset = (unsigned)strlen( "gameobject " );
 
                 while (nameCursor + offset < strlen( line ) &&
                     line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
@@ -132,6 +135,113 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos, teMesh* mes
             }
             else if (strstr( line, "entity" ) == line)
             {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = (unsigned)strlen( "entity " );
+
+                while (nameCursor + offset < strlen( line ) &&
+                    line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                
+                if (strcmp( name, "start" ) == 0)
+                {
+                    teTransformSetLocalPosition( gResources.camera3d.index, teTransformGetLocalPosition( goCount - 1 ) );
+                }
+            }
+            else if (strstr( line, "position" ) == line)
+            {
+                char position[ 100 ] = {};
+                unsigned positionCursor = 0;
+                unsigned offset = (unsigned)strlen( "position " );
+
+                while (positionCursor + offset < strlen( line ) &&
+                    line[ positionCursor + offset ] != ' ')
+                {
+                    position[ positionCursor ] = line[ positionCursor + offset ];
+                    ++positionCursor;
+                }
+
+                float x = atof( position );
+                offset += positionCursor+1;
+                positionCursor = 0;
+
+                while (positionCursor + offset < strlen( line ) &&
+                    line[ positionCursor + offset ] != ' ')
+                {
+                    position[ positionCursor ] = line[ positionCursor + offset ];
+                    ++positionCursor;
+                }
+                
+                float y = atof( position );
+                offset += positionCursor;
+                positionCursor = 0;
+
+                while (positionCursor + offset < strlen( line ) &&
+                    line[ positionCursor + offset ] != '\r' && line[ positionCursor + offset ] != '\n')
+                {
+                    position[ positionCursor ] = line[ positionCursor + offset ];
+                    ++positionCursor;
+                }
+
+                float z = atof( position );
+
+                //printf( "position: %f %f %f\n", x, y, z );
+                teTransformSetLocalPosition( gos[ goCount - 1 ].index, Vec3( x, y, z ) );
+            }
+            else if (strstr( line, "meshrenderer" ) == line)
+            {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = strlen( "meshrenderer " );
+
+                while (nameCursor + offset < strlen( line ) &&
+                    line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+                
+                teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::MeshRenderer );
+
+                bool found = false;
+                unsigned meshIndex = 0;
+
+                for (unsigned i = 0; i < Resources::MaxSceneMeshes; ++i)
+                {
+                    if (strcmp( gResources.sceneMeshes[ i ].path, name ) == 0)
+                    {
+                        found = true;
+                        meshIndex = i;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    unsigned freeIndex = 0;
+
+                    for (unsigned i = 0; i < Resources::MaxSceneMeshes; ++i)
+                    {
+                        if (gResources.sceneMeshes[ i ].path[ 0 ] == 0)
+                        {
+                            break;
+                        }
+
+                        ++freeIndex;
+                    }
+                    teFile meshFile = teLoadFile( name );
+                    gResources.sceneMeshes[ freeIndex ] = teLoadMesh( meshFile );
+                }
+
+                teMeshRendererSetMesh( gos[ goCount - 1 ].index, &gResources.sceneMeshes[ meshIndex ] );
+
+                for (unsigned i = 0; i < teMeshGetSubMeshCount( &gResources.sceneMeshes[ meshIndex ] ); ++i)
+                {
+                    teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.defaultMaterial, i );
+                }
             }
         }
 
@@ -141,6 +251,10 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos, teMesh* mes
 
 void LoadResources( unsigned width, unsigned height )
 {
+    teFile standardVsFile = teLoadFile( "shaders/standard_vs.spv" );
+    teFile standardPsFile = teLoadFile( "shaders/standard_ps.spv" );
+    gResources.standardShader = teCreateShader( standardVsFile, standardPsFile, "standardVS", "standardPS" );
+
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     gResources.unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
@@ -172,10 +286,16 @@ void LoadResources( unsigned width, unsigned height )
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     gResources.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
+    teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
+    gResources.defaultTexture2D = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     gResources.cubeMesh = teLoadMesh( cubeFile );
 
     gResources.scene = teCreateScene( 0 );
+
+    gResources.defaultMaterial = teCreateMaterial( gResources.standardShader );
+    teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultTexture2D, 0 );
 
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
@@ -192,11 +312,9 @@ void LoadResources( unsigned width, unsigned height )
 
     teFile sceneFile = teLoadFile( "game_proto.tscene" );
     unsigned goCount = 0;
-    unsigned meshCount = 0;
-    GameSceneReadArraySizes( sceneFile, goCount, meshCount );
+    GameSceneReadArraySizes( sceneFile, goCount );
     teGameObject* sceneGos = (teGameObject*)malloc( goCount * sizeof( teGameObject ) );
-    teMesh* sceneMeshes = (teMesh*)malloc( meshCount * sizeof( teMesh ) );
-    GameSceneReadScene( sceneFile, sceneGos, sceneMeshes );
+    GameSceneReadScene( sceneFile, sceneGos );
 
     for (unsigned i = 0; i < goCount; ++i)
     {
