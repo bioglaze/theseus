@@ -30,6 +30,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 #include "vulkan/shader_vulkan.cpp"
 #include "vulkan/texture_vulkan.cpp"
 #else
+#include "core/audio_mac.cpp"
 #include "metal/buffer_metal.cpp"
 #include "metal/renderer_metal.cpp"
 #include "metal/shader_metal.cpp"
