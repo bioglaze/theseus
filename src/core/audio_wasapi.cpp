@@ -17,6 +17,11 @@ struct AudioDevice
 
 AudioDevice gAudioDevice;
 
+void CheckAudioHr( HRESULT hr )
+{
+    teAssert( SUCCEEDED( hr ) );
+}
+
 WAVEFORMATEXTENSIBLE MakeAudioFormat( int channelCount, int sampleRate, int sampleSize )
 {
     WAVEFORMATEXTENSIBLE result = {};
@@ -37,15 +42,11 @@ void InitAudio()
 {
     HRESULT hr = CoCreateInstance( __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
         __uuidof( IMMDeviceEnumerator ), reinterpret_cast<void**>( &gAudioDevice.enumerator ) );
-    teAssert( SUCCEEDED( hr ) );
-    hr = gAudioDevice.enumerator->GetDefaultAudioEndpoint( eRender, eMultimedia, &gAudioDevice.device );
-    teAssert( SUCCEEDED( hr ) );
-    hr = gAudioDevice.device->Activate( __uuidof( IAudioClient ), CLSCTX_ALL,
-        nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) );
-    teAssert( SUCCEEDED( hr ) );
+    CheckAudioHr( gAudioDevice.enumerator->GetDefaultAudioEndpoint( eRender, eMultimedia, &gAudioDevice.device ) );
+    CheckAudioHr( gAudioDevice.device->Activate( __uuidof( IAudioClient ), CLSCTX_ALL,
+        nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) ) );
 
-    hr = gAudioDevice.client->GetDevicePeriod( &gAudioDevice.engine, &gAudioDevice.period );
-    teAssert( SUCCEEDED( hr ) );
+    CheckAudioHr( gAudioDevice.client->GetDevicePeriod( &gAudioDevice.engine, &gAudioDevice.period ) );
 }
 
 void LoadAudioWAV( const char* path )
@@ -104,57 +105,46 @@ void LoadAudioWAV( const char* path )
     }
     else if (hr == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED)
     {
-        hr = gAudioDevice.client->GetBufferSize( &buffer_frames );
-        teAssert( SUCCEEDED( hr ) );
+        CheckAudioHr( gAudioDevice.client->GetBufferSize( &buffer_frames ) );
 
         requestedDuration = (REFERENCE_TIME)
             ((10000.0 * 1000 / sampleRate * buffer_frames) + 0.5);
 
         gAudioDevice.client->Release();
 
-        hr = gAudioDevice.device->Activate( __uuidof(IAudioClient), CLSCTX_ALL,
-            nullptr, reinterpret_cast<void**>(&gAudioDevice.client) );
-        teAssert( SUCCEEDED( hr ) );
+        CheckAudioHr( gAudioDevice.device->Activate( __uuidof(IAudioClient), CLSCTX_ALL,
+            nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) ) );
 
         // Open the stream and associate it with an audio session.
-        hr = gAudioDevice.client->Initialize(
+        CheckAudioHr( gAudioDevice.client->Initialize(
             AUDCLNT_SHAREMODE_EXCLUSIVE,
             AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
             requestedDuration,
             requestedDuration,
             reinterpret_cast<WAVEFORMATEX*>(&format),
-            nullptr );
-        teAssert( SUCCEEDED( hr ) );
+            nullptr ) );
     }
     teAssert( SUCCEEDED( hr ) );
 
-    hr = gAudioDevice.client->GetService( __uuidof(IAudioClock), reinterpret_cast<void**>(&gAudioDevice.clock) );
-    teAssert( SUCCEEDED( hr ) );
-
-    hr = gAudioDevice.client->GetService( __uuidof(IAudioRenderClient), reinterpret_cast<void**>(&gAudioDevice.render) );
-    teAssert( SUCCEEDED( hr ) );
-
-    hr = gAudioDevice.client->Start();
-    teAssert( SUCCEEDED( hr ) );
+    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioClock), reinterpret_cast<void**>( &gAudioDevice.clock ) ) );
+    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioRenderClient), reinterpret_cast<void**>( &gAudioDevice.render ) ) );
+    CheckAudioHr( gAudioDevice.client->Start() );
 
     uint32_t bufferSizeInFrames;
-    hr = gAudioDevice.client->GetBufferSize( &bufferSizeInFrames );
-    teAssert( hr == S_OK );
+    CheckAudioHr( gAudioDevice.client->GetBufferSize( &bufferSizeInFrames ) );
 
     int wavPlaybackSample = 0;
-
-    while (true)
+    bool done = false;
+    while (!done)
     {
         uint32_t bufferPadding;
-        hr = gAudioDevice.client->GetCurrentPadding( &bufferPadding );
-        teAssert( hr == S_OK );
+        CheckAudioHr( gAudioDevice.client->GetCurrentPadding( &bufferPadding ) );
 
         uint32_t soundBufferLatency = bufferSizeInFrames / 50;
         uint32_t numFramesToWrite = soundBufferLatency - bufferPadding;
 
         int16_t* buffer;
-        hr = gAudioDevice.render->GetBuffer( numFramesToWrite, (BYTE**)(&buffer) );
-        teAssert( hr == S_OK );
+        CheckAudioHr( gAudioDevice.render->GetBuffer( numFramesToWrite, (BYTE**)( &buffer ) ) );
 
         for (uint32_t frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
         {
@@ -165,9 +155,13 @@ void LoadAudioWAV( const char* path )
             }
 
             ++wavPlaybackSample;
+            if (wavPlaybackSample >= frameCount)
+            {
+                done = true;
+                break;
+            }
             wavPlaybackSample %= frameCount;
         }
-        hr = gAudioDevice.render->ReleaseBuffer( numFramesToWrite, 0 );
-        teAssert( hr == S_OK );
+        CheckAudioHr( gAudioDevice.render->ReleaseBuffer( numFramesToWrite, 0 ) );
     }
 }
