@@ -1,13 +1,26 @@
 #include <stdint.h>
+#include "audio.h"
 #include "file.h"
 #include "te_stdlib.h"
+
+void LoadAudioWAV( const char* path, unsigned clipIndex );
+void PlayAudioClip( unsigned clipIndex );
+
+struct AudioClip
+{
+    unsigned internalIndex = 0; // index to audio_wasapi.cpp, audio_mac.cpp or audio_alsa.cpp struct
+};
+
+static constexpr unsigned MaxAudioClips = 1000;
+static struct AudioClip gAudioClips[ MaxAudioClips ];
+static unsigned gAudioClipIndex = 0;
 
 struct AudioSource
 {
 
 };
 
-static constexpr unsigned MaxAudioSources = 10000;
+static constexpr unsigned MaxAudioSources = 1000;
 static struct AudioSource gAudioSources[ MaxAudioSources ];
 
 struct WAVE
@@ -30,6 +43,20 @@ struct WAVE
     uint8_t subchunk2ID[ 4 ]; // Data sub chunk ID.
     uint32_t subchunk2Size; // Data sub chunk size.
 };
+
+teAudioClip teLoadAudioClip( const struct teFile& wavFile )
+{
+    teAudioClip outClip;
+    outClip.index = ++gAudioClipIndex;
+    LoadAudioWAV( wavFile.path, outClip.index );
+
+    return outClip;
+}
+
+void tePlayAudioClip( teAudioClip clip )
+{
+    PlayAudioClip( clip.index );
+}
 
 // FIXME: int16_t* is wrong for 8-bit data.
 int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outFrameCount )

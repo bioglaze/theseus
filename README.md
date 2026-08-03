@@ -22,7 +22,8 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 
   - Windows, only AMD64 tested, but ARM64 might also work.
   - macOS (Apple silicon)
-  - Linux support (defaults to Wayland but XCB also available)
+  - Linux support (defaults to Wayland but XCB also available by modifying the Makefile)
+  - FreeBSD
 
 # Building
 
@@ -46,6 +47,9 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
     - Then build the engine: `make engine`. Build artifacts are copied to theseus/build
     - Shaders can be compiled by running compile_deploy_vulkan_shaders.sh
     - OBJ mesh converter and Editor can be built by running `make toolz` in src.
+
+  - FreeBSD
+    - Run src/compile_freebsd.sh
 
 # Included third-party libraries
   - meshoptimizer by Arseny Kapoulkine

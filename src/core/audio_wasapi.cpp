@@ -18,6 +18,17 @@ struct AudioDevice
 
 AudioDevice gAudioDevice;
 
+struct AudioClipInternal
+{
+    int channelCount = 0;
+    int sampleRate = 0;
+    int frameCount = 0;
+    teFile wavFile;
+    int16_t* data = nullptr;
+};
+
+AudioClipInternal audioClipInternals[ 1000 ]; // Indexed by audio_common.cpp audioClipIndex
+
 void CheckAudioHr( HRESULT hr )
 {
     teAssert( SUCCEEDED( hr ) );
@@ -51,18 +62,19 @@ void InitAudio()
     CheckAudioHr( gAudioDevice.client->GetDevicePeriod( &gAudioDevice.engine, &gAudioDevice.period ) );
 }
 
-void LoadAudioWAV( const char* path )
+void LoadAudioWAV( const char* path, unsigned clipIndex )
 {
-    int sampleRate = 0;
-    int channelCount = 0;
-    int frameCount = 0;
+    audioClipInternals[ clipIndex ].wavFile = teLoadFile( path );
+    audioClipInternals[ clipIndex ].data = LoadWAV( audioClipInternals[ clipIndex ].wavFile, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].frameCount );
+}
+
+void PlayAudioClip( unsigned clipIndex )
+{
     int sampleSize = 2;
-    teFile wavFile = teLoadFile( path );
-    int16_t* data = LoadWAV( wavFile, sampleRate, channelCount, frameCount );
 
-    WAVEFORMATEXTENSIBLE format = MakeAudioFormat( channelCount, sampleRate, sampleSize );
+    WAVEFORMATEXTENSIBLE format = MakeAudioFormat( audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].sampleRate, sampleSize );
 
-    const int32_t frameSize = sampleSize * channelCount;
+    const int32_t frameSize = sampleSize * audioClipInternals[ clipIndex ].channelCount;
 
     // exclusive mode event driven must use 128-byte aligned buffers
     const int32_t alignmentRequirementBytes = 128;
@@ -70,12 +82,12 @@ void LoadAudioWAV( const char* path )
     const int64_t millisPerSecond = 1000;
     const int64_t reftimesPerMilli = 10000;
 
-    UINT32 buffer_frames = static_cast<uint32_t>(gAudioDevice.period / (float)reftimesPerMilli * sampleRate / (float)millisPerSecond);
+    UINT32 buffer_frames = static_cast<uint32_t>(gAudioDevice.period / (float)reftimesPerMilli * audioClipInternals[ clipIndex ].sampleRate / (float)millisPerSecond);
     while ((buffer_frames * frameSize) % alignmentRequirementBytes != 0)
     {
         ++buffer_frames;
     }
-    REFERENCE_TIME bufferedPeriod = buffer_frames * millisPerSecond * reftimesPerMilli / sampleRate;
+    //REFERENCE_TIME bufferedPeriod = buffer_frames * millisPerSecond * reftimesPerMilli / sampleRate;
 
     int64_t refTimesPerSec = 10000000;
 
@@ -110,12 +122,12 @@ void LoadAudioWAV( const char* path )
         CheckAudioHr( gAudioDevice.client->GetBufferSize( &buffer_frames ) );
 
         requestedDuration = (REFERENCE_TIME)
-            ((10000.0 * 1000 / sampleRate * buffer_frames) + 0.5);
+            ((10000.0 * 1000 / audioClipInternals[ clipIndex ].sampleRate * buffer_frames) + 0.5);
 
         gAudioDevice.client->Release();
 
         CheckAudioHr( gAudioDevice.device->Activate( __uuidof(IAudioClient), CLSCTX_ALL,
-            nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) ) );
+            nullptr, reinterpret_cast<void**>(&gAudioDevice.client) ) );
 
         // Open the stream and associate it with an audio session.
         CheckAudioHr( gAudioDevice.client->Initialize(
@@ -131,8 +143,8 @@ void LoadAudioWAV( const char* path )
         teAssert( SUCCEEDED( hr ) );
     }
 
-    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioClock), reinterpret_cast<void**>( &gAudioDevice.clock ) ) );
-    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioRenderClient), reinterpret_cast<void**>( &gAudioDevice.render ) ) );
+    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioClock), reinterpret_cast<void**>(&gAudioDevice.clock) ) );
+    CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioRenderClient), reinterpret_cast<void**>(&gAudioDevice.render) ) );
     CheckAudioHr( gAudioDevice.client->Start() );
 
     uint32_t bufferSizeInFrames;
@@ -140,6 +152,7 @@ void LoadAudioWAV( const char* path )
 
     int wavPlaybackSample = 0;
     bool done = false;
+    
     while (!done)
     {
         uint32_t bufferPadding;
@@ -149,19 +162,19 @@ void LoadAudioWAV( const char* path )
         int numFramesToWrite = soundBufferLatency - bufferPadding;
 
         int16_t* buffer;
-        CheckAudioHr( gAudioDevice.render->GetBuffer( numFramesToWrite, (BYTE**)( &buffer ) ) );
+        CheckAudioHr( gAudioDevice.render->GetBuffer( numFramesToWrite, (BYTE**)(&buffer) ) );
 
         for (int frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
         {
-            *buffer++ = data[ wavPlaybackSample ]; // left
-            if (channelCount == 2)
+            *buffer++ = audioClipInternals[ clipIndex ].data[ wavPlaybackSample ]; // left
+            if (audioClipInternals[ clipIndex ].channelCount == 2)
             {
                 ++wavPlaybackSample;
-                *buffer++ = data[ wavPlaybackSample ]; // right
+                *buffer++ = audioClipInternals[ clipIndex ].data[ wavPlaybackSample ]; // right
             }
 
             ++wavPlaybackSample;
-            if (wavPlaybackSample >= frameCount)
+            if (wavPlaybackSample >= audioClipInternals[ clipIndex ].frameCount)
             {
                 done = true;
                 break;

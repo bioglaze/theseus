@@ -19,7 +19,6 @@
 #include <stdio.h>
 
 double GetMilliseconds();
-void LoadAudioWAV( const char* path ); // TEMP
 
 struct Resources
 {
@@ -39,6 +38,8 @@ struct Resources
     teGameObject camera3d;
     teMaterial defaultMaterial;
     teMesh sceneMeshes[ MaxSceneMeshes ];
+    teAudioClip audioClip1;
+    teAudioClip audioClip2;
 } gResources;
 
 struct InputState
@@ -164,7 +165,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     ++positionCursor;
                 }
 
-                float x = atof( position );
+                float x = (float)atof( position );
                 offset += positionCursor+1;
                 positionCursor = 0;
 
@@ -186,7 +187,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     ++positionCursor;
                 }
 
-                float z = atof( position );
+                float z = (float)atof( position );
 
                 //printf( "position: %f %f %f\n", x, y, z );
                 teTransformSetLocalPosition( gos[ goCount - 1 ].index, Vec3( x, y, z ) );
@@ -195,7 +196,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
             {
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
-                unsigned offset = strlen( "meshrenderer " );
+                unsigned offset = (unsigned)strlen( "meshrenderer " );
 
                 while (nameCursor + offset < strlen( line ) &&
                     line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
@@ -209,12 +210,12 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 bool found = false;
                 unsigned meshIndex = 0;
 
-                for (unsigned i = 0; i < Resources::MaxSceneMeshes; ++i)
+                for (unsigned m = 0; m < Resources::MaxSceneMeshes; ++m)
                 {
-                    if (strcmp( gResources.sceneMeshes[ i ].path, name ) == 0)
+                    if (strcmp( gResources.sceneMeshes[ m ].path, name ) == 0)
                     {
                         found = true;
-                        meshIndex = i;
+                        meshIndex = m;
                         break;
                     }
                 }
@@ -223,9 +224,9 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 {
                     unsigned freeIndex = 0;
 
-                    for (unsigned i = 0; i < Resources::MaxSceneMeshes; ++i)
+                    for (unsigned m = 0; m < Resources::MaxSceneMeshes; ++m)
                     {
-                        if (gResources.sceneMeshes[ i ].path[ 0 ] == 0)
+                        if (gResources.sceneMeshes[ m ].path[ 0 ] == 0)
                         {
                             break;
                         }
@@ -238,9 +239,9 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 
                 teMeshRendererSetMesh( gos[ goCount - 1 ].index, &gResources.sceneMeshes[ meshIndex ] );
 
-                for (unsigned i = 0; i < teMeshGetSubMeshCount( &gResources.sceneMeshes[ meshIndex ] ); ++i)
+                for (unsigned m = 0; m < teMeshGetSubMeshCount( &gResources.sceneMeshes[ meshIndex ] ); ++m)
                 {
-                    teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.defaultMaterial, i );
+                    teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.defaultMaterial, m );
                 }
             }
         }
@@ -324,6 +325,14 @@ void LoadResources( unsigned width, unsigned height )
     teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
 
     teFinalizeMeshBuffers();
+
+    teFile wavFile1 = teLoadFile( "assets/audio/alarm.wav" );
+    gResources.audioClip1 = teLoadAudioClip( wavFile1 );
+
+    teFile wavFile2 = teLoadFile( "assets/audio/sine340.wav" );
+    gResources.audioClip2 = teLoadAudioClip( wavFile2 );
+
+    tePlayAudioClip( gResources.audioClip2 );
 }
 
 void Init( unsigned width, unsigned height )
@@ -337,10 +346,9 @@ void Init( unsigned width, unsigned height )
     teCreateRenderer( 1, windowHandle, width, height );
     teLoadMetalShaderLibrary();
 
-    LoadResources( width, height );
-
     InitAudio();
-    //LoadAudioWAV( "assets/sine340.wav" );
+
+    LoadResources( width, height );
 
     gGameState.theTime = GetMilliseconds();
 }
