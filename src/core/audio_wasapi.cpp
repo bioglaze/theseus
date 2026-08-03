@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <mmdeviceapi.h>
 #include <Audioclient.h>
+#include "file.h"
 #include "te_stdlib.h"
 
 struct AudioDevice
@@ -25,14 +26,14 @@ void CheckAudioHr( HRESULT hr )
 WAVEFORMATEXTENSIBLE MakeAudioFormat( int channelCount, int sampleRate, int sampleSize )
 {
     WAVEFORMATEXTENSIBLE result = {};
-    result.dwChannelMask = 0;
+    result.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
     result.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
     result.Samples.wValidBitsPerSample = WORD( sampleSize * 8 );
     result.Format.nChannels = WORD( channelCount );
     result.Format.nSamplesPerSec = sampleRate;
     result.Format.wBitsPerSample = WORD( sampleSize * 8 );
     result.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-    result.Format.cbSize = sizeof( WAVEFORMATEXTENSIBLE );
+    result.Format.cbSize = sizeof( WAVEFORMATEXTENSIBLE ) - sizeof( WAVEFORMATEX );
     result.Format.nBlockAlign = WORD( channelCount * sampleSize );
     result.Format.nAvgBytesPerSec = channelCount * sampleSize * sampleRate;
     return result;
@@ -42,6 +43,7 @@ void InitAudio()
 {
     HRESULT hr = CoCreateInstance( __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
         __uuidof( IMMDeviceEnumerator ), reinterpret_cast<void**>( &gAudioDevice.enumerator ) );
+    CheckAudioHr( hr );
     CheckAudioHr( gAudioDevice.enumerator->GetDefaultAudioEndpoint( eRender, eMultimedia, &gAudioDevice.device ) );
     CheckAudioHr( gAudioDevice.device->Activate( __uuidof( IAudioClient ), CLSCTX_ALL,
         nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) ) );
@@ -68,7 +70,7 @@ void LoadAudioWAV( const char* path )
     const int64_t millisPerSecond = 1000;
     const int64_t reftimesPerMilli = 10000;
 
-    UINT32 buffer_frames = static_cast<uint32_t>(gAudioDevice.period / reftimesPerMilli * sampleRate / millisPerSecond);
+    UINT32 buffer_frames = static_cast<uint32_t>(gAudioDevice.period / (float)reftimesPerMilli * sampleRate / (float)millisPerSecond);
     while ((buffer_frames * frameSize) % alignmentRequirementBytes != 0)
     {
         ++buffer_frames;
@@ -124,7 +126,10 @@ void LoadAudioWAV( const char* path )
             reinterpret_cast<WAVEFORMATEX*>(&format),
             nullptr ) );
     }
-    teAssert( SUCCEEDED( hr ) );
+    else
+    {
+        teAssert( SUCCEEDED( hr ) );
+    }
 
     CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioClock), reinterpret_cast<void**>( &gAudioDevice.clock ) ) );
     CheckAudioHr( gAudioDevice.client->GetService( __uuidof(IAudioRenderClient), reinterpret_cast<void**>( &gAudioDevice.render ) ) );
@@ -140,17 +145,18 @@ void LoadAudioWAV( const char* path )
         uint32_t bufferPadding;
         CheckAudioHr( gAudioDevice.client->GetCurrentPadding( &bufferPadding ) );
 
-        uint32_t soundBufferLatency = bufferSizeInFrames / 50;
-        uint32_t numFramesToWrite = soundBufferLatency - bufferPadding;
+        int soundBufferLatency = bufferSizeInFrames / 50;
+        int numFramesToWrite = soundBufferLatency - bufferPadding;
 
         int16_t* buffer;
         CheckAudioHr( gAudioDevice.render->GetBuffer( numFramesToWrite, (BYTE**)( &buffer ) ) );
 
-        for (uint32_t frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
+        for (int frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
         {
             *buffer++ = data[ wavPlaybackSample ]; // left
             if (channelCount == 2)
             {
+                ++wavPlaybackSample;
                 *buffer++ = data[ wavPlaybackSample ]; // right
             }
 
@@ -160,7 +166,6 @@ void LoadAudioWAV( const char* path )
                 done = true;
                 break;
             }
-            wavPlaybackSample %= frameCount;
         }
         CheckAudioHr( gAudioDevice.render->ReleaseBuffer( numFramesToWrite, 0 ) );
     }

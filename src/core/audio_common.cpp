@@ -39,6 +39,12 @@ int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& o
         return nullptr;
     }
 
+    if (file.size < sizeof( WAVE ))
+    {
+        tePrint( "%s size is too small for a .wav file!\n", file.path );
+        return nullptr;
+    }
+
     WAVE* wav = reinterpret_cast< WAVE* >( file.data );
 
     if (wav->chunkID[ 0 ] != 'R' || wav->chunkID[ 1 ] != 'I' || wav->chunkID[ 2 ] != 'F' || wav->chunkID[ 3 ] != 'F')
