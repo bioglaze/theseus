@@ -68,7 +68,7 @@ bool OpenAudio( enum format_type format, int rate, int chan, AURenderCallbackStr
 {
     struct CoreAudioFormatDescriptionMap* m = nullptr;
 
-    for (unsigned i = 0; i < 5; ++i)
+    for (unsigned i = 0; i < sizeof( formatMap ) / sizeof( formatMap[ 0 ] ); ++i)
     {
         if (formatMap[ i ].type == format)
         {
@@ -83,13 +83,7 @@ bool OpenAudio( enum format_type format, int rate, int chan, AURenderCallbackStr
         return false;
     }
 
-    if (AudioUnitInitialize( outputInstance ))
-    {
-        tePrint( "Unable to initialize audio unit instance\n" );
-        return false;
-    }
-
-    AudioStreamBasicDescription streamFormat;
+    AudioStreamBasicDescription streamFormat = {};
     streamFormat.mSampleRate = rate;
     streamFormat.mFormatID = kAudioFormatLinearPCM;
     streamFormat.mFormatFlags = m->flags;
@@ -111,11 +105,18 @@ bool OpenAudio( enum format_type format, int rate, int chan, AURenderCallbackStr
         return false;
     }
 
+    if (AudioUnitInitialize( outputInstance ))
+    {
+        tePrint( "Unable to initialize audio unit instance\n" );
+        return false;
+    }
+
     if (AudioOutputUnitStart( outputInstance ))
     {
         tePrint( "Unable to start audio unit.\n" );
         return false;
     }
+
 
     return true;
 }
@@ -170,9 +171,18 @@ void InitAudio()
     // set volume (value 0-100)
     {
         constexpr float VolumeRangeDb = 40; // decibels
-        unsigned value = 100;
+        int value = 100;
         float factor = (value == 0) ? 0.0 : powf( 10, VolumeRangeDb * (value - 100) / 100 / 20 );
 
         AudioUnitSetParameter( outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
     }
+}
+
+void LoadAudioWAV( const char* path, unsigned clipIndex )
+{
+
+}
+
+void PlayAudioClip( unsigned clipIndex )
+{
 }
