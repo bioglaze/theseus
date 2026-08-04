@@ -5,6 +5,7 @@ Bugs:
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * macOS: editing point light color moves the gizmo
+    * scene middle mouse drag works on ImGUI
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: MBP 2013 black screen.
@@ -14,12 +15,12 @@ Bugs:
     * repro: line up some cubes, drag a point light in front of them.
       -> doesn't seem to repro on macOS.
   * standard shader samplers are hardcoded.
-  * tePrint crashes in Vulkan validation error printing.
-  
+ 
 TODO:
 * Editor
   * draw sprites
   * show scene name in title bar
+  * component removing
   * ctrl-s and ctrl-o
   * macOS: ImGui scrolling.
   * asset browser could read assets from build/assets

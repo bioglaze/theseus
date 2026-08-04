@@ -15,6 +15,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Bloom
   - Loads .tga and .dds textures
   - Scene Editor implemented using Dear ImGui
+  - Audio support (WASAPI, CoreAudio, ALSA)
   - OBJ mesh converter
   - Shader hot-reloading
 

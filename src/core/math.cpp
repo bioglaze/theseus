@@ -551,7 +551,7 @@ Quaternion Quaternion::operator*( const Quaternion& aQ ) const
 
 void Quaternion::FromAxisAngle( const Vec3& axis, float angleDeg )
 {
-    const float angleRad = angleDeg * (3.1418693659f / 360.0f);
+    const float angleRad = angleDeg * (3.14159265358979f / 360.0f);
     const float sinAngle = sinf( angleRad );
 
     x = axis.x * sinAngle;
