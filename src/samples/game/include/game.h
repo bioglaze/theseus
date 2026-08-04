@@ -1,19 +1,19 @@
 #ifndef GAME_H
 #define GAME_H
 
-inline const char* EntityTypeToString( int type )
-{
-    if (type == 0) return "none";
-    if (type == 1) return "door";
-    if (type == 2) return "button";
-    if (type == 3) return "start";
-    return "none";
-}
-
 constexpr unsigned EntityNone = 0;
 constexpr unsigned EntityDoor = 1;
 constexpr unsigned EntityButton = 2;
 constexpr unsigned EntityStart = 3;
+
+inline const char* EntityTypeToString( unsigned type )
+{
+    if (type == EntityNone)   return "none";
+    if (type == EntityDoor)   return "door";
+    if (type == EntityButton) return "button";
+    if (type == EntityStart)  return "start";
+    return "none";
+}
 
 constexpr unsigned MaxDoorInputs = 3;
 

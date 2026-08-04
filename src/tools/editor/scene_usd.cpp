@@ -78,7 +78,7 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     }
 }
 
-void LoadUsdScene( teScene& scene, const char* path )
+void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[] )
 {
     FILE* file = fopen( path, "rb" );
     if (!file)
@@ -134,7 +134,6 @@ void LoadUsdScene( teScene& scene, const char* path )
         }
         else if (strstr( line, "#usda 1.0" ))
         {
-            printf("found usda\n");
         }
         else if (strstr( line, "string name" )) // for example: string name = "gameObject"
         {
@@ -146,6 +145,49 @@ void LoadUsdScene( teScene& scene, const char* path )
             size_t len = strlen( name );
             name[ len - 1 ] = 0;
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
+        }
+        else if (strstr( line, "string entityName" ))
+        {
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char entityName[ 256 ] = {};
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, entityName );
+            size_t len = strlen( entityName );
+            entityName[ len - 1 ] = 0;
+            assert( len < 100 );
+            strcpy( outEntityNames[ sceneGos[ goIndex - 1 ].index ], entityName );
+        }
+        else if (strstr( line, "string entityType" ))
+        {
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char entityType[ 256 ] = {};
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, entityType );
+            size_t len = strlen( entityType );
+            entityType[ len - 1 ] = 0;
+
+            if (strcmp( entityType, "none" ) == 0)
+            {
+                outEntityTypes[ sceneGos[ goIndex - 1 ].index ] = EntityNone;
+            }
+            else if (strcmp( entityType, "door" ) == 0)
+            {
+                outEntityTypes[ sceneGos[ goIndex - 1 ].index ] = EntityDoor;
+            }
+            else if (strcmp( entityType, "button" ) == 0)
+            {
+                outEntityTypes[ sceneGos[ goIndex - 1 ].index ] = EntityButton;
+            }
+            else if (strcmp( entityType, "start" ) == 0)
+            {
+                outEntityTypes[ sceneGos[ goIndex - 1 ].index ] = EntityStart;
+            }
+            else
+            {
+                printf( "Unknown entity type %s\n", entityType );
+            }
         }
         else if (strstr( line, "string mesh" ))
         {

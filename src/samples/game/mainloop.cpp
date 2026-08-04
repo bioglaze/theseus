@@ -149,7 +149,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 
                 if (strcmp( name, "start" ) == 0)
                 {
-                    teTransformSetLocalPosition( gResources.camera3d.index, teTransformGetLocalPosition( goCount - 1 ) );
+                    teTransformSetLocalPosition( gResources.camera3d.index, teTransformGetLocalPosition( gos[ goCount - 1 ].index ) );
                 }
             }
             else if (strstr( line, "position" ) == line)
@@ -332,7 +332,7 @@ void LoadResources( unsigned width, unsigned height )
     teFile wavFile2 = teLoadFile( "assets/audio/sine340.wav" );
     gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
-    tePlayAudioClip( gResources.audioClip2 );
+    //tePlayAudioClip( gResources.audioClip2 );
 }
 
 void Init( unsigned width, unsigned height )
@@ -355,7 +355,7 @@ void Init( unsigned width, unsigned height )
 
 void Tick()
 {
-    bool fpsCamera = false;
+    bool fpsCamera = true;
     const float speed = fpsCamera ? 0.25f : 0.5f;
 
     teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, false );

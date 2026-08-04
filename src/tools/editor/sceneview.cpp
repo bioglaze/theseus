@@ -27,7 +27,7 @@
 
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
-void LoadUsdScene( teScene& scene, const char* path );
+void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[] );
 void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[] );
 
 constexpr unsigned MaxSelectedObjects = 10;
@@ -894,7 +894,7 @@ void RenderSceneView( float gridStep )
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetOpenPath( sceneView.openFilePath, "usda" );
-                LoadUsdScene( sceneView.scene, sceneView.openFilePath );
+                LoadUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
                 teFinalizeMeshBuffers();
             }
 
