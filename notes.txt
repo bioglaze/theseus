@@ -15,7 +15,9 @@ Bugs:
     * repro: line up some cubes, drag a point light in front of them.
       -> doesn't seem to repro on macOS.
   * standard shader samplers are hardcoded.
- 
+  * macOS: audio clip indexing is broken
+  * macOS: audio sounds distorted
+  
 TODO:
 * Editor
   * draw sprites

@@ -136,6 +136,6 @@ int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& o
     outFrameCount = wav->subchunk2Size / (wav->numChannels * sizeof( uint16_t )); // FIXME: wrong for 8-bit
 
     tePrint( "sample rate: %d, channel count: %d, frame count: %d, bitsPerSample: %d\n", outSampleRate, outChannelCount, outFrameCount, wav->bitsPerSample );
-
+tePrint( "sizeof WAVE: %u\n", sizeof( WAVE ));
     return reinterpret_cast< int16_t* >( file.data + sizeof( WAVE ));
 }

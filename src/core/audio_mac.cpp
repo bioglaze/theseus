@@ -3,8 +3,14 @@
 #include "te_stdlib.h"
 #include <math.h>
 
-AudioComponent output_comp;
-AudioComponentInstance outputInstance;
+struct AudioDevice
+{
+    AudioComponent outputComp;
+    AudioComponentInstance outputInstance;
+    unsigned playingClipIndex = 0;
+};
+
+AudioDevice gAudioDevice;
 
 enum format_type
 {
@@ -32,34 +38,36 @@ static struct CoreAudioFormatDescriptionMap formatMap[] =
     { FMT_FLOAT,  32, sizeof( float ),   kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved },
 };
 
-static double gtheta = 0;
-
-OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList* ioData )
+struct AudioClipInternal
 {
-    const double amplitude = 0.25;
+    int channelCount = 0;
+    int sampleRate = 0;
+    int frameCount = 0;
+    teFile wavFile;
+    int16_t* data = nullptr;
+};
 
-    // Get the tone parameters out of the static var
-    // could be stored in inRef
-    double theta = gtheta;
-    double theta_increment = 2.0 * M_PI * 440 / 44100;
+AudioClipInternal audioClipInternals[ 1000 ]; // Indexed by audio_common.cpp audioClipIndex
 
-    // This is a mono tone generator so we only need the first buffer
+OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 numberFrames, AudioBufferList* ioData )
+{
     const int channel = 0;
-    Float32* buffer = (Float32* )ioData->mBuffers[ channel ].mData;
+    int16_t* buffer = (int16_t*)ioData->mBuffers[ channel ].mData;
+    
+    static int wavPlaybackSample = 0;
+    printf("inNumberFrames: %u, data size: %u\n", numberFrames, audioClipInternals[ 1 ].wavFile.size );
 
-    // Generate the samples
-    for (UInt32 frame = 0; frame < inNumberFrames; ++frame) 
+    for (UInt32 frame = 0; frame < numberFrames; ++frame) 
     {
-        buffer[ frame ] = sin( theta ) * amplitude;
+        printf(" reading sample %d\n", wavPlaybackSample);
 
-        theta += theta_increment;
-        if (theta > 2.0 * M_PI)
+        buffer[ frame ] = audioClipInternals[ 1 ].data[ wavPlaybackSample ];
+        ++wavPlaybackSample;
+        if (wavPlaybackSample >= (audioClipInternals[ 1 ].wavFile.size - 44 ) / 2)
         {
-            theta -= 2.0 * M_PI;
+            wavPlaybackSample = 0;
         }
     }
-
-    gtheta = theta;
 
     return noErr;
 }
@@ -93,25 +101,25 @@ bool OpenAudio( enum format_type format, int rate, int chan, AURenderCallbackStr
     streamFormat.mBytesPerPacket = chan * m->bytes_per_sample;
     streamFormat.mBytesPerFrame = chan * m->bytes_per_sample;
 
-    if (AudioUnitSetProperty( outputInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &streamFormat, sizeof( streamFormat ) ))
+    if (AudioUnitSetProperty( gAudioDevice.outputInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &streamFormat, sizeof( streamFormat ) ))
     {
         tePrint( "Failed to set audio unit input property.\n" );
         return false;
     }
 
-    if (AudioUnitSetProperty( outputInstance, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, callback, sizeof( AURenderCallbackStruct ) ) )
+    if (AudioUnitSetProperty( gAudioDevice.outputInstance, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, callback, sizeof( AURenderCallbackStruct ) ) )
     {
         tePrint( "Unable to attach an IOProc to the selected audio unit.\n" );
         return false;
     }
 
-    if (AudioUnitInitialize( outputInstance ))
+    if (AudioUnitInitialize( gAudioDevice.outputInstance ))
     {
         tePrint( "Unable to initialize audio unit instance\n" );
         return false;
     }
 
-    if (AudioOutputUnitStart( outputInstance ))
+    if (AudioOutputUnitStart( gAudioDevice.outputInstance ))
     {
         tePrint( "Unable to start audio unit.\n" );
         return false;
@@ -125,9 +133,9 @@ void PauseAudio( bool paused )
 {
     if (paused)
     {
-        AudioOutputUnitStop( outputInstance );
+        AudioOutputUnitStop( gAudioDevice.outputInstance );
     }
-    else if (AudioOutputUnitStart( outputInstance ))
+    else if (AudioOutputUnitStart( gAudioDevice.outputInstance ))
     {
         tePrint( "Unable to restart audio unit after pausing.\n" );
         //close_audio();
@@ -143,28 +151,16 @@ void InitAudio()
     desc.componentFlagsMask = 0;
     desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 
-    output_comp = AudioComponentFindNext( nullptr, &desc );
-    if (!output_comp)
+    gAudioDevice.outputComp = AudioComponentFindNext( nullptr, &desc );
+    if (!gAudioDevice.outputComp)
     {
         tePrint( "Failed to open default audio device.\n" );
         return;
     }
 
-    if (AudioComponentInstanceNew( output_comp, &outputInstance ))
+    if (AudioComponentInstanceNew( gAudioDevice.outputComp, &gAudioDevice.outputInstance ))
     {
         tePrint( "Failed to open default audio device.\n" );
-        return;
-    }
-
-    AURenderCallbackStruct callback;
-    callback.inputProc = tone;
-    callback.inputProcRefCon = nullptr; 
-
-    bool ok = OpenAudio( FMT_FLOAT, 44100, 1, &callback );
-    if (!ok)
-    {
-        AudioComponentInstanceDispose( outputInstance );
-        tePrint( "failed to open audio!\n" );
         return;
     }
 
@@ -174,15 +170,30 @@ void InitAudio()
         int value = 100;
         float factor = (value == 0) ? 0.0 : powf( 10, VolumeRangeDb * (value - 100) / 100 / 20 );
 
-        AudioUnitSetParameter( outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
+        AudioUnitSetParameter( gAudioDevice.outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
     }
 }
 
 void LoadAudioWAV( const char* path, unsigned clipIndex )
 {
+    audioClipInternals[ clipIndex ].wavFile = teLoadFile( path );
+    audioClipInternals[ clipIndex ].data = LoadWAV( audioClipInternals[ clipIndex ].wavFile, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].frameCount );
+
+    AURenderCallbackStruct callback;
+    callback.inputProc = tone;
+    callback.inputProcRefCon = nullptr; 
+
+    bool ok = OpenAudio( FMT_S16_LE, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, &callback );
+    if (!ok)
+    {
+        AudioComponentInstanceDispose( gAudioDevice.outputInstance );
+        tePrint( "failed to open audio!\n" );
+        return;
+    }
 
 }
 
 void PlayAudioClip( unsigned clipIndex )
 {
+    gAudioDevice.playingClipIndex = clipIndex;
 }
