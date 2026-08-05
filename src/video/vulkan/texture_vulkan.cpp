@@ -5,7 +5,7 @@
 
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
+bool LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
@@ -519,7 +519,7 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
             VK_CHECK( vkBindBufferMemory( device, stagingBuffers[ mipLevel ], stagingMemory[ mipLevel ], 0 ) );
 
             void* stagingData;
-            VK_CHECK(vkMapMemory(device, stagingMemory[mipLevel], 0, memReqs.size, 0, &stagingData));
+            VK_CHECK( vkMapMemory( device, stagingMemory[ mipLevel ], 0, memReqs.size, 0, &stagingData ) );
 
             VkDeviceSize amountToCopy = imageSize;
 
@@ -584,7 +584,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         unsigned bitsPerPixel = 24;
         unsigned dataBeginOffset = 0;
 
-        LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
+        bool loadRes = LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
 
         if (bitsPerPixel == 24)
         {
@@ -620,8 +620,15 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         teTextureFormat bcFormat = teTextureFormat::Invalid;
         unsigned mipOffsets[ 15 ] = {};
         unsigned mipOffsets2[ 6 ][ 15 ] = {};
-        LoadDDS( file, tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets );
+        bool loadRes = LoadDDS( file, tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets );
         
+        if (!loadRes)
+        {
+            outTexture.index = 1;
+            --textureCount;
+            return outTexture;
+        }
+
         for (unsigned i = 0; i < 15; ++i)
         {
             mipOffsets2[ 0 ][ i ] = mipOffsets[ i ];
@@ -733,7 +740,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
     for (unsigned face = 0; face < 6; ++face)
     {
-        if (strstr( paths[ face ], ".tga" ) || strstr( paths[ face ], ".TGA" ))
+        if (teStrstr( paths[ face ], ".tga" ) || teStrstr( paths[ face ], ".TGA" ))
         {
             isTGA = true;
 
@@ -753,7 +760,15 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             unsigned bitsPerPixel = 24;
             unsigned dataBeginOffset = 0;
 
-            LoadTGA( files[ face ], tex.width, tex.height, dataBeginOffset, bitsPerPixel );
+            bool res = LoadTGA( files[ face ], tex.width, tex.height, dataBeginOffset, bitsPerPixel );
+
+            if (!res)
+            {
+                teAssert( !"One of cube map faces failed to load!" );
+                outTexture.index = 2;
+                return outTexture;
+            }
+
             bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
             tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
             teAssert( tex.mipLevelCount <= 15 );
@@ -777,7 +792,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                 return outTexture;
             }
 
-            LoadDDS( files[ face ], tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets[ face ] );
+            bool loadRes = LoadDDS( files[ face ], tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets[ face ] );
 
             if (!(flags & teTextureFlags::GenerateMips))
             {

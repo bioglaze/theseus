@@ -1730,7 +1730,7 @@ void teEndFrame()
     VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
 
     uint64_t timestamps[ 2 ] = {};
-    VkResult res = vkGetQueryPoolResults( renderer.device, renderer.queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
+    /*VkResult res =*/ vkGetQueryPoolResults(renderer.device, renderer.queryPool, 0, 2, sizeof(uint64_t) * 2, timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
     //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};

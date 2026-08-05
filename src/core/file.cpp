@@ -30,7 +30,10 @@ teFile teLoadFile( const char* path )
         fseek( file, 0, SEEK_END );
         auto length = ftell( file );
         fseek( file, 0, SEEK_SET );
-        outFile.data = (unsigned char*)teMalloc( length );
+        if (length > 0)
+        {
+            outFile.data = (unsigned char*)teMalloc( length );
+        }
         outFile.size = (unsigned)length;
         
         fread( outFile.data, 1, length, file );    

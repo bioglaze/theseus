@@ -156,8 +156,9 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 
     if (!fileContents.data)
     {
-        outWidth = 512;
-        outHeight = 512;
+        outWidth = 32;
+        outHeight = 32;
+        outMipLevelCount = 1;
         return false;
     }
 
@@ -177,6 +178,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
         tePrint( "DDS loader error: Texture %s doesn't contain pixelformat or caps.\n", fileContents.path );
         outWidth = 32;
         outHeight = 32;
+        outMipLevelCount = 1;
         return false;
     }
 
@@ -185,63 +187,75 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     teAssert( !(outWidth & (outWidth - 1)) && "DDSLoader: Wrong image width" );
     teAssert( !(outHeight & (outHeight - 1)) && "DDSLoader: Wrong image height" );
 
-    constexpr DDSInfo loadInfoDXT1 = { 4, 8 };
-    constexpr DDSInfo loadInfoDXT3 = { 4, 16 };
-    constexpr DDSInfo loadInfoDXT5 = { 4, 16 };
+    constexpr DDSInfo loadInfo4_8 = { 4, 8 };
+    constexpr DDSInfo loadInfo4_16 = { 4, 16 };
 
     DDSInfo li = {};
     size_t additionalFileOffset = 0;
 
     if (PF_IS_DXT1( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT1;
+        li = loadInfo4_8;
         outFormat = teTextureFormat::BC1_SRGB;
     }
     else if (PF_IS_DXT3( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT3;
+        li = loadInfo4_16;
         outFormat = teTextureFormat::BC2_SRGB;
     }
     else if (PF_IS_DXT5( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_16;
         outFormat = teTextureFormat::BC3_SRGB;
     }
     else if (PF_IS_BC4S( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_8;
         outFormat = teTextureFormat::BC4S;
     }
     else if (PF_IS_BC4U( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_8;
         outFormat = teTextureFormat::BC4U;
     }
     else if (PF_IS_BC5S( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_16;
         outFormat = teTextureFormat::BC5S;
     }
     else if (PF_IS_BC5U( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_16;
         outFormat = teTextureFormat::BC5U;
     }
     else if (PF_IS_DX10( header.sHeader.sPixelFormat ))
     {
         teMemcpy( &header10, fileContents.data + sizeof( header ), sizeof( header10 ) );
-        li = (header10.DXGIFormat == dxgiFormat_BC1_UNORM || header10.DXGIFormat == dxgiFormat_BC1_UNORM_SRGB) ? loadInfoDXT1 : loadInfoDXT5;
+        if (header10.DXGIFormat == dxgiFormat_BC1_UNORM || header10.DXGIFormat == dxgiFormat_BC1_UNORM_SRGB)
+        {
+            li = loadInfo4_8;
+        }
+        else if (header10.DXGIFormat == dxgiFormat_BC4_UNORM || header10.DXGIFormat == dxgiFormat_BC4_SNORM)
+        {
+            li = loadInfo4_8;
+        }
+        else
+        {
+            tePrint( "Unhandled DXGI format with DX10 header in %s\n", fileContents.path );
+            li = loadInfo4_8;
+        }
+
         outFormat = DXGIFormatToTeTextureFormat( header10.DXGIFormat );
         additionalFileOffset = sizeof( header10 );
     }
     else if (PF_IS_ATI1( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT1;
+        li = loadInfo4_8;
         outFormat = teTextureFormat::BC4U;
     }
     else if (PF_IS_ATI2( header.sHeader.sPixelFormat ))
     {
-        li = loadInfoDXT5;
+        li = loadInfo4_16;
         outFormat = teTextureFormat::BC5U;
     }
     else
@@ -285,8 +299,14 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 }
 
 // Supported format: RGBA8, non-RLE .tga
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel )
+bool LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel )
 {
+    if (!file.data || file.size < 18)
+    {
+        tePrint( "Non-existing or too short .tga file: %s.", file.path );
+        return false;
+    }
+
     unsigned char* data = (unsigned char*)file.data;
 
     unsigned offs = 0;
@@ -297,7 +317,7 @@ void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsig
     if (imageType != 2)
     {
         tePrint( "Incompatible .tga file: %s. Must be truecolor and not use RLE.\n", file.path );
-        return;
+        return false;
     }
 
     offs += 5; // colorSpec
@@ -321,4 +341,6 @@ void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsig
     }
 
     outDataBeginOffset = offs;
+
+    return true;
 }

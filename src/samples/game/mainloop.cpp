@@ -287,7 +287,8 @@ void LoadResources( unsigned width, unsigned height )
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
     gResources.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
 
-    teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
+    //teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
+    teFile brickFile = teLoadFile( "assets/textures/test/manhole_diamond_bc4_with_mips.dds" );
     gResources.defaultTexture2D = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
