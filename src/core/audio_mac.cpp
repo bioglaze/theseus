@@ -56,10 +56,19 @@ OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const Aud
     static int wavPlaybackSample = 0;
     //printf("inNumberFrames: %u, data size: %u\n", numberFrames, audioClipInternals[ 1 ].wavFile.size );
 
+    const int channelCount = audioClipInternals[ gAudioDevice.playingClipIndex ].channelCount;
+
     for (UInt32 frame = 0; frame < numberFrames; ++frame) 
     {
-        buffer[ frame ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
+        buffer[ frame * channelCount + 0 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
         ++wavPlaybackSample;
+
+        if (channelCount == 2)
+        {
+            buffer[ frame * channelCount + 1 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
+            ++wavPlaybackSample;
+        }
+        
         if (wavPlaybackSample >= (audioClipInternals[ gAudioDevice.playingClipIndex ].wavFile.size - 44 ) / 2)
         {
             wavPlaybackSample = 0;
