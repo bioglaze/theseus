@@ -3,7 +3,7 @@
 #include "file.h"
 #include "te_stdlib.h"
 
-void LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
+bool LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
 
 extern MTL::Device* gDevice;
@@ -183,13 +183,12 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
     }
     
     unsigned multiplier = 1;
-    unsigned bitsPerPixel = 0;
     unsigned offset = 0;
     
-
     if (strstr( file.path, ".tga" ) || strstr( file.path, ".TGA" ))
     {
-        LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel );
+        unsigned bitsPerPixel = 24;
+        bool res = LoadTGA( file, tex.width, tex.height, offset, bitsPerPixel );
         multiplier = 4;
 
         if (bitsPerPixel == 24)
@@ -278,8 +277,16 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 #if !TARGET_OS_IPHONE
     else if (strstr( file.path, ".dds" ) || strstr( file.path, ".DDS" ))
     {
-        unsigned mipOffsets[ 15 ];
-        LoadDDS( file, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets  );
+        unsigned mipOffsets[ 15 ] = {};
+        bool loadRes = LoadDDS( file, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets  );
+
+        if (!loadRes)
+        {
+            outTexture.index = 1;
+            --textureCount;
+            return outTexture;
+        }
+
         tex.format = GetPixelFormat( outTexture.format );
         multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
 

@@ -1,7 +1,6 @@
 #include <CoreAudio/CoreAudio.h>
 #include <AudioUnit/AudioUnit.h>
 #include "te_stdlib.h"
-#include <math.h>
 
 struct AudioDevice
 {
@@ -24,7 +23,7 @@ enum format_type
 struct CoreAudioFormatDescriptionMap
 {
     enum format_type type;
-    int bits_per_sample;
+    int bitsPerSample;
     int bytes_per_sample;
     unsigned int flags;
 };
@@ -55,15 +54,13 @@ OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const Aud
     int16_t* buffer = (int16_t*)ioData->mBuffers[ channel ].mData;
     
     static int wavPlaybackSample = 0;
-    printf("inNumberFrames: %u, data size: %u\n", numberFrames, audioClipInternals[ 1 ].wavFile.size );
+    //printf("inNumberFrames: %u, data size: %u\n", numberFrames, audioClipInternals[ 1 ].wavFile.size );
 
     for (UInt32 frame = 0; frame < numberFrames; ++frame) 
     {
-        printf(" reading sample %d\n", wavPlaybackSample);
-
-        buffer[ frame ] = audioClipInternals[ 1 ].data[ wavPlaybackSample ];
+        buffer[ frame ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
         ++wavPlaybackSample;
-        if (wavPlaybackSample >= (audioClipInternals[ 1 ].wavFile.size - 44 ) / 2)
+        if (wavPlaybackSample >= (audioClipInternals[ gAudioDevice.playingClipIndex ].wavFile.size - 44 ) / 2)
         {
             wavPlaybackSample = 0;
         }
@@ -97,9 +94,9 @@ bool OpenAudio( enum format_type format, int rate, int chan, AURenderCallbackStr
     streamFormat.mFormatFlags = m->flags;
     streamFormat.mFramesPerPacket = 1;
     streamFormat.mChannelsPerFrame = chan;
-    streamFormat.mBitsPerChannel = m->bits_per_sample;
-    streamFormat.mBytesPerPacket = chan * m->bytes_per_sample;
-    streamFormat.mBytesPerFrame = chan * m->bytes_per_sample;
+    streamFormat.mBitsPerChannel = m->bitsPerSample;
+    streamFormat.mBytesPerPacket = (m->flags & kAudioFormatFlagIsNonInterleaved) ? m->bytes_per_sample : chan * m->bytes_per_sample;
+    streamFormat.mBytesPerFrame = (m->flags & kAudioFormatFlagIsNonInterleaved) ? m->bytes_per_sample : chan * m->bytes_per_sample;
 
     if (AudioUnitSetProperty( gAudioDevice.outputInstance, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &streamFormat, sizeof( streamFormat ) ))
     {
@@ -178,22 +175,20 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 {
     audioClipInternals[ clipIndex ].wavFile = teLoadFile( path );
     audioClipInternals[ clipIndex ].data = LoadWAV( audioClipInternals[ clipIndex ].wavFile, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].frameCount );
+}
 
+void PlayAudioClip( unsigned clipIndex )
+{
     AURenderCallbackStruct callback;
     callback.inputProc = tone;
-    callback.inputProcRefCon = nullptr; 
+    callback.inputProcRefCon = nullptr;
 
     bool ok = OpenAudio( FMT_S16_LE, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, &callback );
     if (!ok)
     {
         AudioComponentInstanceDispose( gAudioDevice.outputInstance );
         tePrint( "failed to open audio!\n" );
-        return;
     }
 
-}
-
-void PlayAudioClip( unsigned clipIndex )
-{
     gAudioDevice.playingClipIndex = clipIndex;
 }

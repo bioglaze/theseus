@@ -330,10 +330,10 @@ void LoadResources( unsigned width, unsigned height )
     teFile wavFile1 = teLoadFile( "assets/audio/alarm.wav" );
     gResources.audioClip1 = teLoadAudioClip( wavFile1 );
 
-    teFile wavFile2 = teLoadFile( "assets/audio/sine340.wav" );
-    gResources.audioClip2 = teLoadAudioClip( wavFile2 );
+    //teFile wavFile2 = teLoadFile( "assets/audio/sine340.wav" );
+    //gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
-    tePlayAudioClip( gResources.audioClip2 );
+    tePlayAudioClip( gResources.audioClip1 );
 }
 
 void Init( unsigned width, unsigned height )
