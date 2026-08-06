@@ -62,7 +62,7 @@ struct PSO
     MTL::Function*            vertexFunction;
     MTL::Function*            pixelFunction;
     MTL::PixelFormat          colorFormat = MTL::PixelFormatBGRA8Unorm_sRGB;
-    MTL::PixelFormat          depthFormat = MTL::PixelFormatBGRA8Unorm_sRGB;
+    MTL::PixelFormat          depthFormat = MTL::MTLPixelFormatDepth32Float;
     teBlendMode               blendMode = teBlendMode::Off;
     teTopology                topology = teTopology::Triangles;
 };
@@ -112,8 +112,6 @@ struct Renderer
 
     teBuffer    uiVertexBuffer;
     teBuffer    uiIndexBuffer;
-    float*      uiVertices = nullptr;
-    uint16_t*   uiIndices = nullptr;
 
     teTexture2D defaultTexture2D;
     teShader lineShader;
@@ -150,7 +148,9 @@ static MTL::SamplerState* GetSampler( teTextureSampler sampler )
     if (sampler == teTextureSampler::LinearRepeat) return renderer.linearRepeat;
     if (sampler == teTextureSampler::NearestClamp) return renderer.nearestClamp;
     if (sampler == teTextureSampler::NearestRepeat) return renderer.nearestRepeat;
-    
+    if (sampler == teTextureSampler::Anisotropic8Clamp) return renderer.anisotropicClamp;
+    if (sampler == teTextureSampler::Anisotropic8Repeat) return renderer.anisotropicRepeat;
+
     teAssert( !"Unhandled sampler!" );
     return renderer.linearClamp;
 }
@@ -168,7 +168,7 @@ void teLoadMetalShaderLibrary()
 
     if (!shaderLibrary)
     {
-        printf( "Failed to load (shaders.metallib)library. error ===== %s\n", error->localizedDescription()->utf8String() );
+        tePrint( "Failed to load (shaders.metallib) library. error ===== %s\n", error ? error->localizedDescription()->utf8String() : "<null>" );
     }
 }
 
@@ -229,8 +229,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setLabel( NS::String::string( "anisotropicClamp", NS::UTF8StringEncoding ) );
     renderer.anisotropicClamp = renderer.device->newSamplerState( samplerDescriptor );
 
-    samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
-    samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
+    samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterNearest );
+    samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterNearest );
     samplerDescriptor->setMipFilter( MTL::SamplerMipFilterNearest );
     samplerDescriptor->setSAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeRepeat );
@@ -239,8 +239,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setLabel( NS::String::string( "nearestRepeat", NS::UTF8StringEncoding ) );
     renderer.nearestRepeat = renderer.device->newSamplerState( samplerDescriptor );
 
-    samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
-    samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
+    samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterNearest );
+    samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterNearest );
     samplerDescriptor->setMipFilter( MTL::SamplerMipFilterNearest );
     samplerDescriptor->setSAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setTAddressMode( MTL::SamplerAddressModeClampToEdge );
@@ -297,8 +297,6 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     
     renderer.uiVertexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiVertexBuffer" );
     renderer.uiIndexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiIndexBuffer" );
-    renderer.uiVertices = (float*)teMalloc( UiBufferBytes );
-    renderer.uiIndices = (uint16_t*)teMalloc( UiBufferBytes );
 
     renderer.lineVertexBuffer = CreateBuffer( renderer.device, 1024 * 1024 * 4, true, "lineVertexBuffer" );
     
@@ -615,7 +613,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
         
     if (!renderer.psos[ nextFreePsoIndex ].pso)
     {
-        printf( "Failed to create pipeline state, error %s\n", error->localizedDescription()->utf8String() );
+        tePrint( "Failed to create pipeline state, error %s\n", error->localizedDescription()->utf8String() );
     }
         
     unsigned psoIndex = nextFreePsoIndex;
@@ -631,7 +629,9 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
 
 void MoveToNextUboOffset()
 {
-    renderer.frameResources[ 0 ].uboOffset += sizeof( PerObjectUboStruct );
+    unsigned mask = 256 - 1; // Intel requires 256-byte alignment, Apple silicon 32. 256 satisfies both.
+    unsigned alignedOffset = sizeof( PerObjectUboStruct ) + (-sizeof( PerObjectUboStruct ) & mask); // Works only for power of two alignment.
+    renderer.frameResources[ 0 ].uboOffset += alignedOffset;
     teAssert( renderer.frameResources[ 0 ].uboOffset < UniformBufferSize );
 }
 
@@ -691,9 +691,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 
 void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
-    float m[ 16 ];
-    UpdateUBO( m, m, m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-
+    Matrix identity;
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
     Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
 }
 
@@ -795,7 +794,7 @@ void DrawLines()
 
     MTL::PixelFormat colorFormat = renderer.renderPassDescriptorFBO->colorAttachments()->object( 0 )->texture()->pixelFormat();
     MTL::PixelFormat depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
-    const int psoIndex = GetPSO( teShaderGetVertexProgram( renderer.lineShader ), teShaderGetPixelProgram( renderer.lineShader ), teBlendMode::Off, teTopology::Lines, colorFormat, depthFormat, true );
+    const int psoIndex = GetPSO( teShaderGetVertexProgram( renderer.lineShader ), teShaderGetPixelProgram( renderer.lineShader ), teBlendMode::Off, teTopology::Lines, colorFormat, depthFormat, false );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
     renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );

@@ -193,7 +193,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
         if (bitsPerPixel == 24)
         {
-            printf( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
+            tePrint( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
             outTexture.index = 1;
             return outTexture;
         }

@@ -17,6 +17,7 @@ Bugs:
   * standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
   * macOS: audio sounds distorted
+  * teCullMode enum values should be Front, Back etc, not CCW
   
 TODO:
 * Editor

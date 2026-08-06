@@ -56,8 +56,9 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
 
         if (shaders[ outShader.index ].vertexProgram == nullptr)
         {
-            printf( "Could not load vertex shader '%s'\n", vertexName );
+            tePrint( "Could not load vertex shader '%s'\n", vertexName );
             outShader.index = 0;
+            --shaderCount;
             return outShader;
         }
     }
@@ -70,8 +71,9 @@ teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFil
 
         if (shaders[ outShader.index ].pixelProgram == nullptr)
         {
-            printf( "could not load pixel shader '%s'\n", pixelName );
+            tePrint( "could not load pixel shader '%s'\n", pixelName );
             outShader.index = 0;
+            --shaderCount;
         }
     }
 
@@ -95,8 +97,10 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
 
         if (shaders[ outShader.index ].computeProgram == nullptr)
         {
-            printf( "Could not load compute shader '%s'!\n", name );
+            tePrint( "Could not load compute shader '%s'!\n", name );
             outShader.index = 0;
+            --shaderCount;
+            return outShader;
         }
     }
 
@@ -105,8 +109,8 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
     
     if (!shaders[ outShader.index ].computePipeline)
     {
-        //printf( "Error occurred when building compute pipeline for function %s: %s", name, [error localizedDescription] );
-        printf( "error building compute pipeline\n" );
+        //tePrint( "Error occurred when building compute pipeline for function %s: %s", name, [error localizedDescription] );
+        tePrint( "error building compute pipeline\n" );
     }
     
     return outShader;
@@ -118,8 +122,8 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     teAssert( shaders[ shader.index ].computeProgram != nil );
     teAssert( !params.writeTexture || (TextureGetFlags( params.writeTexture ) & teTextureFlags::UAV ) );
     
-    float m[ 16 ];
-    UpdateUBO( m, m, m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    Matrix identity;
+    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
     
     MTL::Size threadgroups = MTL::Size::Make( groupsX, groupsY, groupsZ );
 
