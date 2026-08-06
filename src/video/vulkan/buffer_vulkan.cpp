@@ -26,7 +26,7 @@ VkDeviceMemory BufferGetMemory( const teBuffer& buffer )
 
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName )
 {
-    teAssert( bufferCount < 10000 );
+    teAssert( bufferCount + 1 < 10000 );
 
     teBuffer outBuffer;
     outBuffer.index = ++bufferCount;

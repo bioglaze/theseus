@@ -29,7 +29,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
 unsigned TextureGetFlags( unsigned index );
-void GetFormatAndBPP( teTextureFormat bcFormat, VkFormat& outFormat, unsigned& outBytesPerPixel );
+void GetFormat( teTextureFormat bcFormat, VkFormat& outFormat );
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName );
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
@@ -79,7 +79,6 @@ struct PushConstants
     float scale[ 2 ];
     float translate[ 2 ];
     int vertexOffset;
-    int indexOffset;
 };
 
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties )
@@ -144,7 +143,6 @@ struct SwapchainResource
     VkSemaphore renderCompleteSemaphore = VK_NULL_HANDLE;
     VkSemaphore imageAcquiredSemaphore = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
-    VkFence submitFence = VK_NULL_HANDLE;
     VkImage depthStencilImage = VK_NULL_HANDLE;
     VkDeviceMemory depthStencilMem = VK_NULL_HANDLE;
     VkImageView depthStencilView = VK_NULL_HANDLE;
@@ -656,9 +654,8 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
 
     VkFormat colorFormatVulkan = VK_FORMAT_UNDEFINED;
     VkFormat depthFormatVulkan = VK_FORMAT_UNDEFINED;
-    unsigned bpp = 0;
-    GetFormatAndBPP( colorFormat, colorFormatVulkan, bpp );
-    GetFormatAndBPP( depthFormat, depthFormatVulkan, bpp );
+    GetFormat( colorFormat, colorFormatVulkan );
+    GetFormat( depthFormat, depthFormatVulkan );
 
     VkPipelineRenderingCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -1151,9 +1148,6 @@ void CreateCommandBuffers()
         VkFenceCreateInfo fenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, VK_FENCE_CREATE_SIGNALED_BIT };
 
         VK_CHECK( vkCreateFence( renderer.device, &fenceCreateInfo, nullptr, &renderer.swapchainResources[ i ].fence ) );
-
-        VkFenceCreateInfo submitFenceCreateInfo = { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, nullptr, 0 };
-        VK_CHECK( vkCreateFence( renderer.device, &submitFenceCreateInfo, nullptr, &renderer.swapchainResources[ i ].submitFence ) );
     }
 
     VkCommandBufferAllocateInfo texCommandBufferAllocateInfo = {};
@@ -1257,7 +1251,9 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     VkImage* images = (VkImage*)teMalloc( sizeof( VkImage ) * renderer.swapchainImageCount );
     VK_CHECK( renderer.getSwapchainImagesKHR( renderer.device, renderer.swapchain, &renderer.swapchainImageCount, images ) );
 
-    for (uint32_t i = 0; i < swapchainInfo.minImageCount; ++i)
+    teAssert( renderer.swapchainImageCount < 5 );
+
+    for (uint32_t i = 0; i < renderer.swapchainImageCount; ++i)
     {
         VkImageViewCreateInfo colorAttachmentView = {};
         colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1274,8 +1270,6 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
         renderer.swapchainResources[ i ].image = images[ i ];
 
         SetObjectName( renderer.device, (uint64_t)images[ i ], VK_OBJECT_TYPE_IMAGE, "swapchain image" );
-        //SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, renderer.swapchainResources[ i ].image,
-        //    VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
     }
 
     teFree( images );
@@ -1963,7 +1957,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.lightPosition.z = lightPosition.z;
     uboStruct.lightPosition.w = 1;
     uboStruct.pointLightCount = GetPointLightCount();
-    uboStruct.spotLightCount = 0;
+    uboStruct.spotLightCount = GetSpotLightCount();
     uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.swapchainWidth );
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
@@ -2291,7 +2285,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
-    pushConstants.indexOffset = indexOffset / 2;
     pushConstants.vertexOffset = positionOffset;
     pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
     pushConstants.spotLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightColorInfo );

@@ -72,97 +72,79 @@ unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
     return width * height * 4;
 }
 
-void GetFormatAndBPP( teTextureFormat format, VkFormat& outFormat, unsigned& outBytesPerPixel )
+void GetFormat( teTextureFormat format, VkFormat& outFormat )
 {
     if (format == teTextureFormat::BC1)
     {
         outFormat = VK_FORMAT_BC1_RGB_UNORM_BLOCK;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::BC1_SRGB)
     {
         outFormat = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::BC2)
     {
         outFormat = VK_FORMAT_BC2_UNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC2_SRGB)
     {
         outFormat = VK_FORMAT_BC2_SRGB_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC3)
     {
         outFormat = VK_FORMAT_BC3_UNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC3_SRGB)
     {
         outFormat = VK_FORMAT_BC3_SRGB_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC4U)
     {
         outFormat = VK_FORMAT_BC4_UNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC4S)
     {
         outFormat = VK_FORMAT_BC4_SNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC5U)
     {
         outFormat = VK_FORMAT_BC5_UNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::BC5S)
     {
         outFormat = VK_FORMAT_BC5_SNORM_BLOCK;
-        outBytesPerPixel = 2;
     }
     else if (format == teTextureFormat::R32G32F)
     {
         outFormat = VK_FORMAT_R32G32_SFLOAT;
-        outBytesPerPixel = 8;
     }
     else if (format == teTextureFormat::R32F)
     {
         outFormat = VK_FORMAT_R32_SFLOAT;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::R32G32B32A32F)
     {
         outFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-        outBytesPerPixel = 4 * 4;
     }
     else if (format == teTextureFormat::Depth32F)
     {
         outFormat = VK_FORMAT_D32_SFLOAT;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::Depth32F_S8)
     {
         outFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::BGRA_sRGB)
     {
         outFormat = VK_FORMAT_B8G8R8A8_SRGB;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::RGBA_sRGB)
     {
         outFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        outBytesPerPixel = 4;
     }
     else if (format == teTextureFormat::BGRA)
     {
         outFormat = VK_FORMAT_B8G8R8A8_UNORM;
-        outBytesPerPixel = 4;
     }
     else
     {
@@ -202,8 +184,7 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
     tex.flags = flags;
 
     VkFormat vFormat = VK_FORMAT_UNDEFINED;
-    unsigned bpp = 0;
-    GetFormatAndBPP( format, vFormat, bpp );
+    GetFormat( format, vFormat );
 
     VkImageCreateInfo imageCreateInfo = {};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -280,8 +261,7 @@ teTextureCube teCreateTextureCube( VkDevice device, const VkPhysicalDeviceMemory
     tex.flags = flags;
 
     VkFormat vFormat = VK_FORMAT_UNDEFINED;
-    unsigned bpp = 0;
-    GetFormatAndBPP( format, vFormat, bpp );
+    GetFormat( format, vFormat );
 
     VkImageCreateInfo imageCreateInfo = {};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -602,8 +582,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     }
     else if (pixels)
     {
-        unsigned bitsPerPixel = 0;
-        GetFormatAndBPP( pixelsFormat, format, bitsPerPixel );
+        GetFormat( pixelsFormat, format );
 
         tex.width = pixelsWidth;
         tex.height = pixelsHeight;
@@ -639,8 +618,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
             tex.mipLevelCount = 1;
         }
 
-        unsigned bytesPerPixel = 4;
-        GetFormatAndBPP( bcFormat, format, bytesPerPixel );
+        GetFormat( bcFormat, format );
 
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -799,7 +777,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                 tex.mipLevelCount = 1;
             }
 
-            GetFormatAndBPP( bcFormat, format, bytesPerPixel );
+            GetFormat( bcFormat, format );
             outTexture.format = bcFormat;
             UpdateStagingTexture( &files[ face ].data[ mipOffsets[ face ][ 0 ] ], tex.width, tex.height, format, face);
         }

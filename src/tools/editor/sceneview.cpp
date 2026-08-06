@@ -1140,7 +1140,6 @@ void RenderSceneView( float gridStep )
             {
                 if (type == EntityDoor)
                 {
-                    char label[ 100 ] = {};
                     const char* l0 = sceneView.doorInputs[ selectedGoIndex ][ 0 ] ? sceneView.doorInputs[ selectedGoIndex ][ 0 ] : "<none>";
                     const char* l1 = sceneView.doorInputs[ selectedGoIndex ][ 1 ] ? sceneView.doorInputs[ selectedGoIndex ][ 1 ] : "<none>";
                     const char* l2 = sceneView.doorInputs[ selectedGoIndex ][ 2 ] ? sceneView.doorInputs[ selectedGoIndex ][ 2 ] : "<none>";
