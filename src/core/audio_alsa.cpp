@@ -20,7 +20,6 @@ struct AudioClipInternal
     int frameCount = 0;
     teFile wavFile;
     int16_t* data = nullptr;
-    unsigned char buffer[ 16 * 1024 ]; /* some random data */
 };
 
 AudioClipInternal audioClipInternals[ 1000 ]; // Indexed by audio_common.cpp audioClipIndex
@@ -98,9 +97,6 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 
 void PlayAudioClip( unsigned clipIndex )
 { 
-    for (unsigned i = 0; i < sizeof( audioClipInternals[ clipIndex ].buffer ); i++)
-        audioClipInternals[ clipIndex ].buffer[i] = i & 0xff;
-    
     gAudioDevice.playingClipIndex = clipIndex;
     
     int err = snd_pcm_set_params( gAudioDevice.device,
@@ -110,19 +106,19 @@ void PlayAudioClip( unsigned clipIndex )
                                   audioClipInternals[ clipIndex ].sampleRate,
                                   1,
                                   500000 );
-    int frames = 0;
-    
-    for (int i = 0; i < 16; i++)
+
+    int frames = snd_pcm_writei( gAudioDevice.device, audioClipInternals[ clipIndex ].data, audioClipInternals[ clipIndex ].frameCount );
+    if (frames < 0)
     {
-        frames = snd_pcm_writei( gAudioDevice.device, audioClipInternals[ clipIndex ].buffer, sizeof( audioClipInternals[ clipIndex ].buffer ) );
-        if (frames < 0)
-            frames = snd_pcm_recover( gAudioDevice.device, frames, 0 );
-        if (frames < 0)
-        {
-            tePrint("snd_pcm_writei failed: %s\n", snd_strerror( frames ));
-            break;
-        }
-        if (frames > 0 && frames < (long)sizeof(audioClipInternals[ clipIndex ].buffer))
-            printf("Short write (expected %li, wrote %li)\n", (long)sizeof( audioClipInternals[ clipIndex ].buffer ), frames);
+        frames = snd_pcm_recover( gAudioDevice.device, frames, 0 );
+    }
+    if (frames < 0)
+    {
+        tePrint("snd_pcm_writei failed: %s\n", snd_strerror( frames ));
+        return;
+    }
+    if (frames > 0 && frames < (long)sizeof(audioClipInternals[ clipIndex ].frameCount))
+    {
+        tePrint( "Short write\n" );
     }
 }
