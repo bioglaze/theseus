@@ -170,6 +170,23 @@ void ExportGameScene( const teScene& scene, const char* path )
                 fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path ); // Note: in teSceneReadScene() this is mesh name, not path, but the format is not finalized yet.
             }
 
+            if (teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
+            {
+                float* color = tePointLightAccessColor( goIndex );
+                float* radius = tePointLightAccessRadius( goIndex );
+
+                fprintf( outFile, "pointlight %f %f %f %f\n", color[ 0 ], color[ 1 ], color[ 2 ], *radius );
+            }
+
+            if (teGameObjectGetComponents( goIndex ) & teComponent::SpotLight)
+            {
+                float* color = teSpotLightAccessColor( goIndex );
+                float* radius = teSpotLightAccessRadius( goIndex );
+                float* coneAngle = teSpotLightAccessConeAngle( goIndex );
+
+                fprintf( outFile, "spotlight %f %f %f %f %f\n", color[ 0 ], color[ 1 ], color[ 2 ], *radius, *coneAngle );
+            }
+
             fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
             fprintf( outFile, "entityName %s\n", sceneView.entityNames[ goIndex ] );
         }

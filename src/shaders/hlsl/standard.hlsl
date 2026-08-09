@@ -190,7 +190,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         
         if (lightDistance < radius)
         {
-            const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
+            const float3 vecToLightVS = -(mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
             const float3 iL = normalize( vecToLightVS );
             const float3 iH = normalize( iL + V );
 
