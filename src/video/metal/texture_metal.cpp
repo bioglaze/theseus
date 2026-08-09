@@ -19,7 +19,7 @@ struct teTextureImpl
     unsigned mipLevelCount = 1;
 };
 
-teTextureImpl textures[ 100 ];
+teTextureImpl textures[ TextureCount ];
 unsigned textureCount = 0;
 
 static inline unsigned Max2( unsigned x, unsigned y ) noexcept
@@ -118,7 +118,7 @@ unsigned TextureGetFlags( unsigned index )
 
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
-    teAssert( textureCount < 100 );
+    teAssert( textureCount + 1 < TextureCount );
 
     const unsigned index = ++textureCount;
 
@@ -165,7 +165,7 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
 
 teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat )
 {
-    teAssert( textureCount < 100 );
+    teAssert( textureCount + 1 < TextureCount );
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTexture2D outTexture;
@@ -288,7 +288,8 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         }
 
         tex.format = GetPixelFormat( outTexture.format );
-        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
+        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || 
+                      outTexture.format == teTextureFormat::BC4U || outTexture.format == teTextureFormat::BC4S) ? 2 : 4;
 
         if (!(flags & teTextureFlags::GenerateMips))
         {
@@ -363,7 +364,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags )
 {
-    teAssert( textureCount < 100 );
+    teAssert( textureCount + 1 < TextureCount );
     teAssert( !(flags & teTextureFlags::UAV) );
 
     teTextureCube outTexture;
@@ -376,10 +377,16 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     {
         // This code assumes that all cube map faces have the same format/dimension.
         unsigned multiplier = 1;
-        unsigned mipOffsets[ 15 ];
+        unsigned mipOffsets[ 15 ] = {};
         
-        LoadDDS( negX, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets );
-        
+        bool loadRes = LoadDDS( negX, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets );
+        if (!loadRes)
+        {
+            outTexture.index = 1; // FIXME: this is defaultTexture2D, not a cube map.
+            --textureCount;
+            return outTexture;
+        }
+
         tex.format = GetPixelFormat( outTexture.format );
         multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
 
@@ -405,7 +412,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         stagingDescriptor->setUsage( MTL::TextureUsageShaderRead );
         stagingDescriptor->setStorageMode( MTL::StorageModePrivate );
         tex.metalTexture = gDevice->newTexture( stagingDescriptor );
-        //tex.metalTexture.label = [NSString stringWithUTF8String:negX.path];
+        tex.metalTexture->setLabel( NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding ) );
 
         for (unsigned mipIndex = 0; mipIndex < stagingTexture->mipmapLevelCount(); ++mipIndex)
         {

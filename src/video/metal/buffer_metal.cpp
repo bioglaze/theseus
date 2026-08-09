@@ -13,6 +13,8 @@ unsigned bufferCount = 0;
 
 teBuffer CreateBuffer( MTL::Device* device, unsigned dataBytes, bool isStaging, const char* debugName )
 {
+    teAssert( bufferCount + 1 < 10000 );
+
     teBuffer outBuffer;
     outBuffer.index = ++bufferCount;
     
