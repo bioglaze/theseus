@@ -1958,7 +1958,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.lightPosition.w = 1;
     uboStruct.pointLightCount = GetPointLightCount();
     uboStruct.spotLightCount = GetSpotLightCount();
-    uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.swapchainWidth );
+    uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.swapchainHeight );
 
     teMemcpy( renderer.swapchainResources[ renderer.frameIndex ].ubo.uboData + renderer.swapchainResources[ renderer.frameIndex ].ubo.offset, &uboStruct, sizeof( uboStruct ) );
 }

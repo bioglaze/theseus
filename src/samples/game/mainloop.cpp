@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
+#include "light.h"
 #include "material.h"
 #include "mesh.h"
 #include "renderer.h"
@@ -99,6 +100,22 @@ void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount )
     }
 }
 
+int ParseFloat( const char* begin, float& outValue )
+{
+    char buf[ 80 ] = {};
+    int offset = 0;
+
+    while (begin[ offset ] != 0 && begin[ offset ] != ' ' && begin[ offset ] != '\n' && begin[ offset ] != '\r')
+    {
+        buf[ offset ] = begin[ offset ];
+        ++offset;
+    }
+
+    outValue = atof( buf );
+
+    return offset;
+}
+
 void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 {
     unsigned goCount = 0;
@@ -189,8 +206,19 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 
                 float z = (float)atof( position );
 
-                //printf( "position: %f %f %f\n", x, y, z );
                 teTransformSetLocalPosition( gos[ goCount - 1 ].index, Vec3( x, y, z ) );
+            }
+            else if (strstr( line, "pointlight" ) == line)
+            {
+                float r, g, b, radius;
+                int offset = (unsigned)strlen( "pointlight " );
+                offset += ParseFloat( line + offset, r ) + 1;
+                offset += ParseFloat( line + offset, g ) + 1;
+                offset += ParseFloat( line + offset, b ) + 1;
+                offset += ParseFloat( line + offset, radius );
+                
+                teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::PointLight );
+                tePointLightSetParams( gos[ goCount - 1 ].index, radius, Vec3( r, g, b ), 1.0f );
             }
             else if (strstr( line, "meshrenderer" ) == line)
             {
