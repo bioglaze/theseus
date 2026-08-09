@@ -1,7 +1,7 @@
 #pragma once
 
 enum class teBlendMode { Off, Alpha, Additive };
-enum class teCullMode { Off, CCW };
+enum class teCullMode { Off, Front, Back };
 enum class teDepthMode { NoneWriteOff, LessOrEqualWriteOn, LessOrEqualWriteOff };
 enum class teFillMode { Solid, Wireframe };
 
@@ -9,7 +9,7 @@ struct teMaterial
 {
     unsigned index = 0;
     teBlendMode blendMode = teBlendMode::Off;
-    teCullMode cullMode = teCullMode::CCW;
+    teCullMode cullMode = teCullMode::Back;
     teDepthMode depthMode = teDepthMode::LessOrEqualWriteOn;
     teFillMode fillMode = teFillMode::Solid;
     char name[ 30 ] = {};

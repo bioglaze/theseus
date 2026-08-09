@@ -560,9 +560,13 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     {
         rasterizationState.cullMode = VK_CULL_MODE_NONE;
     }
-    else if (cullMode == teCullMode::CCW)
+    else if (cullMode == teCullMode::Back)
     {
         rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+    }
+    else if (cullMode == teCullMode::Back)
+    {
+        rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
     }
     else
     {

@@ -62,7 +62,7 @@ struct PSO
     MTL::Function*            vertexFunction;
     MTL::Function*            pixelFunction;
     MTL::PixelFormat          colorFormat = MTL::PixelFormatBGRA8Unorm_sRGB;
-    MTL::PixelFormat          depthFormat = MTL::MTLPixelFormatDepth32Float;
+    MTL::PixelFormat          depthFormat = MTL::PixelFormatDepth32Float;
     teBlendMode               blendMode = teBlendMode::Off;
     teTopology                topology = teTopology::Triangles;
 };
@@ -649,7 +649,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, colorFormat, depthFormat, false );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
-    renderer.renderEncoder->setFrontFacingWinding( MTL::WindingCounterClockwise );
+    renderer.renderEncoder->setFrontFacingWinding( MTL::WindingClockwise );
     renderer.renderEncoder->setCullMode( (MTL::CullMode)cullMode );
 
     if (depthMode == teDepthMode::LessOrEqualWriteOn)
