@@ -570,6 +570,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         {
             tePrint( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
             outTexture.index = 1;
+            --textureCount;
             return outTexture;
         }
 

@@ -22,7 +22,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
 # Platforms
 
   - Windows, only AMD64 tested, but ARM64 might also work.
-  - macOS (Apple silicon)
+  - macOS
   - Linux support (defaults to Wayland but XCB also available by modifying the Makefile)
   - FreeBSD
 

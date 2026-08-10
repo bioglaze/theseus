@@ -530,6 +530,18 @@ static void CreateStagingTexture( unsigned index )
 
 void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index )
 {
+    if (width > 4096)
+    {
+        tePrint( "UpdateStagingTexture got width %u, clamped to 4096!\n", width );
+        width = 4096;
+    }
+
+    if (height > 4096)
+    {
+        tePrint( "UpdateStagingTexture got height %u, clamped to 4096!\n", height );
+        height = 4096;
+    }
+
     const VkDeviceSize imageSize = GetMemoryUsage( width, height, format );
 
     void* stagingData;
@@ -594,10 +606,10 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     }
     else if (blendMode == teBlendMode::Additive)
     {
-        blendAttachmentState[ 0 ].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         blendAttachmentState[ 0 ].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
         blendAttachmentState[ 0 ].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        blendAttachmentState[ 0 ].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        blendAttachmentState[ 0 ].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     }
 
     VkPipelineColorBlendStateCreateInfo colorBlendState = {};

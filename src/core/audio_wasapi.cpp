@@ -70,6 +70,12 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 
 void PlayAudioClip( unsigned clipIndex )
 {
+    if (!audioClipInternals[ clipIndex ].data)
+    {
+        tePrint( "PlayAudioClip tried to play a clip that is not loaded: %s\n", audioClipInternals[ clipIndex ].wavFile.path );
+        return;
+    }
+
     int sampleSize = 2;
 
     WAVEFORMATEXTENSIBLE format = MakeAudioFormat( audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].sampleRate, sampleSize );
