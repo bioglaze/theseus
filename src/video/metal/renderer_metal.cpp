@@ -484,6 +484,10 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderer.renderEncoder = renderer.frameResources[ 0 ].commandBuffer->renderCommandEncoder( renderPassDescriptor );
         renderer.renderEncoder->setLabel( NS::String::string( "encoder", NS::UTF8StringEncoding ) );
     }
+    else
+    {
+        tePrint( "BeginRendering got unhandled color/depth case, render pass will not be set correctly!\n" );
+    }
 }
 
 void EndRendering( teTexture2D& color, teTexture2D& depth )
