@@ -35,6 +35,7 @@ struct Resources
     teShader standardShader;
     teTextureCube skyTex;
     teTexture2D defaultTexture2D;
+    teTexture2D defaultNormalMap;
     teMesh cubeMesh;
     teGameObject camera3d;
     teMaterial defaultMaterial;
@@ -319,6 +320,8 @@ void LoadResources( unsigned width, unsigned height )
     //teFile brickFile = teLoadFile( "assets/textures/test/manhole_diamond_bc4_with_mips.dds" );
     gResources.defaultTexture2D = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+    teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.tga" );
+    gResources.defaultNormalMap = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     gResources.cubeMesh = teLoadMesh( cubeFile );
 
@@ -326,6 +329,7 @@ void LoadResources( unsigned width, unsigned height )
 
     gResources.defaultMaterial = teCreateMaterial( gResources.standardShader );
     teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultTexture2D, 0 );
+    teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultNormalMap, 1 );
 
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };

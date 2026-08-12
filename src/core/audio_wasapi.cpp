@@ -4,6 +4,8 @@
 #include "file.h"
 #include "te_stdlib.h"
 
+int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outFrameCount );
+
 struct AudioDevice
 {
     LARGE_INTEGER qpcCount;

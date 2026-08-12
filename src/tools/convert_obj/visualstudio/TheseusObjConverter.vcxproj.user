@@ -3,5 +3,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>"C:\Users\twire\Documents\doorbutton.obj"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArgumentsHistory>"C:\Users\twire\Documents\doorbutton.obj"|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>

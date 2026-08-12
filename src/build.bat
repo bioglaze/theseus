@@ -1,11 +1,20 @@
-@if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" (
-  @if "%COMPILER_FOUND%"  == "" (
+if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" (
+  if "%COMPILER_FOUND%"  == "" (
       call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
       SET COMPILER_FOUND=1
   )
-) else (
+)
+
+if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" (
   if "%COMPILER_FOUND%"  == "" (
       call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+      SET COMPILER_FOUND=1
+  )
+)
+
+if exist "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" (
+  if "%COMPILER_FOUND%"  == "" (
+      call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
       SET COMPILER_FOUND=1
   )
 )
