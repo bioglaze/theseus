@@ -38,11 +38,13 @@ void InitAudio()
     if ((err = snd_pcm_hw_params_malloc( &hwParams )) < 0)
     {
         tePrint( "Parameter allocation failed: %s\n", snd_strerror( err ) );
+        return;
     }
 
     if ((err = snd_pcm_hw_params_any( gAudioDevice.device, hwParams ) ) < 0)
     {
         tePrint( "Parameter init failed: %s\n", snd_strerror( err ) );
+        return;
     }
 
     unsigned resample = 1;
@@ -60,7 +62,8 @@ void InitAudio()
     unsigned actualRate = 44100;
     if ((err = snd_pcm_hw_params_set_rate_near( gAudioDevice.device, hwParams, &actualRate, 0 ) ) < 0)
     {
-        tePrint( "Parameter sample rate failed: %s\n", snd_strerror( err ) );        
+        tePrint( "Parameter sample rate failed: %s\n", snd_strerror( err ) );
+        return;
     }
 
     if (actualRate < 44100)
@@ -71,11 +74,12 @@ void InitAudio()
     if ((err = snd_pcm_hw_params( gAudioDevice.device, hwParams )) < 0)
     {
         tePrint( "Parameter apply failed: %s\n", snd_strerror( err ) );
+        return;
     }
 
     snd_pcm_uframes_t bufferSize;
     snd_pcm_hw_params_get_buffer_size( hwParams, &bufferSize );
-    tePrint( "bufferSize: %lu\n", bufferSize );
+    tePrint( "bufferSize: %u\n", bufferSize );
 
     tePrint( "Significant bits for linear samples: %d\n", snd_pcm_hw_params_get_sbits( hwParams ) );
     snd_pcm_hw_params_free( hwParams );
@@ -96,13 +100,18 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 }
 
 void PlayAudioClip( unsigned clipIndex )
-{ 
+{
+    if (!gAudioDevice.device)
+    {
+        return;
+    }
+    
     gAudioDevice.playingClipIndex = clipIndex;
     
     int err = snd_pcm_set_params( gAudioDevice.device,
                                   SND_PCM_FORMAT_S16_LE,
                                   SND_PCM_ACCESS_RW_INTERLEAVED,
-                                  1,
+                                  audioClipInternals[ clipIndex ].channelCount,
                                   audioClipInternals[ clipIndex ].sampleRate,
                                   1,
                                   500000 );
@@ -117,7 +126,7 @@ void PlayAudioClip( unsigned clipIndex )
         tePrint("snd_pcm_writei failed: %s\n", snd_strerror( frames ));
         return;
     }
-    if (frames > 0 && frames < (long)sizeof(audioClipInternals[ clipIndex ].frameCount))
+    if (frames > 0 && frames < audioClipInternals[ clipIndex ].frameCount)
     {
         tePrint( "Short write\n" );
     }
