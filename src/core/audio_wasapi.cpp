@@ -39,7 +39,7 @@ void CheckAudioHr( HRESULT hr )
 WAVEFORMATEXTENSIBLE MakeAudioFormat( int channelCount, int sampleRate, int sampleSize )
 {
     WAVEFORMATEXTENSIBLE result = {};
-    result.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
+    result.dwChannelMask = channelCount == 2 ? KSAUDIO_SPEAKER_STEREO : KSAUDIO_SPEAKER_MONO;
     result.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
     result.Samples.wValidBitsPerSample = WORD( sampleSize * 8 );
     result.Format.nChannels = WORD( channelCount );
@@ -72,6 +72,11 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 
 void PlayAudioClip( unsigned clipIndex )
 {
+    if (!gAudioDevice.device)
+    {
+        return;
+    }
+
     if (!audioClipInternals[ clipIndex ].data)
     {
         tePrint( "PlayAudioClip tried to play a clip that is not loaded: %s\n", audioClipInternals[ clipIndex ].wavFile.path );
@@ -182,7 +187,7 @@ void PlayAudioClip( unsigned clipIndex )
             }
 
             ++wavPlaybackSample;
-            if (wavPlaybackSample >= audioClipInternals[ clipIndex ].frameCount)
+            if (wavPlaybackSample >= audioClipInternals[ clipIndex ].frameCount * audioClipInternals[ clipIndex ].channelCount)
             {
                 done = true;
                 break;

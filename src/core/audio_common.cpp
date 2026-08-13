@@ -25,6 +25,8 @@ static struct AudioSource gAudioSources[ MaxAudioSources ];
 
 teAudioClip teLoadAudioClip( const struct teFile& wavFile )
 {
+    teAssert( gAudioClipIndex + 1 < MaxAudioClips );
+
     teAudioClip outClip;
     outClip.index = ++gAudioClipIndex;
     LoadAudioWAV( wavFile.path, outClip.index );
