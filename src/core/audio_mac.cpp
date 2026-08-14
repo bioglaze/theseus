@@ -2,11 +2,14 @@
 #include <AudioUnit/AudioUnit.h>
 #include "te_stdlib.h"
 
+int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outFrameCount );
+
 struct AudioDevice
 {
     AudioComponent outputComp;
     AudioComponentInstance outputInstance;
     unsigned playingClipIndex = 0;
+    unsigned wavPlaybackSample = 0;
 };
 
 AudioDevice gAudioDevice;
@@ -53,25 +56,24 @@ OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const Aud
     const int channel = 0;
     int16_t* buffer = (int16_t*)ioData->mBuffers[ channel ].mData;
     
-    static int wavPlaybackSample = 0;
     //printf("inNumberFrames: %u, data size: %u\n", numberFrames, audioClipInternals[ 1 ].wavFile.size );
 
     const int channelCount = audioClipInternals[ gAudioDevice.playingClipIndex ].channelCount;
 
     for (UInt32 frame = 0; frame < numberFrames; ++frame) 
     {
-        buffer[ frame * channelCount + 0 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
-        ++wavPlaybackSample;
+        buffer[ frame * channelCount + 0 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ gAudioDevice.wavPlaybackSample ];
+        ++gAudioDevice.wavPlaybackSample;
 
         if (channelCount == 2)
         {
-            buffer[ frame * channelCount + 1 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ wavPlaybackSample ];
-            ++wavPlaybackSample;
+            buffer[ frame * channelCount + 1 ] = audioClipInternals[ gAudioDevice.playingClipIndex ].data[ gAudioDevice.wavPlaybackSample ];
+            ++gAudioDevice.wavPlaybackSample;
         }
         
-        if (wavPlaybackSample >= (audioClipInternals[ gAudioDevice.playingClipIndex ].wavFile.size - 44 ) / 2)
+        if (gAudioDevice.wavPlaybackSample >= audioClipInternals[ gAudioDevice.playingClipIndex ].frameCount * channelCount)
         {
-            wavPlaybackSample = 0;
+            gAudioDevice.wavPlaybackSample = 0;
         }
     }
 
@@ -191,6 +193,8 @@ void PlayAudioClip( unsigned clipIndex )
     AURenderCallbackStruct callback;
     callback.inputProc = tone;
     callback.inputProcRefCon = nullptr;
+
+    gAudioDevice.wavPlaybackSample = 0;
 
     bool ok = OpenAudio( FMT_S16_LE, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, &callback );
     if (!ok)

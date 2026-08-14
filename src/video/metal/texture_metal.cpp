@@ -434,7 +434,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                                   faceIndex,
                                   mipIndex,
                                  MTL::Origin::Make( 0, 0, 0 ),
-                                   MTL::Size::Make( tex.width >> mipIndex, tex.height >> mipIndex, 1 ),
+                                   MTL::Size::Make( Max2( tex.width >> mipIndex, 1 ), Max2( tex.height >> mipIndex, 1 ), 1 ),
                                     tex.metalTexture,
                              faceIndex,
                              mipIndex,
