@@ -576,7 +576,7 @@ static VkPipeline CreatePipeline( const teShader& shader, teBlendMode blendMode,
     {
         rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
     }
-    else if (cullMode == teCullMode::Back)
+    else if (cullMode == teCullMode::Front)
     {
         rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
     }
@@ -900,7 +900,7 @@ static void LoadFunctionPointers()
     renderer.acquireNextImageKHR = (PFN_vkAcquireNextImageKHR)vkGetDeviceProcAddr( renderer.device, "vkAcquireNextImageKHR" );
     renderer.queuePresentKHR = (PFN_vkQueuePresentKHR)vkGetDeviceProcAddr( renderer.device, "vkQueuePresentKHR" );
     renderer.SetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr( renderer.instance, "vkSetDebugUtilsObjectNameEXT" );
-    renderer.CmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)vkGetInstanceProcAddr( renderer.instance, "vkCmdDrawMeshTasksEXT" );
+    renderer.CmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)vkGetDeviceProcAddr( renderer.device, "vkCmdDrawMeshTasksEXT" );
 }
 
 void BeginRegion( VkCommandBuffer cmdbuffer, const char* pMarkerName, float r, float g, float b )
@@ -1698,7 +1698,7 @@ void teBeginFrame()
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
-    vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
+    //vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
 
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image,
         VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
@@ -1741,7 +1741,7 @@ void teEndFrame()
 
     uint64_t timestamps[ 2 ] = {};
     /*VkResult res =*/ vkGetQueryPoolResults(renderer.device, renderer.queryPool, 0, 2, sizeof(uint64_t) * 2, timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
-    //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
+    tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1837,7 +1837,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthMemoryBarrier );
 
-    // TODO: maybe not needed
     vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );

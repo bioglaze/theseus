@@ -58,11 +58,6 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 
     VK_CHECK( vkBindBufferMemory( device, buffers[ outBuffer.index ].buffer, buffers[ outBuffer.index ].memory, 0 ) );
 
-    VkBufferViewCreateInfo bufferViewInfo = {};
-    bufferViewInfo.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-    bufferViewInfo.buffer = buffers[ outBuffer.index ].buffer;
-    bufferViewInfo.range = VK_WHOLE_SIZE;
-
     return outBuffer;
 }
 
