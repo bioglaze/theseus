@@ -314,7 +314,7 @@ void LoadResources( unsigned width, unsigned height )
     teFile rightFile = teLoadFile( "assets/textures/skybox/right.dds" );
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
-    gResources.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
+    gResources.skyTex = teLoadTexture( rightFile, leftFile, topFile, bottomFile, backFile, frontFile, 0 );
 
     teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );
     //teFile brickFile = teLoadFile( "assets/textures/test/manhole_diamond_bc4_with_mips.dds" );
@@ -359,13 +359,14 @@ void LoadResources( unsigned width, unsigned height )
 
     teFinalizeMeshBuffers();
 
-    teFile wavFile1 = teLoadFile( "assets/audio/LRMonoPhase4.wav" );
+    teFile wavFile1 = teLoadFile( "assets/audio/music-sample-48000hz-24bit.wav" );
     gResources.audioClip1 = teLoadAudioClip( wavFile1 );
 
-    //teFile wavFile2 = teLoadFile( "assets/audio/sine340.wav" );
-    //gResources.audioClip2 = teLoadAudioClip( wavFile2 );
+    teFile wavFile2 = teLoadFile( "assets/audio/LRMonoPhase4.wav" );
+    gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
     tePlayAudioClip( gResources.audioClip1 );
+    //tePlayAudioClip( gResources.audioClip2 );
 }
 
 void Init( unsigned width, unsigned height )

@@ -563,7 +563,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
 #endif
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setPixelFormat( colorFormat );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setBlendingEnabled( blendMode != teBlendMode::Off );
-    pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorSourceAlpha : MTL::BlendFactorOne );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceRGBBlendFactor( MTL::BlendFactorSourceAlpha );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorOneMinusSourceAlpha : MTL::BlendFactorOne );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setRgbBlendOperation( MTL::BlendOperationAdd );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceAlphaBlendFactor( MTL::BlendFactorOne );

@@ -737,7 +737,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teFile topFile = teLoadFile( "assets/textures/skybox/top.dds" );
     teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
 
-    sceneView.skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
+    sceneView.skyTex = teLoadTexture( rightFile, leftFile, topFile, bottomFile, backFile, frontFile, 0 );
 
     sceneView.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 0, 10 };

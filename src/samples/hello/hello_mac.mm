@@ -201,7 +201,7 @@ void MoveUp( float amount )
         teFile topFile    = teLoadFile( "assets/textures/skybox/top.dds" );
         teFile bottomFile = teLoadFile( "assets/textures/skybox/bottom.dds" );
 
-        m_skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
+        m_skyTex = teLoadTexture( rightFile, leftFile, topFile, bottomFile, backFile, frontFile, 0 );
         m_gliderTex = teLoadTexture( teLoadFile( "assets/textures/glider_color.tga" ), teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
         teFile brickFile = teLoadFile( "assets/textures/brickwall_d.dds" );

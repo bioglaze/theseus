@@ -410,7 +410,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                                                        (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
 
-        const unsigned char* datas[ 6 ] = { negX.data, posX.data, negY.data, posY.data, negZ.data, posZ.data };
+        const unsigned char* datas[ 6 ] = { posX.data, negX.data, posY.data, negY.data, posZ.data, negZ.data };
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.width );
         
         for (int face = 0; face < 6; ++face)
