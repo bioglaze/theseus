@@ -448,7 +448,7 @@ int main()
     teFile bilinearTestFile = teLoadFile( "assets/textures/test/bilinear_test.tga" );
     teTexture2D bilinearTex = teLoadTexture( bilinearTestFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
-    teTextureCube skyTex = teLoadTexture( leftFile, rightFile, bottomFile, topFile, frontFile, backFile, 0 );
+    teTextureCube skyTex = teLoadTexture( rightFile, leftFile, topFile, bottomFile, backFile, frontFile, 0 );
 
     teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomTarget" );
     teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "blurTarget" );

@@ -10,6 +10,7 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
 void UpdateStagingTexture( const uint8_t* src, unsigned width, unsigned height, VkFormat format, unsigned index );
 void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
     VkImageLayout newImageLayout, unsigned layerCount, unsigned mipLevel, unsigned mipLevelCount, VkPipelineStageFlags srcStageFlags );
+teTextureCube GetDefaultTextureCube();
 
 struct teTextureImpl
 {
@@ -707,8 +708,8 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
 
-    const char* paths[ 6 ] = { negX.path, posX.path, negY.path, posY.path, negZ.path, posZ.path };
-    const teFile files[ 6 ] = { negX, posX, negY, posY, negZ, posZ };
+    const char* paths[ 6 ] = { posX.path, negX.path, posY.path, negY.path, posZ.path, negZ.path };
+    const teFile files[ 6 ] = { posX, negX, posY, negY, posZ, negZ };
     unsigned mipOffsets[ 6 ][ 15 ] = {};
     unsigned bytesPerPixel = 4;
     bool isDDS = false;
@@ -726,13 +727,12 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isDDS)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = 2;
+                outTexture.index = GetDefaultTextureCube().index;
                 return outTexture;
             }
             else if (files[ face ].data == nullptr)
             {
-                // File not found, return default cube texture.
-                outTexture.index = 2;
+                outTexture.index = GetDefaultTextureCube().index;
                 return outTexture;
             }
 
@@ -767,7 +767,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             else if (files[ face ].data == nullptr)
             {
                 // File not found, return default cube texture.
-                outTexture.index = 2;
+                outTexture.index = GetDefaultTextureCube().index;
                 return outTexture;
             }
 

@@ -85,7 +85,7 @@ uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryPropertie
 {
     for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i)
     {
-        if ((typeBits & (1 << i)) != 0 && (deviceMemoryProperties.memoryTypes[ i ].propertyFlags & properties) == properties)
+        if ((typeBits & (1U << i)) != 0 && (deviceMemoryProperties.memoryTypes[ i ].propertyFlags & properties) == properties)
         {
             return i;
         }
@@ -1564,6 +1564,11 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
 
     renderer.tangentCounter += bytes;
     return renderer.tangentCounter - bytes;
+}
+
+teTextureCube GetDefaultTextureCube()
+{
+    return renderer.defaultTextureCube;
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
