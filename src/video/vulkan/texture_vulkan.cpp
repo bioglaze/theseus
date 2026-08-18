@@ -69,6 +69,10 @@ unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
         // TODO: Verify this!
         return (width * height * 4) / 4;
     }
+    else if (format == VK_FORMAT_B8G8R8_SRGB)
+    {
+        return (width * height * 3);
+    }
 
     return width * height * 4;
 }
@@ -711,7 +715,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     const char* paths[ 6 ] = { posX.path, negX.path, posY.path, negY.path, posZ.path, negZ.path };
     const teFile files[ 6 ] = { posX, negX, posY, negY, posZ, negZ };
     unsigned mipOffsets[ 6 ][ 15 ] = {};
-    unsigned bytesPerPixel = 4;
     bool isDDS = false;
     bool isTGA = false;
     teTextureFormat bcFormat = teTextureFormat::Invalid;
@@ -744,15 +747,14 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (!res)
             {
                 teAssert( !"One of cube map faces failed to load!" );
-                outTexture.index = 2;
+                outTexture.index = GetDefaultTextureCube().index;
                 return outTexture;
             }
 
-            bytesPerPixel = bitsPerPixel == 24 ? 3 : 4;
             tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
-            teAssert( tex.mipLevelCount <= 15 );
+            //teAssert( tex.mipLevelCount <= 15 );
 
-            UpdateStagingTexture( &files[ face ].data[ dataBeginOffset ], tex.width, tex.height, format, face );
+            UpdateStagingTexture( &files[ face ].data[ dataBeginOffset ], tex.width, tex.height, VK_FORMAT_B8G8R8_SRGB, face );
         }
         else if (strstr( paths[ face ], ".dds" ) || strstr( paths[ face ], ".DDS" ))
         {
@@ -761,7 +763,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             if (isTGA)
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
-                outTexture.index = 2;
+                outTexture.index = GetDefaultTextureCube().index;
                 return outTexture;
             }
             else if (files[ face ].data == nullptr)

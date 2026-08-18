@@ -365,7 +365,7 @@ void LoadResources( unsigned width, unsigned height )
     teFile wavFile2 = teLoadFile( "assets/audio/LRMonoPhase4.wav" );
     gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
-    tePlayAudioClip( gResources.audioClip1 );
+    //tePlayAudioClip( gResources.audioClip1 );
     //tePlayAudioClip( gResources.audioClip2 );
 }
 

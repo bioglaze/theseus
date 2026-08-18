@@ -1114,6 +1114,11 @@ void CreateDevice()
 
     VK_CHECK( vkCreateQueryPool( renderer.device, &queryPoolInfo, nullptr, &renderer.queryPool ) );
     SetObjectName( renderer.device, (uint64_t)renderer.queryPool, VK_OBJECT_TYPE_QUERY_POOL, "Query Pool" );
+
+    if (renderer.properties.limits.maxPushConstantsSize < sizeof( PushConstants ))
+    {
+        tePrint( "Device limit maxPushConstantsSize is too small!\n" );
+    }
 }
 
 void CreateCommandBuffers()
@@ -1569,6 +1574,11 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
 teTextureCube GetDefaultTextureCube()
 {
     return renderer.defaultTextureCube;
+}
+
+VkPipelineLayout GetPipelineLayout()
+{
+    return renderer.pipelineLayout;
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )

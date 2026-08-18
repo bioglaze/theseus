@@ -6,6 +6,7 @@
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const char*) );
 void ClearPSOCache();
+VkPipelineLayout GetPipelineLayout();
 
 struct teShaderImpl
 {
@@ -109,6 +110,14 @@ void ReloadShader( const char* path )
             shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
             shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.module = shaders[ shaderCacheEntries[ i ].shaderIndex ].computeShaderModule;
             shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo.pName = shaderCacheEntries[ i ].computeName;
+
+            VkComputePipelineCreateInfo psoInfo = {};
+            psoInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+            psoInfo.layout = GetPipelineLayout();
+            psoInfo.stage = shaders[ shaderCacheEntries[ i ].shaderIndex ].computeInfo;
+
+            VK_CHECK( vkCreateComputePipelines( ShaderCacheEntry::device, VK_NULL_HANDLE, 1, &psoInfo, nullptr, &shaders[ shaderCacheEntries[ i ].shaderIndex ].computePso ) );
+            SetObjectName( ShaderCacheEntry::device, (uint64_t)shaders[ shaderCacheEntries[ i ].shaderIndex ].computePso, VK_OBJECT_TYPE_PIPELINE, file.path );
         }
     }
 
@@ -236,12 +245,12 @@ teShader teCreateComputeShader( VkDevice device, VkPipelineLayout pipelineLayout
     moduleCreateInfo.codeSize = file.size;
     moduleCreateInfo.pCode = (const uint32_t*)file.data;
 
-    VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].vertexShaderModule ) );
-    SetObjectName( device, (uint64_t)shaders[ outShader.index ].vertexShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, file.path );
+    VK_CHECK( vkCreateShaderModule( device, &moduleCreateInfo, nullptr, &shaders[ outShader.index ].computeShaderModule ) );
+    SetObjectName( device, (uint64_t)shaders[ outShader.index ].computeShaderModule, VK_OBJECT_TYPE_SHADER_MODULE, file.path );
 
     shaders[ outShader.index ].computeInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaders[ outShader.index ].computeInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    shaders[ outShader.index ].computeInfo.module = shaders[ outShader.index ].vertexShaderModule;
+    shaders[ outShader.index ].computeInfo.module = shaders[ outShader.index ].computeShaderModule;
     shaders[ outShader.index ].computeInfo.pName = name;
 
     VkComputePipelineCreateInfo psoInfo = {};
