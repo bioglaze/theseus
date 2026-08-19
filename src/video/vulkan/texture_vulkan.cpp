@@ -754,7 +754,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             tex.mipLevelCount = 1;// (flags & aeTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
             //teAssert( tex.mipLevelCount <= 15 );
 
-            UpdateStagingTexture( &files[ face ].data[ dataBeginOffset ], tex.width, tex.height, VK_FORMAT_B8G8R8_SRGB, face );
+            UpdateStagingTexture( &files[ face ].data[ dataBeginOffset ], tex.width, tex.height, format, face ); // NOTE: this format depends on the tga format. Currently LoadTGA only loads 32-bit images
         }
         else if (strstr( paths[ face ], ".dds" ) || strstr( paths[ face ], ".DDS" ))
         {
