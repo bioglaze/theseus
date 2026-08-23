@@ -118,6 +118,8 @@ struct Renderer
     teBuffer lineVertexBuffer;
     unsigned lineCount = 0;
 
+    bool isRenderingToTexture = false;
+
     unsigned statDrawCalls = 0;
     unsigned statPSOBinds = 0;
 };
@@ -471,6 +473,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         
         renderer.renderEncoder = renderer.frameResources[ 0 ].commandBuffer->renderCommandEncoder( renderer.renderPassDescriptorFBO );
         renderer.renderEncoder->setLabel( NS::String::string( "encoder fbo", NS::UTF8StringEncoding ) );
+        renderer.isRenderingToTexture = true;
     }
     else if (color.index == -1 && depth.index == -1)
     {
@@ -483,6 +486,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         
         renderer.renderEncoder = renderer.frameResources[ 0 ].commandBuffer->renderCommandEncoder( renderPassDescriptor );
         renderer.renderEncoder->setLabel( NS::String::string( "encoder", NS::UTF8StringEncoding ) );
+        renderer.isRenderingToTexture = false;
     }
     else
     {
@@ -648,8 +652,8 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     
     renderer.renderEncoder->setFragmentSamplerState( GetSampler( sampler ), 0 );
 
-    MTL::PixelFormat colorFormat = renderer.renderPassDescriptorFBO->colorAttachments()->object( 0 )->texture()->pixelFormat();
-    MTL::PixelFormat depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
+    MTL::PixelFormat colorFormat = (renderer.isRenderingToTexture ? renderer.renderPassDescriptorFBO : renderPassDescriptor)->colorAttachments()->object( 0 )->texture()->pixelFormat();
+    MTL::PixelFormat depthFormat = (renderer.isRenderingToTexture ? renderer.renderPassDescriptorFBO : renderPassDescriptor)->depthAttachment()->texture()->pixelFormat();
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, colorFormat, depthFormat, false );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
