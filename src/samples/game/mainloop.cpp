@@ -4,6 +4,8 @@
 #include "gameobject.h"
 #include "light.h"
 #include "material.h"
+#include "matrix.h"
+#include "mathutil.h"
 #include "mesh.h"
 #include "renderer.h"
 #include "scene.h"
@@ -112,7 +114,7 @@ int ParseFloat( const char* begin, float& outValue )
         ++offset;
     }
 
-    outValue = atof( buf );
+    outValue = (float)atof( buf );
 
     return offset;
 }
@@ -194,7 +196,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     ++positionCursor;
                 }
                 
-                float y = atof( position );
+                float y = (float)atof( position );
                 offset += positionCursor;
                 positionCursor = 0;
 
@@ -359,7 +361,7 @@ void LoadResources( unsigned width, unsigned height )
 
     teFinalizeMeshBuffers();
 
-    teFile wavFile1 = teLoadFile( "assets/audio/music-sample-48000hz-24bit.wav" );
+    teFile wavFile1 = teLoadFile( "assets/audio/sine340.wav" );
     gResources.audioClip1 = teLoadAudioClip( wavFile1 );
 
     teFile wavFile2 = teLoadFile( "assets/audio/LRMonoPhase4.wav" );
@@ -392,9 +394,35 @@ void Tick()
     bool fpsCamera = true;
     const float speed = fpsCamera ? 0.25f : 0.5f;
 
+    Vec3 oldCameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
+
     teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, false );
     teTransformMoveRight( gResources.camera3d.index, gInput.moveDir.x * (float)gGameState.dt * speed );
     teTransformMoveUp( gResources.camera3d.index, gInput.moveDir.y * (float)gGameState.dt * speed );
+
+    Vec3 cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
+    bool collisionDetection = true;
+
+    if (collisionDetection && teScenePointInsideAABB( gResources.scene, cameraPos ))
+    {
+        teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+        teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, true );
+        cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
+
+        if (teScenePointInsideAABB( gResources.scene, cameraPos ))
+        {
+            teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+            teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, true, fpsCamera, false );
+            cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
+            if (teScenePointInsideAABB( gResources.scene, cameraPos ))
+            {
+                teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+            }
+        }
+        else
+        {
+        }
+    }
 
     double lastTime = gGameState.theTime;
     gGameState.theTime = GetMilliseconds();
@@ -461,11 +489,23 @@ void HandleEvent( const teWindowEvent& event )
     {
         gInput.moveDir.x = 0;
     }
+    // The rest of the keycodes are for debugging
     else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
     {
         gInput.moveDir.y = -0.5f;
     }
-
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
+    {
+        gInput.moveDir.y = 0;
+    }
+    else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
+    {
+        gInput.moveDir.y = 0.5f;
+    }
+    else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)
+    {
+        gInput.moveDir.y = 0;
+    }
     if (event.type == teWindowEvent::Type::Mouse2Down)
     {
         gInput.x = event.x;
