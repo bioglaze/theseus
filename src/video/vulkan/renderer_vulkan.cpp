@@ -1076,6 +1076,8 @@ void CreateDevice()
     
     vkGetPhysicalDeviceFeatures( renderer.physicalDevice, &renderer.features );
 
+    renderer.features.robustBufferAccess = VK_FALSE;
+
     VkPhysicalDeviceVulkan12Features features12 = {};
 
     VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{};
@@ -1113,7 +1115,6 @@ void CreateDevice()
     queryPoolInfo.queryCount = 2;
 
     VK_CHECK( vkCreateQueryPool( renderer.device, &queryPoolInfo, nullptr, &renderer.queryPool ) );
-    SetObjectName( renderer.device, (uint64_t)renderer.queryPool, VK_OBJECT_TYPE_QUERY_POOL, "Query Pool" );
 
     if (renderer.properties.limits.maxPushConstantsSize < sizeof( PushConstants ))
     {
@@ -1208,7 +1209,8 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     VkSurfaceFormatKHR* surfFormats = (VkSurfaceFormatKHR*)teMalloc( sizeof( VkSurfaceFormatKHR ) * formatCount );
     VK_CHECK( renderer.getPhysicalDeviceSurfaceFormatsKHR( renderer.physicalDevice, renderer.surface, &formatCount, surfFormats ) );
 
-    VkFormat colorFormat = VK_FORMAT_UNDEFINED;
+    VkFormat colorFormat = surfFormats[ 0 ].format;
+    VkColorSpaceKHR colorSpace = surfFormats[ 0 ].colorSpace;
     bool foundSRGB = false;
 
     for (uint32_t formatIndex = 0; formatIndex < formatCount; ++formatIndex)
@@ -1216,6 +1218,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
         if (surfFormats[ formatIndex ].format == VK_FORMAT_B8G8R8A8_SRGB || surfFormats[ formatIndex ].format == VK_FORMAT_R8G8B8A8_SRGB)
         {
             colorFormat = surfFormats[ formatIndex ].format;
+            colorSpace = surfFormats[ formatIndex ].colorSpace;
             renderer.swapchainResources[ 0 ].colorFormat = surfFormats[ formatIndex ].format == VK_FORMAT_B8G8R8A8_SRGB ? teTextureFormat::BGRA_sRGB : teTextureFormat::RGBA_sRGB;
             foundSRGB = true;
         }
@@ -1225,10 +1228,6 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     {
         colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
         renderer.swapchainResources[ 0 ].colorFormat = teTextureFormat::BGRA;
-    }
-    else if (!foundSRGB)
-    {
-        colorFormat = surfFormats[ 0 ].format;
     }
 
     VkSurfaceCapabilitiesKHR surfCaps;
@@ -1252,7 +1251,7 @@ void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsig
     swapchainInfo.surface = renderer.surface;
     swapchainInfo.minImageCount = surfCaps.minImageCount;
     swapchainInfo.imageFormat = colorFormat;
-    swapchainInfo.imageColorSpace = surfFormats[ 0 ].colorSpace;
+    swapchainInfo.imageColorSpace = colorSpace;
     swapchainInfo.imageExtent = { swapchainExtent.width, swapchainExtent.height };
     swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainInfo.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
@@ -1592,6 +1591,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     SetObjectName( renderer.device, (uint64_t)renderer.instance, VK_OBJECT_TYPE_INSTANCE, "renderer.instance" );
     SetObjectName( renderer.device, (uint64_t)renderer.graphicsQueue, VK_OBJECT_TYPE_QUEUE, "renderer.graphicsQueue" );
+    SetObjectName( renderer.device, (uint64_t)renderer.queryPool, VK_OBJECT_TYPE_QUERY_POOL, "Query Pool" );
 
     for (unsigned i = 0; i < 6; ++i)
     {
@@ -2164,6 +2164,10 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
 
+    VkBufferDeviceAddressInfo spotLightColorInfo = {};
+    spotLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    spotLightColorInfo.buffer = BufferGetBuffer( GetSpotLightColorBuffer() );
+
     PushConstants pushConstants{};
     pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
     pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
@@ -2178,6 +2182,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     pushConstants.specularMapIndex = (int)specularMapIndex;
     pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
     pushConstants.spotLightParamBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightParamInfo );
+    pushConstants.spotLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightColorInfo );
 
     if (renderer.meshShaderSupported)
     {

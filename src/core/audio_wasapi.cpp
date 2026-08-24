@@ -54,9 +54,9 @@ WAVEFORMATEXTENSIBLE MakeAudioFormat( int channelCount, int sampleRate, int samp
 
 void InitAudio()
 {
-    HRESULT hr = CoCreateInstance( __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
-        __uuidof( IMMDeviceEnumerator ), reinterpret_cast<void**>( &gAudioDevice.enumerator ) );
-    CheckAudioHr( hr );
+    CheckAudioHr( CoInitializeEx( nullptr, COINIT_MULTITHREADED ) );
+    CheckAudioHr( CoCreateInstance( __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+        __uuidof( IMMDeviceEnumerator ), reinterpret_cast<void**>( &gAudioDevice.enumerator ) ) );
     CheckAudioHr( gAudioDevice.enumerator->GetDefaultAudioEndpoint( eRender, eMultimedia, &gAudioDevice.device ) );
     CheckAudioHr( gAudioDevice.device->Activate( __uuidof( IAudioClient ), CLSCTX_ALL,
         nullptr, reinterpret_cast<void**>( &gAudioDevice.client ) ) );
@@ -190,6 +190,7 @@ void PlayAudioClip( unsigned clipIndex )
             if (wavPlaybackSample >= audioClipInternals[ clipIndex ].frameCount * audioClipInternals[ clipIndex ].channelCount)
             {
                 done = true;
+                gAudioDevice.client->Stop();
                 break;
             }
         }
