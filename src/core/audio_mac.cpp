@@ -1,6 +1,8 @@
 #include <CoreAudio/CoreAudio.h>
 #include <AudioUnit/AudioUnit.h>
+#include "file.h"
 #include "te_stdlib.h"
+#include <math.h>
 
 int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& outFrameCount );
 
@@ -33,8 +35,8 @@ struct CoreAudioFormatDescriptionMap
 
 static struct CoreAudioFormatDescriptionMap formatMap[] =
 {
-    { FMT_S16_LE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger },
-    { FMT_S16_BE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian },
+    { FMT_S16_LE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked },
+    { FMT_S16_BE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian | kAudioFormatFlagIsPacked },
     { FMT_S32_LE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger },
     { FMT_S32_BE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian },
     { FMT_FLOAT,  32, sizeof( float ),   kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved },
@@ -190,6 +192,11 @@ void LoadAudioWAV( const char* path, unsigned clipIndex )
 
 void PlayAudioClip( unsigned clipIndex )
 {
+    if (!audioClipInternals[ clipIndex ].data)
+    {
+        return;
+    }
+
     AURenderCallbackStruct callback;
     callback.inputProc = tone;
     callback.inputProcRefCon = nullptr;

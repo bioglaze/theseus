@@ -32,7 +32,7 @@ bool SceneViewNothingSelected();
 extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 
-unsigned width = 800*2, height = 450*2;
+unsigned width = 800*2, height = 390*2;
 unsigned frameWidth = 0, frameHeight = 0;
 
 const int uiScale = 1;
