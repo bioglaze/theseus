@@ -3,7 +3,7 @@
 #include "file.h"
 #include "te_stdlib.h"
 
-void LoadAudioWAV( const char* path, unsigned clipIndex );
+void LoadAudioWAV( const teFile& file, unsigned clipIndex );
 void PlayAudioClip( unsigned clipIndex );
 
 struct AudioClip
@@ -29,7 +29,7 @@ teAudioClip teLoadAudioClip( const struct teFile& wavFile )
 
     teAudioClip outClip;
     outClip.index = ++gAudioClipIndex;
-    LoadAudioWAV( wavFile.path, outClip.index );
+    LoadAudioWAV( wavFile, outClip.index );
 
     return outClip;
 }
