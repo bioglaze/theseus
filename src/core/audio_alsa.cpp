@@ -93,9 +93,13 @@ void InitAudio()
     //snd_pcm_close( gAudioDevice.device );
 }
 
-void LoadAudioWAV( const char* path, unsigned clipIndex )
+void LoadAudioWAV( const teFile& file, unsigned clipIndex )
 {
-    audioClipInternals[ clipIndex ].wavFile = teLoadFile( path );
+    audioClipInternals[ clipIndex ].wavFile.data = (unsigned char*)teMalloc( file.size );
+    audioClipInternals[ clipIndex ].wavFile.size = file.size;
+    teMemcpy( audioClipInternals[ clipIndex ].wavFile.data, file.data, file.size );
+    teMemcpy( audioClipInternals[ clipIndex ].wavFile.path, file.path, sizeof( file.path ) );
+
     audioClipInternals[ clipIndex ].data = LoadWAV( audioClipInternals[ clipIndex ].wavFile, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].frameCount );
 }
 
