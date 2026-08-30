@@ -65,6 +65,7 @@ struct PSO
     MTL::PixelFormat          depthFormat = MTL::PixelFormatDepth32Float;
     teBlendMode               blendMode = teBlendMode::Off;
     teTopology                topology = teTopology::Triangles;
+    bool                      isUI = false;
 };
 
 struct Renderer
@@ -552,7 +553,8 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
         if (renderer.psos[ i ].blendMode == blendMode && renderer.psos[ i ].topology == topology &&
             renderer.psos[ i ].vertexFunction == vertexProgram && renderer.psos[ i ].pixelFunction == pixelProgram &&
             renderer.psos[ i ].colorFormat == colorFormat &&
-            renderer.psos[ i ].depthFormat == depthFormat)
+            renderer.psos[ i ].depthFormat == depthFormat &&
+            renderer.psos[ i ].isUI == isUI)
         {
             return i;
         }
@@ -577,7 +579,6 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
         
     if (isUI)
     {
-        // FIXME: Should this use alloc()::init()?
         MTL::VertexDescriptor* vertexDesc = MTL::VertexDescriptor::vertexDescriptor();
             
         // Position
@@ -631,6 +632,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
     renderer.psos[ psoIndex ].topology = topology;
     renderer.psos[ psoIndex ].colorFormat = colorFormat;
     renderer.psos[ psoIndex ].depthFormat = depthFormat;
+    renderer.psos[ psoIndex ].isUI = isUI;
 
     return psoIndex;
 }

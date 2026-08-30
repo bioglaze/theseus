@@ -44,6 +44,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
     - OBJ mesh converter and Editor can be built by running `make toolz` in src.
     
   - Linux:
+    - Install dependencies. Packages for Debian-based distros: `apt install zenity`
     - First build ImGui: `make imgui`. You only need to do this once, unless you want to modify/update ImGui later.
     - Then build the engine: `make engine`. Build artifacts are copied to theseus/build
     - Shaders can be compiled by running compile_deploy_vulkan_shaders.sh
