@@ -46,16 +46,13 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
         
         if (strstr( line, "def Xform" ))
         {
-            printf("ReadArraySizes: found Xform\n");
             ++outGoCount;
         }
         else if (strstr( line, "def SphereLight" ))
         {
-            printf("ReadArraySizes: found SphereLight\n");
         }
         else if (strstr( line, "#usda 1.0" ))
         {
-            printf("ReadArraySizes: found usda\n");
         }
         else if (strstr( line, "string mesh" ))
         {
@@ -119,11 +116,15 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         }
         else if (strstr( line, "def SphereLight" ))
         {
+            assert( goIndex != 0 );
+
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::PointLight );
             tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), 1.0f );
         }
         else if (strstr( line, "color3f" ))
         {
+            assert( goIndex != 0 );
+
             Vec3 color = Vec3( 1, 1, 1 );
             char skip1[ 255 ] = {};
             char skip2[ 255 ] = {};
@@ -137,35 +138,50 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         }
         else if (strstr( line, "string name" )) // for example: string name = "gameObject"
         {
+            assert( goIndex != 0 );
+
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char name[ 256 ] = {};
-            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, name );
-            size_t len = strlen( name );
-            name[ len - 1 ] = 0;
+            sscanf( line, "%254s %254s %254s \"%[^\"\t\n]", a, b, c, name );
+            
             teGameObjectSetName( sceneGos[ goIndex - 1 ].index, name );
         }
         else if (strstr( line, "string entityName" ))
         {
+            assert( goIndex != 0 );
+
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char entityName[ 256 ] = {};
             sscanf( line, "%254s %254s %254s \"%254s", a, b, c, entityName );
             size_t len = strlen( entityName );
+            if (len == 0)
+            {
+                len = 1;
+            }
+
             entityName[ len - 1 ] = 0;
             assert( len < 100 );
             strcpy( outEntityNames[ sceneGos[ goIndex - 1 ].index ], entityName );
         }
         else if (strstr( line, "string entityType" ))
         {
+            assert( goIndex != 0 );
+
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char entityType[ 256 ] = {};
             sscanf( line, "%254s %254s %254s \"%254s", a, b, c, entityType );
             size_t len = strlen( entityType );
+            if (len == 0)
+            {
+                len = 1;
+            }
+
             entityType[ len - 1 ] = 0;
 
             if (strcmp( entityType, "none" ) == 0)
@@ -191,12 +207,19 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         }
         else if (strstr( line, "string mesh" ))
         {
+            assert( goIndex != 0 );
+
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
             char meshPath[ 256 ] = {};
             sscanf( line, "%254s %254s %254s \"%254s", a, b, c, meshPath );
             size_t len = strlen( meshPath );
+            if (len == 0)
+            {
+                len = 1;
+            }
+
             meshPath[ len - 1 ] = 0;
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::MeshRenderer );
 
@@ -233,6 +256,8 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         }
         else if (strstr( line, "string material" ))
         {
+            assert( goIndex != 0 );
+
             char a[ 256 ] = {};
             char b[ 256 ] = {};
             char c[ 256 ] = {};
@@ -247,6 +272,8 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         }
         else if (strstr( line, "xformOp:translate" ))
         {
+            assert( goIndex != 0 );
+
             Vec3 pos;
             char skip1[ 255 ] = {};
             char skip2[ 255 ] = {};
@@ -321,7 +348,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         }
 
         const char transformEnd[] = { "}\n\n" };
-        fprintf( outFile, transformEnd );
+        fprintf( outFile, "%s", transformEnd);
     }
 
     fclose( outFile );

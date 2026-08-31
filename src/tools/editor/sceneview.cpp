@@ -911,22 +911,31 @@ void RenderSceneView( float gridStep )
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetOpenPath( sceneView.openFilePath, "usda" );
-                LoadUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
-                teFinalizeMeshBuffers();
+                if (sceneView.openFilePath[ 0 ] != 0)
+                {
+                    LoadUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
+                    teFinalizeMeshBuffers();
+                }
             }
 
             if (ImGui::MenuItem( "Save Scene", nullptr, nullptr ))
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetSavePath( sceneView.openFilePath, "usda" );
-                SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
+                if (sceneView.openFilePath[ 0 ] != 0)
+                {
+                    SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
+                }
             }
 
             if (ImGui::MenuItem( "Export Scene", nullptr, nullptr ))
             {
                 sceneView.openFilePath[ 0 ] = 0;
                 GetSavePath( sceneView.openFilePath, "tscene" );
-                ExportGameScene( sceneView.scene, sceneView.openFilePath );
+                if (sceneView.openFilePath[ 0 ] != 0)
+                {
+                    ExportGameScene( sceneView.scene, sceneView.openFilePath );
+                }
             }
             ImGui::EndMenu();
         }
