@@ -20,7 +20,7 @@ constexpr int EventStackSize = 100;
 struct GamePad
 {
     bool isActive = false;
-    int fd;
+    int fd = 0;
     int buttonA;
     int buttonB;
     int buttonX;
@@ -50,11 +50,6 @@ struct WindowImpl
     int                    eventIndex = -1;
     unsigned               width = 0;
     unsigned               height = 0;
-
-    // FIXME: this is a hack to get mouse coordinate into mouse move event.
-    //       A proper fix would be to read mouse coordinate when mouse move event is detected.
-    unsigned              lastMouseX = 0;
-    unsigned              lastMouseY = 0;
 
     GamePad               gamePad;
     bool                  pointerOutsideWindow = false;
@@ -203,7 +198,7 @@ teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
     case 65363: return teWindowEvent::KeyCode::Right;
     case 65364: return teWindowEvent::KeyCode::Down;
     case 65307: return teWindowEvent::KeyCode::Escape;
-    default: return teWindowEvent::KeyCode::A;
+    default: return teWindowEvent::KeyCode::Invalid;
     }
 }
 
@@ -231,7 +226,7 @@ void tePushWindowEvents()
         {
             xcb_button_press_event_t* bp = (xcb_button_press_event_t *)event;
             IncEventIndex();
-            
+
             if (bp->detail == 2)
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse3Up : teWindowEvent::Type::Mouse3Down;
@@ -240,6 +235,16 @@ void tePushWindowEvents()
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse2Up : teWindowEvent::Type::Mouse2Down;
             }
+            else if (bp->detail == 4) // wheel up
+            {
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+                win.events[ win.eventIndex ].wheelDelta = 1;
+            }
+            else if (bp->detail == 5) // wheel down
+            {
+                win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+                win.events[ win.eventIndex ].wheelDelta = -1;
+            }
             else
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse1Up : teWindowEvent::Type::Mouse1Down;
@@ -247,6 +252,11 @@ void tePushWindowEvents()
             
             win.events[ win.eventIndex ].x = bp->event_x;
             win.events[ win.eventIndex ].y = bp->event_y;
+        }
+        else if (responseType == XCB_FOCUS_OUT)
+        {
+            IncEventIndex();
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
         }
         else if (responseType == XCB_KEY_PRESS)
         {
@@ -476,4 +486,24 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     InitKeyMap();
     
     return nullptr;
+}
+
+teWindowEvent* teGetWindowEvents()
+{
+    return win.events;
+}
+
+unsigned teGetWindowEventCount()
+{
+    return win.eventIndex + 1;
+}
+
+void teClearWindowEvents()
+{
+    win.eventIndex = -1;
+
+    for (unsigned i = 0; i < EventStackSize; ++i)
+    {
+        win.events[ i ].type = teWindowEvent::Type::Empty;
+    }
 }
