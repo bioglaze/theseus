@@ -326,7 +326,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         fprintf( outFile, "    string entityName = \"%s\"\n", entityNames[ sceneGo ] );
         fprintf( outFile, "    string entityType = \"%s\"\n", EntityTypeToString( entityTypes[ sceneGo ] ) );
 
-        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0)
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0 && teMeshRendererGetMesh( sceneGo ))
         {
             fprintf( outFile, "    string mesh = \"%s\"\n", teMeshRendererGetMesh( sceneGo )->path );
 

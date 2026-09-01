@@ -2,6 +2,7 @@
 #import <AppKit/AppKit.h>
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "camera.h"
@@ -53,13 +54,18 @@ struct InputParams
 
 void GetOpenPath( char* path, const char* extension )
 {
-    NSMutableArray *types = [NSMutableArray new];
-    [types addObject: [NSString stringWithUTF8String: extension]];
-    //NSArray<UTType*>* types = [NSArray<UTType*> new];
-    
+    NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
+    UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
+
+
+    if (type != nil)
+    {
+        [types addObject: type];
+    }
+
+
     NSOpenPanel *op = [NSOpenPanel openPanel];
-    [op setAllowedFileTypes: types];
-    //[op allowedContentTypes:types];
+    [op setAllowedContentTypes: types];
     
     if ([op runModal] == NSModalResponseOK)
     {
@@ -77,13 +83,18 @@ void GetOpenPath( char* path, const char* extension )
 
 void GetSavePath( char* path, const char* extension )
 {
-    NSMutableArray *types = [NSMutableArray new];
-    [types addObject: [NSString stringWithUTF8String: extension]];
-    //NSArray<UTType*>* types = [NSArray<UTType*> new];
-    
+    NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
+    UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
+
+
+    if (type != nil)
+    {
+        [types addObject: type];
+    }
+
+
     NSSavePanel *op = [NSSavePanel savePanel];
-    //[op setAllowedFileTypes: types];
-    //[op allowedContentTypes:types];
+    //[op setAllowedContentTypes: types];
     
     if ([op runModal] == NSModalResponseOK)
     {
