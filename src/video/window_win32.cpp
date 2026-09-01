@@ -239,6 +239,10 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         win.events[ win.eventIndex ].y = HIWORD( lParam );
         win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
         break;
+    case WM_KILLFOCUS:
+        wasHandled = IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
+        break;
     default:
         break;
     }
@@ -422,6 +426,26 @@ void tePushWindowEvents()
     if (win.isGamePadConnected)
     {
         PumpGamePadEvents();
+    }
+}
+
+teWindowEvent* teGetWindowEvents()
+{
+    return win.events;
+}
+
+unsigned teGetWindowEventCount()
+{
+    return win.eventIndex + 1;
+}
+
+void teClearWindowEvents()
+{
+    win.eventIndex = -1;
+
+    for (unsigned i = 0; i < EventStackSize; ++i)
+    {
+        win.events[ i ].type = teWindowEvent::Type::Empty;
     }
 }
 

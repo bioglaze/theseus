@@ -489,6 +489,11 @@ void HandleEvent( const teWindowEvent& event )
     {
         gInput.moveDir.x = 0;
     }
+    else if (event.type == teWindowEvent::Type::FocusLoss)
+    {
+        gInput.moveDir = Vec3( 0, 0, 0 );
+        gInput.isRightMouseDown = false;
+    }
     // The rest of the keycodes are for debugging
     else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
     {

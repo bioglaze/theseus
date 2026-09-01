@@ -4,7 +4,7 @@ struct teWindowEvent
 {
     enum class Type
     {
-        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, Mouse3Down, Mouse3Up, MouseMove, MouseWheel,
+        Empty, KeyDown, KeyUp, Close, Mouse1Down, Mouse1Up, Mouse2Down, Mouse2Up, Mouse3Down, Mouse3Up, MouseMove, MouseWheel, FocusLoss,
         GamePadButtonA,
         GamePadButtonB,
         GamePadButtonX,
@@ -57,4 +57,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title );
 void tePushWindowEvents();
 // @return Type::Empty when no events remain in the event queue.
 const teWindowEvent& tePopWindowEvent();
+teWindowEvent* teGetWindowEvents();
+unsigned teGetWindowEventCount();
+void teClearWindowEvents();
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight );

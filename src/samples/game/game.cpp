@@ -15,26 +15,21 @@ int main()
     {
         tePushWindowEvents();
 
-        bool eventsHandled = false;
+        teWindowEvent* events = teGetWindowEvents();
 
-        while (!eventsHandled)
+        for (unsigned i = 0; i < teGetWindowEventCount(); ++i)
         {
-            const teWindowEvent& event = tePopWindowEvent();
-
-            if (event.type == teWindowEvent::Type::Empty)
-            {
-                eventsHandled = true;
-            }
-
-            if ((event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Escape) || event.type == teWindowEvent::Type::Close)
+            if ((events[ i ].type == teWindowEvent::Type::KeyDown && events[ i ].keyCode == teWindowEvent::KeyCode::Escape) || events[ i ].type == teWindowEvent::Type::Close)
             {
                 shouldQuit = true;
             }
-            else
+            else if (events[ i ].type != teWindowEvent::Type::Empty)
             {
-                HandleEvent( event );
+                HandleEvent( events[ i ] );
             }
         }
+
+        teClearWindowEvents();
 
         Tick();
         Render();

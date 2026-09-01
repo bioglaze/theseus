@@ -621,16 +621,11 @@ int main()
         
         tePushWindowEvents();
 
-        bool eventsHandled = false;
+        teWindowEvent* events = teGetWindowEvents();
 
-        while (!eventsHandled)
+        for (unsigned i = 0; i < teGetWindowEventCount(); ++i)
         {
-            const teWindowEvent& event = tePopWindowEvent();
-            
-            if (event.type == teWindowEvent::Type::Empty)
-            {
-                eventsHandled = true;
-            }
+            teWindowEvent& event = events[ i ];
 
             if ((event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Escape) || event.type == teWindowEvent::Type::Close)
             {
@@ -781,6 +776,8 @@ int main()
                 io.AddMousePosEvent( (float)inputParams.x, (float)inputParams.y );
             }
         }
+        
+        teClearWindowEvents();
 
         Vec3 oldCameraPos = teTransformGetLocalPosition( camera3d.index );
 
