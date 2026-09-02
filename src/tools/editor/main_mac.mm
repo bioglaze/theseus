@@ -47,6 +47,7 @@ struct InputParams
     int lastMouseX = 0;
     int lastMouseY = 0;
     bool isLeftMouseDown = false;
+    bool isMiddleMouseDown = false;
     float gridStep = 1;
     Vec3 moveDir;
     bool isMovingGizmo = false;
@@ -57,12 +58,10 @@ void GetOpenPath( char* path, const char* extension )
     NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
     UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
 
-
     if (type != nil)
     {
         [types addObject: type];
     }
-
 
     NSOpenPanel *op = [NSOpenPanel openPanel];
     [op setAllowedContentTypes: types];
@@ -86,12 +85,10 @@ void GetSavePath( char* path, const char* extension )
     NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
     UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
 
-
     if (type != nil)
     {
         [types addObject: type];
     }
-
 
     NSSavePanel *op = [NSSavePanel savePanel];
     //[op setAllowedContentTypes: types];
@@ -166,7 +163,7 @@ void GetSavePath( char* path, const char* extension )
     io.KeyShift = isShiftDown;
     io.KeySuper = isCmdDown;
 
-    printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
+    //printf( "pressed %d\n", [theEvent keyCode]); // 123, 124: left, right
 
     if ([theEvent keyCode] == 0x00) // A
     {
@@ -434,6 +431,23 @@ void GetSavePath( char* path, const char* extension )
     }
 }
 
+- (void)rightMouseDown:(NSEvent *)theEvent
+{
+    printf("right mouse down\n");
+}
+
+- (void)otherMouseDown:(NSEvent *)theEvent
+{
+    printf("middle down\n");
+    inputParams.isMiddleMouseDown = true;
+}
+
+- (void)otherMouseUp:(NSEvent *)theEvent
+{
+    printf("middle up\n");
+    inputParams.isMiddleMouseDown = false;
+}
+
 - (void)mouseMoved:(NSEvent *)theEvent
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -441,6 +455,13 @@ void GetSavePath( char* path, const char* extension )
 
     inputParams.x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
     inputParams.y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+
+    if (inputParams.isMiddleMouseDown)
+    {
+        printf("middle drag\n");
+        inputParams.moveDir.x = -inputParams.deltaX * 0.01f;
+        inputParams.moveDir.y =  inputParams.deltaY * 0.01f;
+    }
 
     SceneMouseMove( (float)inputParams.x, (float)(height - inputParams.y), inputParams.deltaX, inputParams.deltaY, inputParams.isLeftMouseDown );
 }
@@ -457,6 +478,13 @@ void GetSavePath( char* path, const char* extension )
     inputParams.lastMouseY = inputParams.y;
 
     io.AddMousePosEvent( (int)theEvent.locationInWindow.x * uiScale * 2, (height - (int)theEvent.locationInWindow.y) * uiScale * 2 );
+
+    if (inputParams.isMiddleMouseDown)
+    {
+        printf("middle drag\n");
+        inputParams.moveDir.x = -inputParams.deltaX * 0.01f;
+        inputParams.moveDir.y =  inputParams.deltaY * 0.01f;
+    }
 
     if (!inputParams.isMovingGizmo && !io.WantCaptureMouse)
     {
