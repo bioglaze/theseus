@@ -171,16 +171,11 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
     tePushWindowEvents();
 
-    bool eventsHandled = false;
+    teWindowEvent* events = teGetWindowEvents();
 
-    while (!eventsHandled)
+    for (unsigned i = 0; i < teGetWindowEventCount(); ++i)
     {
-        const teWindowEvent& event = tePopWindowEvent();
-
-        if (event.type == teWindowEvent::Type::Empty)
-        {
-            eventsHandled = true;
-        }
+        const teWindowEvent& event = events[ i ];
 
         if ((event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Escape) || event.type == teWindowEvent::Type::Close)
         {
@@ -563,6 +558,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100.0f : 100.0f;
         }
     }
+
+    teClearWindowEvents();
 
     Vec3 moveDir = inputParams.moveDir + inputParams.gamepadMoveDir * 0.005f;
     inputParams.gamepadMoveDir = Vec3( 0, 0, 0 );

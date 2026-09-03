@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Windowsx.h>
 #include <xinput.h>
 #if _DEBUG
 #include <crtdbg.h>
@@ -204,8 +205,8 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     {
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
-        win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD( lParam );
+        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
     }
     break;
     case WM_RBUTTONDOWN:
@@ -213,8 +214,8 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     {
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
-        win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD( lParam );
+        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
     }
     break;
     case WM_MBUTTONDOWN:
@@ -222,21 +223,26 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     {
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = message == WM_MBUTTONDOWN ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
-        win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD( lParam );
+        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
     }
     break;
     case WM_MOUSEMOVE:
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-        win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD( lParam );
+        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
         break;
     case WM_MOUSEWHEEL:
         wasHandled = IncEventIndex();
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
-        win.events[ win.eventIndex ].x = LOWORD( lParam );
-        win.events[ win.eventIndex ].y = HIWORD( lParam );
+
+        POINT point;
+        point.x = GET_X_LPARAM( lParam );
+        point.y = GET_Y_LPARAM( lParam );
+        ScreenToClient( hWnd, &point );
+        win.events[ win.eventIndex ].x = point.x;
+        win.events[ win.eventIndex ].y = point.y;
         win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
         break;
     case WM_KILLFOCUS:
