@@ -1020,7 +1020,24 @@ void RenderSceneView( float gridStep )
                     if (ImGui::Button( "Load" ))
                     {
                         sceneView.openFilePath[ 0 ] = 0;
-                        GetOpenPath( sceneView.openFilePath, "t3d" );
+                        char absolutePath[ 280 ] = {};
+                        GetOpenPath( absolutePath, "t3d" );
+                        char* pos = strstr( absolutePath, "assets" );
+                        if (pos)
+                        {
+                            strcpy( sceneView.openFilePath, pos );
+                            for (unsigned i = 0; i < strlen( sceneView.openFilePath ); ++i)
+                            {
+                                if (sceneView.openFilePath[ i ] == '\\')
+                                {
+                                    sceneView.openFilePath[ i ] = '/';
+                                }
+                            }
+                        }
+                        else
+                        {
+                            printf( "Opened file must be inside build/assets!\n" );
+                        }
 
                         if (sceneView.openFilePath[ 0 ] != 0)
                         {
