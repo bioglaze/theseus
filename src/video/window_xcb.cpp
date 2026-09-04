@@ -46,7 +46,6 @@ struct GamePad
 struct WindowImpl
 {
     teWindowEvent          events[ EventStackSize ];
-    teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int                    eventIndex = -1;
     unsigned               width = 0;
     unsigned               height = 0;
@@ -94,73 +93,6 @@ void IncEventIndex()
     }
 }
 
-static void InitKeyMap()
-{
-    for (unsigned keyIndex = 0; keyIndex < 256; ++keyIndex)
-    {
-        win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::Invalid;
-    }
-
-    win.keyMap[ 28 ] = teWindowEvent::KeyCode::Enter;
-    win.keyMap[ 105 ] = teWindowEvent::KeyCode::Left;
-    win.keyMap[ 103 ] = teWindowEvent::KeyCode::Up;
-    win.keyMap[ 106 ] = teWindowEvent::KeyCode::Right;
-    win.keyMap[ 108 ] = teWindowEvent::KeyCode::Down;
-    win.keyMap[  1 ] = teWindowEvent::KeyCode::Escape;
-    win.keyMap[ 57 ] = teWindowEvent::KeyCode::Space;
-    win.keyMap[ 14 ] = teWindowEvent::KeyCode::Backspace;
-    win.keyMap[ 111 ] = teWindowEvent::KeyCode::Delete;
-    win.keyMap[ 52 ] = teWindowEvent::KeyCode::Dot;
-    win.keyMap[ 102 ] = teWindowEvent::KeyCode::Home;
-    win.keyMap[ 107 ] = teWindowEvent::KeyCode::End;
-    win.keyMap[ 12 ] = teWindowEvent::KeyCode::Plus;
-    win.keyMap[ 53 ] = teWindowEvent::KeyCode::Minus;
-    win.keyMap[ 86 ] = teWindowEvent::KeyCode::Less;
-    win.keyMap[ 78 ] = teWindowEvent::KeyCode::NumpadPlus;
-    win.keyMap[ 74 ] = teWindowEvent::KeyCode::NumpadMinus;
-    win.keyMap[ 15 ] = teWindowEvent::KeyCode::Tab;
-
-    win.keyMap[ 39 ] = teWindowEvent::KeyCode::OE;
-    win.keyMap[ 40 ] = teWindowEvent::KeyCode::AE;
-    win.keyMap[ 30 ] = teWindowEvent::KeyCode::A;
-    win.keyMap[ 48 ] = teWindowEvent::KeyCode::B;
-    win.keyMap[ 46 ] = teWindowEvent::KeyCode::C;
-    win.keyMap[ 32 ] = teWindowEvent::KeyCode::D;
-    win.keyMap[ 18 ] = teWindowEvent::KeyCode::E;
-    win.keyMap[ 33 ] = teWindowEvent::KeyCode::F;
-    win.keyMap[ 34 ] = teWindowEvent::KeyCode::G;
-    win.keyMap[ 35 ] = teWindowEvent::KeyCode::H;
-    win.keyMap[ 23 ] = teWindowEvent::KeyCode::I;
-    win.keyMap[ 36 ] = teWindowEvent::KeyCode::J;
-    win.keyMap[ 37 ] = teWindowEvent::KeyCode::K;
-    win.keyMap[ 38 ] = teWindowEvent::KeyCode::L;
-    win.keyMap[ 50 ] = teWindowEvent::KeyCode::M;
-    win.keyMap[ 49 ] = teWindowEvent::KeyCode::N;
-    win.keyMap[ 24 ] = teWindowEvent::KeyCode::O;
-    win.keyMap[ 25 ] = teWindowEvent::KeyCode::P;
-    win.keyMap[ 16 ] = teWindowEvent::KeyCode::Q;
-    win.keyMap[ 19 ] = teWindowEvent::KeyCode::R;
-    win.keyMap[ 31 ] = teWindowEvent::KeyCode::S;
-    win.keyMap[ 20 ] = teWindowEvent::KeyCode::T;
-    win.keyMap[ 22 ] = teWindowEvent::KeyCode::U;
-    win.keyMap[ 47 ] = teWindowEvent::KeyCode::V;
-    win.keyMap[ 17 ] = teWindowEvent::KeyCode::W;
-    win.keyMap[ 45 ] = teWindowEvent::KeyCode::X;
-    win.keyMap[ 21 ] = teWindowEvent::KeyCode::Y;
-    win.keyMap[ 44 ] = teWindowEvent::KeyCode::Z;
-
-    win.keyMap[ 2 ] = teWindowEvent::KeyCode::N1;
-    win.keyMap[ 3 ] = teWindowEvent::KeyCode::N2;
-    win.keyMap[ 4 ] = teWindowEvent::KeyCode::N3;
-    win.keyMap[ 5 ] = teWindowEvent::KeyCode::N4;
-    win.keyMap[ 6 ] = teWindowEvent::KeyCode::N5;
-    win.keyMap[ 7 ] = teWindowEvent::KeyCode::N6;
-    win.keyMap[ 8 ] = teWindowEvent::KeyCode::N7;
-    win.keyMap[ 9 ] = teWindowEvent::KeyCode::N8;
-    win.keyMap[10 ] = teWindowEvent::KeyCode::N9;
-    win.keyMap[11 ] = teWindowEvent::KeyCode::N0;
-}
-
 teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
 {
     switch( xcbKey )
@@ -198,6 +130,18 @@ teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
     case 65363: return teWindowEvent::KeyCode::Right;
     case 65364: return teWindowEvent::KeyCode::Down;
     case 65307: return teWindowEvent::KeyCode::Escape;
+    case 65288: return teWindowEvent::KeyCode::Backspace;
+    case 48: return teWindowEvent::KeyCode::N0;
+    case 49: return teWindowEvent::KeyCode::N1;
+    case 50: return teWindowEvent::KeyCode::N2;
+    case 51: return teWindowEvent::KeyCode::N3;
+    case 52: return teWindowEvent::KeyCode::N4;
+    case 53: return teWindowEvent::KeyCode::N5;
+    case 54: return teWindowEvent::KeyCode::N6;
+    case 55: return teWindowEvent::KeyCode::N7;
+    case 56: return teWindowEvent::KeyCode::N8;
+    case 57: return teWindowEvent::KeyCode::N9;
+
     default: return teWindowEvent::KeyCode::Invalid;
     }
 }
@@ -483,8 +427,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
         free( reply );
     }
 
-    InitKeyMap();
-    
     return nullptr;
 }
 
