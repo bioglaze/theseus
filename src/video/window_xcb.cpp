@@ -210,6 +210,16 @@ void tePushWindowEvents()
             
             win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
             win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
+            win.events[ win.eventIndex ].keyModifiers = 0;
+
+            if (kp->state == 1)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
+            }
+            if (kp->state == 4)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+            }
         }
         else if (responseType == XCB_KEY_RELEASE)
         {
@@ -219,6 +229,16 @@ void tePushWindowEvents()
 
             win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
             win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
+            win.events[ win.eventIndex ].keyModifiers = 0;
+
+            if (kp->state == 1)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
+            }
+            if (kp->state == 4)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+            }
         }
         else if (responseType == XCB_MOTION_NOTIFY)
         {
