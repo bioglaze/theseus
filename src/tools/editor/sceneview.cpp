@@ -165,9 +165,9 @@ void ExportGameScene( const teScene& scene, const char* path )
             fprintf( outFile, "gameobject %s\n", teGameObjectGetName( goIndex ) );
             fprintf( outFile, "position %f %f %f\n", teTransformGetLocalPosition( goIndex ).x, teTransformGetLocalPosition( goIndex ).y, teTransformGetLocalPosition( goIndex ).z );
             
-            if (teGameObjectGetComponents( goIndex ) & teComponent::MeshRenderer)
+            if ((teGameObjectGetComponents( goIndex ) & teComponent::MeshRenderer) && teMeshRendererGetMesh( goIndex ))
             {
-                fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path ); // Note: in teSceneReadScene() this is mesh name, not path, but the format is not finalized yet.
+                fprintf( outFile, "meshrenderer %s\n", teMeshRendererGetMesh( goIndex )->path );
             }
 
             if (teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
