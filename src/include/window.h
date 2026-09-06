@@ -55,8 +55,6 @@ struct teWindowEvent
 // @return Window handle opaque pointer. On Windows its type is HWND.
 void* teCreateWindow( unsigned width, unsigned height, const char* title );
 void tePushWindowEvents();
-// @return Type::Empty when no events remain in the event queue.
-const teWindowEvent& tePopWindowEvent();
 teWindowEvent* teGetWindowEvents();
 unsigned teGetWindowEventCount();
 void teClearWindowEvents();

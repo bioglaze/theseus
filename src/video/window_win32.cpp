@@ -356,64 +356,52 @@ void PumpGamePadEvents()
         win.events[ win.eventIndex ].gamePadThumbX = avgX;
         win.events[ win.eventIndex ].gamePadThumbY = avgY;
 
-        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadUp;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadDown;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadLeft;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadRight;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_A) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_A) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonA;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_B) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_B) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonB;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_X) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_X) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonX;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_Y) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_Y) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonY;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonLeftShoulder;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonRightShoulder;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_START) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_START) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonStart;
         }
-        if ((pad->wButtons & XINPUT_GAMEPAD_BACK) != 0)
+        if ((pad->wButtons & XINPUT_GAMEPAD_BACK) != 0 && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonBack;
         }
     }
@@ -453,18 +441,6 @@ void teClearWindowEvents()
     {
         win.events[ i ].type = teWindowEvent::Type::Empty;
     }
-}
-
-const teWindowEvent& tePopWindowEvent()
-{
-    if (win.eventIndex == -1)
-    {
-        win.events[ 0 ].type = teWindowEvent::Type::Empty;
-        return win.events[ 0 ];
-    }
-
-    --win.eventIndex;
-    return win.events[ win.eventIndex + 1 ];
 }
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
