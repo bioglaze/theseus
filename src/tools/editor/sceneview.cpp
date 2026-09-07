@@ -154,6 +154,15 @@ void ExportGameScene( const teScene& scene, const char* path )
         return;
     }
 
+    for (unsigned i = 0; i < sceneView.materialCount; ++i)
+    {
+        const char* texture0 = teTexture2DGetPath( teMaterialGetTexture2D( sceneView.materials[ i ], 0 ) );
+        if (texture0)
+        {
+            fprintf( outFile, "texture %s\n", texture0 );
+        }
+    }
+
     unsigned goCount = teSceneGetMaxGameObjects();
 
     for (unsigned i = 0; i < goCount; ++i)
@@ -185,6 +194,11 @@ void ExportGameScene( const teScene& scene, const char* path )
                 float* coneAngle = teSpotLightAccessConeAngle( goIndex );
 
                 fprintf( outFile, "spotlight %f %f %f %f %f\n", color[ 0 ], color[ 1 ], color[ 2 ], *radius, *coneAngle );
+            }
+
+            for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( goIndex ) ); ++subMesh)
+            {
+                fprintf( outFile, "submesh_texture %u %u\n", subMesh, teMeshRendererGetMaterial( goIndex, subMesh ).index ); // FIXME: material index doesn't match the material loop above.
             }
 
             fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );

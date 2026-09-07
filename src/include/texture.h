@@ -24,5 +24,6 @@ void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& o
 
 // @param pixels Optional. If set, file is ignored and pixelsWidth, pixelsHeight and pixelsFormat must be provided.
 teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat );
+const char* teTexture2DGetPath( const teTexture2D& texture );
 
 teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFile& negY, const teFile& posY, const teFile& negZ, const teFile& posZ, unsigned flags );

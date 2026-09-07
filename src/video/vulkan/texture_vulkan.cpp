@@ -21,6 +21,7 @@ struct teTextureImpl
     unsigned width = 0;
     unsigned height = 0;
     unsigned mipLevelCount = 1;
+    char path[ 280 ] = {};
 };
 
 teTextureImpl textures[ TextureCount ];
@@ -155,6 +156,11 @@ void GetFormat( teTextureFormat format, VkFormat& outFormat )
     {
         teAssert( !"unhandled format!" );
     }
+}
+
+const char* teTexture2DGetPath( const teTexture2D& texture )
+{
+    return textures[ texture.index ].path;
 }
 
 VkImageView TextureGetView( teTexture2D texture )
@@ -552,7 +558,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     outTexture.format = isNormal ? teTextureFormat::BGRA : teTextureFormat::BGRA_sRGB;
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
-
+    teMemcpy( tex.path, file.path, sizeof( file.path ) );
 
     if (file.data == nullptr && pixels == nullptr)
     {
@@ -569,6 +575,13 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         unsigned dataBeginOffset = 0;
 
         bool loadRes = LoadTGA( file, tex.width, tex.height, dataBeginOffset, bitsPerPixel );
+
+        if (!loadRes)
+        {
+            outTexture.index = 1;
+            --textureCount;
+            return outTexture;
+        }
 
         if (bitsPerPixel == 24)
         {
