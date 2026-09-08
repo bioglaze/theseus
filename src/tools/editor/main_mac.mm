@@ -33,7 +33,7 @@ bool SceneViewNothingSelected();
 extern id<CAMetalDrawable> gDrawable;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 
-unsigned width = 800*2, height = 390*2;
+unsigned width = 750*2, height = 390*2;
 unsigned frameWidth = 0, frameHeight = 0;
 
 const int uiScale = 1;
@@ -527,7 +527,7 @@ int main()
                             backing:NSBackingStoreBuffered
                             defer:NO];
         [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
-        window.styleMask |= NSWindowStyleMaskResizable;
+        //window.styleMask |= NSWindowStyleMaskResizable;
         window.styleMask |= NSWindowStyleMaskMiniaturizable ;
         window.styleMask |= NSWindowStyleMaskClosable;
         window.title = [[NSProcessInfo processInfo] processName];

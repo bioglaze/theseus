@@ -587,9 +587,6 @@ void ReadMaterials()
 
     while (teGetNextFile( handle, &path ))
     {
-        char buf[ 256 ] = {};
-        snprintf( buf, 256, "%s", path );
-
         char matPath[ 260 ] = {};
         snprintf( matPath, sizeof( matPath ), "assets/materials/%s", path );
         const bool isMaterial = strstr( matPath, ".mat" );
@@ -853,6 +850,11 @@ unsigned SceneViewGetCameraIndex()
 
 void AddGridLines( float gridStep )
 {
+    for (int l = 0; l < 100; ++l)
+    {
+        sceneView.lineBuffer[ l ] = Vec3( 0, 0, 0 );
+    }
+
     unsigned i = 0;
 
     for (int x = 0; x < 21; ++x)
@@ -1132,7 +1134,8 @@ void RenderSceneView( float gridStep )
 
                     Vec3 color = Vec3( teSpotLightAccessColor( selectedGoIndex )[ 0 ], teSpotLightAccessColor( selectedGoIndex )[ 1 ], teSpotLightAccessColor( selectedGoIndex )[ 2 ] );
                     Vec3 dir = { 0, 0, 1 };
-                    teSpotLightSetParams( selectedGoIndex, color, Vec3( 1, 1, 1 ), *teSpotLightAccessConeAngle( selectedGoIndex ), dir, 2.0f );
+                    Vec3 pos = Vec3( 1, 1, 1 );
+                    teSpotLightSetParams( selectedGoIndex, pos, color, *teSpotLightAccessConeAngle( selectedGoIndex ), dir, 2.0f );
                 }
             }
 
