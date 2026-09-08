@@ -404,7 +404,8 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         }
 
         tex.format = GetPixelFormat( outTexture.format );
-        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || outTexture.format == teTextureFormat::BC4U) ? 2 : 4;
+        multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || 
+                      outTexture.format == teTextureFormat::BC4U || outTexture.format == teTextureFormat::BC4S) ? 2 : 4;
 
         if (!(flags & teTextureFlags::GenerateMips))
         {

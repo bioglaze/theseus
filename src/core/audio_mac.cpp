@@ -180,7 +180,11 @@ void InitAudio()
         int value = 100;
         float factor = (value == 0) ? 0.0 : powf( 10, VolumeRangeDb * (value - 100) / 100 / 20 );
 
-        AudioUnitSetParameter( gAudioDevice.outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
+        OSStatus res = AudioUnitSetParameter( gAudioDevice.outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
+        if (res != kAudioCodecNoError)
+        {
+            tePrint( "Volume setting failed!\n" );
+        }
     }
 }
 
@@ -206,13 +210,13 @@ void PlayAudioClip( unsigned clipIndex )
     callback.inputProcRefCon = nullptr;
 
     gAudioDevice.wavPlaybackSample = 0;
+    gAudioDevice.playingClipIndex = clipIndex;
 
     bool ok = OpenAudio( FMT_S16_LE, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, &callback );
     if (!ok)
     {
+        gAudioDevice.playingClipIndex = 0;
         AudioComponentInstanceDispose( gAudioDevice.outputInstance );
         tePrint( "failed to open audio!\n" );
     }
-
-    gAudioDevice.playingClipIndex = clipIndex;
 }

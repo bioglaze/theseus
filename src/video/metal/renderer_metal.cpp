@@ -14,7 +14,6 @@
 
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 teBuffer CreateBuffer( MTL::Device* device, unsigned dataBytes, bool isStaging, const char* debugName );
-unsigned BufferGetSizeBytes( const teBuffer& buffer );
 MTL::Buffer* BufferGetBuffer( const teBuffer& buffer );
 MTL::Function* teShaderGetVertexProgram( const teShader& shader );
 MTL::Function* teShaderGetPixelProgram( const teShader& shader );
@@ -336,6 +335,9 @@ void PopGroupMarker()
 
 void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
 {
+    //tePrint("dataBytes %u, offset %u, buffer.size: %u\n", dataBytes, offset, buffer.sizeBytes);
+    teAssert( dataBytes + offset <= buffer.sizeBytes );
+
     const unsigned dataBytesNextMultipleOf4 = ((dataBytes + 3) / 4) * 4;
     
     uint8_t* bufferPointer = (uint8_t *)(BufferGetBuffer( buffer )->contents());
@@ -526,12 +528,12 @@ void teEndSwapchainRendering()
 
 void CopyBuffer( const teBuffer& source, const teBuffer& destination )
 {
-    teAssert( BufferGetSizeBytes( source ) <= BufferGetSizeBytes( destination ) );
+    teAssert( source.sizeBytes <= destination.sizeBytes );
     
     MTL::CommandBuffer* cmd_buffer =  renderer.commandQueue->commandBuffer();
     cmd_buffer->setLabel( NS::String::string( "blit cmdbuffer", NS::UTF8StringEncoding ) );
     MTL::BlitCommandEncoder* blit_encoder = cmd_buffer->blitCommandEncoder();
-    blit_encoder->copyFromBuffer( BufferGetBuffer( source ), 0, BufferGetBuffer( destination ), 0, BufferGetSizeBytes( source ) );
+    blit_encoder->copyFromBuffer( BufferGetBuffer( source ), 0, BufferGetBuffer( destination ), 0, source.sizeBytes );
     blit_encoder->endEncoding();
     cmd_buffer->commit();
     cmd_buffer->waitUntilCompleted();
@@ -703,7 +705,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 1, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
 }
 
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )
