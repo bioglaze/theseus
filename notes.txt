@@ -5,6 +5,7 @@ Bugs:
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * macOS: editing point light color moves the gizmo
+    * mac: no scrolling in ImGui. Repro: add lots of gameobjects.
     * scene middle mouse drag works on ImGUI
     * .usda does not get rotation
     * .tscene does not get rotation

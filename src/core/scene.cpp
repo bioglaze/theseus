@@ -46,19 +46,17 @@ void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
 void SetSpotLightPosition( unsigned goIndex, const Vec3& positionWS );
 
-constexpr unsigned MAX_GAMEOBJECTS = 10000;
-
 struct ShadowCaster
 {
     teTexture2D color;
     teTexture2D depth;
-    unsigned cameraIndex{ MAX_GAMEOBJECTS - 1 };
+    unsigned cameraIndex{ MaxSceneGameObjects - 1 };
     Vec3 lightDirection;
 };
 
 struct SceneImpl
 {
-    unsigned gameObjects[ MAX_GAMEOBJECTS ] = {};
+    unsigned gameObjects[ MaxSceneGameObjects ] = {};
     ShadowCaster shadowCaster;
     Vec3 directionalLightColor;
     Vec3 directionalLightDirection;
@@ -68,11 +66,6 @@ struct SceneImpl
 SceneImpl scenes[ 2 ];
 unsigned sceneIndex = 0;
 teMesh quadMesh;
-
-unsigned teSceneGetMaxGameObjects()
-{
-    return MAX_GAMEOBJECTS;
-}
 
 unsigned teSceneGetGameObjectIndex( const teScene& scene, unsigned i )
 {
@@ -86,7 +79,7 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
     teScene outScene;
     outScene.index = sceneIndex++;
 
-    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         scenes[ outScene.index ].gameObjects[ i ] = 0;
     }
@@ -123,7 +116,7 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
         teAssert( teCameraGetColorTexture( gameObjectIndex ).index != 0 ); // Camera must have a render texture!
     }
 
-    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         if (scenes[ scene.index ].gameObjects[ i ] == gameObjectIndex)
         {
@@ -131,7 +124,7 @@ void teSceneAdd( const teScene& scene, unsigned gameObjectIndex )
         }
     }
 
-    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         if (scenes[ scene.index ].gameObjects[ i ] == 0)
         {
@@ -147,7 +140,7 @@ void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
 {
     teAssert( scene.index < 2 );
 
-    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         if (scenes[ scene.index ].gameObjects[ i ] == gameObjectIndex)
         {
@@ -158,7 +151,7 @@ void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
 
 static void UpdateTransformsAndCull( const teScene& scene, unsigned cameraGOIndex )
 {
-    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
     {
         if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
             (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
@@ -265,7 +258,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
 
 static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* overrideShader )
 {
-    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
     {
         if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] == 0 ||
             (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::MeshRenderer) == 0)
@@ -393,7 +386,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
 
     if (cullLightsShader)
     {
-        for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+        for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
         {
             if ((teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::PointLight) != 0)
             {
@@ -493,7 +486,7 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
 
     int cameraIndex = -1;
 
-    for (unsigned i = 0; i < MAX_GAMEOBJECTS; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         if (scenes[ scene.index ].gameObjects[ i ] != 0 &&
             (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ i ] ) & teComponent::Camera) != 0)
@@ -513,7 +506,7 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
 {
     bool isInside = false;
 
-    for (unsigned gameObjectIndex = 0; gameObjectIndex < MAX_GAMEOBJECTS; ++gameObjectIndex)
+    for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
     {
         if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] != 0 &&
             (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::Transform) != 0 &&

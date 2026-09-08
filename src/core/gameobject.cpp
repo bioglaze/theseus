@@ -13,6 +13,7 @@ struct teGameObjectImpl
 };
 
 constexpr unsigned MaxGameObjects = 10000;
+
 teGameObjectImpl gameObjects[ MaxGameObjects ];
 unsigned gameObjectCount = 0;
 

@@ -43,14 +43,3 @@ void tePushWindowEvents()
 
 }
 
-const teWindowEvent& tePopWindowEvent()
-{
-    if (win.eventIndex == -1)
-    {
-        win.events[ 0 ].type = teWindowEvent::Type::Empty;
-        return win.events[ 0 ];
-    }
-
-    --win.eventIndex;
-    return win.events[ win.eventIndex + 1 ];
-}

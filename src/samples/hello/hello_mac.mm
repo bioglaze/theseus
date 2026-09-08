@@ -96,7 +96,7 @@ void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned 
     float closestDistance = 99999.0f;
     outClosestSubMesh = 666;
 
-    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    for (unsigned go = 0; go < MaxSceneGameObjects; ++go)
     {
         unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
 

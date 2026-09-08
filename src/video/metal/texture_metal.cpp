@@ -17,6 +17,7 @@ struct teTextureImpl
     unsigned width = 0;
     unsigned height = 0;
     unsigned mipLevelCount = 1;
+    char path[ 280 ] = {};
 };
 
 teTextureImpl textures[ TextureCount ];
@@ -116,6 +117,11 @@ unsigned TextureGetFlags( unsigned index )
     return textures[ index ].flags;
 }
 
+const char* teTexture2DGetPath( const teTexture2D& texture )
+{
+    return textures[ texture.index ].path;
+}
+
 teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, teTextureFormat format, const char* debugName )
 {
     teAssert( textureCount + 1 < TextureCount );
@@ -174,7 +180,8 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
     tex.format = strstr( file.path, "_n." ) ? MTL::PixelFormatBGRA8Unorm : MTL::PixelFormatBGRA8Unorm_sRGB;
-    
+    teMemcpy( tex.path, file.path, sizeof( file.path ) );
+
     if (file.data == nullptr && pixels == nullptr)
     {
         outTexture.index = 1;

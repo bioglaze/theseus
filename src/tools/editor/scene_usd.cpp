@@ -302,7 +302,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
 
     fprintf( outFile, "#usda 1.0\n\n" );
 
-    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    for (unsigned go = 0; go < MaxSceneGameObjects; ++go)
     {
         unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
 

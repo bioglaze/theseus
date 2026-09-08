@@ -33,7 +33,6 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
 constexpr unsigned MaxTextures = 40;
-constexpr unsigned MaxEntities = 100; // Should be at least as many as gameobjects.
 
 constexpr unsigned EditorCameraGoIndex = 1;
 
@@ -99,10 +98,10 @@ struct SceneView
     float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
     float lightColor[ 3 ] = { 1, 1, 1 };
 
-    char* entityNames[ MaxEntities ] = {};
-    char* doorInputs[ MaxEntities ][ MaxDoorInputs ] = {};
-    char* buttonOutputs[ MaxEntities ] = {};
-    int entityTypes[ MaxEntities ] = {};
+    char* entityNames[ MaxSceneGameObjects ] = {};
+    char* doorInputs[ MaxSceneGameObjects ][ MaxDoorInputs ] = {};
+    char* buttonOutputs[ MaxSceneGameObjects ] = {};
+    int entityTypes[ MaxSceneGameObjects ] = {};
 };
 
 SceneView sceneView;
@@ -124,17 +123,17 @@ void RefreshEntities()
     // Fill selected gameobject's doorInputs from buttonOutputs.
     if (sceneView.entityTypes[ selectedGoIndex ] == EntityDoor)
     {
-        for (unsigned j = 0; j < MaxEntities; ++j)
+        for (unsigned j = 0; j < MaxSceneGameObjects; ++j)
         {
 
         }
     }
 
-    /*for (unsigned i = 0; i < MaxEntities; ++i)
+    /*for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         if (sceneView.entityTypes[ i ] == EntityButton)
         {
-            for (unsigned j = 0; j < MaxEntities; ++j)
+            for (unsigned j = 0; j < MaxSceneGameObjects; ++j)
             {
                 if (sceneView.entityTypes[ j ] == EntityDoor && strcmp( sceneView.buttonOutputs[ j ], sceneView.entityNames[ j ] ) )
                 {
@@ -163,7 +162,7 @@ void ExportGameScene( const teScene& scene, const char* path )
         }
     }
 
-    unsigned goCount = teSceneGetMaxGameObjects();
+    unsigned goCount = MaxSceneGameObjects;
 
     for (unsigned i = 0; i < goCount; ++i)
     {
@@ -354,7 +353,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
 {
     // Try to select a light under pointer.
     {
-        for (unsigned i = 0; i < teSceneGetMaxGameObjects(); ++i)
+        for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
         {
             unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
 
@@ -381,7 +380,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
     float closestDistance = 99999.0f;
     outClosestSubMesh = 666;
 
-    for (unsigned go = 0; go < teSceneGetMaxGameObjects(); ++go)
+    for (unsigned go = 0; go < MaxSceneGameObjects; ++go)
     {
         unsigned sceneGo = teSceneGetGameObjectIndex( sceneView.scene, go );
 
@@ -835,7 +834,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     io.BackendRendererName = "imgui_impl";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
 
-    for (unsigned i = 0; i < MaxEntities; ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
         sceneView.buttonOutputs[ i ] = (char*)calloc( 100, sizeof( char ) );
@@ -891,7 +890,7 @@ void RenderSceneView( float gridStep )
     shaderParams.tilesXY[ 3 ] = -1.0f;
     teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
 
-    for (unsigned i = 0; i < teSceneGetMaxGameObjects(); ++i)
+    for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
 
@@ -968,7 +967,7 @@ void RenderSceneView( float gridStep )
 
         ImGui::Text( "Game objects:" );
 
-        unsigned goCount = teSceneGetMaxGameObjects();
+        unsigned goCount = MaxSceneGameObjects;
 
         for (unsigned i = 0; i < goCount; ++i)
         {
