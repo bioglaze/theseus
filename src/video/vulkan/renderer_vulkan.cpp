@@ -2379,7 +2379,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 0, 3, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 1, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
 }
 
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )
