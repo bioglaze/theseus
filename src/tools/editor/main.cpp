@@ -587,8 +587,9 @@ int main()
 
     double theTime = GetMilliseconds();
     double dt = 0;
+    bool isRunning = true;
 
-    while (HandleInput( width, height, dt ))
+    while (isRunning)
     {
         double lastTime = theTime;
         theTime = GetMilliseconds();
@@ -599,7 +600,7 @@ int main()
             dt = 0;
         }
 
-        //printf( "%f\n", dt );
+        isRunning = HandleInput( width, height, dt );
 
         RenderSceneView( inputParams.gridStep );
     }

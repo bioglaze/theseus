@@ -131,6 +131,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             char skip3[ 255 ] = {};
             sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &color.x, &color.y, &color.z );
 
+            // FIXME: this should also handle spot light
             tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, color, 1.0f );
         }
         else if (strstr( line, "#usda 1.0" ))
@@ -316,9 +317,10 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         Vec3 position = teTransformGetLocalPosition( sceneGo );
         fprintf( outFile, "    double3 xformOp:translate = (%f, %f, %f)\n", position.x, position.y, position.z );
 
-        //Quaternion rotation = teTransformGetLocalRotation( sceneGo );
-        //Vec3 rotationv = rotation.get
-        //fprintf( outFile, "double3 xformOp:translate = (%f, %f, %f)", position.x, position.y, position.z );
+        Quaternion rotation = teTransformGetLocalRotation( sceneGo );
+        rotation.Normalize();
+        Vec3 rotationEuler = rotation.GetEuler();
+        fprintf( outFile, "    float xformOp:rotateXYZ = (%f, %f, %f)\n", rotationEuler.x, rotationEuler.y, rotationEuler.z );
 
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );

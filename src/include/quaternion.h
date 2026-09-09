@@ -9,10 +9,14 @@ struct Quaternion
     
     void FromAxisAngle( const Vec3& axis, float angleDeg );
     void FromMatrix( const struct Matrix& mat );
+    void FromEuler( const Vec3& euler );
     float FindTwist( const Vec3& axis ) const;
     void FindOrthonormals( const Vec3& normal, Vec3& orthonormal1, Vec3& orthonormal2 ) const;
     void GetMatrix( Matrix& outMatrix ) const;
     void Normalize();
+    // Input should be normalized before calling this.
+    // \return Euler angles in degrees.x = bank, y = attitude, z = heading.
+    Vec3 GetEuler() const;
 
     float x, y, z, w;
 };

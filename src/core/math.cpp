@@ -608,6 +608,47 @@ float Quaternion::FindTwist( const Vec3& axis ) const
     return acosf( dot );
 }
 
+void Quaternion::FromEuler( const Vec3& euler )
+{
+    const Vec3 xAxis( 1, 0, 0 );
+    const Vec3 yAxis( 0, 1, 0 );
+    const Vec3 zAxis( 0, 0, 1 );
+
+    Quaternion qx, qy, qz, qt;
+    qx.FromAxisAngle( xAxis, euler.x );
+    qy.FromAxisAngle( yAxis, euler.y );
+    qz.FromAxisAngle( zAxis, euler.z );
+    qt = qx * qy;
+    *this = qt;
+}
+
+Vec3 Quaternion::GetEuler() const
+{
+    Vec3 out;
+    const float test = x * y + z * w;
+
+    if (test > 4.99f) // Singularity at north pole.
+    {
+        out.z = 2 * atan2f( x, w );
+        out.y = 3.14159265f / 2.0f;
+        out.x = 0;
+        return out / (3.14159265358979f / 180.0f);
+    }
+
+    if (test < -4.99f) // Singularity at south pole.
+    {
+        out.z = -2 * atan2f( x, w );
+        out.y = -3.14159265f / 2.0f;
+        out.x = 0;
+        return out / (3.14159265358979f / 180.0f);
+    }
+
+    out.z = atan2f( 2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z );
+    out.y = asinf( 2 * x * y + 2 * z * w );
+    out.x = atan2f( 2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z );
+    return out / (3.14159265358979f / 180.0f);
+}
+
 void Quaternion::Normalize()
 {
     const float mag2 = w * w + x * x + y * y + z * z;
