@@ -487,6 +487,16 @@ void SceneViewDuplicate()
 
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown )
 {
+    if (x < 0)
+    {
+        x = 0;
+    }
+    
+    if (y < 0)
+    {
+        y = 0;
+    }
+    
     teMaterialSetTint( sceneView.greenMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.redMaterial, { 1, 1, 1, 1 } );
     teMaterialSetTint( sceneView.blueMaterial, { 1, 1, 1, 1 } );

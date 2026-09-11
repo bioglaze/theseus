@@ -146,12 +146,20 @@ void GetOpenPath( char* path, const char* extension )
         f = popen( "zenity --file-selection --title \"Load .scene or .t3d file\"", "r" );
     }
 
-    fgets( path, 1024, f );
+    if (!f)
+    {
+        printf( "Failed to open file with zenity!\n" );
+        return;
+    }
+    
+    fgets( path, 280, f );
 
     if (strlen( path ) > 0)
     {
         path[ strlen( path ) - 1 ] = 0;
     }
+
+    pclose( f );
 }
 
 void GetSavePath( char* path, const char* extension )

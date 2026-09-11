@@ -61,6 +61,10 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     }
 
     // Prevent malloc'ing 0 bytes
+    if (outGoCount == 0)
+    {
+        outGoCount = 1;
+    }
     if (outMeshCount == 0)
     {
         outMeshCount = 1;
@@ -281,6 +285,17 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             char skip3[ 255 ] = {};
             sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &pos.x, &pos.y, &pos.z );
             teTransformSetLocalPosition( sceneGos[ goIndex - 1 ].index, pos );
+        }
+        else if (strstr( line, "xformOp:scale" ))
+        {
+            assert( goIndex != 0 );
+
+            Vec3 scale;
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &scale.x, &scale.y, &scale.z );
+            teTransformSetLocalScale( sceneGos[ goIndex - 1 ].index, scale.x );
         }
     }
 
