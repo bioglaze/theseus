@@ -85,12 +85,17 @@ double GetMilliseconds()
     return spec.tv_nsec / 1000000;
 }
 
-void IncEventIndex()
+bool IncEventIndex()
 {
     if (win.eventIndex < EventStackSize - 1)
     {
         ++win.eventIndex;
+        return true;
     }
+
+    tePrint( "Event array full!\n!" );
+    
+    return false;
 }
 
 teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
@@ -130,7 +135,9 @@ teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
     case 65363: return teWindowEvent::KeyCode::Right;
     case 65364: return teWindowEvent::KeyCode::Down;
     case 65307: return teWindowEvent::KeyCode::Escape;
+    case 65535: return teWindowEvent::KeyCode::Delete;
     case 65288: return teWindowEvent::KeyCode::Backspace;
+    case 46: return teWindowEvent::KeyCode::Dot;
     case 48: return teWindowEvent::KeyCode::N0;
     case 49: return teWindowEvent::KeyCode::N1;
     case 50: return teWindowEvent::KeyCode::N2;
@@ -158,10 +165,10 @@ void tePushWindowEvents()
     
     while ((event = xcb_poll_for_event( connection )))
     {
-        if (win.eventIndex >= 14)
+        if (win.eventIndex >= EventStackSize)
         {
             free( event );
-            return;
+            continue;
         }
         
         const uint8_t responseType = event->response_type & ~0x80;
@@ -197,14 +204,12 @@ void tePushWindowEvents()
             win.events[ win.eventIndex ].x = bp->event_x;
             win.events[ win.eventIndex ].y = bp->event_y;
         }
-        else if (responseType == XCB_FOCUS_OUT)
+        else if ((responseType == XCB_FOCUS_OUT) && IncEventIndex())
         {
-            IncEventIndex();
             win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
         }
-        else if (responseType == XCB_KEY_PRESS)
+        else if ((responseType == XCB_KEY_PRESS) && IncEventIndex())
         {
-            IncEventIndex();
             xcb_key_press_event_t* kp = (xcb_key_press_event_t *)event;
             const xcb_keysym_t keysym = xcb_key_symbols_get_keysym( win.keySymbols, kp->detail, 0 );
             
@@ -221,9 +226,8 @@ void tePushWindowEvents()
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
             }
         }
-        else if (responseType == XCB_KEY_RELEASE)
+        else if ((responseType == XCB_KEY_RELEASE) && IncEventIndex())
         {
-            IncEventIndex();
             xcb_key_press_event_t* kp = (xcb_key_press_event_t *)event;
             const xcb_keysym_t keysym = xcb_key_symbols_get_keysym( win.keySymbols, kp->detail, 0 );
 
@@ -240,9 +244,8 @@ void tePushWindowEvents()
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
             }
         }
-        else if (responseType == XCB_MOTION_NOTIFY)
+        else if ((responseType == XCB_MOTION_NOTIFY) && IncEventIndex())
         {
-            IncEventIndex();
             xcb_motion_notify_event_t* motion = (xcb_motion_notify_event_t *)event;
             win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
             win.events[ win.eventIndex ].x = motion->event_x;

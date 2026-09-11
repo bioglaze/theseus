@@ -137,6 +137,10 @@ void GetOpenPath( char* path, const char* extension )
     {
         f = popen( "zenity --file-selection --file-filter=*.wav --title \"Load .wav file\"", "r" );
     }
+    else if (strstr( extension, "usda" ))
+    {
+        f = popen( "zenity --file-selection --file-filter=*.usda --title \"Load .usda file\"", "r" );
+    }
     else
     {
         f = popen( "zenity --file-selection --title \"Load .scene or .t3d file\"", "r" );
