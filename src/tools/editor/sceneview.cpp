@@ -144,7 +144,7 @@ void RefreshEntities()
     }*/
 }
 
-void ExportGameScene( const teScene& scene, const char* path )
+void ExportGameScene( const char* path )
 {
     FILE* outFile = fopen( path, "wb" );
     if (!outFile)
@@ -640,6 +640,11 @@ void ReadMaterials()
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
                         }
+
+                        if (nameCursor >= sizeof( sceneView.materials[ sceneView.materialCount ].name ))
+                        {
+                            nameCursor = sizeof( sceneView.materials[ sceneView.materialCount ].name ) - 1;
+                        }
                         printf( "material name: %s\n", name );
                         strncpy( sceneView.materials[ sceneView.materialCount ].name, name, sizeof( sceneView.materials[ sceneView.materialCount ].name ) );
                         sceneView.materials[ sceneView.materialCount ].name[ nameCursor ] = 0;
@@ -851,6 +856,11 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
             sceneView.doorInputs[ i ][ j ] = (char*)calloc( 100, sizeof( char ) );
         }
     }
+
+    if (unlitVsFile.data) free( unlitVsFile.data );
+    if (unlitPsFile.data) free( unlitPsFile.data );
+    if (standardVsFile.data) free( standardVsFile.data );
+    if (standardPsFile.data) free( standardPsFile.data );
 }
 
 unsigned SceneViewGetCameraIndex()
@@ -959,7 +969,7 @@ void RenderSceneView( float gridStep )
                 GetSavePath( sceneView.openFilePath, "tscene" );
                 if (sceneView.openFilePath[ 0 ] != 0)
                 {
-                    ExportGameScene( sceneView.scene, sceneView.openFilePath );
+                    ExportGameScene( sceneView.openFilePath );
                 }
             }
             ImGui::EndMenu();

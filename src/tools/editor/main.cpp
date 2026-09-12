@@ -559,7 +559,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         {
             if (io.WantCaptureMouse)
             {
-                io.AddMouseWheelEvent( 0, event.wheelDelta ); // on Windows this works right if it's (0, event.wheelDelta)
+                io.AddMouseWheelEvent( 0, (float)event.wheelDelta ); // on Windows this works right if it's (0, event.wheelDelta)
                 continue;
             }
 

@@ -106,6 +106,9 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     unsigned goIndex = 0;
     unsigned meshIndex = 0;
 
+    bool currentLightIsPointLight = false;
+    bool currentLightIsSpotLight = false;
+
     while (fgets( line, sizeof( line ), file ))
     {
         //printf("read line: %s\n", line );
@@ -124,6 +127,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
 
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::PointLight );
             tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), 1.0f );
+            currentLightIsPointLight = true;
         }
         else if (strstr( line, "color3f" ))
         {
@@ -135,8 +139,19 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             char skip3[ 255 ] = {};
             sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &color.x, &color.y, &color.z );
 
-            // FIXME: this should also handle spot light
-            tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, color, 1.0f );
+            if (currentLightIsPointLight)
+            {
+                tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, color, 1.0f );
+            }
+
+            if (currentLightIsSpotLight)
+            {
+                Vec3 pos = teTransformGetLocalPosition( sceneGos[ goIndex - 1 ].index );
+                float coneAngle = 25.0f * 3.14159 / 180.0f;
+                Vec3 direction;
+                float falloff = 3.0f;
+                teSpotLightSetParams( sceneGos[ goIndex - 1 ].index, pos, color, coneAngle, direction, falloff );
+            }
         }
         else if (strstr( line, "#usda 1.0" ))
         {
