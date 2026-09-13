@@ -164,14 +164,22 @@ void GetOpenPath( char* path, const char* extension )
 
 void GetSavePath( char* path, const char* extension )
 {
-    FILE* f = popen( "zenity --file-selection --save --title \"Save .tscene file\"", "r" );
+    FILE* f = popen( "zenity --file-selection --save --title \"Save file\"", "r" );
 
-    fgets( path, 1024, f );
+    if (!f)
+    {
+        printf( "Failed to open file with zenity!\n" );
+        return;
+    }
+
+    fgets( path, 260, f );
     
     if (strlen( path ) > 0)
     {
         path[ strlen( path ) - 1 ] = 0;
     }
+
+    pclose( f );
 }
 #endif
 

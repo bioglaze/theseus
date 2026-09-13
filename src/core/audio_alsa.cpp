@@ -79,7 +79,6 @@ void InitAudio()
 
     snd_pcm_uframes_t bufferSize;
     snd_pcm_hw_params_get_buffer_size( hwParams, &bufferSize );
-    tePrint( "bufferSize: %u\n", bufferSize );
 
     tePrint( "Significant bits for linear samples: %d\n", snd_pcm_hw_params_get_sbits( hwParams ) );
     snd_pcm_hw_params_free( hwParams );
@@ -109,9 +108,7 @@ void PlayAudioClip( unsigned clipIndex )
     {
         return;
     }
-    
-    gAudioDevice.playingClipIndex = clipIndex;
-    
+        
     int err = snd_pcm_set_params( gAudioDevice.device,
                                   SND_PCM_FORMAT_S16_LE,
                                   SND_PCM_ACCESS_RW_INTERLEAVED,
@@ -119,6 +116,14 @@ void PlayAudioClip( unsigned clipIndex )
                                   audioClipInternals[ clipIndex ].sampleRate,
                                   1,
                                   500000 );
+
+    if (err < 0)
+    {
+        tePrint( "PlayAudioClip failed: %s\n", snd_strerror( err ) );
+        return;
+    }
+
+    gAudioDevice.playingClipIndex = clipIndex;
 
     int frames = snd_pcm_writei( gAudioDevice.device, audioClipInternals[ clipIndex ].data, audioClipInternals[ clipIndex ].frameCount );
     if (frames < 0)
