@@ -635,7 +635,8 @@ void ReadMaterials()
                         unsigned nameCursor = 0;
                         size_t offset = strlen( "name " );
 
-                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                               line[ nameCursor + offset ] != 0)
                         {
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
@@ -655,7 +656,8 @@ void ReadMaterials()
                         unsigned nameCursor = 0;
                         size_t offset = strlen( "albedo " );
 
-                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' && 
+                               line[ nameCursor + offset ] != 0)
                         {
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
@@ -678,7 +680,8 @@ void ReadMaterials()
                         unsigned nameCursor = 0;
                         size_t offset = strlen( "normal " );
 
-                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                               line[ nameCursor + offset ] != 0)
                         {
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
