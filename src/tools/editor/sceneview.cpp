@@ -462,6 +462,8 @@ void SceneViewDuplicate()
         const unsigned components = teGameObjectGetComponents( selectedGoIndex );        
         teGameObject go = teCreateGameObject( "gameobject", components );
         teTransformSetLocalPosition( go.index, teTransformGetLocalPosition( selectedGoIndex ) );
+        teTransformSetLocalScale( go.index, *teTransformAccessLocalScale( selectedGoIndex ) );
+        teTransformSetLocalRotation( go.index, teTransformGetLocalRotation( selectedGoIndex ) );
 
         if (components & teComponent::MeshRenderer)
         {
@@ -476,9 +478,20 @@ void SceneViewDuplicate()
         
         if (components & teComponent::PointLight)
         {
-            float* color = tePointLightAccessColor( selectedGoIndex );
-            float* radius = tePointLightAccessRadius( selectedGoIndex );
-            tePointLightSetParams( go.index, *radius, Vec3( color[ 0 ], color[ 1 ], color[ 2 ] ), 1.0f );
+            Vec3 color, position;
+            float radius, intensity;
+            tePointLightGetParams( selectedGoIndex, position, radius, color, intensity );
+            tePointLightSetParams( go.index, radius, color, intensity );
+        }
+
+        if (components & teComponent::SpotLight)
+        {
+            float* coneAngle = teSpotLightAccessConeAngle( selectedGoIndex );
+            *teSpotLightAccessConeAngle( go.index ) = *coneAngle;
+            float* radius = teSpotLightAccessRadius( selectedGoIndex );
+            *teSpotLightAccessRadius( go.index ) = *radius;
+            float* color = teSpotLightAccessColor( selectedGoIndex );
+            *teSpotLightAccessColor( go.index ) = *color;
         }
 
         teSceneAdd( sceneView.scene, go.index );

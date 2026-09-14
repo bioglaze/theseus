@@ -153,6 +153,24 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
                 teSpotLightSetParams( sceneGos[ goIndex - 1 ].index, pos, color, coneAngle, direction, falloff );
             }
         }
+        else if (strstr( line, "float inputs:intensity =" ))
+        {
+            assert( goIndex != 0 );
+
+            float intensity = 1;
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%254s %254s %254s %f)", skip1, skip2, skip3, &intensity );
+
+            if (currentLightIsPointLight)
+            {
+                Vec3 color = Vec3( tePointLightAccessColor( sceneGos[ goIndex - 1 ].index )[ 0 ], tePointLightAccessColor( sceneGos[ goIndex - 1 ].index )[ 1 ], tePointLightAccessColor( sceneGos[ goIndex - 1 ].index )[ 2 ] );
+                tePointLightSetParams( sceneGos[ goIndex - 1 ].index, *tePointLightAccessRadius( sceneGos[ goIndex - 1 ].index ), color, intensity );
+            }
+
+            // TODO spotlight
+        }
         else if (strstr( line, "#usda 1.0" ))
         {
         }
