@@ -82,7 +82,7 @@ double GetMilliseconds()
 {
     timespec spec;
     clock_gettime( CLOCK_MONOTONIC, &spec );
-    return spec.tv_nsec / 1000000;
+    return spec.tv_sec * 1000.0 + spec.tv_nsec / 1000000.0;
 }
 
 bool IncEventIndex()
@@ -217,11 +217,11 @@ void tePushWindowEvents()
             win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
             win.events[ win.eventIndex ].keyModifiers = 0;
 
-            if (kp->state == 1)
+            if (kp->state & XCB_MOD_MASK_SHIFT)
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
             }
-            if (kp->state == 4)
+            if (kp->state & XCB_MOD_MASK_CONTROL)
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
             }
@@ -401,7 +401,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     const unsigned mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     const unsigned eventMask = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
-                               XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION;
+                               XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_FOCUS_CHANGE;
     const unsigned values[ 2 ] { s->white_pixel, eventMask };
     
     xcb_create_window( connection, s->root_depth, window, s->root,

@@ -440,6 +440,10 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         {
             inputParams.moveDir.y = 0;
         }
+        else if (event.type == teWindowEvent::Type::FocusLoss)
+        {
+            inputParams.moveDir = Vec3( 0, 0, 0 );
+        }
         else if (event.type == teWindowEvent::Type::GamePadButtonA)
         {
             printf("gamepad button a\n");
