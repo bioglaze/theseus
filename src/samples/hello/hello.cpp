@@ -282,7 +282,7 @@ int main()
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
     teFile fullscreenAdditivePsFile = teLoadFile( "shaders/fullscreen_additive_ps.spv" );
     teShader fullscreenShader = teCreateShader( fullscreenVsFile, fullscreenPsFile, "fullscreenVS", "fullscreenPS" );
-    //teShader fullscreenAdditiveShader = teCreateShader( fullscreenVsFile, fullscreenAdditivePsFile, "fullscreenVS", "fullscreenAdditivePS" );
+    teShader fullscreenAdditiveShader = teCreateShader( fullscreenVsFile, fullscreenAdditivePsFile, "fullscreenVS", "fullscreenAdditivePS" );
 
     teFile skyboxVsFile = teLoadFile( "shaders/skybox_vs.spv" );
     teFile skyboxPsFile = teLoadFile( "shaders/skybox_ps.spv" );
@@ -916,7 +916,7 @@ int main()
 
         shaderParams.tilesXY[ 0 ] = 4.0f;
         shaderParams.tilesXY[ 1 ] = 4.0f;
-        //teDrawQuad( fullscreenAdditiveShader, /*bilinearTestTarget*/bloomComposeTarget, shaderParams, teBlendMode::Additive);
+        teDrawQuad( fullscreenAdditiveShader, /*bilinearTestTarget*/bloomComposeTarget, shaderParams, teBlendMode::Additive);
 
         ImGui::Begin( "Info" );
         ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );

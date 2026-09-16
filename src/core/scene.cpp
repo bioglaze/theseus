@@ -39,8 +39,9 @@ unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetUVOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetTangentOffset( const teMesh& mesh, unsigned subMeshIndex );
-void teAddPointLight( unsigned index );
-void teAddSpotLight( unsigned index );
+void AddPointLight( unsigned index );
+void RemovePointLight( unsigned index );
+void AddSpotLight( unsigned index );
 void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels, unsigned depthNormalsTextureIndex );
 void RendererGetSize( unsigned& outWidth, unsigned& outHeight );
 void SetPointLightPosition( unsigned goIndex, const Vec3& positionWS );
@@ -144,6 +145,11 @@ void teSceneRemove( const teScene& scene, unsigned gameObjectIndex )
     {
         if (scenes[ scene.index ].gameObjects[ i ] == gameObjectIndex)
         {
+            if (teGameObjectGetComponents( scenes[ scene.index ].gameObjects[ gameObjectIndex ] ) & teComponent::PointLight)
+            {
+                RemovePointLight( gameObjectIndex );
+            }
+
             scenes[ scene.index ].gameObjects[ i ] = 0;
         }
     }
@@ -901,11 +907,11 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 tePrint( "light type: %s\n", lightType );
                 if (teStrstr( lightType, "point" ) )
                 {
-                    teAddPointLight( gos[ goCount - 1 ].index );
+                    AddPointLight( gos[ goCount - 1 ].index );
                 }
                 if (teStrstr( lightType, "spot" ))
                 {
-                    teAddSpotLight( gos[ goCount - 1 ].index );
+                    AddSpotLight( gos[ goCount - 1 ].index );
                 }
             }
             

@@ -1,8 +1,8 @@
 #include "gameobject.h"
 #include "te_stdlib.h"
 
-void teAddPointLight( unsigned index );
-void teAddSpotLight( unsigned index );
+void AddPointLight( unsigned index );
+void AddSpotLight( unsigned index );
 
 constexpr unsigned MaxNameLength = 100;
 
@@ -30,12 +30,12 @@ teGameObject teCreateGameObject( const char* name, unsigned components )
     
     if (components & teComponent::PointLight)
     {
-        teAddPointLight( outGo.index );
+        AddPointLight( outGo.index );
     }
 
     if (components & teComponent::SpotLight)
     {
-        teAddSpotLight( outGo.index );
+        AddSpotLight( outGo.index );
     }
 
     return outGo;
@@ -69,11 +69,11 @@ void teGameObjectAddComponent( unsigned index, teComponent component )
 
     if (gameObjects[ index ].components & teComponent::PointLight)
     {
-        teAddPointLight( index );
+        AddPointLight( index );
     }
 
     if (gameObjects[ index ].components & teComponent::SpotLight)
     {
-        teAddSpotLight( index );
+        AddSpotLight( index );
     }
 }

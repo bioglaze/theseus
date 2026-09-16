@@ -19,6 +19,8 @@ Bugs:
       -> doesn't seem to repro on macOS.
   * standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
+  * Vulkan: point light minmax-z culling is broken so it's disabled.
+  * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   
 TODO:
 * Editor

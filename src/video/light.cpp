@@ -14,8 +14,8 @@ struct LightImpl
     Vec3 direction;
 };
 
-LightImpl pointLights[ 10000 ];
-LightImpl spotLights[ 10000 ];
+LightImpl pointLights[ 10000 ]; // 10000 is MaxGameObjects
+LightImpl spotLights[ 10000 ]; // 10000 is MaxGameObjects
 
 unsigned gCurrentPointTilerIndex = 0;
 unsigned gCurrentSpotTilerIndex = 0;
@@ -76,12 +76,30 @@ teBuffer GetLightIndexBuffer()
     return gLightTiler.lightIndexBuffer;
 }
 
-void teAddPointLight( unsigned index )
+void AddPointLight( unsigned index )
 {
     pointLights[ index ].tilerIndex = gCurrentPointTilerIndex++;
 }
 
-void teAddSpotLight( unsigned index )
+void RemovePointLight( unsigned index )
+{
+    --gCurrentPointTilerIndex;
+
+    gLightTiler.pointLightCenterAndRadius[ pointLights[ index ].tilerIndex ] = gLightTiler.pointLightCenterAndRadius[ gCurrentPointTilerIndex ];
+    gLightTiler.pointLightColors[ pointLights[ index ].tilerIndex ] = gLightTiler.pointLightColors[ gCurrentPointTilerIndex ];
+
+    for (int i = 10000; i >= 0; --i)
+    {
+        if (pointLights[ i ].tilerIndex != LightTiler::MaxLights)
+        {
+            pointLights[ i ].tilerIndex = LightTiler::MaxLights;
+            pointLights[ pointLights[ index ].tilerIndex ].intensity = pointLights[ i ].intensity;
+            return;
+        }
+    }
+}
+
+void AddSpotLight( unsigned index )
 {
     spotLights[ index ].tilerIndex = gCurrentSpotTilerIndex++;
 }
@@ -119,7 +137,6 @@ void teSpotLightSetParams( unsigned goIndex, Vec3& position, const Vec3& color, 
     {
         return;
     }
-
 
     gLightTiler.spotLightCenterAndRadius[ tilerIndex ] = Vec4( position.x, position.y, position.z, falloffRadius );
     gLightTiler.spotLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );
