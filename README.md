@@ -14,7 +14,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Fast compile times
   - Bloom
   - Loads .tga and .dds textures
-  - Scene Editor implemented using Dear ImGui
+  - Scene Editor implemented using Dear ImGui. Loads/saves custom .usda (not a general .usda parser)
   - Audio support (WASAPI, CoreAudio, ALSA)
   - OBJ mesh converter
   - Shader hot-reloading
@@ -24,7 +24,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
   - Windows, only AMD64 tested, but ARM64 might also work.
   - macOS
   - Linux support (defaults to Wayland but XCB also available by modifying the Makefile)
-  - FreeBSD
+  - FreeBSD (on/off, not tested often)
 
 # Building
 
@@ -51,6 +51,7 @@ This will become the successor to [Aether3D engine](https://github.com/bioglaze/
     - OBJ mesh converter and Editor can be built by running `make toolz` in src.
 
   - FreeBSD
+    - Build ImGui: make imgui
     - Run src/compile_freebsd.sh
 
 # Included third-party libraries

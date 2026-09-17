@@ -294,6 +294,12 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.width = width == 0 ? GetSystemMetrics( SM_CXSCREEN ) : width;
     win.height = height == 0 ? GetSystemMetrics( SM_CYSCREEN ) : height;
 
+    // Makes sure that the rendering area is exactly what the user requested by making the window a bit larger.
+    RECT wr = { 0, 0, win.width, win.height };
+    AdjustWindowRect( &wr, WS_OVERLAPPEDWINDOW, FALSE );
+    int adjWidth = wr.right - wr.left;
+    int adjHeight = wr.bottom - wr.top;
+
     const HINSTANCE hInstance = GetModuleHandle(nullptr);
     const bool fullscreen = (width == 0 && height == 0);
 
@@ -303,7 +309,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.hCursor = LoadCursor( nullptr, IDC_ARROW );
-    wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszClassName = "WindowClass1";
     wc.hIcon = static_cast< HICON >(LoadImage( nullptr, "assets/textures/theseus.ico", IMAGE_ICON, 128, 128, LR_LOADFROMFILE) );
 
@@ -316,7 +322,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
         "WindowClass1", title,
         fullscreen ? WS_POPUP : (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU),
         xPos, yPos,
-        win.width, win.height,
+        adjWidth, adjHeight,
         nullptr, nullptr, hInstance, nullptr );
 
     ShowWindow( hwnd, SW_SHOW );
