@@ -21,7 +21,8 @@ Bugs:
   * macOS: audio clip indexing is broken
   * Vulkan: point light minmax-z culling is broken so it's disabled.
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
-  
+  * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
+
 TODO:
 * Editor
   * draw sprites
@@ -35,6 +36,7 @@ TODO:
 * wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
+* Distribute Editor .ini file, otherwise FTUE is bad.
 
 Code Quality issues:
 * obj converter hardcodes array sizes.

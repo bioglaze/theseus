@@ -16,7 +16,7 @@ CC := clang++
 CS := clang
 DEFINES2 := -DAPI_METAL=0 -DAPI_VULKAN=1 -DVK_USE_PLATFORM_WAYLAND_KHR -D_DEBUG $(SIMD) -DSURFACE_EXTENSION_NAME=VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
 LINKER2 := -ldl -lasound -lvulkan -lwayland-client -lwayland-cursor -ldecor-0
-LINKER := -ldl -lasound -lxcb -lxcb-ewmh -lxcb-keysyms -lxcb-icccm -lX11-xcb -lopenal -lvulkan
+LINKER := -ldl -lasound -lxcb -lxcb-ewmh -lxcb-keysyms -lxcb-icccm -lX11-xcb -lvulkan
 DEFINES := -DAPI_METAL=0 -DAPI_VULKAN=1 -DVK_USE_PLATFORM_XCB_KHR -D_DEBUG $(SIMD) -DSURFACE_EXTENSION_NAME=VK_KHR_XCB_SURFACE_EXTENSION_NAME
 FLAGS := -I/usr/include/libdecor-0/ -std=c++17 -g -Wall -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter -Wshadow -Wunreachable-code -Iinclude -Ithirdparty -Ivideo -Icore -Ithirdparty/imgui
 else
