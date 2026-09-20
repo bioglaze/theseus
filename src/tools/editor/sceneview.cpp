@@ -494,6 +494,11 @@ void SceneViewDuplicate()
             *teSpotLightAccessColor( go.index ) = *color;
         }
 
+        sceneView.entityTypes[ go.index ] = sceneView.entityTypes[ selectedGoIndex ];
+        sceneView.entityNames[ go.index ] = sceneView.entityNames[ selectedGoIndex ];
+
+        teGameObjectSetName( go.index, teGameObjectGetName( selectedGoIndex ) );
+
         teSceneAdd( sceneView.scene, go.index );
     }
 }
@@ -596,6 +601,8 @@ void DeleteSelectedObject()
     if (selectedGoIndex != EditorCameraGoIndex)
     {
         teSceneRemove( sceneView.scene, selectedGoIndex );
+        sceneView.entityTypes[ selectedGoIndex ] = 0;
+        sceneView.entityNames[ selectedGoIndex ] = 0;
     }
     
     selectedGoIndex = EditorCameraGoIndex;
@@ -709,6 +716,7 @@ void ReadMaterials()
                             sceneView.textures[ sceneView.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
                             teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.textures[ sceneView.textureCount ], 1 );
                             ++sceneView.textureCount;
+                            free( texFile.data );
                         }
                     }
                     else if (strstr( line, "specular" ) == line)
@@ -723,6 +731,9 @@ void ReadMaterials()
 
                 ++cursor;
             }
+
+            free( matFile.data );
+            
             ++sceneView.materialCount;
         }
     }
@@ -877,6 +888,9 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     if (unlitPsFile.data) free( unlitPsFile.data );
     if (standardVsFile.data) free( standardVsFile.data );
     if (standardPsFile.data) free( standardPsFile.data );
+    if (depthNormalsVsFile.data) free( depthNormalsVsFile.data );
+    if (depthNormalsPsFile.data) free( depthNormalsPsFile.data );
+    if (lightCullFile.data) free( lightCullFile.data );
 }
 
 unsigned SceneViewGetCameraIndex()
