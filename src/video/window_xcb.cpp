@@ -235,11 +235,11 @@ void tePushWindowEvents()
             win.events[ win.eventIndex ].keyCode = GetKeycode( keysym );
             win.events[ win.eventIndex ].keyModifiers = 0;
 
-            if (kp->state == 1)
+            if (kp->state & XCB_MOD_MASK_SHIFT)
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
             }
-            if (kp->state == 4)
+            if (kp->state & XCB_MOD_MASK_CONTROL)
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
             }
@@ -423,10 +423,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen( title ), title );
     xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS, XCB_ATOM_STRING, 8, sizeof("Theseus""\0""Theseus"), "theseus\0Theseus" );
 
-    xcb_ewmh_connection_t EWMH;
-    xcb_intern_atom_cookie_t* EWMHCookie = xcb_ewmh_init_atoms( connection, &EWMH );
+    win.EWMHCookie = xcb_ewmh_init_atoms( connection, &win.EWMH );
 
-    if (!xcb_ewmh_init_atoms_replies( &EWMH, EWMHCookie, nullptr ))
+    if (!xcb_ewmh_init_atoms_replies( &win.EWMH, win.EWMHCookie, nullptr ))
     {
         return nullptr;
     }
@@ -435,7 +434,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     if (width == 0 && height == 0)
     {
-        xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, EWMH._NET_WM_STATE, XCB_ATOM_ATOM, 32, 1, &(EWMH._NET_WM_STATE_FULLSCREEN) );
+        xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, win.EWMH._NET_WM_STATE, XCB_ATOM_ATOM, 32, 1, &(win.EWMH._NET_WM_STATE_FULLSCREEN) );
         
         xcb_generic_error_t* error;
         xcb_get_window_attributes_reply_t* reply = xcb_get_window_attributes_reply( connection,
