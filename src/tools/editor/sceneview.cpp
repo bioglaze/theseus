@@ -172,6 +172,7 @@ void ExportGameScene( const char* path )
         {
             fprintf( outFile, "gameobject %s\n", teGameObjectGetName( goIndex ) );
             fprintf( outFile, "position %f %f %f\n", teTransformGetLocalPosition( goIndex ).x, teTransformGetLocalPosition( goIndex ).y, teTransformGetLocalPosition( goIndex ).z );
+            fprintf( outFile, "scale %f\n", *teTransformAccessLocalScale( goIndex ) );
             
             if ((teGameObjectGetComponents( goIndex ) & teComponent::MeshRenderer) && teMeshRendererGetMesh( goIndex ))
             {
@@ -212,7 +213,7 @@ teMaterial& GetMaterial( const char* name )
 {
     for (unsigned i = 0; i < sceneView.materialCount; ++i)
     {
-        if (strstr( sceneView.materials[ i ].name, name ))
+        if (strcmp( sceneView.materials[ i ].name, name ) == 0)
         {
             return sceneView.materials[ i ];
         }
@@ -809,6 +810,11 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     
     sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
+
+    sceneView.materials[ 0 ] = teCreateMaterial( sceneView.standardShader );
+    teMaterialSetTexture2D( sceneView.materials[ 0 ], sceneView.gliderTex, 0 );
+    strncpy( sceneView.materials[ 0 ].name, "default", strlen( "default" ) );
+    ++sceneView.materialCount;
 
     ReadMaterials();
 

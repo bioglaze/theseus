@@ -211,6 +211,14 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 
                 teTransformSetLocalPosition( gos[ goCount - 1 ].index, Vec3( x, y, z ) );
             }
+            else if (strstr( line, "scale" ) == line)
+            {
+                float scale;
+                int offset = (unsigned)strlen( "scale " );
+                offset += ParseFloat( line + offset, scale ) + 1;
+
+                teTransformSetLocalScale( gos[ goCount - 1 ].index, scale );
+            }
             else if (strstr( line, "pointlight" ) == line)
             {
                 float r, g, b, radius;
@@ -266,6 +274,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     }
                     teFile meshFile = teLoadFile( name );
                     gResources.sceneMeshes[ freeIndex ] = teLoadMesh( meshFile );
+                    meshIndex = freeIndex;
                 }
 
                 teMeshRendererSetMesh( gos[ goCount - 1 ].index, &gResources.sceneMeshes[ meshIndex ] );
@@ -346,7 +355,7 @@ void LoadResources( unsigned width, unsigned height )
 
     teSceneAdd( gResources.scene, gResources.camera3d.index );
 
-    teFile sceneFile = teLoadFile( "game_proto.tscene" );
+    teFile sceneFile = teLoadFile( "game_proto3.tscene" );
     unsigned goCount = 0;
     GameSceneReadArraySizes( sceneFile, goCount );
     teGameObject* sceneGos = (teGameObject*)malloc( goCount * sizeof( teGameObject ) );
@@ -368,7 +377,7 @@ void LoadResources( unsigned width, unsigned height )
     gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
     //tePlayAudioClip( gResources.audioClip1 );
-    tePlayAudioClip( gResources.audioClip2 );
+    //tePlayAudioClip( gResources.audioClip2 );
 }
 
 void Init( unsigned width, unsigned height )

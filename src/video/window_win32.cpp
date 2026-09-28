@@ -295,7 +295,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.height = height == 0 ? GetSystemMetrics( SM_CYSCREEN ) : height;
 
     // Makes sure that the rendering area is exactly what the user requested by making the window a bit larger.
-    RECT wr = { 0, 0, win.width, win.height };
+    RECT wr = { 0, 0, (LONG)win.width, (LONG)win.height };
     AdjustWindowRect( &wr, WS_OVERLAPPEDWINDOW, FALSE );
     int adjWidth = wr.right - wr.left;
     int adjHeight = wr.bottom - wr.top;

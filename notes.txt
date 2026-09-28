@@ -9,6 +9,7 @@ Bugs:
     * scene middle mouse drag works on ImGUI
     * .usda does not get rotation
     * .tscene does not get rotation
+    * .tscene does not generate materials
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: Spot Light renders nothing (missing from standard shader)
@@ -17,12 +18,20 @@ Bugs:
   * Vulkan: point light intensity changes with distance from origin
     * repro: line up some cubes, drag a point light in front of them.
       -> doesn't seem to repro on macOS.
+  * Vulkan: point light intensity changes when moving the camera (eg. panning), sometimes fading completely.
+  * Vulkan: point light minmax-z culling is broken so it's disabled.
   * standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
-  * Vulkan: point light minmax-z culling is broken so it's disabled.
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
 
+* 0.1 hitlist
+  * imgui.ini for Editor
+  * XCB gamepad
+  * spot light lighting
+  * ALSA stereo (already implemented?)
+  * mention that save scene and export scene should save to build/
+  
 TODO:
 * Editor
   * draw sprites
