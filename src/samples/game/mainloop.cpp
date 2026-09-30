@@ -44,6 +44,7 @@ struct Resources
     teMesh sceneMeshes[ MaxSceneMeshes ];
     teAudioClip audioClip1;
     teAudioClip audioClip2;
+    unsigned entities[ 10000 ];
 } gResources;
 
 struct InputState
@@ -62,6 +63,8 @@ struct GameState
 {
     double theTime;
     double dt;
+    unsigned width;
+    unsigned height;
 } gGameState;
 
 void ZeroMem( char* dst, size_t size )
@@ -170,6 +173,14 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 if (strcmp( name, "start" ) == 0)
                 {
                     teTransformSetLocalPosition( gResources.camera3d.index, teTransformGetLocalPosition( gos[ goCount - 1 ].index ) );
+                }
+                else if (strcmp( name, "door" ) == 0)
+                {
+                    gResources.entities[ gos[ goCount - 1 ].index ] = EntityDoor;
+                }
+                else if (strcmp( name, "button" ) == 0)
+                {
+                    gResources.entities[ gos[ goCount - 1 ].index ] = EntityButton;
                 }
             }
             else if (strstr( line, "position" ) == line)
@@ -380,6 +391,52 @@ void LoadResources( unsigned width, unsigned height )
     //tePlayAudioClip( gResources.audioClip2 );
 }
 
+void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned height, teScene scene, unsigned cameraIndex, int& outClosestSceneGo, unsigned& outClosestSubMesh )
+{
+    Vec3 rayOrigin, rayTarget;
+    ScreenPointToRay( screenX, screenY, (float)width, (float)height, cameraIndex, rayOrigin, rayTarget );
+
+    outClosestSceneGo = -1;
+    float closestDistance = 99999.0f;
+    outClosestSubMesh = 666;
+
+    for (unsigned go = 0; go < MaxSceneGameObjects; ++go)
+    {
+        unsigned sceneGo = teSceneGetGameObjectIndex( scene, go );
+
+        if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) == 0)
+        {
+            continue;
+        }
+
+        for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( sceneGo ) ); ++subMesh)
+        {
+            Vec3 mMinLocal, mMaxLocal;
+            Vec3 mMinWorld, mMaxWorld;
+            Vec3 mAABB[ 8 ];
+
+            teMeshGetSubMeshLocalAABB( *teMeshRendererGetMesh( sceneGo ), subMesh, mMinLocal, mMaxLocal );
+            teGetCorners( mMinLocal, mMaxLocal, mAABB );
+
+            for (int v = 0; v < 8; ++v)
+            {
+                Matrix::TransformPoint( mAABB[ v ], teTransformGetMatrix( sceneGo ), mAABB[ v ] );
+            }
+
+            GetMinMax( mAABB, 8, mMinWorld, mMaxWorld );
+
+            const float meshDistance = IntersectRayAABB( rayOrigin, rayTarget, mMinWorld, mMaxWorld );
+
+            if (meshDistance > 0 && meshDistance < closestDistance)
+            {
+                closestDistance = meshDistance;
+                outClosestSceneGo = sceneGo;
+                outClosestSubMesh = subMesh;
+            }
+        }
+    }
+}
+
 void Init( unsigned width, unsigned height )
 {
 #if !API_METAL
@@ -396,6 +453,8 @@ void Init( unsigned width, unsigned height )
     LoadResources( width, height );
 
     gGameState.theTime = GetMilliseconds();
+    gGameState.width = width;
+    gGameState.height = height;
 }
 
 void Tick()
@@ -520,7 +579,18 @@ void HandleEvent( const teWindowEvent& event )
     {
         gInput.moveDir.y = 0;
     }
-    if (event.type == teWindowEvent::Type::Mouse2Down)
+    else if (event.type == teWindowEvent::Type::Mouse1Down)
+    {
+        int closestSceneGo = 0;
+        unsigned closestSubMesh = 0;
+        GetColliders( event.x, event.y, gGameState.width, gGameState.height, gResources.scene, gResources.camera3d.index, closestSceneGo, closestSubMesh );
+        
+        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
+        {
+            printf( "Clicked door button.\n" );
+        }
+    }
+    else if (event.type == teWindowEvent::Type::Mouse2Down)
     {
         gInput.x = event.x;
         gInput.y = event.y;
