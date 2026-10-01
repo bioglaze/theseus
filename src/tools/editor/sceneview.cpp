@@ -27,8 +27,8 @@
 
 void GetOpenPath( char* path, const char* extension );
 void GetSavePath( char* path, const char* extension );
-void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[] );
-void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[] );
+void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[], char* entityTargets[] );
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[], char* entityTargets[] );
 
 constexpr unsigned MaxSelectedObjects = 10;
 constexpr unsigned MaxMaterials = 20;
@@ -100,7 +100,7 @@ struct SceneView
 
     char* entityNames[ MaxSceneGameObjects ] = {};
     char* doorInputs[ MaxSceneGameObjects ][ MaxDoorInputs ] = {};
-    char* buttonOutputs[ MaxSceneGameObjects ] = {};
+    char* entityTargets[ MaxSceneGameObjects ] = {};
     int entityTypes[ MaxSceneGameObjects ] = {};
 };
 
@@ -882,7 +882,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
-        sceneView.buttonOutputs[ i ] = (char*)calloc( 100, sizeof( char ) );
+        sceneView.entityTargets[ i ] = (char*)calloc( 100, sizeof( char ) );
 
         for (unsigned j = 0; j < MaxDoorInputs; ++j)
         {
@@ -984,7 +984,7 @@ void RenderSceneView( float gridStep )
                 GetOpenPath( sceneView.openFilePath, "usda" );
                 if (sceneView.openFilePath[ 0 ] != 0)
                 {
-                    LoadUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
+                    LoadUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames, sceneView.entityTargets );
                     teFinalizeMeshBuffers();
                 }
             }
@@ -995,7 +995,7 @@ void RenderSceneView( float gridStep )
                 GetSavePath( sceneView.openFilePath, "usda" );
                 if (sceneView.openFilePath[ 0 ] != 0)
                 {
-                    SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames );
+                    SaveUsdScene( sceneView.scene, sceneView.openFilePath, sceneView.entityTypes, sceneView.entityNames, sceneView.entityTargets );
                 }
             }
 
@@ -1262,7 +1262,7 @@ void RenderSceneView( float gridStep )
                 }
                 else if (type == EntityButton)
                 {
-                    ImGui::InputText( "target", sceneView.buttonOutputs[ selectedGoIndex ], 100 );
+                    ImGui::InputText( "target", sceneView.entityTargets[ selectedGoIndex ], 100 );
                 }
             }
         }

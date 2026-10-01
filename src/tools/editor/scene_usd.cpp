@@ -79,7 +79,7 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     }
 }
 
-void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[] )
+void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[], char* outEntityTargets[] )
 {
     FILE* file = fopen( path, "rb" );
     if (!file)
@@ -201,9 +201,28 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
                 len = 1;
             }
 
-            entityName[ len - 1 ] = 0;
             assert( len < 100 );
+            entityName[ len - 1 ] = 0;
             strcpy( outEntityNames[ sceneGos[ goIndex - 1 ].index ], entityName );
+        }
+        else if (strstr( line, "string entityTarget" ))
+        {
+            assert( goIndex != 0 );
+
+            char a[ 256 ] = {};
+            char b[ 256 ] = {};
+            char c[ 256 ] = {};
+            char entityTarget[ 256 ] = {};
+            sscanf( line, "%254s %254s %254s \"%254s", a, b, c, entityTarget );
+            size_t len = strlen( entityTarget );
+            if (len == 0)
+            {
+                len = 1;
+            }
+
+            assert( len < 100 );
+            entityTarget[ len - 1 ] = 0;
+            strcpy( outEntityTargets[ sceneGos[ goIndex - 1 ].index ], entityTarget );
         }
         else if (strstr( line, "string entityType" ))
         {
@@ -340,7 +359,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     }
 }
 
-void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[] )
+void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], char* entityNames[], char* entityTargets[] )
 {
     FILE* outFile = fopen( path, "wb" );
     if (!outFile)
@@ -375,6 +394,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         fprintf( outFile, "    string name = \"%s\"\n", teGameObjectGetName( sceneGo ) );
         fprintf( outFile, "    string entityName = \"%s\"\n", entityNames[ sceneGo ] );
         fprintf( outFile, "    string entityType = \"%s\"\n", EntityTypeToString( entityTypes[ sceneGo ] ) );
+        fprintf( outFile, "    string entityTarget = \"%s\"\n", entityTargets[ sceneGo ] );
 
         if ((teGameObjectGetComponents( sceneGo ) & teComponent::MeshRenderer) != 0 && teMeshRendererGetMesh( sceneGo ))
         {
