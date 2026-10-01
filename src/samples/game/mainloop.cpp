@@ -58,6 +58,7 @@ struct InputState
     int lastMouseX = 0;
     int lastMouseY = 0;
     Vec3 moveDir;
+    bool isLeftMouseDown = false;
     bool isRightMouseDown = false;
 } gInput;
 
@@ -505,6 +506,9 @@ void Tick()
     gGameState.theTime = GetMilliseconds();
     gGameState.dt = gGameState.theTime - lastTime;
 
+    // macOS slowdown
+    gGameState.dt /= 10.0f;
+
     if (gGameState.dt < 0)
     {
         gGameState.dt = 0;
@@ -599,6 +603,19 @@ void HandleEvent( const teWindowEvent& event )
             printf( "Clicked door button.\n" );
             tePlayAudioClip( gResources.audioClipClick );
         }
+
+        gInput.x = event.x;
+        gInput.y = event.y;
+        gInput.lastMouseX = gInput.x;
+        gInput.lastMouseY = gInput.y;
+        gInput.deltaX = 0;
+        gInput.deltaY = 0;
+
+        gInput.isLeftMouseDown = true;
+    }
+    else if (event.type == teWindowEvent::Type::Mouse1Up)
+    {
+        gInput.isLeftMouseDown = false;
     }
     else if (event.type == teWindowEvent::Type::Mouse2Down)
     {
@@ -629,7 +646,7 @@ void HandleEvent( const teWindowEvent& event )
         gInput.lastMouseX = gInput.x;
         gInput.lastMouseY = gInput.y;
 
-        if (gInput.isRightMouseDown)
+        if (gInput.isRightMouseDown || gInput.isLeftMouseDown)
         {
             teTransformOffsetRotate( gResources.camera3d.index, Vec3( 0, 1, 0 ), -gInput.deltaX / 100.0f * (float)gGameState.dt );
             teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY / 100.0f * (float)gGameState.dt );

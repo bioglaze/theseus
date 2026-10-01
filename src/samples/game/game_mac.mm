@@ -12,7 +12,7 @@ void Init( unsigned width, unsigned height );
 void Render();
 void Tick();
 
-unsigned width = 800, height = 450;
+unsigned width = 800*2, height = 450*2;
 
 @interface GameView : MTKView
 @end
@@ -149,8 +149,11 @@ unsigned width = 800, height = 450;
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    //teTransformOffsetRotate( m_camera3d.index, Vec3( 0, 1, 0 ), -theEvent.deltaX / 20.0f );
-    //teTransformOffsetRotate( m_camera3d.index, Vec3( 1, 0, 0 ), -theEvent.deltaY / 20.0f );
+    teWindowEvent event;
+    event.type = teWindowEvent::Type::MouseMove;
+    event.x = (int)theEvent.locationInWindow.x;
+    event.y = height - (int)theEvent.locationInWindow.y;
+    HandleEvent( event );
 }
 
 @end
@@ -188,7 +191,8 @@ int main()
         window.styleMask |= NSWindowStyleMaskClosable;
         window.title = [[NSProcessInfo processInfo] processName];
         [window makeKeyAndOrderFront:nil];
-        
+        [window setAcceptsMouseMovedEvents:YES];
+
         GameView* view = [[GameView alloc] initWithFrame:frame];
         window.contentView = view;
         
