@@ -38,11 +38,13 @@ struct Resources
     teTextureCube skyTex;
     teTexture2D defaultTexture2D;
     teTexture2D defaultNormalMap;
+    teTexture2D whiteTex;
     teMesh cubeMesh;
     teGameObject camera3d;
     teMaterial defaultMaterial;
+    teMaterial hilightMaterial;
     teMesh sceneMeshes[ MaxSceneMeshes ];
-    teAudioClip audioClip1;
+    teAudioClip audioClipClick;
     teAudioClip audioClip2;
     unsigned entities[ 10000 ];
 } gResources;
@@ -152,7 +154,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                printf( "gameobject name: %s\n", name );
+
                 gos[ goCount ] = teCreateGameObject( "gameobject", teComponent::Transform );
                 teGameObjectSetName( gos[ goCount ].index, name );
                 ++goCount;
@@ -342,6 +344,9 @@ void LoadResources( unsigned width, unsigned height )
     //teFile brickFile = teLoadFile( "assets/textures/test/manhole_diamond_bc4_with_mips.dds" );
     gResources.defaultTexture2D = teLoadTexture( brickFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
 
+    teFile whiteFile = teLoadFile( "assets/textures/white.tga" );    
+    gResources.whiteTex = teLoadTexture( whiteFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teFile brickNormalFile = teLoadFile( "assets/textures/brickwall_n.tga" );
     gResources.defaultNormalMap = teLoadTexture( brickNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
@@ -352,6 +357,10 @@ void LoadResources( unsigned width, unsigned height )
     gResources.defaultMaterial = teCreateMaterial( gResources.standardShader );
     teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultTexture2D, 0 );
     teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultNormalMap, 1 );
+
+    gResources.hilightMaterial = teCreateMaterial( gResources.standardShader );
+    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.whiteTex, 0 );
+    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.defaultNormalMap, 1 );
 
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
@@ -381,13 +390,13 @@ void LoadResources( unsigned width, unsigned height )
 
     teFinalizeMeshBuffers();
 
-    teFile wavFile1 = teLoadFile( "assets/audio/sine340.wav" );
-    gResources.audioClip1 = teLoadAudioClip( wavFile1 );
+    teFile wavFile1 = teLoadFile( "assets/audio/click.wav" );
+    gResources.audioClipClick = teLoadAudioClip( wavFile1 );
 
     teFile wavFile2 = teLoadFile( "assets/audio/LRMonoPhase4.wav" );
     gResources.audioClip2 = teLoadAudioClip( wavFile2 );
 
-    //tePlayAudioClip( gResources.audioClip1 );
+    //tePlayAudioClip( gResources.audioClipClick );
     //tePlayAudioClip( gResources.audioClip2 );
 }
 
@@ -588,6 +597,7 @@ void HandleEvent( const teWindowEvent& event )
         if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
         {
             printf( "Clicked door button.\n" );
+            tePlayAudioClip( gResources.audioClipClick );
         }
     }
     else if (event.type == teWindowEvent::Type::Mouse2Down)
@@ -623,6 +633,25 @@ void HandleEvent( const teWindowEvent& event )
         {
             teTransformOffsetRotate( gResources.camera3d.index, Vec3( 0, 1, 0 ), -gInput.deltaX / 100.0f * (float)gGameState.dt );
             teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY / 100.0f * (float)gGameState.dt );
+        }
+
+        int closestSceneGo = 0;
+        unsigned closestSubMesh = 0;
+        GetColliders( event.x, event.y, gGameState.width, gGameState.height, gResources.scene, gResources.camera3d.index, closestSceneGo, closestSubMesh );
+        
+        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
+        {
+            teMeshRendererSetMaterial( closestSceneGo, gResources.hilightMaterial, 1 );
+        }
+        else
+        {
+            for (int i = 0; i < 10000; ++i)
+            {
+                if (gResources.entities[ i ] == EntityButton)
+                {
+                    teMeshRendererSetMaterial( i, gResources.defaultMaterial, 1 );
+                }
+            }
         }
     }
 }

@@ -29,7 +29,6 @@ Bugs:
   * imgui.ini for Editor
   * XCB gamepad
   * spot light lighting
-  * ALSA stereo (already implemented?)
   * mention that save scene and export scene should save to build/
   
 TODO:
@@ -45,7 +44,6 @@ TODO:
 * wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
-* Distribute Editor .ini file, otherwise FTUE is bad.
 
 Code Quality issues:
 * obj converter hardcodes array sizes.
