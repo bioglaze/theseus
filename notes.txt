@@ -5,15 +5,15 @@ Bugs:
     * grid is visible through meshes.
     * scene properties cannot be changed after editing a material.
     * macOS: editing point light color moves the gizmo
-    * mac: no scrolling in ImGui. Repro: add lots of gameobjects.
+    * macOS: clicking light sprites doesn't select them.
+    * macOS: no scrolling in ImGui. Repro: add lots of gameobjects.
     * scene middle mouse drag works on ImGUI
     * .usda does not get rotation
     * .tscene does not get rotation
-    * .tscene does not generate materials
+    * if scale etc. is set in imgui it doesn't apply immediately.
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: bloom looks weirdly pixelated.
   * Metal: Spot Light renders nothing (missing from standard shader)
-  * scene loading could malloc 0 bytes if object count is 0.
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
   * Vulkan: point light intensity changes with distance from origin
     * repro: line up some cubes, drag a point light in front of them.
@@ -25,21 +25,19 @@ Bugs:
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
   * WASAPI: clicking the door button multiple times crashes inside audio code.
-  * mac_audio: door button sample loops.
   
 * 0.1 hitlist
   * imgui.ini for Editor
   * XCB gamepad
   * spot light lighting
   * mention that save scene and export scene should save to build/
-  
+  * light removal
+
 TODO:
 * Editor
-  * draw sprites
   * show scene name in title bar
   * component removing
   * ctrl-s and ctrl-o
-  * macOS: ImGui scrolling.
   * asset browser could read assets from build/assets
   * line colors
 * macOS: index renderer.frameResources[]

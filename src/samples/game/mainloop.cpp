@@ -41,7 +41,6 @@ struct Resources
     teTexture2D whiteTex;
     teMesh cubeMesh;
     teGameObject camera3d;
-    teMaterial defaultMaterial;
     teMaterial hilightMaterial;
     teMesh sceneMeshes[ MaxSceneMeshes ];
     teMaterial materials[ 100 ];
@@ -72,6 +71,9 @@ struct GameState
     double dt;
     unsigned width;
     unsigned height;
+    Vec3 doorOriginalPosition;
+    unsigned doorFrame = 0;
+    unsigned doorGo = 0;
 } gGameState;
 
 void ZeroMem( char* dst, size_t size )
@@ -322,11 +324,15 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 
                 if (strcmp( name, "start" ) == 0)
                 {
-                    teTransformSetLocalPosition( gResources.camera3d.index, teTransformGetLocalPosition( gos[ goCount - 1 ].index ) );
+                    Vec3 pos = teTransformGetLocalPosition( gos[ goCount - 1 ].index );
+                    pos.y += 1;
+                    teTransformSetLocalPosition( gResources.camera3d.index, pos );
                 }
                 else if (strcmp( name, "door" ) == 0)
                 {
                     gResources.entities[ gos[ goCount - 1 ].index ] = EntityDoor;
+                    gGameState.doorGo = gos[ goCount - 1 ].index;
+                    gGameState.doorOriginalPosition = teTransformGetLocalPosition( gGameState.doorGo );
                 }
                 else if (strcmp( name, "button" ) == 0)
                 {
@@ -442,7 +448,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
 
                 for (unsigned m = 0; m < teMeshGetSubMeshCount( &gResources.sceneMeshes[ meshIndex ] ); ++m)
                 {
-                    teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.defaultMaterial, m );
+                    teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.materials[ 0 ], m );
                 }
             }
             else if (strstr( line, "submesh_material" ) == line)
@@ -526,14 +532,6 @@ void LoadResources( unsigned width, unsigned height )
 
     gResources.scene = teCreateScene( 0 );
 
-    gResources.defaultMaterial = teCreateMaterial( gResources.standardShader );
-    teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultTexture2D, 0 );
-    teMaterialSetTexture2D( gResources.defaultMaterial, gResources.defaultNormalMap, 1 );
-
-    gResources.hilightMaterial = teCreateMaterial( gResources.standardShader );
-    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.whiteTex, 0 );
-    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.defaultNormalMap, 1 );
-
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
     Vec4 clearColor = { 1, 0, 0, 1 };
@@ -544,6 +542,15 @@ void LoadResources( unsigned width, unsigned height )
     teCameraGetColorTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "camera3d depth" );
     teCameraGetDepthNormalsTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
+
+    gResources.materials[ 0 ] = teCreateMaterial( gResources.standardShader );
+    teMaterialSetTexture2D( gResources.materials[ 0 ], gResources.defaultTexture2D, 0 );
+    teMaterialSetTexture2D( gResources.materials[ 0 ], gResources.defaultNormalMap, 1 );
+    ++gResources.materialCount;
+
+    gResources.hilightMaterial = teCreateMaterial( gResources.standardShader );
+    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.whiteTex, 0 );
+    teMaterialSetTexture2D( gResources.hilightMaterial, gResources.defaultNormalMap, 1 );
 
     ReadMaterials();
 
@@ -675,6 +682,17 @@ void Tick()
         }
     }
 
+    if (gGameState.doorFrame != 0)
+    {
+        teTransformSetLocalPosition( gGameState.doorGo, gGameState.doorOriginalPosition + Vec3( 0, 0, gGameState.doorFrame * 0.1f ) );
+        ++gGameState.doorFrame;
+    }
+    
+    if (gGameState.doorFrame > 40)
+    {
+        gGameState.doorFrame = 40;
+    }
+
     double lastTime = gGameState.theTime;
     gGameState.theTime = GetMilliseconds();
     gGameState.dt = gGameState.theTime - lastTime;
@@ -775,6 +793,7 @@ void HandleEvent( const teWindowEvent& event )
         {
             printf( "Clicked door button.\n" );
             tePlayAudioClip( gResources.audioClipClick );
+            gGameState.doorFrame = 1;
         }
 
         gInput.x = event.x;
@@ -839,7 +858,7 @@ void HandleEvent( const teWindowEvent& event )
             {
                 if (gResources.entities[ i ] == EntityButton)
                 {
-                    teMeshRendererSetMaterial( i, gResources.defaultMaterial, 1 );
+                    teMeshRendererSetMaterial( i, gResources.materials[ 0 ], 1 );
                 }
             }
         }

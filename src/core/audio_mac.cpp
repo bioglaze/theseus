@@ -76,6 +76,7 @@ OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const Aud
         if (gAudioDevice.wavPlaybackSample >= audioClipInternals[ gAudioDevice.playingClipIndex ].frameCount * channelCount)
         {
             gAudioDevice.wavPlaybackSample = 0;
+            AudioOutputUnitStop( gAudioDevice.outputInstance );
         }
     }
 

@@ -153,15 +153,6 @@ void ExportGameScene( const char* path )
         return;
     }
 
-    for (unsigned i = 0; i < sceneView.materialCount; ++i)
-    {
-        const char* texture0 = teTexture2DGetPath( teMaterialGetTexture2D( sceneView.materials[ i ], 0 ) );
-        if (texture0)
-        {
-            fprintf( outFile, "texture %s\n", texture0 );
-        }
-    }
-
     unsigned goCount = MaxSceneGameObjects;
 
     for (unsigned i = 0; i < goCount; ++i)
@@ -198,7 +189,6 @@ void ExportGameScene( const char* path )
 
             for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( goIndex ) ); ++subMesh)
             {
-                fprintf( outFile, "submesh_texture %u %u\n", subMesh, teMeshRendererGetMaterial( goIndex, subMesh ).index ); // FIXME: material index doesn't match the material loop above.
                 fprintf( outFile, "submesh_material %u %s\n", subMesh, teMeshRendererGetMaterial( goIndex, subMesh ).name );
             }
 
@@ -1256,10 +1246,10 @@ void RenderSceneView( float gridStep )
             {
                 if (type == EntityDoor)
                 {
-                    const char* l0 = sceneView.doorInputs[ selectedGoIndex ][ 0 ] ? sceneView.doorInputs[ selectedGoIndex ][ 0 ] : "<none>";
-                    const char* l1 = sceneView.doorInputs[ selectedGoIndex ][ 1 ] ? sceneView.doorInputs[ selectedGoIndex ][ 1 ] : "<none>";
-                    const char* l2 = sceneView.doorInputs[ selectedGoIndex ][ 2 ] ? sceneView.doorInputs[ selectedGoIndex ][ 2 ] : "<none>";
-                    ImGui::Text( "inputs: %s, %s, %s", l0, l1, l2 );
+                    //const char* l0 = sceneView.doorInputs[ selectedGoIndex ][ 0 ] ? sceneView.doorInputs[ selectedGoIndex ][ 0 ] : "<none>";
+                    //const char* l1 = sceneView.doorInputs[ selectedGoIndex ][ 1 ] ? sceneView.doorInputs[ selectedGoIndex ][ 1 ] : "<none>";
+                    //const char* l2 = sceneView.doorInputs[ selectedGoIndex ][ 2 ] ? sceneView.doorInputs[ selectedGoIndex ][ 2 ] : "<none>";
+                    //ImGui::Text( "inputs: %s, %s, %s", l0, l1, l2 );
                 }
                 else if (type == EntityButton)
                 {
