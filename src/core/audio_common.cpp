@@ -29,7 +29,11 @@ teAudioClip teLoadAudioClip( const struct teFile& wavFile )
 
     teAudioClip outClip;
     outClip.index = ++gAudioClipIndex;
-    LoadAudioWAV( wavFile, outClip.index );
+    
+    if (wavFile.data)
+    {
+        LoadAudioWAV( wavFile, outClip.index );
+    }
 
     return outClip;
 }

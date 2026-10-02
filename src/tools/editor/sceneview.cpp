@@ -118,32 +118,6 @@ struct ImGUIImplCustom
 
 ImGUIImplCustom imguiImpl;
 
-void RefreshEntities()
-{
-    // Fill selected gameobject's doorInputs from buttonOutputs.
-    if (sceneView.entityTypes[ selectedGoIndex ] == EntityDoor)
-    {
-        for (unsigned j = 0; j < MaxSceneGameObjects; ++j)
-        {
-
-        }
-    }
-
-    /*for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
-    {
-        if (sceneView.entityTypes[ i ] == EntityButton)
-        {
-            for (unsigned j = 0; j < MaxSceneGameObjects; ++j)
-            {
-                if (sceneView.entityTypes[ j ] == EntityDoor && strcmp( sceneView.buttonOutputs[ j ], sceneView.entityNames[ j ] ) )
-                {
-                    sceneView.doorInputs[ selectedGoIndex ][ doorInputIndex ] = "";
-                }
-            }
-        }
-    }*/
-}
-
 void ExportGameScene( const char* path )
 {
     FILE* outFile = fopen( path, "wb" );
@@ -425,7 +399,6 @@ void SelectObject( unsigned x, unsigned y )
     if (closestSceneGo != -1)
     {
         selectedGoIndex = closestSceneGo;
-        RefreshEntities();
         teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
     }
 
@@ -1029,7 +1002,6 @@ void RenderSceneView( float gridStep )
                 if (ImGui::Selectable( teGameObjectGetName( goIndex ), selectedGoIndex == goIndex ))
                 {
                     selectedGoIndex = goIndex;
-                    RefreshEntities();
                     teMeshRendererSetEnabled( sceneView.translateGizmoGo.index, true );
                     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
                 }
