@@ -24,7 +24,9 @@ Bugs:
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
-
+  * WASAPI: clicking the door button multiple times crashes inside audio code.
+  * mac_audio: door button sample loops.
+  
 * 0.1 hitlist
   * imgui.ini for Editor
   * XCB gamepad

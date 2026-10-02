@@ -44,6 +44,10 @@ struct Resources
     teMaterial defaultMaterial;
     teMaterial hilightMaterial;
     teMesh sceneMeshes[ MaxSceneMeshes ];
+    teMaterial materials[ 100 ];
+    int materialCount = 0;
+    teTexture2D textures[ 100 ];
+    int textureCount = 0;
     teAudioClip audioClipClick;
     teAudioClip audioClip2;
     unsigned entities[ 10000 ];
@@ -76,6 +80,133 @@ void ZeroMem( char* dst, size_t size )
     {
         dst[ i ] = 0;
     }
+}
+
+void ReadMaterials()
+{
+    unsigned handle = teReadDirectory( "assets/materials" );
+    char* path = nullptr;
+
+    while (teGetNextFile( handle, &path ))
+    {
+        char matPath[ 260 ] = {};
+        snprintf( matPath, sizeof( matPath ), "assets/materials/%s", path );
+        const bool isMaterial = strstr( matPath, ".mat" );
+
+        teFile matFile;
+
+        if (isMaterial)
+        {
+            matFile = teLoadFile( matPath );
+        }
+
+        if (matFile.data && isMaterial)
+        {
+            gResources.materials[ gResources.materialCount ] = teCreateMaterial( gResources.standardShader );
+            teMaterialSetTexture2D( gResources.materials[ gResources.materialCount ], gResources.defaultTexture2D, 0 );
+
+            char line[ 255 ] = {};
+            unsigned cursor = 0;
+            unsigned i = 0;
+
+            while (cursor < matFile.size)
+            {
+                line[ i ] = matFile.data[ cursor ];
+                ++i;
+
+                if (matFile.data[ cursor ] == '\n')
+                {
+                    line[ i - 1 ] = 0;
+                    i = 0;
+
+                    if (strstr( line, "name" ) == line)
+                    {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "name " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                            line[ nameCursor + offset ] != 0)
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+
+                        if (nameCursor >= sizeof( gResources.materials[ gResources.materialCount ].name ))
+                        {
+                            nameCursor = sizeof( gResources.materials[ gResources.materialCount ].name ) - 1;
+                        }
+                        printf( "material name: %s\n", name );
+                        strncpy( gResources.materials[ gResources.materialCount ].name, name, sizeof( gResources.materials[ gResources.materialCount ].name ) );
+                        gResources.materials[ gResources.materialCount ].name[ nameCursor ] = 0;
+                    }
+                    else if (strstr( line, "albedo" ) == line)
+                    {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "albedo " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                            line[ nameCursor + offset ] != 0)
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        printf( "albedo: %s\n", name );
+                        char texPath[ 260 ] = {};
+                        snprintf( texPath, 256, "assets/textures/%s", name );
+                        teFile texFile = teLoadFile( texPath );
+                        if (texFile.data)
+                        {
+                            gResources.textures[ gResources.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                            teMaterialSetTexture2D( gResources.materials[ gResources.materialCount ], gResources.textures[ gResources.textureCount ], 0 );
+                            ++gResources.textureCount;
+                        }
+                    }
+                    else if (strstr( line, "normal" ) == line)
+                    {
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "normal " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                            line[ nameCursor + offset ] != 0)
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        printf( "normal: %s\n", name );
+                        char texPath[ 260 ] = {};
+                        snprintf( texPath, 256, "assets/textures/%s", name );
+                        teFile texFile = teLoadFile( texPath );
+                        if (texFile.data)
+                        {
+                            gResources.textures[ gResources.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                            teMaterialSetTexture2D( gResources.materials[ gResources.materialCount ], gResources.textures[ gResources.textureCount ], 1 );
+                            ++gResources.textureCount;
+                            free( texFile.data );
+                        }
+                    }
+                    else if (strstr( line, "specular" ) == line)
+                    {
+                        //sceneView.materials[ sceneView.materialCount ].specular =
+                    }
+                    else if (strstr( line, "smoothness" ) == line)
+                    {
+                        //sceneView.materials[ sceneView.materialCount ].smoothness =
+                    }
+                }
+
+                ++cursor;
+            }
+
+            free( matFile.data );
+
+            ++gResources.materialCount;
+        }
+    }
+
+    teCloseDirectory( handle );
 }
 
 void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount )
@@ -121,6 +252,22 @@ int ParseFloat( const char* begin, float& outValue )
     }
 
     outValue = (float)atof( buf );
+
+    return offset;
+}
+
+int ParseInt( const char* begin, int& outValue )
+{
+    char buf[ 80 ] = {};
+    int offset = 0;
+
+    while (begin[ offset ] != 0 && begin[ offset ] != ' ' && begin[ offset ] != '\n' && begin[ offset ] != '\r')
+    {
+        buf[ offset ] = begin[ offset ];
+        ++offset;
+    }
+
+    outValue = (int)atoi( buf );
 
     return offset;
 }
@@ -298,6 +445,30 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.defaultMaterial, m );
                 }
             }
+            else if (strstr( line, "submesh_material" ) == line)
+            {
+                char name[ 100 ] = {};
+                unsigned nameCursor = 0;
+                unsigned offset = (unsigned)strlen( "submesh_material " );
+
+                int subMesh;
+                offset += ParseInt( line + offset, subMesh ) + 1;
+
+                while (nameCursor + offset < strlen( line ) &&
+                    line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                {
+                    name[ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+
+                for (int i = 0; i < gResources.materialCount; ++i)
+                {
+                    if (strcmp( gResources.materials[ i ].name, name ) == 0)
+                    {
+                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.materials[ i ], subMesh );
+                    }
+                }
+            }
         }
 
         ++cursor;
@@ -373,6 +544,8 @@ void LoadResources( unsigned width, unsigned height )
     teCameraGetColorTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "camera3d depth" );
     teCameraGetDepthNormalsTexture( gResources.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
+
+    ReadMaterials();
 
     teSceneAdd( gResources.scene, gResources.camera3d.index );
 

@@ -199,6 +199,7 @@ void ExportGameScene( const char* path )
             for (unsigned subMesh = 0; subMesh < teMeshGetSubMeshCount( teMeshRendererGetMesh( goIndex ) ); ++subMesh)
             {
                 fprintf( outFile, "submesh_texture %u %u\n", subMesh, teMeshRendererGetMaterial( goIndex, subMesh ).index ); // FIXME: material index doesn't match the material loop above.
+                fprintf( outFile, "submesh_material %u %s\n", subMesh, teMeshRendererGetMaterial( goIndex, subMesh ).name );
             }
 
             fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
