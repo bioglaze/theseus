@@ -697,7 +697,6 @@ void Tick()
     gGameState.theTime = GetMilliseconds();
     gGameState.dt = gGameState.theTime - lastTime;
 
-    // macOS slowdown
     gGameState.dt /= 10.0f;
 
     if (gGameState.dt < 0)

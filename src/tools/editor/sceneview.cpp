@@ -99,7 +99,6 @@ struct SceneView
     float lightColor[ 3 ] = { 1, 1, 1 };
 
     char* entityNames[ MaxSceneGameObjects ] = {};
-    char* doorInputs[ MaxSceneGameObjects ][ MaxDoorInputs ] = {};
     char* entityTargets[ MaxSceneGameObjects ] = {};
     int entityTypes[ MaxSceneGameObjects ] = {};
 };
@@ -847,11 +846,6 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
         sceneView.entityTargets[ i ] = (char*)calloc( 100, sizeof( char ) );
-
-        for (unsigned j = 0; j < MaxDoorInputs; ++j)
-        {
-            sceneView.doorInputs[ i ][ j ] = (char*)calloc( 100, sizeof( char ) );
-        }
     }
 
     if (unlitVsFile.data) free( unlitVsFile.data );
@@ -1216,14 +1210,7 @@ void RenderSceneView( float gridStep )
 
             //if (check2)
             {
-                if (type == EntityDoor)
-                {
-                    //const char* l0 = sceneView.doorInputs[ selectedGoIndex ][ 0 ] ? sceneView.doorInputs[ selectedGoIndex ][ 0 ] : "<none>";
-                    //const char* l1 = sceneView.doorInputs[ selectedGoIndex ][ 1 ] ? sceneView.doorInputs[ selectedGoIndex ][ 1 ] : "<none>";
-                    //const char* l2 = sceneView.doorInputs[ selectedGoIndex ][ 2 ] ? sceneView.doorInputs[ selectedGoIndex ][ 2 ] : "<none>";
-                    //ImGui::Text( "inputs: %s, %s, %s", l0, l1, l2 );
-                }
-                else if (type == EntityButton)
+                if (type == EntityButton)
                 {
                     ImGui::InputText( "target", sceneView.entityTargets[ selectedGoIndex ], 100 );
                 }

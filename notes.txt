@@ -29,9 +29,14 @@ Bugs:
 * 0.1 hitlist
   * imgui.ini for Editor
   * XCB gamepad
+  * Wayland stuff, gamepad etc.
   * spot light lighting
   * mention that save scene and export scene should save to build/
   * light removal
+  * fix sprite clicking bug
+  * Fix audio looping
+  * audio threading
+  * Bonus: window_macos.mm
 
 TODO:
 * Editor
@@ -40,10 +45,12 @@ TODO:
   * ctrl-s and ctrl-o
   * asset browser could read assets from build/assets
   * line colors
+  * sprites should have alpha, esp. light sprite
 * macOS: index renderer.frameResources[]
 * wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
+* win32: remove windowWidthWithoutTitleBar
 
 Code Quality issues:
 * obj converter hardcodes array sizes.
