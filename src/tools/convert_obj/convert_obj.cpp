@@ -627,10 +627,6 @@ int main( int argc, char* argv[] )
     unsigned faceIndex = 0;
     meshCount = 0;
     
-    int posCount = 0;
-    int normCount = 0;
-    int uvCount = 0;
-
     while (fgets( line, 255, file ) != nullptr)
     {
         char input[ 255 ] = {};
@@ -643,15 +639,12 @@ int main( int argc, char* argv[] )
         }
         if (strstr( input, "vn" ))
         {
-            ++normCount;
         }
         else if (strstr( input, "vt" ))
         {
-            ++uvCount;
         }
         else if (strchr( input, 'v' ))
         {
-            ++posCount;
         }
 
         else if (strchr( input, 'f' ))

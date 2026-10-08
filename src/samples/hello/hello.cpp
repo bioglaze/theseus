@@ -42,11 +42,11 @@ uint32_t pcg32_random_r( pcg32_random_t* rng )
     return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
 }
 
-pcg32_random_t rng;
+pcg32_random_t prng;
 
 int Random100()
 {
-    return pcg32_random_r( &rng ) % 100;
+    return pcg32_random_r( &prng ) % 100;
 }
 
 struct ImGUIImplCustom

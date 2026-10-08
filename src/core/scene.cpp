@@ -637,9 +637,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
     unsigned textureNameIndices[ 1000 ];
     unsigned materialNameIndices[ 1000 ];
 
-    unsigned tex0Index = 0;
-    unsigned tex1Index = 0;
-
     while (cursor < sceneFile.size)
     {
         line[ i ] = sceneFile.data[ cursor ];
@@ -858,7 +855,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 {
                     if (teStrstr( gSceneStrings + textureNameIndices[ t ], name ))
                     {
-                        tex0Index = t;
                         teMaterialSetTexture2D( materials[ materialCount - 1 ], textures[ t ], 0 );
                         break;
                     }
@@ -882,7 +878,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 {
                     if (teStrstr( gSceneStrings + textureNameIndices[ t ], name ))
                     {
-                        tex1Index = t;
                         teMaterialSetTexture2D( materials[ materialCount - 1 ], textures[ t ], 1 );
                         break;
                     }

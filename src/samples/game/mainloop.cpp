@@ -467,11 +467,11 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     ++nameCursor;
                 }
 
-                for (int i = 0; i < gResources.materialCount; ++i)
+                for (int m = 0; m < gResources.materialCount; ++m)
                 {
-                    if (strcmp( gResources.materials[ i ].name, name ) == 0)
+                    if (strcmp( gResources.materials[ m ].name, name ) == 0)
                     {
-                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.materials[ i ], subMesh );
+                        teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.materials[ m ], subMesh );
                     }
                 }
             }

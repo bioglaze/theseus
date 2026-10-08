@@ -9,11 +9,11 @@ int16_t* LoadWAV( teFile& file, int& outSampleRate, int& outChannelCount, int& o
 struct AudioDevice
 {
     LARGE_INTEGER qpcCount;
-    IMMDevice* device;
-    IAudioClock* clock;
-    IAudioClient* client;
-    IAudioRenderClient* render;
-    IMMDeviceEnumerator* enumerator;
+    IMMDevice* device = nullptr;
+    IAudioClock* clock = nullptr;
+    IAudioClient* client = nullptr;
+    IAudioRenderClient* render = nullptr;
+    IMMDeviceEnumerator* enumerator = nullptr;
     REFERENCE_TIME period;
     REFERENCE_TIME engine;
 };
