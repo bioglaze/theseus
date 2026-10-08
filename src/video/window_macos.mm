@@ -1,9 +1,11 @@
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <Metal/Metal.h>
 #include "window.h"
 
 constexpr int EventStackSize = 100;
+extern MTLRenderPassDescriptor* renderPassDescriptor;
 
 struct WindowImpl
 {
@@ -16,7 +18,19 @@ struct WindowImpl
 
 WindowImpl win;
 
-@interface MetalView: NSView
+@protocol MetalViewDelegate <NSObject>
+
+- (void)drawableResize:(CGSize)size;
+
+- (void)renderToMetalLayer:(nonnull CAMetalLayer *)metalLayer;
+
+@end
+
+@interface MetalView: NSView<CALayerDelegate>
+
+@property (nonatomic, nonnull, readonly) CAMetalLayer* metalLayer;
+@property (nonatomic, nullable) id<MetalViewDelegate> delegate;
+
 @end
 
 @implementation MetalView
@@ -67,7 +81,12 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     [window makeKeyAndOrderFront:nil];
     [window setAcceptsMouseMovedEvents:YES];
 
+    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
+    view.metalLayer.device = device;
+    view.metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    
     window.contentView = view;
     
     [NSApp run];
