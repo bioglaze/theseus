@@ -88,7 +88,7 @@ void RemovePointLight( unsigned index )
     gLightTiler.pointLightCenterAndRadius[ pointLights[ index ].tilerIndex ] = gLightTiler.pointLightCenterAndRadius[ gCurrentPointTilerIndex ];
     gLightTiler.pointLightColors[ pointLights[ index ].tilerIndex ] = gLightTiler.pointLightColors[ gCurrentPointTilerIndex ];
 
-    for (int i = 10000; i >= 0; --i)
+    for (int i = 10000 - 1; i >= 0; --i)
     {
         if (pointLights[ i ].tilerIndex != LightTiler::MaxLights)
         {

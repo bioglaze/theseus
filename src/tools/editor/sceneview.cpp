@@ -459,7 +459,11 @@ void SceneViewDuplicate()
         }
 
         sceneView.entityTypes[ go.index ] = sceneView.entityTypes[ selectedGoIndex ];
-        sceneView.entityNames[ go.index ] = sceneView.entityNames[ selectedGoIndex ];
+
+        if (sceneView.entityNames[ selectedGoIndex ] != 0)
+        {
+            strcpy( sceneView.entityNames[ go.index ], sceneView.entityNames[ selectedGoIndex ] );
+        }
 
         teGameObjectSetName( go.index, teGameObjectGetName( selectedGoIndex ) );
 
