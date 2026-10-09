@@ -67,10 +67,10 @@ struct InputState
 
 struct GameState
 {
-    double theTime;
-    double dt;
-    unsigned width;
-    unsigned height;
+    double theTime = 0;
+    double dt = 0;
+    unsigned width = 0;
+    unsigned height = 0;
     Vec3 doorOriginalPosition;
     unsigned doorFrame = 0;
     unsigned doorGo = 0;
@@ -232,9 +232,7 @@ void GameSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount )
             {
                 ++outGoCount;
             }
-            else if (strstr( line, "meshrenderer" ) == line)
-            {
-            }
+
             ZeroMem( line, 255 );
         }
 
@@ -341,40 +339,12 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
             }
             else if (strstr( line, "position" ) == line)
             {
-                char position[ 100 ] = {};
-                unsigned positionCursor = 0;
                 unsigned offset = (unsigned)strlen( "position " );
 
-                while (positionCursor + offset < strlen( line ) &&
-                    line[ positionCursor + offset ] != ' ')
-                {
-                    position[ positionCursor ] = line[ positionCursor + offset ];
-                    ++positionCursor;
-                }
-
-                float x = (float)atof( position );
-                offset += positionCursor+1;
-                positionCursor = 0;
-
-                while (positionCursor + offset < strlen( line ) &&
-                    line[ positionCursor + offset ] != ' ')
-                {
-                    position[ positionCursor ] = line[ positionCursor + offset ];
-                    ++positionCursor;
-                }
-                
-                float y = (float)atof( position );
-                offset += positionCursor;
-                positionCursor = 0;
-
-                while (positionCursor + offset < strlen( line ) &&
-                    line[ positionCursor + offset ] != '\r' && line[ positionCursor + offset ] != '\n')
-                {
-                    position[ positionCursor ] = line[ positionCursor + offset ];
-                    ++positionCursor;
-                }
-
-                float z = (float)atof( position );
+                float x, y, z;
+                offset += ParseFloat( line + offset, x ) + 1;
+                offset += ParseFloat( line + offset, y ) + 1;
+                offset += ParseFloat( line + offset, z ) + 1;
 
                 teTransformSetLocalPosition( gos[ goCount - 1 ].index, Vec3( x, y, z ) );
             }
