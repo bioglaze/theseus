@@ -123,9 +123,9 @@ struct PerObjectUboStruct
     Vec4 lightDirection;
     Vec4 lightColor;
     Vec4 lightPosition;
-    unsigned pointLightCount;
-    unsigned spotLightCount;
-    unsigned maxLightsPerTile;
+    unsigned pointLightCount = 0;
+    unsigned spotLightCount = 0;
+    unsigned maxLightsPerTile = 0;
 };
 
 struct Ubo
@@ -2387,13 +2387,11 @@ void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexM
     if (vertexBytes > UiBufferBytes)
     {
         tePrint( "UI vertex buffer is too small!\n" );
-        vertexBytes = UiBufferBytes;
     }
 
     if (indexBytes > UiBufferBytes)
     {
         tePrint( "UI index buffer is too small!\n" );
-        indexBytes = UiBufferBytes;
     }
 
     *outVertexMemory = renderer.uiVertices;

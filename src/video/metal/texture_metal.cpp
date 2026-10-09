@@ -11,7 +11,7 @@ extern MTL::CommandQueue* gCommandQueue;
 
 struct teTextureImpl
 {
-    MTL::Texture* metalTexture;
+    MTL::Texture* metalTexture = nullptr;
     MTL::PixelFormat format;
     unsigned flags = 0;
     unsigned width = 0;

@@ -23,7 +23,7 @@ constexpr int EventStackSize = 100;
 struct GamePad
 {
     bool isActive = false;
-    int fd;
+    int fd = 0;
     int buttonA;
     int buttonB;
     int buttonX;
@@ -107,7 +107,7 @@ struct xdg_wm_base* xdgWmBase;
 
 struct Output
 {
-    wl_output* wlOutput;
+    wl_output* wlOutput = nullptr;
     uint32_t   id;
     int        scale;
     wl_list    link;
@@ -115,34 +115,27 @@ struct Output
 
 struct WindowOutput
 {
-    Output*        output;
+    Output*        output = nullptr;
     struct wl_list link;
 };
 
 struct pointer_output
 {
-    Output*        output;
+    Output*        output = nullptr;
     struct wl_list link;
-};
-
-struct WlBuffer
-{
-    wl_buffer* wlBuffer;
-    void*      data;
-    size_t     dataSize;
 };
 
 struct Seat
 {
-    wl_seat*         wlSeat;
-    wl_keyboard*     wlKeyboard;
-    wl_pointer*      wlPointer;
+    wl_seat*         wlSeat = nullptr;
+    wl_keyboard*     wlKeyboard = nullptr;
+    wl_pointer*      wlPointer = nullptr;
     wl_list          link;
     wl_list          pointer_outputs;
-    wl_cursor_theme* cursor_theme;
-    wl_cursor*       left_ptr_cursor;
-    wl_surface*      cursor_surface;
-    wl_surface*      pointer_focus;
+    wl_cursor_theme* cursor_theme = nullptr;
+    wl_cursor*       left_ptr_cursor = nullptr;
+    wl_surface*      cursor_surface = nullptr;
+    wl_surface*      pointer_focus = nullptr;
     int              pointer_scale;
     uint32_t         serial;
     wl_fixed_t       pointer_sx;
@@ -154,8 +147,8 @@ Seat seat;
 
 struct Window
 {
-    wl_surface*     wlSurface;
-    libdecor_frame* frame;
+    wl_surface*     wlSurface = nullptr;
+    libdecor_frame* frame = nullptr;
     wl_list         outputs;
     int             scale = 1;
     bool            isConfigured = false;
@@ -346,7 +339,7 @@ static void cursorSurfaceEnter( void* data, wl_surface* wlSurface, wl_output* wl
 static void cursorSurfaceLeave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
     Seat* seate = (Seat*)data;
-    pointer_output* pointerOutput, *tmp;
+    pointer_output* pointerOutput = nullptr, *tmp = nullptr;
 
     wl_list_for_each_safe( pointerOutput, tmp, &seate->pointer_outputs, link )
     {
@@ -360,7 +353,7 @@ static void cursorSurfaceLeave( void* data, wl_surface* wlSurface, wl_output* wl
 
 static wl_surface_listener cursorSurfaceListener = { cursorSurfaceEnter, cursorSurfaceLeave };
 
-static void initCursors( Seat *pseat )
+static void initCursors( Seat* pseat )
 {
     char* name = nullptr;
     int size = 0;
@@ -703,8 +696,8 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
 
 void registry_handle_global_remove( void* data, struct wl_registry* registry, uint32_t name )
 {
-    Output* output;
-    WindowOutput* window_output;
+    Output* output = nullptr;
+    WindowOutput* window_output = nullptr;
 
     wl_list_for_each( output, &outputs, link )
     {
@@ -913,13 +906,13 @@ static void InitGamePad()
 {
 #ifndef OS_FREEBSD
     DIR* dir = opendir( "/dev/input" );
-    dirent* result = readdir( dir );
+    dirent* result = dir ? readdir( dir ) : nullptr;
 
     while (result != nullptr)
     {
         dirent& entry = *result;
         
-        if ((entry.d_name[0] == 'j') && (entry.d_name[1] == 's'))
+        if ((entry.d_name[ 0 ] == 'j') && (entry.d_name[ 1 ] == 's'))
         {
             char full_device_path[ 267 ];
             snprintf( full_device_path, sizeof( full_device_path ), "%s/%s", "/dev/input", entry.d_name );
@@ -996,7 +989,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wl_display_roundtrip( gwlDisplay );
     wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
 
-    Output* output;
+    Output* output = nullptr;
 
     wl_list_for_each( output, &outputs, link )
     {

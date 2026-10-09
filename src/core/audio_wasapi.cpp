@@ -16,6 +16,7 @@ struct AudioDevice
     IMMDeviceEnumerator* enumerator = nullptr;
     REFERENCE_TIME period;
     REFERENCE_TIME engine;
+    bool isInitialized = false;
 };
 
 AudioDevice gAudioDevice;
@@ -110,9 +111,16 @@ void PlayAudioClip( unsigned clipIndex )
 
     REFERENCE_TIME requestedDuration = refTimesPerSec * 2;
     DWORD initStreamFlags = (AUDCLNT_STREAMFLAGS_RATEADJUST | AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM | AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY);
+    
+    HRESULT hr = S_OK;
 
-    HRESULT hr = gAudioDevice.client->Initialize( AUDCLNT_SHAREMODE_SHARED, initStreamFlags,
-        requestedDuration, 0, reinterpret_cast<WAVEFORMATEX*>(&format), nullptr );
+    if (!gAudioDevice.isInitialized)
+    {
+        hr = gAudioDevice.client->Initialize( AUDCLNT_SHAREMODE_SHARED, initStreamFlags,
+            requestedDuration, 0, reinterpret_cast<WAVEFORMATEX*>(&format), nullptr );
+        gAudioDevice.isInitialized = true;
+    }
+
     if (hr == E_INVALIDARG)
     {
         teAssert( !"E_INVALIDARG" );
@@ -154,6 +162,10 @@ void PlayAudioClip( unsigned clipIndex )
             requestedDuration,
             reinterpret_cast<WAVEFORMATEX*>(&format),
             nullptr ) );
+    }
+    else if (hr == AUDCLNT_E_ALREADY_INITIALIZED)
+    {
+        teAssert( !"AUDCLNT_E_ALREADY_INITIALIZED" );
     }
     else
     {
