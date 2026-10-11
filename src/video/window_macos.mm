@@ -39,6 +39,26 @@ WindowImpl win;
 
 @end
 
+@interface MetalViewController : NSViewController <MetalViewDelegate>
+
+@end
+
+@implementation MetalViewController
+{
+}
+
+- (void)drawableResize:(CGSize)size
+{
+    printf("drawableResize\n");
+}
+
+- (void)renderToMetalLayer:(nonnull CAMetalLayer *)layer
+{
+    printf("renderToMetalLayer\n");
+}
+
+@end
+
 @interface KeyHandlingWindow: NSWindow
 @end
 
@@ -94,10 +114,18 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 
+    renderPassDescriptor = [MTLRenderPassDescriptor new];
+    renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+    renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 1, 1, 1);
+
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
     view.metalLayer.device = device;
     view.metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
-    
+
+    MetalViewController* viewController = [[MetalViewController alloc] init];
+    view.delegate = viewController;
+
     window.contentView = view;
     
     //[NSApp run];
