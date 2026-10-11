@@ -4,12 +4,14 @@
 #import <Metal/Metal.h>
 #include "window.h"
 
-constexpr int EventStackSize = 100;
+bool IncEventIndex();
+
+constexpr int EventArraySize = 100;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
 
 struct WindowImpl
 {
-    teWindowEvent events[ EventStackSize ];
+    teWindowEvent events[ EventArraySize ];
     teWindowEvent::KeyCode keyMap[ 256 ] = {};
     int eventIndex = -1;
     unsigned width = 0;
@@ -44,7 +46,16 @@ WindowImpl win;
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    printf("keyDown\n");
+    int key = [theEvent keyCode];
+    printf("keyDown %d\n", key);
+
+    if ([theEvent keyCode] == 0x01) // S
+    {
+        printf("emitting event S\n");
+        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::S;
+    }
 }
 @end
 
@@ -89,7 +100,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     
     window.contentView = view;
     
-    [NSApp run];
+    //[NSApp run];
 
     return nullptr;
 }
@@ -98,6 +109,17 @@ void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
 {
     outWidth = win.width;
     outHeight = win.height;
+}
+
+bool IncEventIndex()
+{
+    if (win.eventIndex < EventArraySize - 1)
+    {
+        ++win.eventIndex;
+        return true;
+    }
+
+    return false;
 }
 
 void tePushWindowEvents()
@@ -119,7 +141,7 @@ void teClearWindowEvents()
 {
     win.eventIndex = -1;
 
-    for (unsigned i = 0; i < EventStackSize; ++i)
+    for (unsigned i = 0; i < EventArraySize; ++i)
     {
         win.events[ i ].type = teWindowEvent::Type::Empty;
     }
