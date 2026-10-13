@@ -450,11 +450,6 @@ teTextureFormat GetSwapchainColorFormat()
     return renderer.colorFormat;
 }
 
-void SetDrawable( CA::MetalDrawable* drawable )
-{
-    gDrawable = drawable;
-}
-
 void teEndFrame()
 {
     renderer.frameResources[ 0 ].commandBuffer->presentDrawable( gDrawable );

@@ -8,6 +8,8 @@ bool IncEventIndex();
 
 constexpr int EventArraySize = 100;
 extern MTLRenderPassDescriptor* renderPassDescriptor;
+CAMetalLayer* gMetalLayer;
+id<MTLDevice> gDevice;
 
 struct WindowImpl
 {
@@ -36,6 +38,14 @@ WindowImpl win;
 @end
 
 @implementation MetalView
+
+- (CALayer *)makeBackingLayer
+{
+    printf("makeBackingLayer\n");
+    gMetalLayer = [CAMetalLayer layer];
+    gMetalLayer.device = gDevice;
+    return gMetalLayer;
+}
 
 @end
 
@@ -112,7 +122,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     [window makeKeyAndOrderFront:nil];
     [window setAcceptsMouseMovedEvents:YES];
 
-    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+    gDevice = MTLCreateSystemDefaultDevice();
 
     renderPassDescriptor = [MTLRenderPassDescriptor new];
     renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
@@ -120,15 +130,14 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 1, 1, 1);
 
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
-    view.metalLayer.device = device;
+    view.wantsLayer = YES;
+    view.metalLayer.device = gDevice;
     view.metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 
     MetalViewController* viewController = [[MetalViewController alloc] init];
     view.delegate = viewController;
 
     window.contentView = view;
-    
-    //[NSApp run];
 
     return nullptr;
 }
@@ -152,7 +161,11 @@ bool IncEventIndex()
 
 void tePushWindowEvents()
 {
-
+    NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                        untilDate:[NSDate distantFuture]
+                                           inMode:NSDefaultRunLoopMode
+                                          dequeue:YES];
+    [NSApp sendEvent:event];
 }
 
 teWindowEvent* teGetWindowEvents()
