@@ -128,9 +128,10 @@ Renderer renderer;
 
 MTL::Library* shaderLibrary; // Shaders from shaders.metallib, must be loaded with teLoadMetalShaderLibrary().
 CA::MetalDrawable* gDrawable;
+extern CA::MetalLayer* gMetalLayer;
 MTL::Device* gDevice;
 MTL::CommandQueue* gCommandQueue;
-MTL::RenderPassDescriptor* renderPassDescriptor; // This comes from the application
+MTL::RenderPassDescriptor* renderPassDescriptor;
 
 double GetMilliseconds()
 {
@@ -188,7 +189,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 {
     renderer.device = MTL::CreateSystemDefaultDevice();
     gDevice = renderer.device;
-    
+
     MTL::SamplerDescriptor* samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -282,8 +283,9 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     
     renderer.commandQueue = renderer.device->newCommandQueue();
     gCommandQueue = renderer.commandQueue;
+    renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     renderer.renderPassDescriptorFBO = MTL::RenderPassDescriptor::alloc()->init();
-    
+
     const unsigned bufferBytes = 1024 * 1024 * 250;
     
     renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshIndexBuffer" );
@@ -441,6 +443,9 @@ void teBeginFrame()
     renderer.frameResources[ 0 ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
     renderer.frameResources[ 0 ].uboOffset = 0;
 
+    //gDrawable = gMetalLayer->nextDrawable();
+    //renderPassDescriptor->colorAttachments()->object( 0 )->setTexture( gDrawable->texture() );
+
     renderer.statDrawCalls = 0;
     renderer.statPSOBinds = 0;
 }
@@ -454,6 +459,7 @@ void teEndFrame()
 {
     renderer.frameResources[ 0 ].commandBuffer->presentDrawable( gDrawable );
     renderer.frameResources[ 0 ].commandBuffer->commit();
+    //gDrawable->release();
 }
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )

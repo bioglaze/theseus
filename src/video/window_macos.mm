@@ -7,7 +7,6 @@
 bool IncEventIndex();
 
 constexpr int EventArraySize = 100;
-extern MTLRenderPassDescriptor* renderPassDescriptor;
 CAMetalLayer* gMetalLayer;
 id<MTLDevice> gDevice;
 
@@ -77,14 +76,74 @@ WindowImpl win;
 - (void)keyDown:(NSEvent *)theEvent
 {
     int key = [theEvent keyCode];
-    printf("keyDown %d\n", key);
+    //printf("keyDown %d\n", key);
 
-    if ([theEvent keyCode] == 0x01) // S
+    if ([theEvent keyCode] == 0x00 && IncEventIndex()) // A
     {
-        printf("emitting event S\n");
-        IncEventIndex();
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::A;
+    }
+    else if ([theEvent keyCode] == 0x02 && IncEventIndex()) // D
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::D;
+    }
+    else if ([theEvent keyCode] == 0x0D && IncEventIndex()) // W
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::W;
+    }
+    else if ([theEvent keyCode] == 0x01 && IncEventIndex()) // S
+    {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::S;
+    }
+    else if ([theEvent keyCode] == 0x0C && IncEventIndex()) // Q
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Q;
+    }
+    else if ([theEvent keyCode] == 0x0E && IncEventIndex()) // E
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
+    }
+}
+
+- (void)keyUp:(NSEvent *)theEvent
+{
+    int key = [theEvent keyCode];
+    //printf("keyDown %d\n", key);
+
+    if ([theEvent keyCode] == 0x00 && IncEventIndex()) // A
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::A;
+    }
+    else if ([theEvent keyCode] == 0x02 && IncEventIndex()) // D
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::D;
+    }
+    else if ([theEvent keyCode] == 0x0D && IncEventIndex()) // W
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::W;
+    }
+    else if ([theEvent keyCode] == 0x01 && IncEventIndex()) // S
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::S;
+    }
+    else if ([theEvent keyCode] == 0x0C && IncEventIndex()) // Q
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Q;
+    }
+    else if ([theEvent keyCode] == 0x0E && IncEventIndex()) // E
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
     }
 }
 @end
@@ -123,11 +182,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     [window setAcceptsMouseMovedEvents:YES];
 
     gDevice = MTLCreateSystemDefaultDevice();
-
-    renderPassDescriptor = [MTLRenderPassDescriptor new];
-    renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-    renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 1, 1, 1);
 
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
     view.wantsLayer = YES;

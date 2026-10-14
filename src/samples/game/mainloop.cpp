@@ -603,7 +603,7 @@ void Init( unsigned width, unsigned height )
     void* windowHandle = teCreateWindow( width, height, "Game" );
     teWindowGetSize( width, height );
 #else
-    void* windowHandle = nullptr;
+    void* windowHandle = nullptr;//teCreateWindow( width, height, "Game" );
 #endif
     teCreateRenderer( 1, windowHandle, width, height );
     teLoadMetalShaderLibrary();
