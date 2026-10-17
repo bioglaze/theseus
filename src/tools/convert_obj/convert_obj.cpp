@@ -508,7 +508,7 @@ void InitMeshArrays( FILE* file )
         {
             Face face;
             Face face2;
-            const int res = sscanf( line, "%254s %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
+            const int res = sscanf( line, "%254s %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", input, &face.posInd[ 0 ], &face.uvInd[ 0 ], &face.normInd[ 0 ],
                 &face.posInd[ 1 ], &face.uvInd[ 1 ], &face.normInd[ 1 ], &face.posInd[ 2 ], &face.uvInd[ 2 ], &face.normInd[ 2 ],
                 &face2.posInd[ 0 ], &face2.uvInd[ 0 ], &face2.normInd[ 0 ] );
 
