@@ -1775,6 +1775,11 @@ void teEndFrame()
     {
         tePrint( "Swapchain is suboptimal!\n" );
     }
+    else if (err == VK_ERROR_SURFACE_LOST_KHR)
+    {
+        tePrint("Lost swapchain surface, quitting!\n");
+        exit( 1 );
+    }
     else
     {
         teAssert( err == VK_SUCCESS );

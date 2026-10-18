@@ -167,6 +167,7 @@ void ExportGameScene( const char* path )
 
             fprintf( outFile, "entity %s\n", EntityTypeToString( sceneView.entityTypes[ goIndex ] ) );
             fprintf( outFile, "entityName %s\n", sceneView.entityNames[ goIndex ] );
+            fprintf( outFile, "entityTarget %s\n", sceneView.entityTargets[ goIndex ] );
         }
     }
 

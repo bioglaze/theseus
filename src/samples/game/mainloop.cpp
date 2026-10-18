@@ -50,6 +50,7 @@ struct Resources
     teAudioClip audioClipClick;
     teAudioClip audioClip2;
     unsigned entities[ 10000 ];
+    char entityTargets[ 10000 ][ 25 ] = {};
 } gResources;
 
 struct InputState
@@ -306,6 +307,22 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                 gos[ goCount ] = teCreateGameObject( "gameobject", teComponent::Transform );
                 teGameObjectSetName( gos[ goCount ].index, name );
                 ++goCount;
+            }            
+            else if (strstr(line, "entityTarget") == line)
+            {
+                unsigned nameCursor = 0;
+                unsigned offset = (unsigned)strlen( "entity " );
+
+                while (nameCursor + offset < strlen( line ) &&
+                    line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
+                {
+                    gResources.entityTargets[ gos[ goCount - 1 ].index ][ nameCursor ] = line[ nameCursor + offset ];
+                    ++nameCursor;
+                }
+            }
+            else if (strstr(line, "entityName") == line)
+            {
+                
             }
             else if (strstr( line, "entity" ) == line)
             {
