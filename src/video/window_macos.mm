@@ -78,35 +78,74 @@ WindowImpl win;
     int key = [theEvent keyCode];
     //printf("keyDown %d\n", key);
 
+    bool isCmdDown = [theEvent modifierFlags] & NSEventModifierFlagCommand;
+    bool isShiftDown = [theEvent modifierFlags] & NSEventModifierFlagShift;
+    bool isCtrlDown = [theEvent modifierFlags] & NSEventModifierFlagControl;
+
+    unsigned keyModifiers = 0;
+    if (isCmdDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+    if (isShiftDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
+    //if (isCtrlDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+
     if ([theEvent keyCode] == 0x00 && IncEventIndex()) // A
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::A;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x02 && IncEventIndex()) // D
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::D;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0D && IncEventIndex()) // W
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::W;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x01 && IncEventIndex()) // S
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::S;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0C && IncEventIndex()) // Q
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Q;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0E && IncEventIndex()) // E
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 123) // Left
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Left;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 124) // Right
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Right;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 126) // Up
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Up;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 125) // Down
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
     }
 }
 
@@ -145,7 +184,72 @@ WindowImpl win;
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
     }
+    else if ([theEvent keyCode] == 123) // Left
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Left;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 124) // Right
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Right;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 126) // Up
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Up;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
+    else if ([theEvent keyCode] == 125) // Down
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+    }
 }
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Down;
+        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+    }
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Up;
+        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+    }
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+    }
+}
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
+        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+    }
+}
+
 @end
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )

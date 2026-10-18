@@ -528,7 +528,7 @@ int main()
                             defer:NO];
         [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
         //window.styleMask |= NSWindowStyleMaskResizable;
-        window.styleMask |= NSWindowStyleMaskMiniaturizable ;
+        window.styleMask |= NSWindowStyleMaskMiniaturizable;
         window.styleMask |= NSWindowStyleMaskClosable;
         window.title = [[NSProcessInfo processInfo] processName];
         [window makeKeyAndOrderFront:nil];

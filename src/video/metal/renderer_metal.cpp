@@ -658,7 +658,17 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     renderer.renderEncoder->setFragmentSamplerState( GetSampler( sampler ), 0 );
 
     MTL::PixelFormat colorFormat = (renderer.isRenderingToTexture ? renderer.renderPassDescriptorFBO : renderPassDescriptor)->colorAttachments()->object( 0 )->texture()->pixelFormat();
-    MTL::PixelFormat depthFormat = (renderer.isRenderingToTexture ? renderer.renderPassDescriptorFBO : renderPassDescriptor)->depthAttachment()->texture()->pixelFormat();
+    MTL::PixelFormat depthFormat;
+    if (renderer.isRenderingToTexture)
+    {
+        depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
+    }
+    else
+    {
+        //depthFormat = MTL::PixelFormatDepth32Float;
+        depthFormat = MTL::PixelFormatInvalid;
+    }
+
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), blendMode, topology, colorFormat, depthFormat, false );
 
     renderer.renderEncoder->setRenderPipelineState( renderer.psos[ psoIndex ].pso );
