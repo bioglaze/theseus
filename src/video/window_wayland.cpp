@@ -49,7 +49,7 @@ struct GamePad
 struct WindowImpl
 {
     teWindowEvent          events[ EventStackSize ];
-    teWindowEvent::KeyCode keyMap[ 256 ] = {};
+    teWindowEvent::KeyCode keyMap[ 768 ] = {};
     int                    eventIndex = -1;
     unsigned               width = 0;
     unsigned               height = 0;
@@ -73,12 +73,15 @@ double GetMilliseconds()
     return spec.tv_sec * 1000.0 + spec.tv_nsec / 1000000.0;
 }
 
-void IncEventIndex()
+bool IncEventIndex()
 {
     if (win.eventIndex < EventStackSize - 1)
     {
         ++win.eventIndex;
+        return true;
     }
+
+    return false;
 }
 
 static float ProcessGamePadStickValue( short value, short deadZoneThreshold )
@@ -444,7 +447,7 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
     if (button == BTN_LEFT) // BTN_LEFT = 272, BTN_RIGHT: 273, BTN_MIDDLE: 274
     {
         bool pressed = pointerState == WL_POINTER_BUTTON_STATE_PRESSED;
-        printf( "pressed left button: %d\n", pressed );
+        //printf( "pressed left button: %d\n", pressed );
     }
 
     IncEventIndex();
@@ -481,7 +484,6 @@ void pointerLeave( void* data, wl_pointer* wlPointer, uint32_t serial, wl_surfac
 {
     Seat* dseat = (Seat*)data;
 
-    printf( "pointerLeave\n" );
     win.pointerOutsideWindow = true;
     
     if (dseat->pointer_focus == surface)
@@ -518,8 +520,8 @@ void keyLeave( void* data, wl_keyboard* wlKeyboard, uint serial, wl_surface* sur
 
 void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint key, uint keyState )
 {
-    if (keyState == 1)
-        printf( "keyKey %u state %u\n", key, keyState );
+  //if (keyState == 1)
+  //      printf( "keyKey %u state %u\n", key, keyState );
 
     IncEventIndex();
     win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
@@ -837,7 +839,7 @@ wl_registry_listener registryListener = { registry_handle_global, registry_handl
 
 static void InitKeyMap()
 {
-    for (unsigned keyIndex = 0; keyIndex < 256; ++keyIndex)
+    for (unsigned keyIndex = 0; keyIndex < 768; ++keyIndex)
     {
         win.keyMap[ keyIndex ] = teWindowEvent::KeyCode::Invalid;
     }
@@ -921,7 +923,8 @@ static void InitGamePad()
             if (fd < 0)
             {
                 // Permissions could cause this code path.
-                continue;
+                tePrint( "Unable to open gamepad!\n" );
+                return;
             }
 
             char name[ 128 ];
@@ -1152,21 +1155,29 @@ void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
     outHeight = win.height;
 }
 
-const teWindowEvent& tePopWindowEvent()
-{
-    if (win.eventIndex == -1)
-    {
-        win.events[ 0 ].type = teWindowEvent::Type::Empty;
-        return win.events[ 0 ];
-    }
-
-    --win.eventIndex;
-    return win.events[ win.eventIndex + 1 ];
-}
-
 void WaylandDispatch()
 {
     int timeout = -1;
     libdecor_dispatch( decorContext, timeout );
     //printf("libdecor_dispatch res: %d\n", res);
+}
+
+teWindowEvent* teGetWindowEvents()
+{
+    return win.events;
+}
+
+unsigned teGetWindowEventCount()
+{
+    return win.eventIndex + 1;
+}
+
+void teClearWindowEvents()
+{
+    win.eventIndex = -1;
+
+    for (unsigned i = 0; i < EventStackSize; ++i)
+    {
+        win.events[ i ].type = teWindowEvent::Type::Empty;
+    }
 }
