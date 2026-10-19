@@ -25,8 +25,6 @@ WindowImpl win;
 
 - (void)drawableResize:(CGSize)size;
 
-- (void)renderToMetalLayer:(nonnull CAMetalLayer *)metalLayer;
-
 @end
 
 @interface MetalView: NSView<CALayerDelegate>
@@ -40,9 +38,10 @@ WindowImpl win;
 
 - (CALayer *)makeBackingLayer
 {
-    printf("makeBackingLayer\n");
     gMetalLayer = [CAMetalLayer layer];
     gMetalLayer.device = gDevice;
+    gMetalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+
     return gMetalLayer;
 }
 
@@ -59,11 +58,6 @@ WindowImpl win;
 - (void)drawableResize:(CGSize)size
 {
     printf("drawableResize\n");
-}
-
-- (void)renderToMetalLayer:(nonnull CAMetalLayer *)layer
-{
-    printf("renderToMetalLayer\n");
 }
 
 @end
@@ -123,25 +117,25 @@ WindowImpl win;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-    else if ([theEvent keyCode] == 123) // Left
+    else if ([theEvent keyCode] == 123 && IncEventIndex()) // Left
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Left;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
     }
-    else if ([theEvent keyCode] == 124) // Right
+    else if ([theEvent keyCode] == 124 && IncEventIndex()) // Right
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Right;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
     }
-    else if ([theEvent keyCode] == 126) // Up
+    else if ([theEvent keyCode] == 126 && IncEventIndex()) // Up
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Up;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
     }
-    else if ([theEvent keyCode] == 125) // Down
+    else if ([theEvent keyCode] == 125 && IncEventIndex()) // Down
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
@@ -154,59 +148,74 @@ WindowImpl win;
     int key = [theEvent keyCode];
     //printf("keyDown %d\n", key);
 
+    bool isCmdDown = [theEvent modifierFlags] & NSEventModifierFlagCommand;
+    bool isShiftDown = [theEvent modifierFlags] & NSEventModifierFlagShift;
+    bool isCtrlDown = [theEvent modifierFlags] & NSEventModifierFlagControl;
+
+    unsigned keyModifiers = 0;
+    if (isCmdDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+    if (isShiftDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Shift;
+    //if (isCtrlDown) keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+
     if ([theEvent keyCode] == 0x00 && IncEventIndex()) // A
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::A;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x02 && IncEventIndex()) // D
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::D;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0D && IncEventIndex()) // W
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::W;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x01 && IncEventIndex()) // S
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::S;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0C && IncEventIndex()) // Q
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Q;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
     else if ([theEvent keyCode] == 0x0E && IncEventIndex()) // E
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::E;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-    else if ([theEvent keyCode] == 123) // Left
+    else if ([theEvent keyCode] == 123 && IncEventIndex()) // Left
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Left;
-        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-    else if ([theEvent keyCode] == 124) // Right
+    else if ([theEvent keyCode] == 124 && IncEventIndex()) // Right
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Right;
-        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-    else if ([theEvent keyCode] == 126) // Up
+    else if ([theEvent keyCode] == 126 && IncEventIndex()) // Up
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Up;
-        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-    else if ([theEvent keyCode] == 125) // Down
+    else if ([theEvent keyCode] == 125 && IncEventIndex()) // Down
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
-        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 }
 
@@ -285,12 +294,13 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     [window makeKeyAndOrderFront:nil];
     [window setAcceptsMouseMovedEvents:YES];
 
+    win.width = width;
+    win.height = height;
+
     gDevice = MTLCreateSystemDefaultDevice();
 
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
     view.wantsLayer = YES;
-    view.metalLayer.device = gDevice;
-    view.metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 
     MetalViewController* viewController = [[MetalViewController alloc] init];
     view.delegate = viewController;
@@ -319,11 +329,23 @@ bool IncEventIndex()
 
 void tePushWindowEvents()
 {
-    NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
-                                        untilDate:[NSDate distantFuture]
+    bool isDone = false;
+
+    while (!isDone)
+    {
+        NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                        untilDate:[NSDate distantPast]
                                            inMode:NSDefaultRunLoopMode
                                           dequeue:YES];
-    [NSApp sendEvent:event];
+        if (event)
+        {
+            [NSApp sendEvent:event];
+        }
+        else
+        {
+            isDone = true;
+        }
+    }
 }
 
 teWindowEvent* teGetWindowEvents()
