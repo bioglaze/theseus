@@ -266,7 +266,6 @@ int main()
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
-    teLoadMetalShaderLibrary();
 
     teFile unlitMsFile = teLoadFile( "shaders/unlit_ms.spv" );
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );

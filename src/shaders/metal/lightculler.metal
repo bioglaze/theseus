@@ -193,6 +193,8 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
         }
     }
 
+    threadgroup_barrier( mem_flags::mem_threadgroup );
+    
     // write back
     int startOffset = uniforms.maxLightsPerTile * tileIdxFlattened;
 

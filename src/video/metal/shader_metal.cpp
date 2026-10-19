@@ -43,7 +43,7 @@ MTL::Function* teShaderGetPixelProgram( const teShader& shader )
 
 teShader teCreateShader( const struct teFile& vertexFile, const teFile& pixelFile, const char* vertexName, const char* pixelName )
 {
-    teAssert( shaderCount < MaxShaders );
+    teAssert( shaderCount + 1 < MaxShaders );
 
     teShader outShader;
     outShader.index = ++shaderCount;

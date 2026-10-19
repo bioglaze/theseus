@@ -2538,8 +2538,3 @@ void teRendererUpdateLineBuffer( const teShader& shader, const struct Vec3* line
     renderer.lineCount = count;
     UpdateStagingBuffer( renderer.lineVertexBuffer, &lines[ 0 ].x, count * sizeof( Vec3 ), 0 );
 }
-
-void teLoadMetalShaderLibrary()
-{
-
-}

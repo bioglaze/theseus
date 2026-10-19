@@ -323,6 +323,8 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     memcpy( nullFile.path, "defaultTexture2D", strlen( "defaultTexture2D" ) );
     renderer.defaultTexture2D = teLoadTexture( nullFile, 0, pixels, 32, 32, teTextureFormat::RGBA_sRGB );
     InitLightTiler( width, height );
+
+    teLoadMetalShaderLibrary();
 }
 
 void PushGroupMarker( const char* name )
@@ -420,6 +422,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.lightDir = lightDir;
     uboStruct.lightColor = lightColor;
     uboStruct.lightPosition = lightPosition;
+    uboStruct.lightPosition.w = 1;
     uboStruct.tint.x = shaderParams.tint[ 0 ];
     uboStruct.tint.y = shaderParams.tint[ 1 ];
     uboStruct.tint.z = shaderParams.tint[ 2 ];
@@ -716,7 +719,7 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 {
     Matrix identity;
     UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
-    Draw( shader, 0, 0, 0, 0, 1, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestClamp, 0, 0, 0, 0 );
+    Draw( shader, 0, 0, 0, 0, 1, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
 }
 
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )

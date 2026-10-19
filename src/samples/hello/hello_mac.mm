@@ -162,7 +162,6 @@ void MoveUp( float amount )
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
         
         teCreateRenderer( 1, nullptr, width, height );
-        teLoadMetalShaderLibrary();
 
         m_fullscreenShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenPS" );
         m_fullscreenAdditiveShader = teCreateShader( teLoadFile( "" ), teLoadFile( "" ), "fullscreenVS", "fullscreenAdditivePS" );
@@ -652,8 +651,8 @@ int main()
                             backing:NSBackingStoreBuffered
                             defer:NO];
         [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
-        window.styleMask |= NSWindowStyleMaskResizable;
-        window.styleMask |= NSWindowStyleMaskMiniaturizable ;
+        //window.styleMask |= NSWindowStyleMaskResizable;
+        window.styleMask |= NSWindowStyleMaskMiniaturizable;
         window.styleMask |= NSWindowStyleMaskClosable;
         window.title = [[NSProcessInfo processInfo] processName];
         [window makeKeyAndOrderFront:nil];

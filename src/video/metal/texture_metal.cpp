@@ -247,6 +247,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         blitEncoder->endEncoding();
         cmdBuffer->commit();
         cmdBuffer->waitUntilCompleted();
+        stagingTexture->release();
     }
     else if (pixels != nullptr)
     {
@@ -289,6 +290,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         blitEncoder->endEncoding();
         cmdBuffer->commit();
         cmdBuffer->waitUntilCompleted();
+        stagingTexture->release();
     }
 #if !TARGET_OS_IPHONE
     else if (strstr( file.path, ".dds" ) || strstr( file.path, ".DDS" ))
@@ -368,6 +370,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         blitEncoder->endEncoding();
         cmdBuffer->commit();
         cmdBuffer->waitUntilCompleted();
+        stagingTexture->release();
     }
 #endif
     else
@@ -452,6 +455,8 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                 cmdBuffer->waitUntilCompleted();
             }
         }
+
+        stagingTexture->release();
     }
 #endif
     

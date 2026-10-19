@@ -623,7 +623,6 @@ void Init( unsigned width, unsigned height )
     void* windowHandle = nullptr;//teCreateWindow( width, height, "Game" );
 #endif
     teCreateRenderer( 1, windowHandle, width, height );
-    teLoadMetalShaderLibrary();
 
     InitAudio();
 

@@ -713,7 +713,6 @@ void ReadMaterials()
 void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites )
 {
     teCreateRenderer( 1, windowHandle, width, height );
-    teLoadMetalShaderLibrary();
     
     sceneView.width = width;
     sceneView.height = height;
