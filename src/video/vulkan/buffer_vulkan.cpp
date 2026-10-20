@@ -9,6 +9,7 @@ struct BufferImpl
 {
     VkBuffer buffer = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
+    uint64_t address = 0;
 };
 
 BufferImpl buffers[ 10000 ];
@@ -17,6 +18,11 @@ unsigned bufferCount = 0;
 VkBuffer BufferGetBuffer( const teBuffer& buffer )
 {
     return buffers[ buffer.index ].buffer;
+}
+
+uint64_t BufferGetAddress( const teBuffer& buffer )
+{
+    return buffers[ buffer.index ].address;
 }
 
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer )
@@ -58,6 +64,12 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 
     VK_CHECK( vkBindBufferMemory( device, buffers[ outBuffer.index ].buffer, buffers[ outBuffer.index ].memory, 0 ) );
 
+    VkBufferDeviceAddressInfo addressInfo = {};
+    addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    addressInfo.buffer = buffers[ outBuffer.index ].buffer;
+
+    buffers[ outBuffer.index ].address = (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) ? vkGetBufferDeviceAddress( device, &addressInfo ) : 0;
+    
     return outBuffer;
 }
 

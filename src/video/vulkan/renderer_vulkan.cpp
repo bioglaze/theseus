@@ -33,11 +33,15 @@ void GetFormat( teTextureFormat bcFormat, VkFormat& outFormat );
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName );
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
+uint64_t BufferGetAddress( const teBuffer& buffer );
 void WaylandDispatch();
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 unsigned GetPointLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
+teBuffer GetSpotLightCenterAndRadiusBuffer();
+teBuffer GetSpotLightParamBuffer();
+teBuffer GetSpotLightColorBuffer();
 teBuffer GetLightIndexBuffer();
 teBuffer& GetMeshletVertexBuffer( unsigned meshIndex, unsigned subMeshIndex );
 teBuffer& GetMeshletTriangleBuffer( unsigned meshIndex, unsigned subMeshIndex );
@@ -152,6 +156,7 @@ struct SwapchainResource
     static constexpr unsigned SetCount = 1000;
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
+    VkQueryPool queryPool;
 };
 
 struct Renderer
@@ -216,7 +221,6 @@ struct Renderer
     VkBuffer textureStagingBuffers[ 6 ];
     VkDeviceMemory textureStagingMemories[ 6 ];
     VkMemoryAllocateInfo textureStagingMemAllocInfos[ 6 ];
-    VkQueryPool queryPool;
     VkCommandBuffer texCommandBuffer = VK_NULL_HANDLE;
 
     static constexpr unsigned MaxPSOs = 250;
@@ -1108,14 +1112,7 @@ void CreateDevice()
 
     vkGetPhysicalDeviceMemoryProperties( renderer.physicalDevice, &renderer.deviceMemoryProperties );
     vkGetDeviceQueue( renderer.device, renderer.graphicsQueueIndex, 0, &renderer.graphicsQueue );
-
-    VkQueryPoolCreateInfo queryPoolInfo = {};
-    queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-    queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-    queryPoolInfo.queryCount = 2;
-
-    VK_CHECK( vkCreateQueryPool( renderer.device, &queryPoolInfo, nullptr, &renderer.queryPool ) );
-
+    
     if (renderer.properties.limits.maxPushConstantsSize < sizeof( PushConstants ))
     {
         tePrint( "Device limit maxPushConstantsSize is too small!\n" );
@@ -1591,7 +1588,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     SetObjectName( renderer.device, (uint64_t)renderer.instance, VK_OBJECT_TYPE_INSTANCE, "renderer.instance" );
     SetObjectName( renderer.device, (uint64_t)renderer.graphicsQueue, VK_OBJECT_TYPE_QUEUE, "renderer.graphicsQueue" );
-    SetObjectName( renderer.device, (uint64_t)renderer.queryPool, VK_OBJECT_TYPE_QUERY_POOL, "Query Pool" );
+    //SetObjectName( renderer.device, (uint64_t)renderer.swapchainResources[ 0 ].queryPool, VK_OBJECT_TYPE_QUERY_POOL, "Query Pool" );
 
     for (unsigned i = 0; i < 6; ++i)
     {
@@ -1614,6 +1611,16 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     CreateSwapchain( windowHandle, width, height, swapInterval );
     CreateDescriptorSets();
+
+    VkQueryPoolCreateInfo queryPoolInfo = {};
+    queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+    queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+    queryPoolInfo.queryCount = 2;
+
+    for (unsigned i = 0; i < renderer.swapchainImageCount; ++i)
+    {
+        VK_CHECK( vkCreateQueryPool( renderer.device, &queryPoolInfo, nullptr, &renderer.swapchainResources[ i ].queryPool ) );
+    }
 
     VkPipelineLayoutCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -1713,7 +1720,7 @@ void teBeginFrame()
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
-    //vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
+    //vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2 );
 
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image,
         VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
@@ -1755,7 +1762,7 @@ void teEndFrame()
     VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
 
     uint64_t timestamps[ 2 ] = {};
-    /*VkResult res =*/ vkGetQueryPoolResults(renderer.device, renderer.queryPool, 0, 2, sizeof(uint64_t) * 2, timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+    /*VkResult res =*/ vkGetQueryPoolResults( renderer.device, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT /*| VK_QUERY_RESULT_WAIT_BIT*/);
     //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
 
     VkPresentInfoKHR presentInfo = {};
@@ -1857,11 +1864,11 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthMemoryBarrier );
 
-    vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.queryPool, 0, 2 );
+    vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2 );
 
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );
 
-    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, renderer.queryPool, 0 );
+    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0 );
 
     VkViewport viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
     vkCmdSetViewport( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &viewport );
@@ -1877,7 +1884,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
 void EndRendering( teTexture2D& color, teTexture2D& depth )
 {
-    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, renderer.queryPool, 1 );
+    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 1 );
 
     vkCmdEndRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
 
@@ -2274,61 +2281,21 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         ++renderer.statPSOBinds;
     }
 
-    VkBufferDeviceAddressInfo posInfo = {};
-    posInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    posInfo.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
-
-    VkBufferDeviceAddressInfo uvInfo = {};
-    uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
-
-    VkBufferDeviceAddressInfo normalInfo = {};
-    normalInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    normalInfo.buffer = BufferGetBuffer( renderer.staticMeshNormalBuffer );
-
-    VkBufferDeviceAddressInfo tangentInfo = {};
-    tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
-
-    VkBufferDeviceAddressInfo pointLightCenterAndRadiusInfo = {};
-    pointLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    pointLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() );
-
-    VkBufferDeviceAddressInfo pointLightColorInfo = {};
-    pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightCenterAndRadiusInfo = {};
-    spotLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetSpotLightCenterAndRadiusBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightColorInfo = {};
-    spotLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightColorInfo.buffer = BufferGetBuffer( GetSpotLightColorBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightParamInfo = {};
-    spotLightParamInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightParamInfo.buffer = BufferGetBuffer( GetSpotLightParamBuffer() );
-
-    VkBufferDeviceAddressInfo lightIndexInfo = {};
-    lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
-
     PushConstants pushConstants{};
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
-    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
-    pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
-    pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
-    pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
-    pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
-    pushConstants.lightIndexBuf = vkGetBufferDeviceAddress( renderer.device, &lightIndexInfo );
+    pushConstants.posBuf = BufferGetAddress( renderer.staticMeshPositionBuffer );
+    pushConstants.uvBuf = BufferGetAddress( renderer.staticMeshUVBuffer );
+    pushConstants.normalBuf = BufferGetAddress( renderer.staticMeshNormalBuffer );
+    pushConstants.tangentBuf = BufferGetAddress( renderer.staticMeshTangentBuffer );
+    pushConstants.pointLightCenterAndRadiusBuf = BufferGetAddress( GetPointLightCenterAndRadiusBuffer() );
+    pushConstants.pointLightColorBuf = BufferGetAddress( GetPointLightColorBuffer() );
+    pushConstants.spotLightCenterAndRadiusBuf = BufferGetAddress( GetSpotLightCenterAndRadiusBuffer() );
+    pushConstants.spotLightColorBuf = BufferGetAddress( GetSpotLightColorBuffer() );
+    pushConstants.spotLightParamBuf = BufferGetAddress( GetSpotLightParamBuffer() );
+    pushConstants.lightIndexBuf = BufferGetAddress( GetLightIndexBuffer() );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
     pushConstants.vertexOffset = positionOffset;
-    pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
-    pushConstants.spotLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightColorInfo );
-    pushConstants.spotLightParamBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightParamInfo );
 
     VkPipelineShaderStageCreateInfo vertexInfo, fragmentInfo, meshInfo;
     teShaderGetInfo( shader, vertexInfo, fragmentInfo, meshInfo );

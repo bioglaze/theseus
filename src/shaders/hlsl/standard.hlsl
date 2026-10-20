@@ -149,7 +149,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
 
     const float3 N = normalize( normalVS );
-    const float3 V = normalize( vsOut.positionVS );
+    const float3 V = -normalize( vsOut.positionVS );
     const float3 L = -uniforms.lightDirection.xyz;
     const float3 H = normalize( L + V );
     float specularStrength = 0.5;
@@ -190,7 +190,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         
         if (lightDistance < radius)
         {
-            const float3 vecToLightVS = -(mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
+            const float3 vecToLightVS = (mul( uniforms.localToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
             const float3 iL = normalize( vecToLightVS );
             const float3 iH = normalize( iL + V );
 
@@ -239,7 +239,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
 
         float4 spotLightColor = vk::RawBufferLoad < float4 > (pushConstants.spotLightColorBuf + 16 * lightIndex);
-        accumDiffuseAndSpecular.rgb = spotLightColor.rgb;
+        accumDiffuseAndSpecular.rgb += spotLightColor.rgb;
     }
 
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
