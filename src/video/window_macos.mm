@@ -17,14 +17,12 @@ struct WindowImpl
     int eventIndex = -1;
     unsigned width = 0;
     unsigned height = 0;
+    float scale = 1;
 };
 
 WindowImpl win;
 
 @protocol MetalViewDelegate <NSObject>
-
-- (void)drawableResize:(CGSize)size;
-
 @end
 
 @interface MetalView: NSView<CALayerDelegate>
@@ -41,6 +39,7 @@ WindowImpl win;
     gMetalLayer = [CAMetalLayer layer];
     gMetalLayer.device = gDevice;
     gMetalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    gMetalLayer.contentsScale = win.scale;
 
     return gMetalLayer;
 }
@@ -53,11 +52,6 @@ WindowImpl win;
 
 @implementation MetalViewController
 {
-}
-
-- (void)drawableResize:(CGSize)size
-{
-    printf("drawableResize\n");
 }
 
 @end
@@ -139,7 +133,25 @@ WindowImpl win;
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
-        win.events[ win.eventIndex ].keyModifiers = keyModifiers;        
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 51 && IncEventIndex()) // Backspace
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Backspace;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 27 && IncEventIndex()) // +
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Plus;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+        else if ([theEvent keyCode] == 44 && IncEventIndex()) // -
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Minus;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 }
 
@@ -217,6 +229,24 @@ WindowImpl win;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Down;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 51 && IncEventIndex()) // Backspace
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Backspace;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 27 && IncEventIndex()) // +
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Plus;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 44 && IncEventIndex()) // -
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Minus;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
@@ -225,7 +255,7 @@ WindowImpl win;
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Down;
         win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     }
 }
 
@@ -235,7 +265,7 @@ WindowImpl win;
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Up;
         win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     }
 }
 
@@ -245,7 +275,7 @@ WindowImpl win;
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     }
 }
 
@@ -255,7 +285,7 @@ WindowImpl win;
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
     }
 }
 
@@ -293,6 +323,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     window.title = [[NSProcessInfo processInfo] processName];
     [window makeKeyAndOrderFront:nil];
     [window setAcceptsMouseMovedEvents:YES];
+
+    win.scale = [window backingScaleFactor];
+    printf("scale: %f\n", win.scale );
 
     win.width = width;
     win.height = height;
@@ -365,5 +398,8 @@ void teClearWindowEvents()
     for (unsigned i = 0; i < EventArraySize; ++i)
     {
         win.events[ i ].type = teWindowEvent::Type::Empty;
+        win.events[ i ].x = 0;
+        win.events[ i ].y = 0;
+        win.events[ i ].keyModifiers = 0;
     }
 }

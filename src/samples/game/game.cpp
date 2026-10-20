@@ -7,7 +7,7 @@ void Tick();
 
 int main()
 {
-    Init( 1920, 1080 );
+    Init( 800 * 2, 450 * 2 );
 
     bool shouldQuit = false;
 
