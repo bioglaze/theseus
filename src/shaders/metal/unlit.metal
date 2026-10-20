@@ -26,7 +26,7 @@ vertex ColorInOut unlitVS( uint vid [[ vertex_id ]],
 fragment float4 unlitPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
                         constant Uniforms & uniforms [[ buffer(0) ]]/*, sampler sampler0 [[sampler(0)]]*/ )
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
     //return float4( 1, 0, 0, 1 );
     return textureMap.sample( sampler0, in.uv ) * uniforms.tint;
 }

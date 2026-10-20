@@ -25,7 +25,7 @@ vertex ColorInOut skyboxVS( uint vid [[ vertex_id ]],
 
 fragment float4 skyboxPS( ColorInOut in [[stage_in]], texturecube<float, access::sample> textureMap [[texture(0)]] )
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear );
     //return float4( 1, 0, 0, 1 );
     return textureMap.sample( sampler0, in.uv );
 }

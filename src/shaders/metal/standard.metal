@@ -133,7 +133,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
     
     const float3 N = normalize( normalVS );
-    const float3 V = normalize( in.positionVS );
+    const float3 V = -normalize( in.positionVS );
     //const float3 L = -uniforms.lightDir.xyz;
     //const float3 H = normalize( L + V );
     float specularStrength = 0.5;
@@ -150,6 +150,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
     float3 specular = specularStrength * spec;
     accumDiffuseAndSpecular += specular;
+    
+    accumDiffuseAndSpecular *= shadow;
 
     float4 albedo = textureMap.sample( sampler0, in.uv );
 
@@ -200,5 +202,5 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     }
 
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
-    return albedo * float4( saturate( accumDiffuseAndSpecular ) * shadow, 1 );
+    return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
 }
