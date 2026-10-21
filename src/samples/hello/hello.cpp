@@ -271,7 +271,7 @@ int main()
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
     teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
-    teShader unlitMeshShader = teCreateMeshShader( unlitMsFile, unlitPsFile, "unlitMS", "unlitPS" );
+    //teShader unlitMeshShader = teCreateMeshShader( unlitMsFile, unlitPsFile, "unlitMS", "unlitPS" );
 
     teFile uiVsFile = teLoadFile( "shaders/ui_vs.spv" );
     teFile uiPsFile = teLoadFile( "shaders/ui_ps.spv" );
@@ -328,8 +328,8 @@ int main()
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     //teFile gliderFile = teLoadFile( "assets/textures/test/nonpow.tga" );
     teTexture2D gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-    teMaterial materialMS = teCreateMaterial( unlitMeshShader );
-    teMaterialSetTexture2D( materialMS, gliderTex, 0 );
+    //teMaterial materialMS = teCreateMaterial( unlitMeshShader );
+    //teMaterialSetTexture2D( materialMS, gliderTex, 0 );
 
     teMaterial standardMaterial = teCreateMaterial( standardShader );
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
@@ -368,9 +368,9 @@ int main()
 
     teFile transFile = teLoadFile( "assets/textures/font.tga" );
     teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
-    teMaterial materialTransMS = teCreateMaterial( unlitMeshShader );
+    //teMaterial materialTransMS = teCreateMaterial( unlitMeshShader );
     //materialTransMS.blendMode = teBlendMode::Alpha;
-    teMaterialSetTexture2D( materialTransMS, transTex, 0 );
+    //teMaterialSetTexture2D( materialTransMS, transTex, 0 );
 
     teFile key0File = teLoadFile( "assets/textures/digits/zero.tga" );
     teFile key1File = teLoadFile( "assets/textures/digits/one.tga" );
@@ -461,7 +461,7 @@ int main()
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     bc1Tex.sampler = teTextureSampler::NearestRepeat;
-    teMaterialSetTexture2D( materialMS, bc1Tex, 0 );
+    //teMaterialSetTexture2D( materialMS, bc1Tex, 0 );
 
     //teFile bc5File = teLoadFile( "assets/textures/test/grass_n_bc5.dds" );
     //teTexture2D bc5Tex = teLoadTexture( bc5File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -563,7 +563,7 @@ int main()
             {
                 cubes[ g ] = teCreateGameObject( "cube", teComponent::Transform | teComponent::MeshRenderer );
                 teMeshRendererSetMesh( cubes[ g ].index, &cubeMesh );
-                teMeshRendererSetMaterial( cubes[ g ].index, materialMS, 0 );
+                //teMeshRendererSetMaterial( cubes[ g ].index, materialMS, 0 );
                 teTransformSetLocalPosition( cubes[ g ].index, Vec3( i * 4.0f - 5.0f, j * 4.0f - 5.0f, -4.0f - k * 4.0f ) );
                 //teSceneAdd( scene, cubes[ g ].index );
 

@@ -253,9 +253,12 @@ WindowImpl win;
 {
     if (IncEventIndex())
     {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Down;
-        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
     }
 }
 
@@ -263,9 +266,12 @@ WindowImpl win;
 {
     if (IncEventIndex())
     {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Up;
-        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
     }
 }
 
@@ -273,9 +279,12 @@ WindowImpl win;
 {
     if (IncEventIndex())
     {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
     }
 }
 
@@ -283,9 +292,12 @@ WindowImpl win;
 {
     if (IncEventIndex())
     {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-        win.events[ win.eventIndex ].x = theEvent.locationInWindow.x >= 0 ? theEvent.locationInWindow.x : 0;
-        win.events[ win.eventIndex ].y = win.height - theEvent.locationInWindow.y >= 0 ? theEvent.locationInWindow.y : 0;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
     }
 }
 
@@ -327,8 +339,12 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.scale = [window backingScaleFactor];
     printf("scale: %f\n", win.scale );
 
-    win.width = width;
-    win.height = height;
+    unsigned frameWidth = (unsigned)window.frame.size.width;
+    unsigned frameHeight = (unsigned)window.frame.size.height;
+    printf( "width: %u, height: %u, framew %u, frameh %u\n", width, height, frameWidth, frameHeight);
+
+    win.width = frameWidth * win.scale;
+    win.height = frameHeight * win.scale;
 
     gDevice = MTLCreateSystemDefaultDevice();
 
