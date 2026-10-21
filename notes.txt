@@ -30,7 +30,6 @@ Bugs:
   
 * 0.1 hitlist
   * imgui.ini for Editor
-  * XCB gamepad
   * Wayland stuff, gamepad etc.
   * spot light lighting
   * mention that save scene and export scene should save to build/

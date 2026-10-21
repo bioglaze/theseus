@@ -93,7 +93,7 @@ bool IncEventIndex()
         return true;
     }
 
-    tePrint( "Event array full!\n!" );
+    tePrint( "Event array full!\n" );
     
     return false;
 }
@@ -137,6 +137,10 @@ teWindowEvent::KeyCode GetKeycode( uint32_t xcbKey )
     case 65307: return teWindowEvent::KeyCode::Escape;
     case 65535: return teWindowEvent::KeyCode::Delete;
     case 65288: return teWindowEvent::KeyCode::Backspace;
+    case 65289: return teWindowEvent::KeyCode::Tab;
+    case 43: return teWindowEvent::KeyCode::Plus;
+    case 44: return teWindowEvent::KeyCode::Comma;
+    case 45: return teWindowEvent::KeyCode::Minus;
     case 46: return teWindowEvent::KeyCode::Dot;
     case 48: return teWindowEvent::KeyCode::N0;
     case 49: return teWindowEvent::KeyCode::N1;
@@ -178,31 +182,38 @@ void tePushWindowEvents()
             xcb_button_press_event_t* bp = (xcb_button_press_event_t *)event;
             IncEventIndex();
 
-            if (bp->detail == 2)
+            if (bp->detail == 2 && IncEventIndex())
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse3Up : teWindowEvent::Type::Mouse3Down;
+                win.events[ win.eventIndex ].x = bp->event_x;
+                win.events[ win.eventIndex ].y = bp->event_y;
             }
-            else if (bp->detail == 3)
+            else if (bp->detail == 3 && IncEventIndex())
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse2Up : teWindowEvent::Type::Mouse2Down;
+                win.events[ win.eventIndex ].x = bp->event_x;
+                win.events[ win.eventIndex ].y = bp->event_y;
             }
-            else if (bp->detail == 4) // wheel up
+            else if (bp->detail == 4 && responseType == XCB_BUTTON_PRESS && IncEventIndex()) // wheel up
             {
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
                 win.events[ win.eventIndex ].wheelDelta = 1;
+                win.events[ win.eventIndex ].x = bp->event_x;
+                win.events[ win.eventIndex ].y = bp->event_y;
             }
-            else if (bp->detail == 5) // wheel down
+            else if (bp->detail == 5 && responseType == XCB_BUTTON_PRESS && IncEventIndex()) // wheel down
             {
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
                 win.events[ win.eventIndex ].wheelDelta = -1;
+                win.events[ win.eventIndex ].x = bp->event_x;
+                win.events[ win.eventIndex ].y = bp->event_y;
             }
-            else
+            else if (bp->detail == 1 && IncEventIndex())
             {
                 win.events[ win.eventIndex ].type = responseType == XCB_BUTTON_RELEASE ? teWindowEvent::Type::Mouse1Up : teWindowEvent::Type::Mouse1Down;
+                win.events[ win.eventIndex ].x = bp->event_x;
+                win.events[ win.eventIndex ].y = bp->event_y;
             }
-            
-            win.events[ win.eventIndex ].x = bp->event_x;
-            win.events[ win.eventIndex ].y = bp->event_y;
         }
         else if ((responseType == XCB_FOCUS_OUT) && IncEventIndex())
         {
@@ -225,6 +236,10 @@ void tePushWindowEvents()
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
             }
+            if (kp->state & XCB_MOD_MASK_1)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Alt;
+            }
         }
         else if ((responseType == XCB_KEY_RELEASE) && IncEventIndex())
         {
@@ -242,6 +257,10 @@ void tePushWindowEvents()
             if (kp->state & XCB_MOD_MASK_CONTROL)
             {
                 win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Control;
+            }
+            if (kp->state & XCB_MOD_MASK_1)
+            {
+                win.events[ win.eventIndex ].keyModifiers |= (unsigned)teWindowEvent::KeyModifier::Alt;
             }
         }
         else if ((responseType == XCB_MOTION_NOTIFY) && IncEventIndex())
@@ -305,37 +324,33 @@ void tePushWindowEvents()
         }
         else if (j.type == JS_EVENT_AXIS)
         {
-            if (j.number == win.gamePad.leftThumbX)
+            if (j.number == win.gamePad.leftThumbX && IncEventIndex())
             {
                 const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = x;
                 win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastLeftThumbY;
                 win.gamePad.lastLeftThumbX = x;
             }
-            else if (j.number == win.gamePad.leftThumbY)
+            else if (j.number == win.gamePad.leftThumbY && IncEventIndex())
             {
                 const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastLeftThumbX;
                 win.events[ win.eventIndex ].gamePadThumbY = -y;
                 win.gamePad.lastLeftThumbY = -y;
             }
-            else if (j.number == win.gamePad.rightThumbX)
+            else if (j.number == win.gamePad.rightThumbX && IncEventIndex())
             {
                 const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = x;
                 win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastRightThumbY;
                 win.gamePad.lastRightThumbX = x;
             }
-            else if (j.number == win.gamePad.rightThumbY)
+            else if (j.number == win.gamePad.rightThumbY && IncEventIndex())
             {
                 const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastRightThumbX;
                 win.events[ win.eventIndex ].gamePadThumbY = -y;
@@ -371,16 +386,66 @@ void tePushWindowEvents()
     }
 }
 
-const teWindowEvent& tePopWindowEvent()
+// TODO: this code is duplicated in window_wayland.cpp
+static void InitGamePad()
 {
-    if (win.eventIndex == -1)
+#ifndef OS_FREEBSD
+    DIR* dir = opendir( "/dev/input" );
+    dirent* result = dir ? readdir( dir ) : nullptr;
+
+    while (result != nullptr)
     {
-        win.events[ 0 ].type = teWindowEvent::Type::Empty;
-        return win.events[ 0 ];
+        dirent& entry = *result;
+        
+        if ((entry.d_name[ 0 ] == 'j') && (entry.d_name[ 1 ] == 's'))
+        {
+            char full_device_path[ 267 ];
+            snprintf( full_device_path, sizeof( full_device_path ), "%s/%s", "/dev/input", entry.d_name );
+            int fd = open( full_device_path, O_RDONLY );
+
+            if (fd < 0)
+            {
+                // Permissions could cause this code path.
+                tePrint( "Unable to open gamepad!\n" );
+                return;
+            }
+
+            char name[ 128 ];
+            ioctl( fd, JSIOCGNAME( 128 ), name );
+
+            int version;
+            ioctl( fd, JSIOCGVERSION, &version );
+            uint8_t axes;
+            ioctl( fd, JSIOCGAXES, &axes );
+            uint8_t buttons;
+            ioctl( fd, JSIOCGBUTTONS, &buttons );
+            win.gamePad.fd = fd;
+            win.gamePad.isActive = true;
+            // XBox One Controller values. Should also work for 360 Controller.
+            win.gamePad.buttonA = 0;
+            win.gamePad.buttonB = 1;
+            win.gamePad.buttonX = 2;
+            win.gamePad.buttonY = 3;
+            win.gamePad.buttonStart = 7;
+            win.gamePad.buttonBack = 6;
+            win.gamePad.buttonLeftShoulder = 4;
+            win.gamePad.buttonRightShoulder = 5;
+            win.gamePad.dpadXaxis = 6;
+            win.gamePad.dpadYaxis = 7;
+            win.gamePad.leftThumbX = 0;
+            win.gamePad.leftThumbY = 1;
+            win.gamePad.rightThumbX = 3;
+            win.gamePad.rightThumbY = 4;
+            win.gamePad.deadZone = 7849;
+            
+            fcntl( fd, F_SETFL, O_NONBLOCK );
+        }
+
+        result = readdir( dir );
     }
 
-    --win.eventIndex;
-    return win.events[ win.eventIndex + 1 ];
+    closedir( dir );
+#endif
 }
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
@@ -389,7 +454,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     if (xcb_connection_has_error( connection ))
     {
-        printf( "Can't get xcb connection from display\n" );
+        tePrint( "Can't get xcb connection from display\n" );
         return nullptr;
     }
     
@@ -412,6 +477,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
                        XCB_WINDOW_CLASS_INPUT_OUTPUT, s->root_visual,
                        mask, values );
 
+    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen( title ), title );
+    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS, XCB_ATOM_STRING, 8, sizeof("Theseus""\0""Theseus"), "theseus\0Theseus" );
+
     xcb_map_window( connection, window );
     xcb_flush( connection );
 
@@ -419,9 +487,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     xcb_icccm_size_hints_set_min_size( &hints, win.width, win.height );
     xcb_icccm_size_hints_set_max_size( &hints, win.width, win.height );
     xcb_icccm_set_wm_size_hints( connection, window, XCB_ATOM_WM_NORMAL_HINTS, &hints );
-
-    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen( title ), title );
-    xcb_change_property( connection, XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_CLASS, XCB_ATOM_STRING, 8, sizeof("Theseus""\0""Theseus"), "theseus\0Theseus" );
 
     win.EWMHCookie = xcb_ewmh_init_atoms( connection, &win.EWMH );
 
@@ -449,6 +514,8 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
         free( reply );
     }
 
+    InitGamePad();
+    
     return nullptr;
 }
 
@@ -468,6 +535,6 @@ void teClearWindowEvents()
 
     for (unsigned i = 0; i < EventStackSize; ++i)
     {
-        win.events[ i ].type = teWindowEvent::Type::Empty;
+        win.events[ i ] = teWindowEvent{};
     }
 }

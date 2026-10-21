@@ -123,5 +123,6 @@ void tePrint( const char* format, ... )
     dup2( terminal, STDOUT_FILENO );
     
     write( terminal, output, teStrlen( output ) );
+    close( terminal );
 #endif
 }
