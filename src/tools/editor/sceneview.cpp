@@ -48,8 +48,8 @@ struct FontTextureUpdate
 
 struct SceneView
 {
-    unsigned width;
-    unsigned height;
+    unsigned width = 0;
+    unsigned height = 0;
 
     teShader unlitShader;
     teShader standardShader;
@@ -107,8 +107,6 @@ SceneView sceneView;
 
 struct ImGUIImplCustom
 {
-    int width = 0;
-    int height = 0;
     teTexture2D textures[ 10 ];
     unsigned textureCount = 0;
     const char* name = "jeejee";

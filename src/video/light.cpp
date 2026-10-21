@@ -10,7 +10,7 @@ struct LightImpl
     float intensity = 1.0f;
 
     // SpotLight specific stuff
-    float coneAngle;
+    float coneAngle = 45;
     Vec3 direction;
 };
 

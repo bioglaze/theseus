@@ -28,12 +28,9 @@ constexpr unsigned MaxLoadedMeshes = 100;
 LoadedMesh gLoadedMeshes[ MaxLoadedMeshes ];
 unsigned gLoadedMeshCount = 0;
 
-void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTextureCount, 
-                          unsigned& outMaterialCount, unsigned& outMeshCount )
+void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outMeshCount )
 {
     outGoCount = 0;
-    outTextureCount = 0;
-    outMaterialCount = 0;
     outMeshCount = 0;
 
     char line[ 512 ];
@@ -69,14 +66,6 @@ void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outTexture
     {
         outMeshCount = 1;
     }
-    if (outMaterialCount == 0)
-    {
-        outMaterialCount = 1;
-    }
-    if (outTextureCount == 0)
-    {
-        outTextureCount = 1;
-    }
 }
 
 void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char* outEntityNames[], char* outEntityTargets[] )
@@ -89,15 +78,10 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     }
     
     unsigned sceneGoCount = 0;
-    unsigned sceneTextureCount = 0;
-    unsigned sceneMaterialCount = 0;
     unsigned sceneMeshCount = 0;
-    ReadSceneArraySizes( file, sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
+    ReadSceneArraySizes( file, sceneGoCount, sceneMeshCount );
     teGameObject* sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
-    teTexture2D* sceneTextures = (teTexture2D*)malloc( sceneTextureCount * sizeof( teTexture2D ) );
-    teMaterial* sceneMaterials = (teMaterial*)malloc( sceneMaterialCount * sizeof( teMaterial ) );
     teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
-    printf( "gos: %u, textures: %u, materials: %u, meshes: %u\n", sceneGoCount, sceneTextureCount, sceneMaterialCount, sceneMeshCount );
 
     fseek( file, 0, 0 );
 

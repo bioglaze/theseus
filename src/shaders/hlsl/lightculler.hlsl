@@ -51,7 +51,7 @@ float4 CreatePlaneEquation( float3 b, float3 c )
 // the plane passes through the origin
 float GetSignedDistanceFromPlane( float3 p, float3 eqn )
 {
-    // dot( eqn.xyz, p.xyz ) + eqn.w, , except we know eqn.w is zero 
+    // dot( eqn.xyz, p.xyz ) + eqn.w, except we know eqn.w is zero 
     // (see CreatePlaneEquation above)
     return dot( eqn, p );
 }
@@ -102,17 +102,13 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
         frustum[ 3 ] = ConvertProjToView( float4( pxm / (float) uWindowWidthEvenlyDivisibleByTileRes * 2.0f - 1.0f, (uWindowHeightEvenlyDivisibleByTileRes - pyp) / (float) uWindowHeightEvenlyDivisibleByTileRes * 2.0f - 1.0f, 1.0f, 1.0f ) );
 
         // create plane equations for the four sides of the frustum, 
-        // with the positive half-space outside the frustum (and remember, 
-        // view space is left handed, so use the left-hand rule to determine 
-        // cross product direction)
+        // with the positive half-space outside the frustum.
         for (uint i = 0; i < 4; ++i)
         {
-            frustumEqn[ i ] = CreatePlaneEquation( frustum[ i ].xyz, frustum[ (i + 1) & 3 ].xyz ).xyz;
+            frustumEqn[ i ] = CreatePlaneEquation( frustum[ (i + 1) & 3 ].xyz, frustum[ i ].xyz ).xyz;
         }
     }
 
-    // Blocks execution of all threads in a group until all group shared accesses 
-    // have been completed and all threads in the group have reached this call.
     GroupMemoryBarrierWithGroupSync();
     
 #if USE_MINMAX_Z

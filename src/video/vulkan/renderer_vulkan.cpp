@@ -2140,61 +2140,21 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     BindDescriptors( VK_PIPELINE_BIND_POINT_COMPUTE );
 
-    VkBufferDeviceAddressInfo posInfo = {};
-    posInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    posInfo.buffer = BufferGetBuffer( renderer.staticMeshPositionBuffer );
-
-    VkBufferDeviceAddressInfo uvInfo = {};
-    uvInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    uvInfo.buffer = BufferGetBuffer( renderer.staticMeshUVBuffer );
-
-    VkBufferDeviceAddressInfo normalInfo = {};
-    normalInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    normalInfo.buffer = BufferGetBuffer( renderer.staticMeshNormalBuffer );
-
-    VkBufferDeviceAddressInfo tangentInfo = {};
-    tangentInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    tangentInfo.buffer = BufferGetBuffer( renderer.staticMeshTangentBuffer );
-
-    VkBufferDeviceAddressInfo pointLightCenterAndRadiusInfo = {};
-    pointLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    pointLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() );
-
-    VkBufferDeviceAddressInfo pointLightColorInfo = {};
-    pointLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    pointLightColorInfo.buffer = BufferGetBuffer( GetPointLightColorBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightCenterAndRadiusInfo = {};
-    spotLightCenterAndRadiusInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightCenterAndRadiusInfo.buffer = BufferGetBuffer( GetSpotLightCenterAndRadiusBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightParamInfo = {};
-    spotLightParamInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightParamInfo.buffer = BufferGetBuffer( GetSpotLightParamBuffer() );
-
-    VkBufferDeviceAddressInfo lightIndexInfo = {};
-    lightIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    lightIndexInfo.buffer = BufferGetBuffer( GetLightIndexBuffer() );
-
-    VkBufferDeviceAddressInfo spotLightColorInfo = {};
-    spotLightColorInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    spotLightColorInfo.buffer = BufferGetBuffer( GetSpotLightColorBuffer() );
-
     PushConstants pushConstants{};
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &posInfo );
-    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &uvInfo );
-    pushConstants.normalBuf = vkGetBufferDeviceAddress( renderer.device, &normalInfo );
-    pushConstants.tangentBuf = vkGetBufferDeviceAddress( renderer.device, &tangentInfo );
-    pushConstants.pointLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightCenterAndRadiusInfo );
-    pushConstants.pointLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &pointLightColorInfo );
-    pushConstants.lightIndexBuf = vkGetBufferDeviceAddress( renderer.device, &lightIndexInfo );
+    pushConstants.posBuf = BufferGetAddress( renderer.staticMeshPositionBuffer );
+    pushConstants.uvBuf = BufferGetAddress( renderer.staticMeshUVBuffer );
+    pushConstants.normalBuf = BufferGetAddress( renderer.staticMeshNormalBuffer );
+    pushConstants.tangentBuf = BufferGetAddress( renderer.staticMeshTangentBuffer );
+    pushConstants.pointLightCenterAndRadiusBuf = BufferGetAddress( GetPointLightCenterAndRadiusBuffer() );
+    pushConstants.pointLightColorBuf = BufferGetAddress( GetPointLightColorBuffer() );
+    pushConstants.spotLightCenterAndRadiusBuf = BufferGetAddress( GetSpotLightCenterAndRadiusBuffer() );
+    pushConstants.spotLightColorBuf = BufferGetAddress( GetSpotLightColorBuffer() );
+    pushConstants.spotLightParamBuf = BufferGetAddress( GetSpotLightParamBuffer() );
+    pushConstants.lightIndexBuf = BufferGetAddress( GetLightIndexBuffer() );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.shadowTextureIndex = (int)shadowTextureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
     pushConstants.specularMapIndex = (int)specularMapIndex;
-    pushConstants.spotLightCenterAndRadiusBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightCenterAndRadiusInfo );
-    pushConstants.spotLightParamBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightParamInfo );
-    pushConstants.spotLightColorBuf = vkGetBufferDeviceAddress( renderer.device, &spotLightColorInfo );
 
     if (renderer.meshShaderSupported)
     {
@@ -2304,21 +2264,9 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     {
         if (meshInfo.module)
         {
-            VkBufferDeviceAddressInfo meshletIndexInfo = {};
-            meshletIndexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-            meshletIndexInfo.buffer = BufferGetBuffer( GetMeshletTriangleBuffer( renderMeshIndex, subMeshIndex ) );
-
-            VkBufferDeviceAddressInfo meshletVertexInfo = {};
-            meshletVertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-            meshletVertexInfo.buffer = BufferGetBuffer( GetMeshletVertexBuffer( renderMeshIndex, subMeshIndex ) );
-
-            VkBufferDeviceAddressInfo meshletInfo = {};
-            meshletInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-            meshletInfo.buffer = BufferGetBuffer( GetMeshletBuffer( renderMeshIndex, subMeshIndex ) );
-
-            pushConstants.meshletIndexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletIndexInfo );
-            pushConstants.meshletVertexBuf = vkGetBufferDeviceAddress( renderer.device, &meshletVertexInfo );
-            pushConstants.meshletBuf = vkGetBufferDeviceAddress( renderer.device, &meshletInfo );
+            pushConstants.meshletIndexBuf = BufferGetAddress( GetMeshletTriangleBuffer( renderMeshIndex, subMeshIndex ) );
+            pushConstants.meshletVertexBuf = BufferGetAddress( GetMeshletVertexBuffer( renderMeshIndex, subMeshIndex ) );
+            pushConstants.meshletBuf = BufferGetAddress( GetMeshletBuffer( renderMeshIndex, subMeshIndex ) );
         }
 
         vkCmdPushConstants( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.pipelineLayout, VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof( pushConstants ), &pushConstants );
@@ -2418,11 +2366,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     pushConstants.translate[ 0 ] = -1.0f - displayPosX * pushConstants.scale[ 0 ];
     pushConstants.translate[ 1 ] = -1.0f - displayPosY * pushConstants.scale[ 1 ];
 
-    VkBufferDeviceAddressInfo vertexInfo = {};
-    vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    vertexInfo.buffer = BufferGetBuffer( renderer.uiVertexBuffer );
-
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo );
+    pushConstants.posBuf = BufferGetAddress( renderer.uiVertexBuffer );
 
     if (renderer.meshShaderSupported)
     {
@@ -2464,13 +2408,9 @@ void DrawLines()
         ++renderer.statPSOBinds;
     }
 
-    VkBufferDeviceAddressInfo vertexInfo = {};
-    vertexInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    vertexInfo.buffer = BufferGetBuffer( renderer.lineVertexBuffer );
-
     PushConstants pushConstants{};
-    pushConstants.posBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo );
-    pushConstants.uvBuf = vkGetBufferDeviceAddress( renderer.device, &vertexInfo ); // NOTE: dummy uv, line drawing doesn't use UVs.
+    pushConstants.posBuf = BufferGetAddress( renderer.lineVertexBuffer );
+    pushConstants.uvBuf = BufferGetAddress( renderer.lineVertexBuffer ); // NOTE: dummy uv, line drawing doesn't use UVs.
 
     if (renderer.meshShaderSupported)
     {
