@@ -42,6 +42,6 @@ fragment float4 fullscreenAdditivePS( ColorInOut in [[stage_in]],
 {
     constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
 
-    return textureMap.sample( mysampler, in.texCoords.xy ).rrrr;
+    return textureMap.sample( mysampler, in.texCoords.xy );
 }
 

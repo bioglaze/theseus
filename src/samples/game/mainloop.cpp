@@ -517,7 +517,7 @@ void LoadResources( unsigned width, unsigned height )
     teFile cubeFile = teLoadFile( "assets/meshes/cube.t3d" );
     gResources.cubeMesh = teLoadMesh( cubeFile );
 
-    gResources.scene = teCreateScene( 0 );
+    gResources.scene = teCreateScene( 2048 );
 
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
@@ -695,7 +695,7 @@ void Render()
 {
     teBeginFrame();
 
-    Vec3 dirLightShadowCasterPosition;
+    Vec3 dirLightShadowCasterPosition = Vec3( 0, 10, 0 );
     teSceneRender( gResources.scene, &gResources.skyboxShader, &gResources.skyTex, &gResources.cubeMesh, gResources.momentsShader, dirLightShadowCasterPosition, gResources.depthNormalsShader, gResources.lightCullShader );
 
     teBeginSwapchainRendering();

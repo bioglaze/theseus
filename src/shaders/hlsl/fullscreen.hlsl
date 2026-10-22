@@ -27,5 +27,5 @@ float4 fullscreenPS( VSOutput vsOut ) : SV_Target
 
 float4 fullscreenAdditivePS(VSOutput vsOut) : SV_Target
 {
-    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv ).rrrr;
+    return texture2ds[ pushConstants.textureIndex ].Sample( samplers[ 0 ], vsOut.uv );
 }
