@@ -17,7 +17,7 @@ kernel void bloomThreshold(texture2d<float, access::read> colorTexture [[texture
     const float luminance = dot( color.rgb, float3( 0.2126f, 0.7152f, 0.0722f ) );
     const float luminanceThreshold = uniforms.bloomParams.w;
     const float4 finalColor = luminance > luminanceThreshold ? color : float4( 0, 0, 0, 0 );
-    downsampledBrightTexture.write( finalColor, gid.xy / 2 );
+    downsampledBrightTexture.write( finalColor, gid.xy );
 }
 
 kernel void bloomBlur(texture2d<float, access::read> inputTexture [[texture(0)]],
@@ -49,8 +49,8 @@ kernel void bloomDownsample(texture2d<float, access::sample> colorTexture [[text
     constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
 
     float2 uv;
-    uv.x = (gid.x * 2 + 0.5) / uniforms.tilesXY.x;
-    uv.y = (gid.y * 2 + 0.5) / uniforms.tilesXY.y;
+    uv.x = (gid.x + 0.5) / uniforms.tilesXY.x;
+    uv.y = (gid.y + 0.5) / uniforms.tilesXY.y;
 
     const float4 color = colorTexture.sample( sampler0, uv, 0 );
     
@@ -74,16 +74,16 @@ kernel void bloomCombine(texture2d<float, access::sample> bloomTexture [[texture
     uv.y = gid.y / uniforms.tilesXY.y;
     
     float2 uv2;
-    uv2.x = (gid.x * 1 + 1) / (uniforms.tilesXY.x * 2);
-    uv2.y = (gid.y * 1 + 1) / (uniforms.tilesXY.y * 2);
+    uv2.x = (gid.x * 2 + 1) / (uniforms.tilesXY.x * 2);
+    uv2.y = (gid.y * 2 + 1) / (uniforms.tilesXY.y * 2);
 
     float2 uv3;
-    uv3.x = (gid.x * 1 + 1) / (uniforms.tilesXY.x * 4);
-    uv3.y = (gid.y * 1 + 1) / (uniforms.tilesXY.y * 4);
+    uv3.x = (gid.x * 4 + 1) / (uniforms.tilesXY.x * 4);
+    uv3.y = (gid.y * 4 + 1) / (uniforms.tilesXY.y * 4);
 
     float2 uv4;
-    uv4.x = (gid.x * 1 + 1) / (uniforms.tilesXY.x * 8);
-    uv4.y = (gid.y * 1 + 1) / (uniforms.tilesXY.y * 8);
+    uv4.x = (gid.x * 8 + 1) / (uniforms.tilesXY.x * 8);
+    uv4.y = (gid.y * 8 + 1) / (uniforms.tilesXY.y * 8);
 
     const float4 color1 = bloomTexture.sample( sampler0, uv, 0 );
     const float4 color2 = downsampleTexture1.sample( sampler0, uv2, 0 );

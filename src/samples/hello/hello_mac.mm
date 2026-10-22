@@ -494,8 +494,8 @@ void MoveUp( float amount )
 
     teDrawQuad( m_fullscreenShader, teCameraGetColorTexture( m_camera3d.index ), shaderParams, teBlendMode::Off );
 
-    shaderParams.tilesXY[ 0 ] = 8.0f; // FIXME: Why is 8 needed here? In hello.cpp it's 4.
-    shaderParams.tilesXY[ 1 ] = 8.0f;
+    shaderParams.tilesXY[ 0 ] = 4.0f;
+    shaderParams.tilesXY[ 1 ] = 4.0f;
     teDrawQuad( m_fullscreenAdditiveShader, m_bloomComposeTarget, shaderParams, teBlendMode::Additive );
     //teDrawQuad( m_fullscreenAdditiveShader, m_downsampleTestTarget, shaderParams, teBlendMode::Additive );
 

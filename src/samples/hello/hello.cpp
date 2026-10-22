@@ -261,8 +261,9 @@ teMaterial key9mat;
 
 int main()
 {
-    unsigned width =  1920 / 1;
-    unsigned height =  1080 / 1;
+    //unsigned width =  1920 / 1;
+    //unsigned height =  1080 / 1;
+    unsigned width = 800, height = 450;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
     teWindowGetSize( width, height );
     teCreateRenderer( 1, windowHandle, width, height );
