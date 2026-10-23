@@ -184,12 +184,12 @@ void MoveUp( float amount )
         teCameraGetColorTexture( m_camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
         teCameraGetDepthTexture( m_camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
         teCameraGetDepthNormalsTexture( m_camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
-        m_bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomTarget" );
-        m_blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "blurTarget" );
-        m_bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32F, "bloomComposeTarget" );
-        m_downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget" );
-        m_downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget2" );
-        m_downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32F, "downsampleTarget3" );
+        m_bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomTarget" );
+        m_blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "blurTarget" );
+        m_bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomComposeTarget" );
+        m_downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget" );
+        m_downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget2" );
+        m_downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget3" );
 
         m_downsampleTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::RGBA_sRGB, "downsampleTestTarget" );
 
@@ -396,50 +396,66 @@ void MoveUp( float amount )
 #if 1
     float bloomThreshold = 0.1f;
 
+    // The dispatches are rounded up to whole 8x8 thread groups, so the shaders
+    // bounds check against the resolution of the texture they write to.
+    const unsigned bloomGroupsX = ( width + 7 ) / 8;
+    const unsigned bloomGroupsY = ( height + 7 ) / 8;
+
+    // bloomTarget, blurTarget and bloomComposeTarget are at full resolution, the
+    // downsample chain is at 1/2, 1/4 and 1/8 resolution.
+    const unsigned bloomHalfWidth = width / 2;
+    const unsigned bloomHalfHeight = height / 2;
+    const unsigned bloomQuarterWidth = width / 4;
+    const unsigned bloomQuarterHeight = height / 4;
+    const unsigned bloomEighthWidth = width / 8;
+    const unsigned bloomEighthHeight = height / 8;
+
     shaderParams.readTexture = teCameraGetColorTexture( m_camera3d.index ).index;
     shaderParams.writeTexture = m_bloomTarget.index;
-    shaderParams.bloomThreshold = pow( 2, bloomThreshold ) - 1;
-    teShaderDispatch( m_bloomThresholdShader, width / 8, height / 8, 1, shaderParams, "bloom threshold" );
+    shaderParams.tilesXY[ 0 ] = (float)width;
+    shaderParams.tilesXY[ 1 ] = (float)height;
+    shaderParams.bloomThreshold = (float)pow( 2, bloomThreshold ) - 1;
+    teShaderDispatch( m_bloomThresholdShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom threshold" );
 
     // TODO UAV barrier here
     shaderParams.readTexture = m_bloomTarget.index;
     shaderParams.writeTexture = m_blurTarget.index;
     shaderParams.tilesXY[ 2 ] = 1.0f;
     shaderParams.tilesXY[ 3 ] = 0.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur h" );
 
     // TODO UAV barrier here
     shaderParams.readTexture = m_blurTarget.index;
     shaderParams.writeTexture = m_bloomTarget.index;
     shaderParams.tilesXY[ 2 ] = 0.0f;
     shaderParams.tilesXY[ 3 ] = 1.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur v" );
 
     // additional blurring
     shaderParams.readTexture = m_bloomTarget.index;
     shaderParams.writeTexture = m_blurTarget.index;
     shaderParams.tilesXY[ 2 ] = 1.0f;
     shaderParams.tilesXY[ 3 ] = 0.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 2" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur h 2" );
 
     shaderParams.readTexture = m_blurTarget.index;
     shaderParams.writeTexture = m_bloomTarget.index;
     shaderParams.tilesXY[ 2 ] = 0.0f;
     shaderParams.tilesXY[ 3 ] = 1.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 2" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur v 2" );
 
     // additional blurring 2
     shaderParams.readTexture = m_bloomTarget.index;
     shaderParams.writeTexture = m_blurTarget.index;
     shaderParams.tilesXY[ 2 ] = 1.0f;
     shaderParams.tilesXY[ 3 ] = 0.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur h 3" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur h 3" );
 
     shaderParams.readTexture = m_blurTarget.index;
     shaderParams.writeTexture = m_bloomTarget.index;
     shaderParams.tilesXY[ 2 ] = 0.0f;
     shaderParams.tilesXY[ 3 ] = 1.0f;
-    teShaderDispatch( m_bloomBlurShader, width / 8, height / 8, 1, shaderParams, "bloom blur v 3" );
+    teShaderDispatch( m_bloomBlurShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom blur v 3" );
 
     // Downsample init.
     shaderParams.tilesXY[ 2 ] = 1.0f;
@@ -448,23 +464,23 @@ void MoveUp( float amount )
     // Downsample 1
     shaderParams.readTexture = m_bloomTarget.index;
     shaderParams.writeTexture = m_downsampleTarget.index;
-    shaderParams.tilesXY[ 0 ] = width / 2;
-    shaderParams.tilesXY[ 1 ] = height / 2;
-    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 1" );
+    shaderParams.tilesXY[ 0 ] = (float) bloomHalfWidth;
+    shaderParams.tilesXY[ 1 ] = (float) bloomHalfHeight;
+    teShaderDispatch( m_downsampleShader, ( bloomHalfWidth + 7 ) / 8, ( bloomHalfHeight + 7 ) / 8, 1, shaderParams, "bloom downsample 1" );
 
     // Downsample 2
     shaderParams.readTexture = m_downsampleTarget.index;
     shaderParams.writeTexture = m_downsampleTarget2.index;
-    shaderParams.tilesXY[ 0 ] = width / 4;
-    shaderParams.tilesXY[ 1 ] = height / 4;
-    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 2" );
+    shaderParams.tilesXY[ 0 ] = (float) bloomQuarterWidth;
+    shaderParams.tilesXY[ 1 ] = (float) bloomQuarterHeight;
+    teShaderDispatch( m_downsampleShader, ( bloomQuarterWidth + 7 ) / 8, ( bloomQuarterHeight + 7 ) / 8, 1, shaderParams, "bloom downsample 2" );
 
     // Downsample 3
     shaderParams.readTexture = m_downsampleTarget2.index;
     shaderParams.writeTexture = m_downsampleTarget3.index;
-    shaderParams.tilesXY[ 0 ] = width / 8;
-    shaderParams.tilesXY[ 1 ] = height / 8;
-    teShaderDispatch( m_downsampleShader, width / 8, height / 8, 1, shaderParams, "bloom downsample 3" );
+    shaderParams.tilesXY[ 0 ] = (float) bloomEighthWidth;
+    shaderParams.tilesXY[ 1 ] = (float) bloomEighthHeight;
+    teShaderDispatch( m_downsampleShader, ( bloomEighthWidth + 7 ) / 8, ( bloomEighthHeight + 7 ) / 8, 1, shaderParams, "bloom downsample 3" );
 
     // Combine
     shaderParams.readTexture = m_bloomTarget.index;
@@ -472,9 +488,9 @@ void MoveUp( float amount )
     shaderParams.readTexture3 = m_downsampleTarget2.index;
     shaderParams.readTexture4 = m_downsampleTarget3.index;
     shaderParams.writeTexture = m_bloomComposeTarget.index;
-    shaderParams.tilesXY[ 0 ] = width / 2;
-    shaderParams.tilesXY[ 1 ] = height / 2;
-    teShaderDispatch( m_bloomCombineShader, width / 8, height / 8, 1, shaderParams, "bloom combine" );
+    shaderParams.tilesXY[ 0 ] = (float)width;
+    shaderParams.tilesXY[ 1 ] = (float)height;
+    teShaderDispatch( m_bloomCombineShader, bloomGroupsX, bloomGroupsY, 1, shaderParams, "bloom combine" );
 #endif
 
     // Bilinear test
@@ -494,8 +510,12 @@ void MoveUp( float amount )
 
     teDrawQuad( m_fullscreenShader, teCameraGetColorTexture( m_camera3d.index ), shaderParams, teBlendMode::Off );
 
-    shaderParams.tilesXY[ 0 ] = 4.0f;
-    shaderParams.tilesXY[ 1 ] = 4.0f;
+    //shaderParams.tilesXY[ 0 ] = 4.0f;
+    //shaderParams.tilesXY[ 1 ] = 4.0f;
+    shaderParams.tilesXY[ 0 ] = 2.0f;
+    shaderParams.tilesXY[ 1 ] = 2.0f;
+    shaderParams.tilesXY[ 2 ] = -1.0f;
+    shaderParams.tilesXY[ 3 ] = -1.0f;
     teDrawQuad( m_fullscreenAdditiveShader, m_bloomComposeTarget, shaderParams, teBlendMode::Additive );
     //teDrawQuad( m_fullscreenAdditiveShader, m_downsampleTestTarget, shaderParams, teBlendMode::Additive );
 
