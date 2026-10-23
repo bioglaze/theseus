@@ -302,6 +302,18 @@ void Matrix::MakeLookAtLH( const Vec3& eye, const Vec3& center, const Vec3& up )
     m[ 12 ] = 0; m[ 13 ] = 0; m[ 14 ] = 0; m[ 15 ] = 1;
 }
 
+void Matrix::MakeLookAtRH( const Vec3& eye, const Vec3& center, const Vec3& up )
+{
+    const Vec3 zAxis = (eye - center).Normalized();
+    const Vec3 xAxis = Vec3::Cross( up, zAxis ).Normalized();
+    const Vec3 yAxis = Vec3::Cross( zAxis, xAxis );
+
+    m[ 0 ] = xAxis.x; m[ 1 ] = yAxis.x; m[ 2 ] = zAxis.x; m[ 3 ] = 0;
+    m[ 4 ] = xAxis.y; m[ 5 ] = yAxis.y; m[ 6 ] = zAxis.y; m[ 7 ] = 0;
+    m[ 8 ] = xAxis.z; m[ 9 ] = yAxis.z; m[ 10 ] = zAxis.z; m[ 11 ] = 0;
+    m[ 12 ] = -Vec3::Dot( xAxis, eye ); m[ 13 ] = -Vec3::Dot( yAxis, eye ); m[ 14 ] = -Vec3::Dot( zAxis, eye ); m[ 15 ] = 1;
+}
+
 void Matrix::Invert( const Matrix& matrix, Matrix& out )
 {
     float invTrans[ 16 ];
