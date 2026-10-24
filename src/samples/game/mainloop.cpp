@@ -454,12 +454,20 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
                     ++nameCursor;
                 }
 
+                bool found = false;
+
                 for (int m = 0; m < gResources.materialCount; ++m)
                 {
                     if (strcmp( gResources.materials[ m ].name, name ) == 0)
                     {
                         teMeshRendererSetMaterial( gos[ goCount - 1 ].index, gResources.materials[ m ], subMesh );
+                        found = true;
                     }
+                }
+
+                if (!found)
+                {
+                    printf( "Could not find material '%s'\n", name );
                 }
             }
         }
