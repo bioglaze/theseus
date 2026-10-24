@@ -466,17 +466,7 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
         unsigned index = scenes[ scene.index ].gameObjects[ scenes[ scene.index ].shadowCaster.cameraIndex ];
         teTransformLookAt( index, dirLightPosition, dirLightPosition - scenes[ scene.index ].shadowCaster.lightDirection, {0, 1, 0});
         teCameraSetProjection( index, 45, 1, 0.1f, 400.0f );
-
-        TransformSolveLocalMatrix( index, true );
-        const Matrix localToWorld = teTransformGetMatrix( index );
-
-        Matrix localToView;
-        Matrix localToClip;
-        Matrix::Multiply( localToWorld, teTransformGetMatrix( index ), localToView );
-        Matrix::Multiply( localToView, teCameraGetProjection( index ), localToClip );
-
-        TransformSetComputedLocalToClip( index, localToClip );
-        TransformSetComputedLocalToView( index, localToView );
+        teCameraSetClear( index, teClearFlag::DepthAndColor, Vec4( 400.0f, 400.0f * 400.0f, 0, 0 ) );
 
         RenderSceneWithCamera( scene, index, nullptr, nullptr, nullptr, 0, "Shadow Map", &momentsShader, nullptr, nullptr );
     }
