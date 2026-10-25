@@ -47,8 +47,8 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
 
     float delta = depth - moments.x;
     float p = smoothstep( depth - 0.02f, depth, moments.x );
-    float minAmbient = 0.2f;
-    float pMax = linstep( minAmbient, 1.0f, variance / (variance + delta * delta) );
+    float lightBreedingReductionThreshold = 0.2f;
+    float pMax = linstep( lightBreedingReductionThreshold, 1.0f, variance / (variance + delta * delta) );
 
     return saturate( max( p, pMax ) );
 }
@@ -140,7 +140,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = -( uniforms.localToView * uniforms.lightDir ).xyz;
+    const float3 surfaceToLightVS = -uniforms.lightDir.xyz;
     float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     const float dotNV = abs( dot( N, V ) ) + 1e-5f;
     
@@ -191,8 +191,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float D = D_GGX( dotNH, a );
             const float3 F = F_Schlick( dotLH, f0 );
             const float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
-            const float3 Fr = (D * v) * F;
-            const float3 Fd = Fd_Lambert();
+            //const float3 Fr = (D * v) * F;
+            //const float3 Fd = Fd_Lambert();
 
             const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
             const float3 color = float3( 1, 1, 1 );//Fd + Fr;
