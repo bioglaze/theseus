@@ -301,6 +301,26 @@ WindowImpl win;
     }
 }
 
+- (void)scrollWheel:(NSEvent *)theEvent
+{
+    printf("scrollwheel\n");
+    if (IncEventIndex())
+    {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        //win.events[ win.eventIndex ].wheelDelta = 1;
+    }
+}
+
+- (void)rightMouseDragged:(NSEvent *)theEvent
+{
+    printf("rightMouseDragged\n");
+}
+
 @end
 
 void* teCreateWindow( unsigned width, unsigned height, const char* title )
