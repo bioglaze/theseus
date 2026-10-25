@@ -15,39 +15,6 @@ struct VSOutput
     float3 positionWS  : POSITION1;
 };
 
-uint GetNumLightsInThisTile( uint tileIndex )
-{
-    uint numLightsInThisTile = 0;
-    //uint index = uniforms.maxLightsPerTile * tileIndex;
-    uint index = vk::RawBufferLoad < uint > (pushConstants.lightIndexBuf + 4 * uniforms.maxLightsPerTile * tileIndex);
-    //uint nextLightIndex = perTileLightIndexBuffer[ index ];
-    uint nextLightIndex = vk::RawBufferLoad<uint > (pushConstants.lightIndexBuf + 4 * index);
-    
-    // count point lights
-    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
-    {
-        ++numLightsInThisTile;
-        ++index;
-        //nextLightIndex = perTileLightIndexBuffer[ index ];
-        nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
-    }
-
-    ++index;
-    //nextLightIndex = perTileLightIndexBuffer[ index ];
-    nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
-    
-    // count spot lights
-    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
-    {
-        ++numLightsInThisTile;
-        ++index;
-        //nextLightIndex = perTileLightIndexBuffer[ index ];
-        nextLightIndex = vk::RawBufferLoad< uint > (pushConstants.lightIndexBuf + 4 * index);
-    }
-
-    return numLightsInThisTile;
-}
-
 uint GetTileIndex( float2 screenPos )
 {
     const float tileRes = (float) TILE_RES;
@@ -93,7 +60,7 @@ float VSM( float depth, float4 projCoord )
     //    return 0.2f;
     //return 1.0f;
 
-    float variance = max( moments.y - moments.x * moments.x, -0.001f );
+    float variance = max( moments.y - moments.x * moments.x, 1e-5f );
 
     float delta = depth - moments.x;
     float p = smoothstep( depth - 0.02f, depth, moments.x );
@@ -141,11 +108,8 @@ float Fd_Lambert()
 float4 standardPS( VSOutput vsOut ) : SV_Target
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
-    //float depth = (vsOut.projCoord.z + 0.0001f) / vsOut.projCoord.w;
     float3 shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
-    //float2 normalTex = texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xy;
     float3 normalTS = normalize( texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xyz * 2.0 - 1.0 );
-    //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
 
     const float3 N = normalize( normalVS );
@@ -156,7 +120,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
     float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = -mul( uniforms.localToView, uniforms.lightDirection ).xyz;
+    const float3 surfaceToLightVS = -uniforms.lightDirection.xyz;
     float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     accumDiffuseAndSpecular *= dotNL;
     

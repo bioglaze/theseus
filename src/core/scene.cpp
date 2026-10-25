@@ -262,7 +262,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
     PopGroupMarker();
 }
 
-static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* overrideShader )
+static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned shadowMapIndex, const teShader* overrideShader, unsigned cameraGOIndex )
 {
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
     {
@@ -305,14 +305,25 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             shaderParams.tint[ 1 ] = tint.y;
             shaderParams.tint[ 2 ] = tint.z;
             shaderParams.tint[ 3 ] = tint.w;
+
             Vec4 lightDir;
             lightDir.x = scenes[ scene.index ].directionalLightDirection.x;
             lightDir.y = scenes[ scene.index ].directionalLightDirection.y;
             lightDir.z = scenes[ scene.index ].directionalLightDirection.z;
+
+            Matrix lightDirToVS;
+            Vec3 lightDirWS = Vec3( lightDir.x, lightDir.y, lightDir.z );
+            Vec3 lightDirVS;
+            Matrix::TransformDirection( lightDirWS, teTransformGetMatrix( cameraGOIndex ), &lightDirVS );
+            lightDir.x = lightDirVS.x;
+            lightDir.y = lightDirVS.y;
+            lightDir.z = lightDirVS.z;
+            
             Vec4 lightColor;
             lightColor.x = scenes[ scene.index ].directionalLightColor.x;
             lightColor.y = scenes[ scene.index ].directionalLightColor.y;
             lightColor.z = scenes[ scene.index ].directionalLightColor.z;
+
             Vec4 lightPosition;
             lightPosition.x = scenes[ scene.index ].directionalLightPosition.x;
             lightPosition.y = scenes[ scene.index ].directionalLightPosition.y;
@@ -362,8 +373,8 @@ static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex,
     BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
     PushGroupMarker( "DepthNormals");
 
-    RenderMeshes( scene, teBlendMode::Off, 0, shader );
-    RenderMeshes( scene, teBlendMode::Alpha, 0, shader );
+    RenderMeshes( scene, teBlendMode::Off, 0, shader, cameraGOIndex );
+    RenderMeshes( scene, teBlendMode::Alpha, 0, shader, cameraGOIndex );
 
     PopGroupMarker();
     EndRendering( depthNormals, depth );
@@ -424,8 +435,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         RenderSky( cameraGOIndex, skyboxShader, skyboxTexture, skyboxMesh );
     }
 
-    RenderMeshes( scene, teBlendMode::Off, shadowMapindex, momentsShader );
-    RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex, momentsShader );
+    RenderMeshes( scene, teBlendMode::Off, shadowMapindex, momentsShader, cameraGOIndex );
+    RenderMeshes( scene, teBlendMode::Alpha, shadowMapindex, momentsShader, cameraGOIndex );
 
     PopGroupMarker();
 
