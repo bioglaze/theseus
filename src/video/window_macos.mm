@@ -21,6 +21,60 @@ struct WindowImpl
 
 WindowImpl win;
 
+void GetOpenPath( char* path, const char* extension )
+{
+    NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
+    UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
+
+    if (type != nil)
+    {
+        [types addObject: type];
+    }
+
+    NSOpenPanel *op = [NSOpenPanel openPanel];
+    [op setAllowedContentTypes: types];
+    
+    if ([op runModal] == NSModalResponseOK)
+    {
+        NSURL *nsurl = [[op URLs] objectAtIndex:0];
+        NSString *myString = [nsurl path];
+        const char* str = [myString UTF8String];
+        strcpy( path, str );
+        path[ strlen( str ) ] = 0;
+    }
+    else
+    {
+        path[ 0 ] = 0;
+    }
+}
+
+void GetSavePath( char* path, const char* extension )
+{
+    NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
+    UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
+
+    if (type != nil)
+    {
+        [types addObject: type];
+    }
+
+    NSSavePanel *op = [NSSavePanel savePanel];
+    //[op setAllowedContentTypes: types];
+    
+    if ([op runModal] == NSModalResponseOK)
+    {
+        NSURL *nsurl = [op URL];
+        NSString *myString = [nsurl path];
+        const char* str = [myString UTF8String];
+        strcpy( path, str );
+        path[ strlen( str ) ] = 0;
+    }
+    else
+    {
+        path[ 0 ] = 0;
+    }
+}
+
 @protocol MetalViewDelegate <NSObject>
 @end
 
@@ -164,10 +218,34 @@ WindowImpl win;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Plus;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-        else if ([theEvent keyCode] == 44 && IncEventIndex()) // -
+    else if ([theEvent keyCode] == 44 && IncEventIndex()) // -
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Minus;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 18 && IncEventIndex()) // 1
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N1;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 19 && IncEventIndex()) // 2
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N2;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 20 && IncEventIndex()) // 3
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N3;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 21 && IncEventIndex()) // 4
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N4;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 }
@@ -282,6 +360,30 @@ WindowImpl win;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Minus;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 18 && IncEventIndex()) // 1
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N1;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 19 && IncEventIndex()) // 2
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N2;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 20 && IncEventIndex()) // 3
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N3;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 21 && IncEventIndex()) // 4
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N4;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
@@ -290,10 +392,11 @@ WindowImpl win;
     {
         float x = theEvent.locationInWindow.x * win.scale;
         float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
 
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Down;
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
-        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
     }
 }
 
@@ -303,10 +406,11 @@ WindowImpl win;
     {
         float x = theEvent.locationInWindow.x * win.scale;
         float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
 
         win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse1Up;
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
-        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
     }
 }
 
@@ -316,10 +420,11 @@ WindowImpl win;
     {
         float x = theEvent.locationInWindow.x * win.scale;
         float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
 
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
-        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
     }
 }
 
@@ -329,10 +434,11 @@ WindowImpl win;
     {
         float x = theEvent.locationInWindow.x * win.scale;
         float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
 
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
-        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
     }
 }
 
@@ -343,10 +449,11 @@ WindowImpl win;
     {
         float x = theEvent.locationInWindow.x * win.scale;
         float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
 
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
-        win.events[ win.eventIndex ].y = win.height - y >= 0 ? y : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
         win.events[ win.eventIndex ].wheelDelta = theEvent.deltaY;
     }
 }
@@ -394,13 +501,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.scale = [window backingScaleFactor];
     printf("scale: %f\n", win.scale );
 
-    unsigned frameWidth = (unsigned)window.frame.size.width;
-    unsigned frameHeight = (unsigned)window.frame.size.height;
-    printf( "width: %u, height: %u, framew %u, frameh %u\n", width, height, frameWidth, frameHeight);
-
-    win.width = frameWidth * win.scale;
-    win.height = frameHeight * win.scale;
-
     gDevice = MTLCreateSystemDefaultDevice();
 
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
@@ -410,6 +510,13 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     view.delegate = viewController;
 
     window.contentView = view;
+
+    unsigned frameWidth = (unsigned)window.contentView.frame.size.width;
+    unsigned frameHeight = (unsigned)window.contentView.frame.size.height;
+    printf( "width: %u, height: %u, framew %u, frameh %u\n", width, height, frameWidth, frameHeight);
+
+    win.width = frameWidth * win.scale;
+    win.height = frameHeight * win.scale;
 
     return nullptr;
 }

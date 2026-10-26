@@ -120,7 +120,7 @@ void GetSavePath( char* path, const char* extension )
         strncpy( path, ofn.lpstrFile, 280 ); // 280 comes from sceneview.cpp: openFilePath
     }
 }
-#else
+#elif API_VULKAN
 void GetOpenPath( char* path, const char* extension )
 {
     FILE* f = nullptr;
@@ -602,8 +602,9 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
 int main()
 {
-    unsigned width = 2560 / 1;
-    unsigned height = 1440 / 1;
+    //unsigned width = 2560 / 1;
+    //unsigned height = 1440 / 1;
+    unsigned width = 750*2, height = 390*2;
     void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
     teWindowGetSize( width, height );
 

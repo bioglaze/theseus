@@ -51,5 +51,5 @@ ifeq ($(UNAME), Darwin)
 	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Isamples/game/include -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework UniformTypeIdentifiers -framework Cocoa -framework CoreAudio -framework AudioUnit -framework QuartzCore -framework MetalKit -framework Metal *.o ../build/engine.o samples/hello/include_metal.cpp tools/editor/scene_usd.cpp tools/editor/sceneview.cpp tools/editor/main_mac.mm -o ../build/editor_mac
 else
 	$(CC) $(FLAGS) $(SANITIZERS) -Iinclude -Ithirdparty/meshoptimizer thirdparty/meshoptimizer/*.cpp tools/convert_obj/convert_obj.cpp -o ../build/convert_obj
-	$(CC) $(FLAGS) $(SANITIZERS) tools/editor/*.cpp -Isamples/game/include *.o ../build/engine.o $(LINKER) -o ../build/editor
+	$(CC) $(FLAGS) $(SANITIZERS) $(DEFINES) tools/editor/*.cpp -Isamples/game/include *.o ../build/engine.o $(LINKER) -o ../build/editor
 endif
