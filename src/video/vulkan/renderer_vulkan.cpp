@@ -34,7 +34,6 @@ teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& 
 VkDeviceMemory BufferGetMemory( const teBuffer& buffer );
 VkBuffer BufferGetBuffer( const teBuffer& buffer );
 uint64_t BufferGetAddress( const teBuffer& buffer );
-void WaylandDispatch();
 void InitLightTiler( unsigned widthPixels, unsigned heightPixels );
 unsigned GetPointLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
@@ -1793,10 +1792,6 @@ void teEndFrame()
     }
 
     renderer.frameIndex = (renderer.frameIndex + 1) % renderer.swapchainImageCount;
-
-#if VK_USE_PLATFORM_WAYLAND_KHR
-    WaylandDispatch();
-#endif
 }
 
 void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFlag, const float* clearColor )

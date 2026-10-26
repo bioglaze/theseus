@@ -450,23 +450,24 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
         //printf( "pressed left button: %d\n", pressed );
     }
 
-    IncEventIndex();
-
-    if (button == BTN_LEFT)
+    if (button == BTN_LEFT && IncEventIndex())
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
+        win.events[ win.eventIndex ].x = win.lastMouseX;
+        win.events[ win.eventIndex ].y = win.lastMouseY;
     }
-    else if (button == BTN_RIGHT)
+    else if (button == BTN_RIGHT && IncEventIndex())
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
+        win.events[ win.eventIndex ].x = win.lastMouseX;
+        win.events[ win.eventIndex ].y = win.lastMouseY;
     }
-    else if (button == BTN_MIDDLE)
+    else if (button == BTN_MIDDLE && IncEventIndex())
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
+        win.events[ win.eventIndex ].x = win.lastMouseX;
+        win.events[ win.eventIndex ].y = win.lastMouseY;
     }
-
-    win.events[ win.eventIndex ].x = win.lastMouseX;
-    win.events[ win.eventIndex ].y = win.lastMouseY;
 }
 
 void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
@@ -742,7 +743,7 @@ void updateScale( Window* windowa )
 
 void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
 {
-    //struct window *window = (window*)data;
+    Window* windowa = (Window*)data;
 
     if (!ownOutput( wlOutput ))
         return;
@@ -755,8 +756,7 @@ void surfaceEnter( void* data, wl_surface* wlSurface, wl_output* wlOutput )
     WindowOutput* windowOutput = (WindowOutput*)malloc( sizeof( WindowOutput ) ); // FIXME: Does this need to be dynamically allocated?
     windowOutput->output = outpu;
 
-    // FIXME: why does the program crash if the following wl_list_insert is executed? Is it even necessary?
-    //wl_list_insert( &window.outputs, &windowOutput->link );
+    wl_list_insert( &windowa->outputs, &windowOutput->link );
     
     updateScale( &window );
 }
@@ -1005,7 +1005,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.width = width;
     win.height = height;
 
-    wl_list_init( &outputs );
+    wl_list_init( &window.outputs );
     window.wlSurface = wl_compositor_create_surface( wlCompositor );
     gwlSurface = window.wlSurface;
     wl_surface_add_listener( window.wlSurface, &surfaceListener, &window );
@@ -1015,7 +1015,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     decorContext = libdecor_new( gwlDisplay, &libdecor_iface );
     window.frame = libdecor_decorate( decorContext, window.wlSurface, &decorFrameInterface, &window );
     libdecor_frame_set_app_id( window.frame, appId );
-    libdecor_frame_set_title( window.frame, "Theseus Engine" );
+    libdecor_frame_set_title( window.frame, title );
     libdecor_frame_map( window.frame );
 
     while (!window.isConfigured)
@@ -1032,6 +1032,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
 void tePushWindowEvents()
 {
+    int timeout = 0;
+    libdecor_dispatch( decorContext, timeout );
+
     if (!win.gamePad.isActive)
     {
         return;
@@ -1155,13 +1158,6 @@ void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
     outHeight = win.height;
 }
 
-void WaylandDispatch()
-{
-    int timeout = -1;
-    libdecor_dispatch( decorContext, timeout );
-    //printf("libdecor_dispatch res: %d\n", res);
-}
-
 teWindowEvent* teGetWindowEvents()
 {
     return win.events;
@@ -1178,6 +1174,6 @@ void teClearWindowEvents()
 
     for (unsigned i = 0; i < EventStackSize; ++i)
     {
-        win.events[ i ].type = teWindowEvent::Type::Empty;
+        win.events[ i ] = teWindowEvent{};
     }
 }
