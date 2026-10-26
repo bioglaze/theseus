@@ -624,12 +624,8 @@ void GetColliders( unsigned screenX, unsigned screenY, unsigned width, unsigned 
 
 void Init( unsigned width, unsigned height )
 {
-#if !API_METAL
     void* windowHandle = teCreateWindow( width, height, "Game" );
     teWindowGetSize( width, height );
-#else
-    void* windowHandle = nullptr;//teCreateWindow( width, height, "Game" );
-#endif
     teCreateRenderer( 1, windowHandle, width, height );
 
     InitAudio();

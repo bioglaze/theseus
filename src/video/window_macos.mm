@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <Metal/Metal.h>
 #include "window.h"
 
@@ -517,7 +518,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     win.width = frameWidth * win.scale;
     win.height = frameHeight * win.scale;
-
+    
     return nullptr;
 }
 
