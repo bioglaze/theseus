@@ -26,7 +26,6 @@ Bugs:
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
-  * WASAPI: clicking the door button multiple times crashes inside audio code.
   
 * 0.1 hitlist
   * imgui.ini for Editor
@@ -35,9 +34,8 @@ Bugs:
   * mention that save scene and export scene should save to build/
   * light removal
   * fix sprite clicking bug
-  * Fix audio looping
+  * Fix audio looping (win: no loop)
   * audio threading
-  * Bonus: window_macos.mm
 
 TODO:
 * Editor
