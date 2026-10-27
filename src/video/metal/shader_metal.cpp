@@ -123,7 +123,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     teAssert( !params.writeTexture || (TextureGetFlags( params.writeTexture ) & teTextureFlags::UAV ) );
     
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
     
     MTL::Size threadgroups = MTL::Size::Make( groupsX, groupsY, groupsZ );
 

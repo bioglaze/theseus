@@ -58,8 +58,21 @@ float VSM( float depth, float4 projCoord )
     {
         return 1;
     }
+
+    if (projCoord.w <= 0)
+    {
+        return 1;
+    }
     
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
+
+    if (uv.x < 0 || uv.y < 0 || uv.x > 1 || uv.y > 1)
+    {
+        return 1;
+    }
+
+    uv = (floor( uv * (float)uniforms.shadowDim ) + 0.5f) / (float)uniforms.shadowDim;
+    
     float2 moments = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 ).rg;
     //if (moments.x > depth && projCoord.w > 0) // projCoord.w > 0 tries to prevent darkening the area outside the shadow map
     //    return 0.2f;

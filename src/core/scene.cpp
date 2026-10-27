@@ -53,6 +53,7 @@ struct ShadowCaster
     teTexture2D depth;
     unsigned cameraIndex{ MaxSceneGameObjects - 1 };
     Vec3 lightDirection;
+    unsigned shadowDim = 0;
 };
 
 struct SceneImpl
@@ -73,7 +74,7 @@ unsigned teSceneGetGameObjectIndex( const teScene& scene, unsigned i )
     return scenes[ scene.index ].gameObjects[ i ];
 }
 
-teScene teCreateScene( unsigned directonalShadowMapDimension )
+teScene teCreateScene( unsigned directionalShadowMapDimension )
 {
     teAssert( sceneIndex < 2 );
 
@@ -85,16 +86,18 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
         scenes[ outScene.index ].gameObjects[ i ] = 0;
     }
 
-    if (directonalShadowMapDimension != 0)
+    if (directionalShadowMapDimension != 0)
     {
         const unsigned cameraGOIndex = scenes[ outScene.index ].gameObjects[ scenes[ outScene.index ].shadowCaster.cameraIndex ];
 
-        scenes[ outScene.index ].shadowCaster.color = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::R32G32F, "dir shadow color" );
-        scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directonalShadowMapDimension, directonalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "dir shadow depth" );
+        scenes[ outScene.index ].shadowCaster.color = teCreateTexture2D( directionalShadowMapDimension, directionalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::R32G32F, "dir shadow color" );
+        scenes[ outScene.index ].shadowCaster.depth = teCreateTexture2D( directionalShadowMapDimension, directionalShadowMapDimension, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "dir shadow depth" );
 
         teCameraGetColorTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.color;
-        teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;
+        teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;        
     }
+
+    scenes[ outScene.index ].shadowCaster.shadowDim = directionalShadowMapDimension;
     
     quadMesh = teCreateQuadMesh();
 
@@ -231,7 +234,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
         shaderParams.localToView[ i ] = localToView.m[ i ];
     }
 
-    UpdateUBO( localToClip.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( localToClip.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -248,7 +251,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
 
     PushGroupMarker( "Fullscreen Quad" );
     unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
@@ -339,8 +342,8 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             RendererGetSize( width, height );
             shaderParams.tilesXY[ 0 ] = (float)width;
             shaderParams.tilesXY[ 1 ] = (float)height;
-
-            UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition );
+                
+            UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition, scenes[ scene.index ].shadowCaster.shadowDim );
 
             const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );
 
@@ -457,7 +460,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         shaderParams.tint[ 2 ] = 1;
         shaderParams.tint[ 3 ] = 1;
 
-        UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+        UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
 
         DrawLines();
     }

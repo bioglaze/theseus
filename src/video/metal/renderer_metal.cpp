@@ -44,6 +44,7 @@ struct PerObjectUboStruct
     unsigned pointLightCount{ 0 };
     unsigned spotLightCount{ 0 };
     unsigned maxLightsPerTile{ 0 };
+    unsigned shadowDim{ 0 };
 };
 
 constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
@@ -406,7 +407,7 @@ unsigned AddTangents( const float* tangents, unsigned bytes )
 
 void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ],
                 const float localToWorld[ 16 ],
-                const ShaderParams& shaderParams, const Vec4& lightDir, const Vec4& lightColor, const Vec4& lightPosition )
+                const ShaderParams& shaderParams, const Vec4& lightDir, const Vec4& lightColor, const Vec4& lightPosition, unsigned shadowDim )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
@@ -430,7 +431,8 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.maxLightsPerTile = GetMaxLightsPerTile( renderer.height );
     uboStruct.pointLightCount = GetPointLightCount();
     uboStruct.spotLightCount = GetSpotLightCount();
-
+    uboStruct.shadowDim = shadowDim;
+    
     MTL::Buffer* uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
     uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ 0 ].uboOffset;
 
@@ -773,7 +775,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     Matrix localToClip;
     localToClip.InitFrom( &orthoProjection[ 0 ][ 0 ] );
     ShaderParams shaderParams = {};
-    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ) );
+    UpdateUBO( localToClip.m, localToClip.m, localToClip.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
 
     const unsigned vertexStride = 20; // sizeof( ImDrawVert )
     const unsigned indexStride = 2; // sizeof( ImDrawIdx )

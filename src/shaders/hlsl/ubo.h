@@ -14,6 +14,7 @@ struct UniformData
     uint pointLightCount;
     uint spotLightCount;
     uint maxLightsPerTile;
+    uint shadowDim;
 };
 
 struct PushConstants

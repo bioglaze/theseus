@@ -16,4 +16,5 @@ struct Uniforms
     uint pointLightCount;
     uint spotLightCount;
     uint maxLightsPerTile;
+    uint shadowDim;
 };
