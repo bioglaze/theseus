@@ -39,7 +39,19 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
     // NOTE: This is needed on Metal, but not on Vulkan.
     projCoord.y = -projCoord.y;
 
+    if (projCoord.w <= 0)
+    {
+        return 1;
+    }
+
     float2 uv = (projCoord.xy / projCoord.w) * 0.5f + 0.5f;
+
+    if (uv.x < 0 || uv.y < 0 || uv.x > 1 || uv.y > 1)
+    {
+        return 1;
+    }
+
+    //uv = (floor( uv * (float)uniforms.shadowDim ) + 0.5f) / (float)uniforms.shadowDim;
 
     float2 moments = shadowMap.sample( sampler0, uv ).rg;
 
@@ -47,8 +59,8 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
 
     float delta = depth - moments.x;
     float p = smoothstep( depth - 0.02f, depth, moments.x );
-    float lightBreedingReductionThreshold = 0.2f;
-    float pMax = linstep( lightBreedingReductionThreshold, 1.0f, variance / (variance + delta * delta) );
+    float lightBleedingReductionThreshold = 0.2f;
+    float pMax = linstep( lightBleedingReductionThreshold, 1.0f, variance / (variance + delta * delta) );
 
     return saturate( max( p, pMax ) );
 }
@@ -125,7 +137,6 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap ) );
-    //shadow = 1;
 
     //float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f ) );

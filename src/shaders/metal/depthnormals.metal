@@ -31,5 +31,5 @@ vertex ColorInOut depthNormalsVS( uint vid [[ vertex_id ]],
 fragment float4 depthNormalsPS( ColorInOut in [[stage_in]], texture2d<float, access::sample> textureMap [[texture(0)]],
                         constant Uniforms & uniforms [[ buffer(0) ]]/*, sampler sampler0 [[sampler(0)]]*/ )
 {
-    return float4( in.positionVS.z, in.normalVS );
+    return float4( in.positionVS.z, normalize( in.normalVS ) );
 }
