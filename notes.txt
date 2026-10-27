@@ -14,7 +14,6 @@ Bugs:
     * dirlight is not exported
     * entity target not exported
   * Wayland: not HiDPI, for example ImGui and cursor too big.
-  * Metal: bloom looks weirdly pixelated.
   * Metal: Spot Light renders nothing (missing from standard shader)
   * Vulkan: bloom blur h leaves ~8 pixels unhandled
   * Vulkan: point light intensity changes with distance from origin
@@ -22,6 +21,7 @@ Bugs:
       -> doesn't seem to repro on macOS.
   * Vulkan: point light intensity changes when moving the camera (eg. panning), sometimes fading completely.
   * Vulkan: point light minmax-z culling is broken so it's disabled.
+  * Vulkan: point lights don't show over directional light lighting<<<<<<<<
   * standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
@@ -29,12 +29,11 @@ Bugs:
   
 * 0.1 hitlist
   * imgui.ini for Editor
-  * Wayland stuff, gamepad etc.
   * spot light lighting
   * mention that save scene and export scene should save to build/
   * light removal
   * fix sprite clicking bug
-  * Fix audio looping (win: no loop)
+  * Fix audio looping (win, linux: no loop)
   * audio threading
 
 TODO:

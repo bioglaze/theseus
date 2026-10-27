@@ -95,7 +95,7 @@ teScene teCreateScene( unsigned directonalShadowMapDimension )
         teCameraGetColorTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.color;
         teCameraGetDepthTexture( cameraGOIndex ) = scenes[ outScene.index ].shadowCaster.depth;
     }
-
+    
     quadMesh = teCreateQuadMesh();
 
     return outScene;

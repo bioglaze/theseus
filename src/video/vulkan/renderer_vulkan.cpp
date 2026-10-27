@@ -1597,7 +1597,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
     renderer.defaultTextureCube = teCreateTextureCube( 32, 0, teTextureFormat::RGBA_sRGB, "default texture Cube" );
     renderer.nullUAV = teCreateTexture2D( 16, 16, teTextureFlags::UAV, teTextureFormat::R32F, "nullUAV" );
-    renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, "nullBuffer" );;
+    renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, "nullBuffer" );
 
     for (unsigned i = 0; i < TextureCount; ++i)
     {

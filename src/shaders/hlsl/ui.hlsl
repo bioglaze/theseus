@@ -25,12 +25,12 @@ VSOutput uiVS( uint vertexId : SV_VertexID )
     vsOut.uv = uvu;
     
     uint cole = vk::RawBufferLoad < uint > (pushConstants.posBuf + 20 * vertexId + 16);
-    uint colr = cole >> 24;
-    uint colg = (cole & 0x00ff0000) >> 16;
-    uint colb = (cole & 0x0000ff00) >> 8;
-    uint cola = (cole & 0x000000ff);
+    uint cola = cole >> 24;
+    uint colb = (cole & 0x00ff0000) >> 16;
+    uint colg = (cole & 0x0000ff00) >> 8;
+    uint colr = (cole & 0x000000ff);
     
-    vsOut.color = float4( ((float) cola) / 255, ((float) colb) / 255, ((float) colg) / 255, ((float) colr) / 255 );
+    vsOut.color = float4( ((float) colr) / 255, ((float) colg) / 255, ((float) colb) / 255, ((float) cola) / 255 );
 
     return vsOut;
 }

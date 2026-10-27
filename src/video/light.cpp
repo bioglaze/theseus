@@ -4,19 +4,6 @@
 #include "shader.h"
 #include "vec3.h"
 
-struct LightImpl
-{
-    unsigned tilerIndex = 0;
-    float intensity = 1.0f;
-
-    // SpotLight specific stuff
-    float coneAngle = 45;
-    Vec3 direction;
-};
-
-LightImpl pointLights[ 10000 ]; // 10000 is MaxGameObjects
-LightImpl spotLights[ 10000 ]; // 10000 is MaxGameObjects
-
 unsigned gCurrentPointTilerIndex = 0;
 unsigned gCurrentSpotTilerIndex = 0;
 
@@ -45,6 +32,19 @@ struct LightTiler
     Vec4 spotLightColors[ MaxLights ];
     Vec4 spotLightParams[ MaxLights ];
 } gLightTiler;
+
+struct LightImpl
+{
+    unsigned tilerIndex = LightTiler::MaxLights;
+    float intensity = 1.0f;
+
+    // SpotLight specific stuff
+    float coneAngle = 45;
+    Vec3 direction;
+};
+
+LightImpl pointLights[ 10000 ]; // 10000 is MaxGameObjects
+LightImpl spotLights[ 10000 ]; // 10000 is MaxGameObjects
 
 teBuffer GetPointLightCenterAndRadiusBuffer()
 {
