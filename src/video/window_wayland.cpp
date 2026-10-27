@@ -418,7 +418,7 @@ static void setCursor( Seat* pseat )
     wl_surface_set_buffer_scale( pseat->cursor_surface, scale );
     wl_surface_damage_buffer( pseat->cursor_surface, 0, 0,
                               image->width, image->height );
-                              wl_surface_commit( pseat->cursor_surface );
+    wl_surface_commit( pseat->cursor_surface );
 }
 
 void pointerEnter( void*       data,
@@ -781,7 +781,7 @@ void surfaceLeave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
         if (window_output->output->wlOutput == wlOutput)
         {
             wl_list_remove( &window_output->link );
-            //free( window_output );
+            free( window_output );
             updateScale( &window );
             break;
         }
@@ -932,10 +932,11 @@ static void InitGamePad()
             {
                 // Permissions could cause this code path.
                 tePrint( "Unable to open gamepad!\n" );
+                closedir( dir );
                 return;
             }
 
-            char name[ 128 ];
+            char name[ 128 ] = {};
             ioctl( fd, JSIOCGNAME( 128 ), name);
             /*if (!strstr(name, "Microsoft X-Box 360 pad"))
             {
@@ -975,7 +976,10 @@ static void InitGamePad()
         result = readdir( dir );
     }
 
-    closedir( dir );
+    if (dir != nullptr)
+    {
+        closedir( dir );
+    }
 #endif
 }
 
