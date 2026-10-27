@@ -14,6 +14,7 @@
 #else
 #include <linux/input.h>
 #include <linux/joystick.h>
+#include <sys/ioctl.h>
 #endif
 
 // TODO: rename link, conflicts with some header
@@ -62,6 +63,7 @@ struct WindowImpl
     GamePad               gamePad;
     bool                  pointerOutsideWindow = false;
     bool                  ctrlPressed = false;
+    bool                  altPressed = false;
 };
 
 WindowImpl win;
@@ -401,6 +403,11 @@ static void setCursor( Seat* pseat )
 
     wl_cursor* wlCursor = pseat->left_ptr_cursor;
 
+    if (!wlCursor)
+    {
+        return;
+    }
+    
     wl_cursor_image* image = wlCursor->images[ 0 ];
     wl_buffer* buffer = wl_cursor_image_get_buffer( image );
     wl_pointer_set_cursor(pseat->wlPointer, pseat->serial,
@@ -429,7 +436,6 @@ void pointerEnter( void*       data,
     if (surface != window.wlSurface)
         return;
 
-    printf( "pointer_enter\n" );
     setCursor( dseat );
     win.pointerOutsideWindow = false;
 
@@ -444,12 +450,6 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
         return;
     }
     
-    if (button == BTN_LEFT) // BTN_LEFT = 272, BTN_RIGHT: 273, BTN_MIDDLE: 274
-    {
-        bool pressed = pointerState == WL_POINTER_BUTTON_STATE_PRESSED;
-        //printf( "pressed left button: %d\n", pressed );
-    }
-
     if (button == BTN_LEFT && IncEventIndex())
     {
         win.events[ win.eventIndex ].type = pointerState == WL_POINTER_BUTTON_STATE_PRESSED ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
@@ -506,17 +506,18 @@ static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave
 
 void keyMap( void* data, wl_keyboard* wlKeyboard, uint format, int fd, uint size )
 {
-    printf("keymap\n");
+    //printf("keymap\n");
+    close( fd );
 }
 
 void keyEnter( void* data, wl_keyboard* wlKeyboard, uint serial, wl_surface* surface, wl_array* keys )
 {
-    printf("keyEnter\n");
+    //printf("keyEnter\n");
 }
 
 void keyLeave( void* data, wl_keyboard* wlKeyboard, uint serial, wl_surface* surface )
 {
-    printf("keyLeave\n");
+    //printf("keyLeave\n");
 }
 
 void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint key, uint keyState )
@@ -524,6 +525,11 @@ void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint k
   //if (keyState == 1)
   //      printf( "keyKey %u state %u\n", key, keyState );
 
+    if (key > 767)
+    {
+        return;
+    }
+    
     IncEventIndex();
     win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
     win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
@@ -535,11 +541,13 @@ void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDe
     //printf("latched: %u, depressed: %u, locked: %u\n", modsLatched, modsDepressed, modsLocked );
 
     win.ctrlPressed = modsDepressed & 4;
+    //win.altPressed = modsDepressed & 5;
+    //printf( "altPressed: %u\n", modsDepressed );
 }
 
 void keyRepeat( void* data, wl_keyboard* wlKeyboard, int rate, int delay )
 {
-    printf("keyRepeat\n");
+    //printf("keyRepeat\n");
 }
 
 wl_keyboard_listener keyboardListener = { &keyMap, &keyEnter, &keyLeave, &keyKey, &keyModifiers, &keyRepeat };
@@ -676,7 +684,7 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
     {
         if (version < 2)
         {
-            fprintf( stderr, "%s version 3 required but only version %u is available\n", interface, version );
+            fprintf( stderr, "%s version 2 required but only version %u is available\n", interface, version );
             exit( EXIT_FAILURE );
         }
 
@@ -712,6 +720,7 @@ void registry_handle_global_remove( void* data, struct wl_registry* registry, ui
                 {
                     wl_list_remove( &window_output->link );
                     free( window_output );
+                    return;
                 }
             }
 
@@ -823,7 +832,6 @@ static void handleClose( libdecor_frame* frame, void* user_data )
 
 static void handleCommit( libdecor_frame* frame, void* user_data )
 {
-    printf("handle_commit\n");
     wl_surface_commit( window.wlSurface );
 }
 
