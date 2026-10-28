@@ -787,6 +787,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
             bool loadRes = LoadDDS( files[ face ], tex.width, tex.height, bcFormat, tex.mipLevelCount, mipOffsets[ face ] );
 
+            if (!loadRes)
+            {
+                teAssert( !"One of cube map faces failed to load!" );
+                outTexture.index = GetDefaultTextureCube().index;
+                return outTexture;
+            }
+
             if (!(flags & teTextureFlags::GenerateMips))
             {
                 tex.mipLevelCount = 1;
