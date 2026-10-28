@@ -40,8 +40,16 @@ void GetOpenPath( char* path, const char* extension )
         NSURL *nsurl = [[op URLs] objectAtIndex:0];
         NSString *myString = [nsurl path];
         const char* str = [myString UTF8String];
-        strcpy( path, str );
-        path[ strlen( str ) ] = 0;
+        
+        if (strlen( str ) > 280)
+        {
+            strcpy( path, str );
+            path[ strlen( str ) ] = 0;
+        }
+        else
+        {
+            path[ 0 ] = 0;
+        }
     }
     else
     {
@@ -76,14 +84,7 @@ void GetSavePath( char* path, const char* extension )
     }
 }
 
-@protocol MetalViewDelegate <NSObject>
-@end
-
 @interface MetalView: NSView<CALayerDelegate>
-
-@property (nonatomic, nonnull,readonly) CAMetalLayer* metalLayer;
-@property (nonatomic, retain, nullable) id<MetalViewDelegate> delegate;
-
 @end
 
 @implementation MetalView
@@ -96,16 +97,6 @@ void GetSavePath( char* path, const char* extension )
     gMetalLayer.contentsScale = win.scale;
 
     return gMetalLayer;
-}
-
-@end
-
-@interface MetalViewController : NSViewController <MetalViewDelegate>
-
-@end
-
-@implementation MetalViewController
-{
 }
 
 @end
@@ -249,6 +240,30 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N4;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 23 && IncEventIndex()) // 5
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N5;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 22 && IncEventIndex()) // 6
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N6;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 36 && IncEventIndex()) // Enter
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Enter;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+     else if ([theEvent keyCode] == 49 && IncEventIndex()) // Space
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Space;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -385,6 +400,31 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N4;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 23 && IncEventIndex()) // 5
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N5;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 22 && IncEventIndex()) // 6
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N6;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 36 && IncEventIndex()) // Enter
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Enter;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 49 && IncEventIndex()) // Space
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Space;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
@@ -470,7 +510,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [NSApp activateIgnoringOtherApps:YES];
+    //[NSApp activateIgnoringOtherApps:YES];
 
     NSMenu* bar = [NSMenu new];
     NSMenuItem * barItem = [NSMenuItem new];
@@ -500,25 +540,23 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     [window setAcceptsMouseMovedEvents:YES];
 
     win.scale = [window backingScaleFactor];
-    printf("scale: %f\n", win.scale );
 
     gDevice = MTLCreateSystemDefaultDevice();
 
     MetalView* view = [[MetalView alloc] initWithFrame:frame];
     view.wantsLayer = YES;
 
-    MetalViewController* viewController = [[MetalViewController alloc] init];
-    view.delegate = viewController;
-
     window.contentView = view;
 
     unsigned frameWidth = (unsigned)window.contentView.frame.size.width;
     unsigned frameHeight = (unsigned)window.contentView.frame.size.height;
-    printf( "width: %u, height: %u, framew %u, frameh %u\n", width, height, frameWidth, frameHeight);
+    //printf( "width: %u, height: %u, framew %u, frameh %u\n", width, height, frameWidth, frameHeight);
 
     win.width = frameWidth * win.scale;
     win.height = frameHeight * win.scale;
     
+    [NSApp finishLaunching];
+
     return nullptr;
 }
 
@@ -541,21 +579,24 @@ bool IncEventIndex()
 
 void tePushWindowEvents()
 {
-    bool isDone = false;
-
-    while (!isDone)
+    @autoreleasepool
     {
-        NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
-                                        untilDate:[NSDate distantPast]
-                                           inMode:NSDefaultRunLoopMode
-                                          dequeue:YES];
-        if (event)
+        bool isDone = false;
+
+        while (!isDone)
         {
-            [NSApp sendEvent:event];
-        }
-        else
-        {
-            isDone = true;
+            NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                            untilDate:[NSDate distantPast]
+                                               inMode:NSDefaultRunLoopMode
+                                              dequeue:YES];
+            if (event)
+            {
+                [NSApp sendEvent:event];
+            }
+            else
+            {
+                isDone = true;
+            }
         }
     }
 }
@@ -576,9 +617,6 @@ void teClearWindowEvents()
 
     for (unsigned i = 0; i < EventArraySize; ++i)
     {
-        win.events[ i ].type = teWindowEvent::Type::Empty;
-        win.events[ i ].x = 0;
-        win.events[ i ].y = 0;
-        win.events[ i ].keyModifiers = 0;
+        win.events[ i ] = teWindowEvent{};
     }
 }
