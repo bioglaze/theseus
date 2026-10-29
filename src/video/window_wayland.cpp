@@ -17,14 +17,12 @@
 #include <sys/ioctl.h>
 #endif
 
-// TODO: rename link, conflicts with some header
-
 constexpr int EventStackSize = 100;
 
 struct GamePad
 {
     bool isActive = false;
-    int fd = 0;
+    int fd = -1;
     int buttonA;
     int buttonB;
     int buttonX;
@@ -472,13 +470,15 @@ void pointerButton( void* data, wl_pointer* pointer, uint32_t serial, uint32_t t
 
 void pointerMotion( void* data, wl_pointer* pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y )
 {
-    IncEventIndex();
-    win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-    win.events[ win.eventIndex ].x = wl_fixed_to_int( x );
-    win.events[ win.eventIndex ].y = wl_fixed_to_int( y );
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+        win.events[ win.eventIndex ].x = wl_fixed_to_int( x );
+        win.events[ win.eventIndex ].y = wl_fixed_to_int( y );
 
-    win.lastMouseX = win.events[ win.eventIndex ].x;
-    win.lastMouseY = win.events[ win.eventIndex ].y;
+        win.lastMouseX = win.events[ win.eventIndex ].x;
+        win.lastMouseY = win.events[ win.eventIndex ].y;
+    }
 }
 
 void pointerLeave( void* data, wl_pointer* wlPointer, uint32_t serial, wl_surface* surface )
@@ -497,9 +497,11 @@ static void pointerAxis( void*       data,
                          uint32_t    axis,
                          wl_fixed_t  value )
 {
-    IncEventIndex();
-    win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
-    win.events[ win.eventIndex ].wheelDelta = -(int)wl_fixed_to_double( value );    
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+        win.events[ win.eventIndex ].wheelDelta = -(int)wl_fixed_to_double( value );
+    }
 }
 
 static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr };
@@ -530,10 +532,12 @@ void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint k
         return;
     }
     
-    IncEventIndex();
-    win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
-    win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
-    win.events[ win.eventIndex ].keyModifiers = win.ctrlPressed ? (unsigned)teWindowEvent::KeyModifier::Control : (unsigned)teWindowEvent::KeyModifier::Empty;
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = keyState == 1 ? teWindowEvent::Type::KeyDown : teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = win.keyMap[ key ];
+        win.events[ win.eventIndex ].keyModifiers = win.ctrlPressed ? (unsigned)teWindowEvent::KeyModifier::Control : (unsigned)teWindowEvent::KeyModifier::Empty;
+    }
 }
 
 void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group )
@@ -1002,7 +1006,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wl_registry* wlRegistry = wl_display_get_registry( gwlDisplay );
     wl_registry_add_listener( wlRegistry, &registryListener, nullptr );
     wl_display_roundtrip( gwlDisplay );
-    wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
+    //wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
 
     Output* output = nullptr;
 
@@ -1061,34 +1065,28 @@ void tePushWindowEvents()
             
         if (j.type == JS_EVENT_BUTTON)
         {
-            if (j.number == win.gamePad.buttonA && j.value > 0)
+            if (j.number == win.gamePad.buttonA && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonA;
             }
-            else if (j.number == win.gamePad.buttonB && j.value > 0)
+            else if (j.number == win.gamePad.buttonB && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonB;
             }
-            else if (j.number == win.gamePad.buttonX && j.value > 0)
+            else if (j.number == win.gamePad.buttonX && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonX;
             }
-            else if (j.number == win.gamePad.buttonY && j.value > 0)
+            else if (j.number == win.gamePad.buttonY && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonY;
             }
-            else if (j.number == win.gamePad.buttonStart && j.value > 0)
+            else if (j.number == win.gamePad.buttonStart && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonStart;
             }
-            else if (j.number == win.gamePad.buttonBack && j.value > 0)
+            else if (j.number == win.gamePad.buttonBack && j.value > 0 && IncEventIndex())
             {
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonBack;
             }
             else
@@ -1097,37 +1095,33 @@ void tePushWindowEvents()
         }
         else if (j.type == JS_EVENT_AXIS)
         {
-            if (j.number == win.gamePad.leftThumbX)
+            if (j.number == win.gamePad.leftThumbX && IncEventIndex())
             {
                 const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = x;
                 win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastLeftThumbY;
                 win.gamePad.lastLeftThumbX = x;
             }
-            else if (j.number == win.gamePad.leftThumbY)
+            else if (j.number == win.gamePad.leftThumbY && IncEventIndex())
             {
                 const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastLeftThumbX;
                 win.events[ win.eventIndex ].gamePadThumbY = -y;
                 win.gamePad.lastLeftThumbY = -y;
             }
-            else if (j.number == win.gamePad.rightThumbX)
+            else if (j.number == win.gamePad.rightThumbX && IncEventIndex())
             {
                 const float x = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = x;
                 win.events[ win.eventIndex ].gamePadThumbY = win.gamePad.lastRightThumbY;
                 win.gamePad.lastRightThumbX = x;
             }
-            else if (j.number == win.gamePad.rightThumbY)
+            else if (j.number == win.gamePad.rightThumbY && IncEventIndex())
             {
                 const float y = ProcessGamePadStickValue( j.value, win.gamePad.deadZone );
-                IncEventIndex();
                 win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
                 win.events[ win.eventIndex ].gamePadThumbX = win.gamePad.lastRightThumbX;
                 win.events[ win.eventIndex ].gamePadThumbY = -y;
@@ -1135,27 +1129,23 @@ void tePushWindowEvents()
             }
             else if (j.number == win.gamePad.dpadXaxis)
             {
-                if (j.value > 0)
+                if (j.value > 0 && IncEventIndex())
                 {
-                    IncEventIndex();
                     win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadRight;
                 }
-                if (j.value < 0)
+                if (j.value < 0 && IncEventIndex())
                 {
-                    IncEventIndex();
                     win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadLeft;
                 }
             }
             else if (j.number == win.gamePad.dpadYaxis)
             {
-                if (j.value < 0)
+                if (j.value < 0 && IncEventIndex())
                 {
-                    IncEventIndex();
                     win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadUp;
                 }
-                if (j.value > 0)
+                if (j.value > 0 && IncEventIndex())
                 {
-                    IncEventIndex();
                     win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadButtonDPadDown;
                 }
             }
