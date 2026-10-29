@@ -218,6 +218,20 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         }
     }
 
+    // Moves past the first sentinel to get to the spot lights.
+    ++index;
+    nextLightIndex = lightIndexBuf[ index ];
+    
+    while (nextLightIndex != LIGHT_INDEX_BUFFER_SENTINEL)
+    {
+        const int lightIndex = nextLightIndex;
+        ++index;
+        nextLightIndex = lightIndexBuf[ index ];
+
+        float4 spotParams = spotLightBufferParams[ lightIndex ];
+        float3 spotLightDir = spotParams.xyz;
+    }
+
     accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
     return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
 }

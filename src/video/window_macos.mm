@@ -258,12 +258,25 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Enter;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-     else if ([theEvent keyCode] == 49 && IncEventIndex()) // Space
+    else if ([theEvent keyCode] == 49 && IncEventIndex()) // Space
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Space;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 48 && IncEventIndex()) // Tab
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Tab;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 53 && IncEventIndex()) // Escape
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Escape;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -422,6 +435,18 @@ void GetSavePath( char* path, const char* extension )
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Space;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 48 && IncEventIndex()) // Tab
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Tab;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 53 && IncEventIndex()) // Escape
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Escape;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 

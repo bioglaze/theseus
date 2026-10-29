@@ -51,16 +51,16 @@ constexpr unsigned UniformBufferSize = sizeof( PerObjectUboStruct ) * 10000;
 
 struct FrameResource
 {
-    MTL::CommandBuffer* commandBuffer;
-    MTL::Buffer*        uniformBuffer;
+    MTL::CommandBuffer* commandBuffer = nullptr;
+    MTL::Buffer*        uniformBuffer = nullptr;
     unsigned            uboOffset = 0;
 };
 
 struct PSO
 {
-    MTL::RenderPipelineState* pso;
-    MTL::Function*            vertexFunction;
-    MTL::Function*            pixelFunction;
+    MTL::RenderPipelineState* pso = nullptr;
+    MTL::Function*            vertexFunction = nullptr;
+    MTL::Function*            pixelFunction = nullptr;
     MTL::PixelFormat          colorFormat = MTL::PixelFormatBGRA8Unorm_sRGB;
     MTL::PixelFormat          depthFormat = MTL::PixelFormatDepth32Float;
     teBlendMode               blendMode = teBlendMode::Off;
@@ -168,7 +168,7 @@ void RendererGetSize( unsigned& outWidth, unsigned& outHeight )
 void teLoadMetalShaderLibrary()
 {
     NS::Error* error = nullptr;
-    shaderLibrary = renderer.device->newLibrary( NS::String::string( "shaders.metallib", NS::UTF8StringEncoding ), &error );
+    shaderLibrary = gDevice->newLibrary( NS::String::string( "shaders.metallib", NS::UTF8StringEncoding ), &error );
 
     if (!shaderLibrary)
     {
@@ -178,18 +178,17 @@ void teLoadMetalShaderLibrary()
 
 teBuffer CreateBuffer( unsigned size, const char* debugName )
 {
-    return CreateBuffer( renderer.device, size, false, debugName );
+    return CreateBuffer( gDevice, size, false, debugName );
 }
 
 teBuffer CreateStagingBuffer( unsigned size, const char* debugName )
 {
-    return CreateBuffer( renderer.device, size, true, debugName );
+    return CreateBuffer( gDevice, size, true, debugName );
 }
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
-    renderer.device = MTL::CreateSystemDefaultDevice();
-    gDevice = renderer.device;
+    renderer.device = gDevice;
 
     MTL::SamplerDescriptor* samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();
 
@@ -201,7 +200,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 1 );
     samplerDescriptor->setLabel( NS::String::string( "linearRepeat", NS::UTF8StringEncoding ) );
-    renderer.linearRepeat = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.linearRepeat = gDevice->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
@@ -211,7 +210,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 1 );
     samplerDescriptor->setLabel( NS::String::string( "linearClamp", NS::UTF8StringEncoding ) );
-    renderer.linearClamp = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.linearClamp = gDevice->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
@@ -221,7 +220,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 8 );
     samplerDescriptor->setLabel( NS::String::string( "anisotropicRepeat", NS::UTF8StringEncoding ) );
-    renderer.anisotropicRepeat = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.anisotropicRepeat = gDevice->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterLinear );
@@ -231,7 +230,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 8 );
     samplerDescriptor->setLabel( NS::String::string( "anisotropicClamp", NS::UTF8StringEncoding ) );
-    renderer.anisotropicClamp = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.anisotropicClamp = gDevice->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterNearest );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterNearest );
@@ -241,7 +240,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeRepeat );
     samplerDescriptor->setMaxAnisotropy( 1 );
     samplerDescriptor->setLabel( NS::String::string( "nearestRepeat", NS::UTF8StringEncoding ) );
-    renderer.nearestRepeat = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.nearestRepeat = gDevice->newSamplerState( samplerDescriptor );
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterNearest );
     samplerDescriptor->setMagFilter( MTL::SamplerMinMagFilterNearest );
@@ -251,66 +250,66 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     samplerDescriptor->setRAddressMode( MTL::SamplerAddressModeClampToEdge );
     samplerDescriptor->setMaxAnisotropy( 1 );
     samplerDescriptor->setLabel( NS::String::string( "nearestClamp", NS::UTF8StringEncoding ) );
-    renderer.nearestClamp = renderer.device->newSamplerState( samplerDescriptor );
+    renderer.nearestClamp = gDevice->newSamplerState( samplerDescriptor );
 
     MTL::DepthStencilDescriptor* depthStateDesc = MTL::DepthStencilDescriptor::alloc()->init();
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionGreater );
     depthStateDesc->setDepthWriteEnabled( true );
     depthStateDesc->setLabel( NS::String::string( "depthStateGreaterWriteOn", NS::UTF8StringEncoding ) );
-    renderer.depthStateGreaterWriteOn = renderer.device->newDepthStencilState( depthStateDesc );
+    renderer.depthStateGreaterWriteOn = gDevice->newDepthStencilState( depthStateDesc );
     
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionGreater );
     depthStateDesc->setDepthWriteEnabled( false );
     depthStateDesc->setLabel( NS::String::string( "depthStateGreaterWriteOff", NS::UTF8StringEncoding ) );
-    renderer.depthStateGreaterWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
+    renderer.depthStateGreaterWriteOff = gDevice->newDepthStencilState( depthStateDesc );
     
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionAlways );
     depthStateDesc->setDepthWriteEnabled( false );
     depthStateDesc->setLabel( NS::String::string( "depthStateNoneWriteOff", NS::UTF8StringEncoding ) );
-    renderer.depthStateNoneWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
+    renderer.depthStateNoneWriteOff = gDevice->newDepthStencilState( depthStateDesc );
 
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionLessEqual );
     depthStateDesc->setDepthWriteEnabled( false );
     depthStateDesc->setLabel( NS::String::string( "depthStateLessEqualWriteOff", NS::UTF8StringEncoding ) );
-    renderer.depthStateLessEqualWriteOff = renderer.device->newDepthStencilState( depthStateDesc );
+    renderer.depthStateLessEqualWriteOff = gDevice->newDepthStencilState( depthStateDesc );
 
     depthStateDesc->setDepthCompareFunction( MTL::CompareFunctionLessEqual );
     depthStateDesc->setDepthWriteEnabled( true );
     depthStateDesc->setLabel( NS::String::string( "depthStateLessEqualWriteOn", NS::UTF8StringEncoding ) );
-    renderer.depthStateLessEqualWriteOn = renderer.device->newDepthStencilState( depthStateDesc );
+    renderer.depthStateLessEqualWriteOn = gDevice->newDepthStencilState( depthStateDesc );
 
     renderer.width = width;
     renderer.height = height;
     
-    renderer.commandQueue = renderer.device->newCommandQueue();
+    renderer.commandQueue = gDevice->newCommandQueue();
     gCommandQueue = renderer.commandQueue;
     renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     renderer.renderPassDescriptorFBO = MTL::RenderPassDescriptor::alloc()->init();
 
     const unsigned bufferBytes = 1024 * 1024 * 250;
     
-    renderer.staticMeshIndexBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshIndexBuffer" );
-    renderer.staticMeshIndexStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshIndexStagingBuffer" );
-    renderer.staticMeshPositionBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshPositionBuffer" );
-    renderer.staticMeshPositionStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshPositionStagingBuffer" );
-    renderer.staticMeshUVBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshUVBuffer" );
-    renderer.staticMeshUVStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshUVStagingBuffer" );
-    renderer.staticMeshNormalBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshNormalBuffer" );
-    renderer.staticMeshNormalStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshNormalStagingBuffer" );
-    renderer.staticMeshTangentBuffer = CreateBuffer( renderer.device, bufferBytes, false, "staticMeshTangentBuffer" );
-    renderer.staticMeshTangentStagingBuffer = CreateBuffer( renderer.device, bufferBytes, true, "staticMeshTangentStagingBuffer" );
+    renderer.staticMeshIndexBuffer = CreateBuffer( gDevice, bufferBytes, false, "staticMeshIndexBuffer" );
+    renderer.staticMeshIndexStagingBuffer = CreateBuffer( gDevice, bufferBytes, true, "staticMeshIndexStagingBuffer" );
+    renderer.staticMeshPositionBuffer = CreateBuffer( gDevice, bufferBytes, false, "staticMeshPositionBuffer" );
+    renderer.staticMeshPositionStagingBuffer = CreateBuffer( gDevice, bufferBytes, true, "staticMeshPositionStagingBuffer" );
+    renderer.staticMeshUVBuffer = CreateBuffer( gDevice, bufferBytes, false, "staticMeshUVBuffer" );
+    renderer.staticMeshUVStagingBuffer = CreateBuffer( gDevice, bufferBytes, true, "staticMeshUVStagingBuffer" );
+    renderer.staticMeshNormalBuffer = CreateBuffer( gDevice, bufferBytes, false, "staticMeshNormalBuffer" );
+    renderer.staticMeshNormalStagingBuffer = CreateBuffer( gDevice, bufferBytes, true, "staticMeshNormalStagingBuffer" );
+    renderer.staticMeshTangentBuffer = CreateBuffer( gDevice, bufferBytes, false, "staticMeshTangentBuffer" );
+    renderer.staticMeshTangentStagingBuffer = CreateBuffer( gDevice, bufferBytes, true, "staticMeshTangentStagingBuffer" );
     
-    renderer.uiVertexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiVertexBuffer" );
-    renderer.uiIndexBuffer = CreateBuffer( renderer.device, UiBufferBytes, true, "uiIndexBuffer" );
+    renderer.uiVertexBuffer = CreateBuffer( gDevice, UiBufferBytes, true, "uiVertexBuffer" );
+    renderer.uiIndexBuffer = CreateBuffer( gDevice, UiBufferBytes, true, "uiIndexBuffer" );
 
-    renderer.lineVertexBuffer = CreateBuffer( renderer.device, 1024 * 1024 * 4, true, "lineVertexBuffer" );
+    renderer.lineVertexBuffer = CreateBuffer( gDevice, 1024 * 1024 * 4, true, "lineVertexBuffer" );
     
     for (unsigned i = 0; i < 2; ++i)
     {
 #if !TARGET_OS_IPHONE
-        renderer.frameResources[ i ].uniformBuffer = renderer.device->newBuffer( UniformBufferSize, MTL::ResourceStorageModeManaged );
+        renderer.frameResources[ i ].uniformBuffer = gDevice->newBuffer( UniformBufferSize, MTL::ResourceStorageModeManaged );
 #else
-        renderer.frameResources[ i ].uniformBuffer = renderer.device->newBuffer( UniformBufferSize, MTL::ResourceCPUCacheModeDefaultCache );
+        renderer.frameResources[ i ].uniformBuffer = gDevice->newBuffer( UniformBufferSize, MTL::ResourceCPUCacheModeDefaultCache );
 #endif
         renderer.frameResources[ i ].uniformBuffer->setLabel( NS::String::string( "uniform buffer", NS::UTF8StringEncoding ) );
     }

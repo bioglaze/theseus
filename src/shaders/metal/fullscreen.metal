@@ -31,7 +31,7 @@ fragment float4 fullscreenPS( ColorInOut in [[stage_in]],
                               texture2d<float, access::sample> textureMap [[texture(0)]],
                              constant Uniforms& uniforms [[ buffer(0) ]])
 {
-    constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler mysampler( coord::normalized, address::clamp_to_zero, filter::nearest );
 
     return textureMap.sample( mysampler, in.texCoords );
 }
@@ -40,7 +40,7 @@ fragment float4 fullscreenAdditivePS( ColorInOut in [[stage_in]],
                                       texture2d<float, access::sample> textureMap [[texture(0)]],
                                       constant Uniforms& uniforms [[ buffer(0) ]])
 {
-    constexpr sampler mysampler( coord::normalized, address::repeat, filter::nearest );
+    constexpr sampler mysampler( coord::normalized, address::clamp_to_zero, filter::nearest );
 
     return textureMap.sample( mysampler, in.texCoords.xy );
 }
