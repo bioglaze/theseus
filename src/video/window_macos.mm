@@ -24,6 +24,9 @@ WindowImpl win;
 
 void GetOpenPath( char* path, const char* extension )
 {
+@autoreleasepool
+    {
+
     NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
     UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
 
@@ -41,10 +44,9 @@ void GetOpenPath( char* path, const char* extension )
         NSString *myString = [nsurl path];
         const char* str = [myString UTF8String];
         
-        if (strlen( str ) > 280)
+        if (strlen( str ) < 280)
         {
             strcpy( path, str );
-            path[ strlen( str ) ] = 0;
         }
         else
         {
@@ -55,28 +57,29 @@ void GetOpenPath( char* path, const char* extension )
     {
         path[ 0 ] = 0;
     }
+
+    }
 }
 
 void GetSavePath( char* path, const char* extension )
 {
-    NSMutableArray<UTType*>* types = [NSMutableArray<UTType*> new];
-    UTType* type = [UTType typeWithFilenameExtension: [NSString stringWithUTF8String: extension]];
-
-    if (type != nil)
-    {
-        [types addObject: type];
-    }
-
     NSSavePanel *op = [NSSavePanel savePanel];
-    //[op setAllowedContentTypes: types];
     
     if ([op runModal] == NSModalResponseOK)
     {
         NSURL *nsurl = [op URL];
         NSString *myString = [nsurl path];
         const char* str = [myString UTF8String];
-        strcpy( path, str );
-        path[ strlen( str ) ] = 0;
+
+        if (strlen( str ) < 280)
+        {
+            strcpy( path, str );
+            path[ strlen( str ) ] = 0;
+        }
+        else
+        {
+            path[ 0 ] = 0;
+        }
     }
     else
     {
@@ -252,6 +255,30 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N6;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 26 && IncEventIndex()) // 7
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N7;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 28 && IncEventIndex()) // 8
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N8;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 25 && IncEventIndex()) // 9
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N9;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 29 && IncEventIndex()) // 0
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N0;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
     else if ([theEvent keyCode] == 36 && IncEventIndex()) // Enter
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
@@ -425,6 +452,30 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N6;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 26 && IncEventIndex()) // 7
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N7;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 28 && IncEventIndex()) // 8
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N8;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 25 && IncEventIndex()) // 9
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N9;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 29 && IncEventIndex()) // 0
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::N0;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
     else if ([theEvent keyCode] == 36 && IncEventIndex()) // Enter
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
@@ -556,12 +607,11 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
                         styleMask:NSWindowStyleMaskTitled
                         backing:NSBackingStoreBuffered
                         defer:NO];
-    [window cascadeTopLeftFromPoint:NSMakePoint( 20, 20 )];
+    //[window cascadeTopLeftFromPoint:NSMakePoint( 20, 20 )];
     //window.styleMask |= NSWindowStyleMaskResizable;
     window.styleMask |= NSWindowStyleMaskMiniaturizable;
     window.styleMask |= NSWindowStyleMaskClosable;
     window.title = [NSString stringWithUTF8String:title];
-    [window makeKeyAndOrderFront:nil];
     [window setAcceptsMouseMovedEvents:YES];
 
     win.scale = [window backingScaleFactor];
@@ -572,6 +622,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     view.wantsLayer = YES;
 
     window.contentView = view;
+
+    [window center];
+    [window makeKeyAndOrderFront:nil];
 
     unsigned frameWidth = (unsigned)window.contentView.frame.size.width;
     unsigned frameHeight = (unsigned)window.contentView.frame.size.height;
