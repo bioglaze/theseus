@@ -220,6 +220,10 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
                                                           tex.height,
                                                        (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
+        NS::String* label = NS::String::string( file.path, NS::StringEncoding::UTF8StringEncoding );
+        NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
+        NS::String* label2 = label->stringByAppendingString( stagingLabel );
+        stagingTexture->setLabel( label2 );
 
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.height );
         stagingTexture->replaceRegion( region, 0, &file.data[ offset ], tex.width * multiplier );
@@ -262,6 +266,10 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
                                                           tex.height,
                                                        (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
+        NS::String* label = NS::String::string( file.path, NS::StringEncoding::UTF8StringEncoding );
+        NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
+        NS::String* label2 = label->stringByAppendingString( stagingLabel );
+        stagingTexture->setLabel( label2 );
 
         multiplier = 4; // FIXME: Other than RGBA formats probably need to change this.
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.height );
@@ -320,6 +328,10 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
                                                           tex.height,
                                                        (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
+        NS::String* label = NS::String::string( file.path, NS::StringEncoding::UTF8StringEncoding );
+        NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
+        NS::String* label2 = label->stringByAppendingString( stagingLabel );
+        stagingTexture->setLabel( label2 );
 
         for (unsigned mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
         {
@@ -420,6 +432,10 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                                                            tex.width,
                                                        (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
+        NS::String* label = NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding );
+        NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
+        NS::String* label2 = label->stringByAppendingString( stagingLabel );
+        stagingTexture->setLabel( label2 );
 
         const unsigned char* datas[ 6 ] = { posX.data, negX.data, posY.data, negY.data, posZ.data, negZ.data };
         MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.width );
