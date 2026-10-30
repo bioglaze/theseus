@@ -127,12 +127,13 @@ struct Renderer
 
 Renderer renderer;
 
-MTL::Library* shaderLibrary; // Shaders from shaders.metallib, must be loaded with teLoadMetalShaderLibrary().
+MTL::Library* shaderLibrary;
 CA::MetalDrawable* gDrawable;
 extern CA::MetalLayer* gMetalLayer;
 extern MTL::Device* gDevice;
 MTL::CommandQueue* gCommandQueue;
 MTL::RenderPassDescriptor* renderPassDescriptor;
+MTL::CommandBuffer* gCommandBuffer;
 
 double GetMilliseconds()
 {
@@ -446,6 +447,8 @@ void teBeginFrame()
     renderer.frameResources[ 0 ].commandBuffer = renderer.commandQueue->commandBuffer();
     renderer.frameResources[ 0 ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
     renderer.frameResources[ 0 ].uboOffset = 0;
+
+    gCommandBuffer = renderer.frameResources[ 0 ].commandBuffer;
 
     gDrawable = gMetalLayer->nextDrawable();
     renderPassDescriptor->colorAttachments()->object( 0 )->setTexture( gDrawable->texture() );

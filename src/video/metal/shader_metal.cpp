@@ -10,6 +10,7 @@ unsigned TextureGetFlags( unsigned index );
 extern MTL::Library* shaderLibrary;
 extern MTL::CommandQueue* gCommandQueue;
 extern MTL::Device* gDevice;
+extern MTL::CommandBuffer* gCommandBuffer;
 
 MTL::Texture* TextureGetMetalTexture( unsigned index );
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset );
@@ -109,7 +110,6 @@ teShader teCreateComputeShader( const teFile& file, const char* name, unsigned t
     
     if (!shaders[ outShader.index ].computePipeline)
     {
-        //tePrint( "Error occurred when building compute pipeline for function %s: %s", name, [error localizedDescription] );
         tePrint( "error building compute pipeline\n" );
     }
     
@@ -127,7 +127,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     
     MTL::Size threadgroups = MTL::Size::Make( groupsX, groupsY, groupsZ );
 
-    MTL::CommandBuffer* commandBuffer = gCommandQueue->commandBuffer();
+    MTL::CommandBuffer* commandBuffer = gCommandBuffer;
     commandBuffer->setLabel( NS::String::string( debugName, NS::UTF8StringEncoding ) );
     
     MTL::ComputeCommandEncoder* commandEncoder = commandBuffer->computeCommandEncoder();
@@ -174,8 +174,6 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 
     commandEncoder->dispatchThreadgroups( threadgroups, shaders[ shader.index ].threadgroupCounts );
     commandEncoder->endEncoding();
-    
-    commandBuffer->commit();
     
     MoveToNextUboOffset();
 }
