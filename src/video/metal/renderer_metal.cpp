@@ -23,9 +23,12 @@ unsigned GetPointLightCount();
 unsigned GetSpotLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
+void WaitForPreviousFrame();
+void AddCompletedHandler();
 
 static const unsigned MaxPSOs = 100;
 static constexpr unsigned UiBufferBytes = 1024 * 1024 * 8;
+const unsigned MaxFramesInFlight = 3;
 
 // Must match shader header ubo.h
 struct PerObjectUboStruct
@@ -73,7 +76,7 @@ struct Renderer
     MTL::RenderCommandEncoder* renderEncoder;
     MTL::CommandQueue*         commandQueue;
     MTL::RenderPassDescriptor* renderPassDescriptorFBO;
-    FrameResource              frameResources[ 2 ];
+    FrameResource              frameResources[ MaxFramesInFlight ];
     teTextureFormat            colorFormat = teTextureFormat::BGRA_sRGB;
     PSO psos[ MaxPSOs ];
     
@@ -303,7 +306,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     renderer.lineVertexBuffer = CreateBuffer( gDevice, 1024 * 1024 * 4, true, "lineVertexBuffer" );
     
-    for (unsigned i = 0; i < 2; ++i)
+    for (unsigned i = 0; i < MaxFramesInFlight; ++i)
     {
 #if !TARGET_OS_IPHONE
         renderer.frameResources[ i ].uniformBuffer = gDevice->newBuffer( UniformBufferSize, MTL::ResourceStorageModeManaged );
@@ -442,6 +445,9 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
 
 void teBeginFrame()
 {
+    WaitForPreviousFrame();
+    renderer.frameIndex = (renderer.frameIndex + 1) % MaxFramesInFlight;
+
     renderer.frameResources[ renderer.frameIndex ].commandBuffer = renderer.commandQueue->commandBuffer();
     renderer.frameResources[ renderer.frameIndex ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
     renderer.frameResources[ renderer.frameIndex ].uboOffset = 0;
@@ -463,6 +469,9 @@ teTextureFormat GetSwapchainColorFormat()
 void teEndFrame()
 {
     renderer.frameResources[ renderer.frameIndex ].commandBuffer->presentDrawable( gDrawable );
+
+    AddCompletedHandler();
+
     renderer.frameResources[ renderer.frameIndex ].commandBuffer->commit();
     gDrawable->release();
 }
@@ -506,16 +515,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 void EndRendering( teTexture2D& color, teTexture2D& depth )
 {
     renderer.renderEncoder->endEncoding();
-}
-
-void BeginCommandBuffer()
-{
-    // Unused on Metal
-}
-
-void SubmitCommandBuffer()
-{
-    // Unused on Metal
 }
 
 void teBeginSwapchainRendering()

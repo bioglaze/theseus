@@ -8,6 +8,7 @@
 bool IncEventIndex();
 
 constexpr int EventArraySize = 100;
+extern id<MTLCommandBuffer> gCommandBuffer;
 CAMetalLayer* gMetalLayer;
 id<MTLDevice> gDevice;
 
@@ -18,6 +19,7 @@ struct WindowImpl
     unsigned width = 0;
     unsigned height = 0;
     float scale = 1;
+    dispatch_semaphore_t inFlightSemaphore;
 };
 
 WindowImpl win;
@@ -637,6 +639,9 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     
     [NSApp finishLaunching];
 
+    unsigned maxFramesInFlight = 3;
+    win.inFlightSemaphore = dispatch_semaphore_create( maxFramesInFlight );
+
     return nullptr;
 }
 
@@ -699,4 +704,18 @@ void teClearWindowEvents()
     {
         win.events[ i ] = teWindowEvent{};
     }
+}
+
+void WaitForPreviousFrame()
+{
+    dispatch_semaphore_wait( win.inFlightSemaphore, DISPATCH_TIME_FOREVER );
+}
+
+void AddCompletedHandler()
+{
+    __block dispatch_semaphore_t block_semaphore = win.inFlightSemaphore;
+    [gCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
+     {
+         dispatch_semaphore_signal( block_semaphore );
+     }];
 }
