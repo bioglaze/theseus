@@ -71,8 +71,6 @@ float VSM( float depth, float4 projCoord )
         return 1;
     }
 
-    uv = (floor( uv * (float)uniforms.shadowDim ) + 0.5f) / (float)uniforms.shadowDim;
-    
     float2 moments = texture2ds[ pushConstants.shadowTextureIndex ].SampleLevel( samplers[ S_LINEAR_CLAMP ], uv, 0 ).rg;
 
     float variance = max( moments.y - moments.x * moments.x, 1e-5f );

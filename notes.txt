@@ -15,14 +15,13 @@ Bugs:
     * entity target not exported
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: Spot Light renders nothing (missing from standard shader)
-  * Vulkan: bloom blur h leaves ~8 pixels unhandled
   * Vulkan: point light intensity changes with distance from origin
     * repro: line up some cubes, drag a point light in front of them.
       -> doesn't seem to repro on macOS.
   * Vulkan: point light intensity changes when moving the camera (eg. panning), sometimes fading completely.
   * Vulkan: point light minmax-z culling is broken so it's disabled.
-  * Vulkan: point lights don't show over directional light lighting<<<<<<<<
-  * standard shader samplers are hardcoded.
+  * Vulkan: point lights don't show over directional light lighting.
+  * Vulkan: standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
@@ -33,8 +32,7 @@ Bugs:
   * mention that save scene and export scene should save to build/
   * light removal
   * fix sprite clicking bug
-  * Fix audio looping (win, linux: no loop)
-  * audio threading
+  * alsa: audio threading
 
 TODO:
 * Editor
@@ -49,7 +47,6 @@ TODO:
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
 * win32: remove windowWidthWithoutTitleBar
-* xcb: remove tePopWindowEvent
 
 Code Quality issues:
 * obj converter hardcodes array sizes.
@@ -59,4 +56,3 @@ Code Quality issues:
 * buffers could be combined, for example meshlet stuff and lights
 * staging buffers could maybe be combined, for example point light color and position buffer maybe don't need their own staging buffer.
 * Metal: buffer setting for dispatch is very hacky.
-* macOS: input handling is not like Windows/Linux (doesn't use teWindowEvent)

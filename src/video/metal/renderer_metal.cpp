@@ -70,7 +70,6 @@ struct PSO
 
 struct Renderer
 {
-    MTL::Device*               device;
     MTL::RenderCommandEncoder* renderEncoder;
     MTL::CommandQueue*         commandQueue;
     MTL::RenderPassDescriptor* renderPassDescriptorFBO;
@@ -120,6 +119,7 @@ struct Renderer
     unsigned lineCount = 0;
 
     bool isRenderingToTexture = false;
+    unsigned frameIndex = 0;
 
     unsigned statDrawCalls = 0;
     unsigned statPSOBinds = 0;
@@ -142,9 +142,9 @@ double GetMilliseconds()
 
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset )
 {
-    outOffset = renderer.frameResources[ 0 ].uboOffset;
+    outOffset = renderer.frameResources[ renderer.frameIndex ].uboOffset;
     
-    return renderer.frameResources[ 0 ].uniformBuffer;
+    return renderer.frameResources[ renderer.frameIndex ].uniformBuffer;
 }
 
 static MTL::SamplerState* GetSampler( teTextureSampler sampler )
@@ -189,8 +189,6 @@ teBuffer CreateStagingBuffer( unsigned size, const char* debugName )
 
 void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
 {
-    renderer.device = gDevice;
-
     MTL::SamplerDescriptor* samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();
 
     samplerDescriptor->setMinFilter( MTL::SamplerMinMagFilterLinear );
@@ -433,22 +431,22 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.spotLightCount = GetSpotLightCount();
     uboStruct.shadowDim = shadowDim;
     
-    MTL::Buffer* uniformBuffer = renderer.frameResources[ 0 ].uniformBuffer;
-    uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ 0 ].uboOffset;
+    MTL::Buffer* uniformBuffer = renderer.frameResources[ renderer.frameIndex ].uniformBuffer;
+    uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ renderer.frameIndex ].uboOffset;
 
     memcpy( bufferPointer, &uboStruct, sizeof( PerObjectUboStruct ) );
 #if !TARGET_OS_IPHONE
-    uniformBuffer->didModifyRange( NS::Range::Make( renderer.frameResources[ 0 ].uboOffset, sizeof( PerObjectUboStruct ) ) );
+    uniformBuffer->didModifyRange( NS::Range::Make( renderer.frameResources[ renderer.frameIndex ].uboOffset, sizeof( PerObjectUboStruct ) ) );
 #endif
 }
 
 void teBeginFrame()
 {
-    renderer.frameResources[ 0 ].commandBuffer = renderer.commandQueue->commandBuffer();
-    renderer.frameResources[ 0 ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
-    renderer.frameResources[ 0 ].uboOffset = 0;
+    renderer.frameResources[ renderer.frameIndex ].commandBuffer = renderer.commandQueue->commandBuffer();
+    renderer.frameResources[ renderer.frameIndex ].commandBuffer->setLabel( NS::String::string( "command buffer", NS::UTF8StringEncoding ) );
+    renderer.frameResources[ renderer.frameIndex ].uboOffset = 0;
 
-    gCommandBuffer = renderer.frameResources[ 0 ].commandBuffer;
+    gCommandBuffer = renderer.frameResources[ renderer.frameIndex ].commandBuffer;
 
     gDrawable = gMetalLayer->nextDrawable();
     renderPassDescriptor->colorAttachments()->object( 0 )->setTexture( gDrawable->texture() );
@@ -464,8 +462,8 @@ teTextureFormat GetSwapchainColorFormat()
 
 void teEndFrame()
 {
-    renderer.frameResources[ 0 ].commandBuffer->presentDrawable( gDrawable );
-    renderer.frameResources[ 0 ].commandBuffer->commit();
+    renderer.frameResources[ renderer.frameIndex ].commandBuffer->presentDrawable( gDrawable );
+    renderer.frameResources[ renderer.frameIndex ].commandBuffer->commit();
     gDrawable->release();
 }
 
@@ -482,7 +480,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderer.renderPassDescriptorFBO->depthAttachment()->setClearDepth( 1 );
         renderer.renderPassDescriptorFBO->depthAttachment()->setTexture( TextureGetMetalTexture( depth.index ) );
         
-        renderer.renderEncoder = renderer.frameResources[ 0 ].commandBuffer->renderCommandEncoder( renderer.renderPassDescriptorFBO );
+        renderer.renderEncoder = renderer.frameResources[ renderer.frameIndex ].commandBuffer->renderCommandEncoder( renderer.renderPassDescriptorFBO );
         renderer.renderEncoder->setLabel( NS::String::string( "encoder fbo", NS::UTF8StringEncoding ) );
         renderer.isRenderingToTexture = true;
     }
@@ -495,7 +493,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
         renderPassDescriptor->depthAttachment()->setLoadAction( clearFlag != teClearFlag::DontClear ? MTL::LoadActionClear : MTL::LoadActionLoad );
         renderPassDescriptor->depthAttachment()->setClearDepth( 1 );
         
-        renderer.renderEncoder = renderer.frameResources[ 0 ].commandBuffer->renderCommandEncoder( renderPassDescriptor );
+        renderer.renderEncoder = renderer.frameResources[ renderer.frameIndex ].commandBuffer->renderCommandEncoder( renderPassDescriptor );
         renderer.renderEncoder->setLabel( NS::String::string( "encoder", NS::UTF8StringEncoding ) );
         renderer.isRenderingToTexture = false;
     }
@@ -628,7 +626,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
         
     teAssert( nextFreePsoIndex != -1 );
 
-    renderer.psos[ nextFreePsoIndex ].pso = renderer.device->newRenderPipelineState( pipelineStateDescriptor, option, nullptr, &error );
+    renderer.psos[ nextFreePsoIndex ].pso = gDevice->newRenderPipelineState( pipelineStateDescriptor, option, nullptr, &error );
         
     if (!renderer.psos[ nextFreePsoIndex ].pso)
     {
@@ -650,14 +648,29 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
 void MoveToNextUboOffset()
 {
     unsigned mask = 256 - 1; // Intel requires 256-byte alignment, Apple silicon 32. 256 satisfies both.
-    unsigned alignedOffset = sizeof( PerObjectUboStruct ) + (-sizeof( PerObjectUboStruct ) & mask); // Works only for power of two alignment.
-    renderer.frameResources[ 0 ].uboOffset += alignedOffset;
-    teAssert( renderer.frameResources[ 0 ].uboOffset < UniformBufferSize );
+    unsigned alignedSize = sizeof( PerObjectUboStruct ) + (-sizeof( PerObjectUboStruct ) & mask); // Works only for power of two alignment.
+    renderer.frameResources[ renderer.frameIndex ].uboOffset += alignedSize;
+    teAssert( renderer.frameResources[ renderer.frameIndex ].uboOffset + alignedSize < UniformBufferSize );
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
           teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned meshIndex, unsigned subMeshIndex )
 {
+    if (textureIndex == 0)
+    {
+        textureIndex = renderer.defaultTexture2D.index;
+    }
+    
+    if (normalMapIndex == 0)
+    {
+        normalMapIndex = renderer.defaultTexture2D.index;
+    }
+
+    if (shadowMapIndex == 0)
+    {
+        shadowMapIndex = renderer.defaultTexture2D.index;
+    }
+
     MTL::Texture* textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( normalMapIndex ), TextureGetMetalTexture( shadowMapIndex ) };
     NS::Range rangeTextures = { 0, 3 };
     renderer.renderEncoder->setFragmentTextures( textures, rangeTextures );
@@ -696,11 +709,11 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     }
 
     NS::Range rangeOffsets = { 0, 5 };
-    MTL::Buffer* buffers[] = { renderer.frameResources[ 0 ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ), BufferGetBuffer( renderer.staticMeshTangentBuffer ) };
-    NS::UInteger offsets[] = { renderer.frameResources[ 0 ].uboOffset, positionOffset, uvOffset, normalOffset, tangentOffset };
+    MTL::Buffer* buffers[] = { renderer.frameResources[ renderer.frameIndex ].uniformBuffer, BufferGetBuffer( renderer.staticMeshPositionBuffer ), BufferGetBuffer( renderer.staticMeshUVBuffer ), BufferGetBuffer( renderer.staticMeshNormalBuffer ), BufferGetBuffer( renderer.staticMeshTangentBuffer ) };
+    NS::UInteger offsets[] = { renderer.frameResources[ renderer.frameIndex ].uboOffset, positionOffset, uvOffset, normalOffset, tangentOffset };
     
     renderer.renderEncoder->setTriangleFillMode( fillMode == teFillMode::Solid ? MTL::TriangleFillModeFill : MTL::TriangleFillModeLines );
-    renderer.renderEncoder->setFragmentBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
+    renderer.renderEncoder->setFragmentBuffer( renderer.frameResources[ renderer.frameIndex ].uniformBuffer, renderer.frameResources[ renderer.frameIndex ].uboOffset, 0 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetLightIndexBuffer() ), 0, 1 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightCenterAndRadiusBuffer() ), 0, 2 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetPointLightColorBuffer() ), 0, 3 );
@@ -799,7 +812,7 @@ void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displ
     renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
     renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.uiVertexBuffer ), 0, 0 );
     renderer.renderEncoder->setVertexBufferOffset( vertexOffset * vertexStride, 0 );
-    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 1 );
+    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ renderer.frameIndex ].uniformBuffer, renderer.frameResources[ renderer.frameIndex ].uboOffset, 1 );
     renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( fontTex.index ), 0 );
     
     renderer.renderEncoder->drawIndexedPrimitives( MTL::PrimitiveTypeTriangle,
@@ -833,7 +846,7 @@ void DrawLines()
     renderer.renderEncoder->setTriangleFillMode( MTL::TriangleFillModeFill );
     renderer.renderEncoder->setVertexBuffer( BufferGetBuffer( renderer.lineVertexBuffer ), 0, 1 );
     renderer.renderEncoder->setVertexBufferOffset( 0, 0 );
-    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ 0 ].uniformBuffer, renderer.frameResources[ 0 ].uboOffset, 0 );
+    renderer.renderEncoder->setVertexBuffer( renderer.frameResources[ renderer.frameIndex ].uniformBuffer, renderer.frameResources[ renderer.frameIndex ].uboOffset, 0 );
     renderer.renderEncoder->setFragmentTexture( TextureGetMetalTexture( renderer.defaultTexture2D.index ), 0 );
 
     renderer.renderEncoder->drawPrimitives( MTL::PrimitiveTypeLine, 0, renderer.lineCount, 1 );

@@ -572,6 +572,8 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
         win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
         win.events[ win.eventIndex ].wheelDelta = theEvent.deltaY;
+        bool invert = [theEvent isDirectionInvertedFromDevice];
+        //printf("delta %f, invert: %d\n", theEvent.deltaY, invert);
     }
 }
 

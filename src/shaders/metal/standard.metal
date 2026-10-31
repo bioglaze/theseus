@@ -33,7 +33,7 @@ float linstep( float low, float high, float v )
 }
 
 float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shadowMap [[texture(2)]],
-           constant Uniforms & uniforms [[ buffer(0) ]] )
+           constant Uniforms& uniforms [[ buffer(0) ]] )
 {
     constexpr sampler sampler0( coord::normalized, address::clamp_to_zero, filter::linear );
     
@@ -57,8 +57,6 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
         return 1;
     }
 
-    uv = (floor( uv * (float)uniforms.shadowDim ) + 0.5f) / (float)uniforms.shadowDim;
-
     float2 moments = shadowMap.sample( sampler0, uv ).rg;
 
     float variance = max( moments.y - moments.x * moments.x, 1e-5f );
@@ -72,7 +70,7 @@ float VSM( float depth, float4 projCoord, texture2d<float, access::sample> shado
 }
 
 vertex ColorInOut standardVS( uint vid [[ vertex_id ]],
-                              constant Uniforms & uniforms [[ buffer(0) ]],
+                              constant Uniforms& uniforms [[ buffer(0) ]],
                               const device packed_float3* positions [[ buffer(1) ]],
                               const device packed_float2* uvs [[ buffer(2) ]],
                               const device packed_float3* normals [[ buffer(3) ]],
@@ -137,10 +135,9 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
                             const device float4* pointLightBufferColors [[ buffer(3) ]],
                             const device float4* spotLightBufferCenterAndRadius [[ buffer(4) ]],
                             const device float4* spotLightBufferColors [[ buffer(5) ]],
-                            const device float4* spotLightBufferParams [[ buffer(6) ]])
+                            const device float4* spotLightBufferParams [[ buffer(6) ]],
+                            sampler sampler0 [[sampler(0)]] )
 {
-    constexpr sampler sampler0( coord::normalized, address::repeat, filter::linear, mip_filter::linear );
-    
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
     float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap, uniforms ) );
 
@@ -151,8 +148,6 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     
     const float3 N = normalize( normalVS );
     const float3 V = -normalize( in.positionVS );
-    //const float3 L = -uniforms.lightDir.xyz;
-    //const float3 H = normalize( L + V );
     float specularStrength = 0.5;
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
@@ -193,7 +188,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         if (lightDistance < radius)
         {
             const float3 vecToLightVS = (uniforms.localToView * float4( vecToLightWS, 0 )).xyz;
-            const float3 L = normalize( -vecToLightVS );
+            const float3 L = normalize( vecToLightVS );
             const float3 H = normalize( L + V );
             
             //const float dotNL = saturate( dot( N, -L ) );
@@ -208,11 +203,12 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float D = D_GGX( dotNH, a );
             const float3 F = F_Schlick( dotLH, f0 );
             const float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
-            //const float3 Fr = (D * v) * F;
-            //const float3 Fd = Fd_Lambert();
+            const float3 Fr = (D * v) * F;
+            const float3 Fd = Fd_Lambert();
 
             const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
-            const float3 color = float3( 1, 1, 1 );//Fd + Fr;
+            const float3 color = float3( 1, 1, 1 );
+            //const float3 color = Fd + Fr;
             accumDiffuseAndSpecular.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
             //return pointLightBufferColors[ lightIndex ];
         }
