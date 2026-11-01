@@ -740,8 +740,8 @@ void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const Sha
 
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )
 {
-    teAssert( vertexBytes < UiBufferBytes );
-    teAssert( indexBytes < UiBufferBytes );
+    teAssert( vertexBytes <= UiBufferBytes );
+    teAssert( indexBytes <= UiBufferBytes );
 
     *outVertexMemory = BufferGetBuffer( renderer.uiVertexBuffer )->contents();
     *outIndexMemory = BufferGetBuffer( renderer.uiIndexBuffer )->contents();

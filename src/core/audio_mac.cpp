@@ -37,8 +37,8 @@ static struct CoreAudioFormatDescriptionMap formatMap[] =
 {
     { FMT_S16_LE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked },
     { FMT_S16_BE, 16, sizeof( int16_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian | kAudioFormatFlagIsPacked },
-    { FMT_S32_LE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger },
-    { FMT_S32_BE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian },
+    { FMT_S32_LE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked },
+    { FMT_S32_BE, 32, sizeof( int32_t ), kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsBigEndian | kAudioFormatFlagIsPacked },
     { FMT_FLOAT,  32, sizeof( float ),   kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved },
 };
 
@@ -53,7 +53,7 @@ struct AudioClipInternal
 
 AudioClipInternal audioClipInternals[ 1000 ]; // Indexed by audio_common.cpp audioClipIndex
 
-OSStatus tone( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 numberFrames, AudioBufferList* ioData )
+OSStatus audioCallback( void* inRef, AudioUnitRenderActionFlags* ioActionFlags, const AudioTimeStamp* timeStamp, UInt32 busNumber, UInt32 numberFrames, AudioBufferList* ioData )
 {
     const int channel = 0;
     int16_t* buffer = (int16_t*)ioData->mBuffers[ channel ].mData;
@@ -182,7 +182,7 @@ void InitAudio()
         float factor = (value == 0) ? 0.0 : powf( 10, VolumeRangeDb * (value - 100) / 100 / 20 );
 
         OSStatus res = AudioUnitSetParameter( gAudioDevice.outputInstance, kHALOutputParam_Volume, kAudioUnitScope_Global, 0, factor, 0 );
-        if (res != kAudioCodecNoError)
+        if (res != noErr)
         {
             tePrint( "Volume setting failed!\n" );
         }
@@ -197,6 +197,12 @@ void LoadAudioWAV( const teFile& file, unsigned clipIndex )
     teMemcpy( audioClipInternals[ clipIndex ].wavFile.path, file.path, sizeof( file.path ) );
 
     audioClipInternals[ clipIndex ].data = LoadWAV( audioClipInternals[ clipIndex ].wavFile, audioClipInternals[ clipIndex ].sampleRate, audioClipInternals[ clipIndex ].channelCount, audioClipInternals[ clipIndex ].frameCount );
+    
+    if (!audioClipInternals[ clipIndex ].data)
+    {
+        teFree( audioClipInternals[ clipIndex ].wavFile.data );
+        audioClipInternals[ clipIndex ].wavFile.data = nullptr;
+    }
 }
 
 void PlayAudioClip( unsigned clipIndex )
@@ -207,7 +213,7 @@ void PlayAudioClip( unsigned clipIndex )
     }
 
     AURenderCallbackStruct callback;
-    callback.inputProc = tone;
+    callback.inputProc = audioCallback;
     callback.inputProcRefCon = nullptr;
 
     gAudioDevice.wavPlaybackSample = 0;
