@@ -95,12 +95,10 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
         frustum[ 3 ] = ConvertClipToView( v3, uniforms.clipToView );
 
         // create plane equations for the four sides of the frustum,
-        // with the positive half-space outside the frustum (and remember,
-        // view space is left handed, so use the left-hand rule to determine
-        // cross product direction)
+        // with the positive half-space outside the frustum.
         for (int i = 0; i < 4; ++i)
         {
-            frustumEqn[ i ] = normalize( cross( frustum[ i ].xyz, frustum[ (i + 1) & 3 ].xyz ));
+            frustumEqn[ i ] = normalize( cross( frustum[ (i + 1) & 3 ].xyz, frustum[ i ].xyz ));
         }
     }
 
