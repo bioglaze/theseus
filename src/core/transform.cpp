@@ -170,8 +170,10 @@ void teTransformOffsetRotate( unsigned index, const Vec3& axis, float angleDeg )
 void teTransformLookAt( unsigned index, const Vec3& localPosition, const Vec3& center, const Vec3& up )
 {
     Matrix lookAt;
-    lookAt.MakeLookAtLH( localPosition, center, up );
-    transforms[ index ].localRotation.FromMatrix( lookAt );
+    lookAt.MakeLookAtRH( localPosition, center, up );
+    Matrix orientation;
+    lookAt.Transpose( orientation );
+    transforms[ index ].localRotation.FromMatrix( orientation );
     transforms[ index ].localPosition = localPosition;
 }
 
