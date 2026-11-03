@@ -308,6 +308,11 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             int matIndex = 0;
             sscanf( matEnd, "%d", &matIndex );
             size_t len = strlen( name );
+            if (len == 0)
+            {
+                len = 1;
+            }
+
             name[ len - 1 ] = 0;
             teMeshRendererSetMaterial( sceneGos[ goIndex - 1 ].index, GetMaterial( name ), matIndex );
         }

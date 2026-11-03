@@ -454,7 +454,9 @@ void SceneViewDuplicate()
             float* radius = teSpotLightAccessRadius( selectedGoIndex );
             *teSpotLightAccessRadius( go.index ) = *radius;
             float* color = teSpotLightAccessColor( selectedGoIndex );
-            *teSpotLightAccessColor( go.index ) = *color;
+            teSpotLightAccessColor( go.index )[ 0 ] = color[ 0 ];
+            teSpotLightAccessColor( go.index )[ 1 ] = color[ 1 ];
+            teSpotLightAccessColor( go.index )[ 2 ] = color[ 2 ];
         }
 
         sceneView.entityTypes[ go.index ] = sceneView.entityTypes[ selectedGoIndex ];
@@ -569,7 +571,7 @@ void DeleteSelectedObject()
     {
         teSceneRemove( sceneView.scene, selectedGoIndex );
         sceneView.entityTypes[ selectedGoIndex ] = 0;
-        sceneView.entityNames[ selectedGoIndex ] = 0;
+        sceneView.entityNames[ selectedGoIndex ][ 0 ] = 0;
     }
     
     selectedGoIndex = EditorCameraGoIndex;
