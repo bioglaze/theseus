@@ -62,6 +62,7 @@ struct WindowImpl
     bool                  pointerOutsideWindow = false;
     bool                  ctrlPressed = false;
     bool                  altPressed = false;
+    bool                  shiftPressed = false;
 };
 
 WindowImpl win;
@@ -308,7 +309,6 @@ static void shm_format( void *data, struct wl_shm *wl_shm, uint32_t format )
     if (format == WL_SHM_FORMAT_XRGB8888)
     {
         //has_xrgb = true;
-        printf( "Has xrgb\n" );
     }
 }
 
@@ -542,11 +542,10 @@ void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint k
 
 void keyModifiers( void* data, wl_keyboard* wlKeyboard, uint serial, uint modsDepressed, uint modsLatched, uint modsLocked, uint group )
 {
-    //printf("latched: %u, depressed: %u, locked: %u\n", modsLatched, modsDepressed, modsLocked );
-
-    win.ctrlPressed = modsDepressed & 4;
-    //win.altPressed = modsDepressed & 5;
-    //printf( "altPressed: %u\n", modsDepressed );
+    const unsigned mods = modsDepressed | modsLatched; // latched = sticky keys
+    win.shiftPressed = mods & 0x01;
+    win.ctrlPressed  = mods & 0x04;
+    win.altPressed   = mods & 0x08;
 }
 
 void keyRepeat( void* data, wl_keyboard* wlKeyboard, int rate, int delay )
@@ -705,8 +704,6 @@ void registry_handle_global( void* userData, struct wl_registry* wl_registry, ui
         xdgWmBase = (xdg_wm_base*)wl_registry_bind( wl_registry, id, &xdg_wm_base_interface, 1 );
         xdg_wm_base_add_listener( xdgWmBase, &xdg_wm_base_listener, nullptr );
     }
-    
-    printf( "registry handle interface: %s\n", interface );
 }
 
 void registry_handle_global_remove( void* data, struct wl_registry* registry, uint32_t name )
@@ -805,12 +802,12 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
     
     if (!libdecor_configuration_get_content_size( configuration, frame, &width, &height ))
     {
-        printf( "handle_configure 1: width: %d, height %d. scale: %d, output scale: %d\n", width, height, window.scale, window.outputScale );
+        //printf( "handle_configure 1: width: %d, height %d. scale: %d, output scale: %d\n", width, height, window.scale, window.outputScale );
         width = win.width;
         height = win.height;
     }
 
-    printf( "handle_configure 2: width: %d, height %d\n", width, height );
+    //printf( "handle_configure 2: width: %d, height %d\n", width, height );
 
     libdecor_state* decState = libdecor_state_new( width, height );
     libdecor_frame_commit( frame, decState, configuration );
@@ -1006,7 +1003,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     wl_registry* wlRegistry = wl_display_get_registry( gwlDisplay );
     wl_registry_add_listener( wlRegistry, &registryListener, nullptr );
     wl_display_roundtrip( gwlDisplay );
-    //wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
+    wl_display_roundtrip( gwlDisplay ); // Note: This is not a copy/paste bug. If it's removed, the window size will be wrong.
 
     Output* output = nullptr;
 
