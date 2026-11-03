@@ -29,6 +29,11 @@ teFile teLoadFile( const char* path )
     {    
         fseek( file, 0, SEEK_END );
         auto length = ftell( file );
+        if (length == -1)
+        {
+            tePrint( "Could not get file length for %s\n", path );
+            return outFile;
+        }
         fseek( file, 0, SEEK_SET );
         if (length > 0)
         {

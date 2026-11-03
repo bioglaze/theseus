@@ -187,67 +187,95 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     case WM_KEYUP:
     case WM_SYSKEYUP:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
-        win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+            win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
+        }
         break;
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
-        win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+            win.events[ win.eventIndex ].keyCode = win.keyMap[ (unsigned)wParam ];
+        }
         break;
     case WM_CLOSE:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::Close;
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::Close;
+        }
+        return 0;
         break;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     {
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
-        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
-        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = message == WM_LBUTTONDOWN ? teWindowEvent::Type::Mouse1Down : teWindowEvent::Type::Mouse1Up;
+            win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+            win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        }
     }
     break;
     case WM_RBUTTONDOWN:
     case WM_RBUTTONUP:
     {
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
-        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
-        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = message == WM_RBUTTONDOWN ? teWindowEvent::Type::Mouse2Down : teWindowEvent::Type::Mouse2Up;
+            win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+            win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        }
     }
     break;
     case WM_MBUTTONDOWN:
     case WM_MBUTTONUP:
     {
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = message == WM_MBUTTONDOWN ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
-        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
-        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = message == WM_MBUTTONDOWN ? teWindowEvent::Type::Mouse3Down : teWindowEvent::Type::Mouse3Up;
+            win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+            win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        }
     }
     break;
     case WM_MOUSEMOVE:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
-        win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
-        win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+            win.events[ win.eventIndex ].x = GET_X_LPARAM( lParam );
+            win.events[ win.eventIndex ].y = GET_Y_LPARAM( lParam );
+        }
         break;
     case WM_MOUSEWHEEL:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
 
-        POINT point;
-        point.x = GET_X_LPARAM( lParam );
-        point.y = GET_Y_LPARAM( lParam );
-        ScreenToClient( hWnd, &point );
-        win.events[ win.eventIndex ].x = point.x;
-        win.events[ win.eventIndex ].y = point.y;
-        win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
+            POINT point;
+            point.x = GET_X_LPARAM( lParam );
+            point.y = GET_Y_LPARAM( lParam );
+            ScreenToClient( hWnd, &point );
+            win.events[ win.eventIndex ].x = point.x;
+            win.events[ win.eventIndex ].y = point.y;
+            win.events[ win.eventIndex ].wheelDelta = GET_WHEEL_DELTA_WPARAM( wParam );
+        }
         break;
     case WM_KILLFOCUS:
         wasHandled = IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
+        if (wasHandled)
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
+        }
         break;
     default:
         break;
@@ -296,7 +324,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     // Makes sure that the rendering area is exactly what the user requested by making the window a bit larger.
     RECT wr = { 0, 0, (LONG)win.width, (LONG)win.height };
-    AdjustWindowRect( &wr, WS_OVERLAPPEDWINDOW, FALSE );
+    AdjustWindowRect( &wr, WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU, FALSE );
     int adjWidth = wr.right - wr.left;
     int adjHeight = wr.bottom - wr.top;
 
@@ -305,7 +333,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof( WNDCLASSEX );
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.hCursor = LoadCursor( nullptr, IDC_ARROW );
@@ -349,18 +376,22 @@ void PumpGamePadEvents()
         float avgX = ProcessGamePadStickValue( pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE );
         float avgY = ProcessGamePadStickValue( pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE );
 
-        IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
-        win.events[ win.eventIndex ].gamePadThumbX = avgX;
-        win.events[ win.eventIndex ].gamePadThumbY = avgY;
+        if (IncEventIndex())
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadLeftThumbState;
+            win.events[ win.eventIndex ].gamePadThumbX = avgX;
+            win.events[ win.eventIndex ].gamePadThumbY = avgY;
+        }
 
         avgX = ProcessGamePadStickValue( pad->sThumbRX, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE );
         avgY = ProcessGamePadStickValue( pad->sThumbRY, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE );
 
-        IncEventIndex();
-        win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
-        win.events[ win.eventIndex ].gamePadThumbX = avgX;
-        win.events[ win.eventIndex ].gamePadThumbY = avgY;
+        if (IncEventIndex())
+        {
+            win.events[ win.eventIndex ].type = teWindowEvent::Type::GamePadRightThumbState;
+            win.events[ win.eventIndex ].gamePadThumbX = avgX;
+            win.events[ win.eventIndex ].gamePadThumbY = avgY;
+        }
 
         if ((pad->wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0 && IncEventIndex())
         {
@@ -445,7 +476,7 @@ void teClearWindowEvents()
 
     for (unsigned i = 0; i < EventStackSize; ++i)
     {
-        win.events[ i ].type = teWindowEvent::Type::Empty;
+        win.events[ i ] = teWindowEvent{};
     }
 }
 

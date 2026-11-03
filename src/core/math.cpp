@@ -639,7 +639,7 @@ Vec3 Quaternion::GetEuler() const
     Vec3 out;
     const float test = x * y + z * w;
 
-    if (test > 4.99f) // Singularity at north pole.
+    if (test > 0.499f) // Singularity at north pole.
     {
         out.z = 2 * atan2f( x, w );
         out.y = 3.14159265f / 2.0f;
@@ -647,7 +647,7 @@ Vec3 Quaternion::GetEuler() const
         return out / (3.14159265358979f / 180.0f);
     }
 
-    if (test < -4.99f) // Singularity at south pole.
+    if (test < -0.499f) // Singularity at south pole.
     {
         out.z = -2 * atan2f( x, w );
         out.y = -3.14159265f / 2.0f;
