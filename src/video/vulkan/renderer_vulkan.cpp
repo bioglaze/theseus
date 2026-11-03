@@ -414,6 +414,9 @@ void SetImageLayout( VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlag
     case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         break;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        break;
     case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
@@ -1596,7 +1599,15 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
         CreateStagingTexture( i );
     }
 
-    renderer.defaultTexture2D = teCreateTexture2D( 32, 32, 0, teTextureFormat::RGBA_sRGB, "default texture 2D" );
+    unsigned char pixels[ 32 * 32 * 4 ];
+    for (unsigned i = 0; i < 32 * 32 * 4; ++i)
+    {
+        pixels[ i ] = 0xFF;
+    }
+    teFile nullFile;
+    memcpy( nullFile.path, "defaultTexture2D", strlen( "defaultTexture2D" ) );
+
+    renderer.defaultTexture2D = teLoadTexture( nullFile, 0, pixels, 32, 32, teTextureFormat::RGBA_sRGB );
     renderer.defaultTextureCube = teCreateTextureCube( 32, 0, teTextureFormat::RGBA_sRGB, "default texture Cube" );
     renderer.nullUAV = teCreateTexture2D( 16, 16, teTextureFlags::UAV, teTextureFormat::R32F, "nullUAV" );
     renderer.nullBuffer = CreateBuffer( renderer.device, renderer.deviceMemoryProperties, 256, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, "nullBuffer" );
@@ -1934,6 +1945,7 @@ void teBeginSwapchainRendering()
     depthAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAtt.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAtt.clearValue.depthStencil.depth = 1;
 
     VkRenderingInfo renderInfo{};
     renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -2061,7 +2073,7 @@ void MoveToNextUboOffset()
     constexpr size_t offset = sizeof( PerObjectUboStruct );
     const size_t offsetAligned = (offset + renderer.properties.limits.minUniformBufferOffsetAlignment - 1) & ~(renderer.properties.limits.minUniformBufferOffsetAlignment - 1);
     renderer.swapchainResources[ renderer.frameIndex ].ubo.offset += offsetAligned;
-    teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset < renderer.uboSizeBytes );
+    teAssert( renderer.swapchainResources[ renderer.frameIndex ].ubo.offset + offsetAligned < renderer.uboSizeBytes );
 }
 
 void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groupsY, unsigned groupsZ, const ShaderParams& params, const char* debugName )
@@ -2397,7 +2409,7 @@ void DrawLines()
     UpdateDescriptors( nullUAV, (unsigned)renderer.swapchainResources[ renderer.frameIndex ].ubo.offset );
     BindDescriptors( VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-    const VkPipeline pso = renderer.psos[ GetPSO( renderer.lineShader, teBlendMode::Off, teCullMode::Off, teDepthMode::NoneWriteOff, teFillMode::Solid, teTopology::Lines, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
+    const VkPipeline pso = renderer.psos[ GetPSO( renderer.lineShader, teBlendMode::Off, teCullMode::Off, teDepthMode::LessOrEqualWriteOff, teFillMode::Solid, teTopology::Lines, renderer.currentColorFormat, renderer.currentDepthFormat ) ].pso;
 
     if (renderer.boundPSO != pso)
     {

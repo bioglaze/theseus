@@ -481,7 +481,8 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
             const int32_t mipWidth = Max2( tex.width >> mipLevel, 1 );
             const int32_t mipHeight = Max2( tex.height >> mipLevel, 1 );
 
-            const VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK) ? 8 : 16;
+            const VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK ||
+                                              format == VK_FORMAT_BC4_SNORM_BLOCK || format == VK_FORMAT_BC4_UNORM_BLOCK) ? 8 : 16;
 
             VkDeviceSize imageSize = ((mipWidth + 3) / 4) * ((mipHeight + 3) / 4) * bcBlockSize;
 
@@ -730,7 +731,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     bool isDDS = false;
     bool isTGA = false;
     teTextureFormat bcFormat = teTextureFormat::Invalid;
-    VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+    VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
     outTexture.format = teTextureFormat::RGBA_sRGB;
 
     for (unsigned face = 0; face < 6; ++face)
