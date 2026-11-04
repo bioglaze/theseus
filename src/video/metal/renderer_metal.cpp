@@ -720,7 +720,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetSpotLightColorBuffer() ), 0, 5 );
     renderer.renderEncoder->setFragmentBuffer( BufferGetBuffer( GetSpotLightParamBuffer() ), 0, 6 );
     renderer.renderEncoder->setVertexBuffers( buffers, offsets, rangeOffsets );
-    renderer.renderEncoder->drawIndexedPrimitives( MTL::PrimitiveTypeTriangle,
+    renderer.renderEncoder->drawIndexedPrimitives( topology == teTopology::Triangles ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLine,
                               indexCount * 3,
                                MTL::IndexTypeUInt16,
                              BufferGetBuffer( renderer.staticMeshIndexBuffer ),
@@ -729,13 +729,6 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
     MoveToNextUboOffset();
     ++renderer.statDrawCalls;
     ++renderer.statPSOBinds;
-}
-
-void teDrawFullscreenTriangle( teShader& shader, teTexture2D& texture, const ShaderParams& shaderParams, teBlendMode blendMode )
-{
-    Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
-    Draw( shader, 0, 0, 0, 0, 1, 0, blendMode, teCullMode::Off, teDepthMode::NoneWriteOff, teTopology::Triangles, teFillMode::Solid, texture.index, teTextureSampler::NearestRepeat, 0, 0, 0, 0 );
 }
 
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory )
