@@ -578,7 +578,6 @@ void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsig
         {
             line[ i - 1 ] = 0;
             i = 0;
-            tePrint( "line: %s\n", line );
             // TODO: make sure that file names containing spaces work.
             // TODO: don't add duplicates.
             if (teStrstr( line, "texture2d" ) == line)
@@ -720,7 +719,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     ++nameCursor;
                 }
                 tePrint( "gameobject name: %s\n", name );
-                gos[ goCount ] = teCreateGameObject( "gameobject", teComponent::Transform );
+                gos[ goCount ] = teCreateGameObject( name, teComponent::Transform );
                 ++goCount;
             }
             else if (teStrstr( line, "meshmaterial" ) == line)
@@ -752,7 +751,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
 
                 for (unsigned m = 0; m < materialCount; ++m)
                 {
-                    if (teStrstr( gSceneStrings + meshNameIndices[ m ], materialName ))
+                    if (teStrstr( gSceneStrings + materialNameIndices[ m ], materialName ))
                     {
                         materialIndex = m;
                     }
@@ -907,10 +906,12 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 if (teStrstr( lightType, "point" ) )
                 {
                     AddPointLight( gos[ goCount - 1 ].index );
+                    teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::PointLight );
                 }
                 if (teStrstr( lightType, "spot" ))
                 {
                     AddSpotLight( gos[ goCount - 1 ].index );
+                    teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::SpotLight );
                 }
             }
             
