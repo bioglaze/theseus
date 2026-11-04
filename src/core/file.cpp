@@ -68,7 +68,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
 {
     teAssert( fileEntryCount < 1000 );
 
-    struct stat inode;
+    struct stat inode = {};
 
     for (unsigned i = 0; i < 260; ++i)
     {
@@ -77,7 +77,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
 
     fileEntries[ fileEntryCount ].updateFunc = updateFunc;
 
-    for (unsigned i = 0; i < fileEntryCount; ++i)
+    if (stat( fileEntries[ fileEntryCount ].path, &inode ) != -1)
     {
 #if _MSC_VER
         tm timeinfo = {};
@@ -214,8 +214,8 @@ void teCloseDirectory( unsigned handle )
     if (dirHandles[ handle ].dirFile != nullptr)
     {
         closedir( dirHandles[ handle ].dirFile );
-        dirHandles[ dirHandleCount ].dirFile = nullptr;
-        dirHandles[ dirHandleCount ].handle = nullptr;
+        dirHandles[ handle ].dirFile = nullptr;
+        dirHandles[ handle ].handle = nullptr;
     }
 }
 #endif
