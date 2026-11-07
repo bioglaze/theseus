@@ -74,47 +74,6 @@ float IntersectRayAABB( const Vec3& origin, const Vec3& target, const Vec3& min,
     return tmin;
 }
 
-void GetMinMax( const Vec3* points, int count, Vec3& outMin, Vec3& outMax )
-{
-    outMin = points[ 0 ];
-    outMax = points[ 0 ];
-
-    for (int i = 1, s = count; i < s; ++i)
-    {
-        const Vec3& point = points[ i ];
-
-        if (point.x < outMin.x)
-        {
-            outMin.x = point.x;
-        }
-
-        if (point.y < outMin.y)
-        {
-            outMin.y = point.y;
-        }
-
-        if (point.z < outMin.z)
-        {
-            outMin.z = point.z;
-        }
-
-        if (point.x > outMax.x)
-        {
-            outMax.x = point.x;
-        }
-
-        if (point.y > outMax.y)
-        {
-            outMax.y = point.y;
-        }
-
-        if (point.z > outMax.z)
-        {
-            outMax.z = point.z;
-        }
-    }
-}
-
 void ScreenPointToRay( int screenX, int screenY, float screenWidth, float screenHeight, unsigned cameraIndex, Vec3& outRayOrigin, Vec3& outRayTarget )
 {
     const float aspect = screenHeight / screenWidth;
@@ -213,7 +172,7 @@ void Matrix::TransformPoint( const Vec3& vec, const Matrix& mat, Vec3& out )
     out.y = tmp[ 1 ];
     out.z = tmp[ 2 ];
 }
-#elif SIMD_NEON
+#elif defined( SIMD_NEON )
 #include <arm_neon.h>
 
 void Matrix::Multiply( const Matrix& ma, const Matrix& mb, Matrix& out )
@@ -757,7 +716,7 @@ void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] )
     outCorners[ 7 ] = Vec3( max.x, min.y, max.z );
 }
 
-void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax )
+void GetMinMax( const Vec3* aPoints, int count, Vec3& outMin, Vec3& outMax )
 {
     outMin = aPoints[ 0 ];
     outMax = aPoints[ 0 ];

@@ -33,7 +33,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
 void TransformSetComputedLocalToClip( unsigned index, const Matrix& localToClip );
 void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView );
 void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] );
-void GetMinMax( const Vec3* aPoints, unsigned count, Vec3& outMin, Vec3& outMax );
+void GetMinMax( const Vec3* aPoints, int count, Vec3& outMin, Vec3& outMax );
 unsigned teMeshGetPositionOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetNormalOffset( const teMesh& mesh, unsigned subMeshIndex );
 unsigned teMeshGetIndexOffset( const teMesh& mesh, unsigned subMeshIndex );
