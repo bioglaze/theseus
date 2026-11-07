@@ -28,6 +28,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
                            void* pixels, int pixelsWidth, int pixelsHeight, teTextureFormat pixelsFormat );
 VkImageView TextureGetView( teTexture2D texture );
 VkImage TextureGetImage( teTexture2D texture );
+VkImage TextureGetImage( teTextureCube texture );
 unsigned TextureGetFlags( unsigned index );
 void GetFormat( teTextureFormat bcFormat, VkFormat& outFormat );
 teBuffer CreateBuffer( VkDevice device, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, unsigned sizeBytes, VkMemoryPropertyFlags memoryFlags, VkBufferUsageFlags usageFlags, const char* debugName );
@@ -1660,6 +1661,9 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
 
     SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, TextureGetImage( renderer.defaultTexture2D ), VK_IMAGE_ASPECT_COLOR_BIT,
         VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
+
+    SetImageLayout( renderer.swapchainResources[ 0 ].drawCommandBuffer, TextureGetImage( renderer.defaultTextureCube ), VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 6, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT );
 
     vkEndCommandBuffer( renderer.swapchainResources[ 0 ].drawCommandBuffer );
 

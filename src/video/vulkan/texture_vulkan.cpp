@@ -173,6 +173,11 @@ VkImage TextureGetImage( teTexture2D texture )
     return textures[ texture.index ].image;
 }
 
+VkImage TextureGetImage( teTextureCube texture )
+{
+    return textures[ texture.index ].image;
+}
+
 unsigned TextureGetFlags( unsigned index )
 {
     return textures[ index ].flags;
