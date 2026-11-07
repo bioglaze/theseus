@@ -308,11 +308,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     
     for (unsigned i = 0; i < MaxFramesInFlight; ++i)
     {
-#if !TARGET_OS_IPHONE
         renderer.frameResources[ i ].uniformBuffer = gDevice->newBuffer( UniformBufferSize, MTL::ResourceStorageModeManaged );
-#else
-        renderer.frameResources[ i ].uniformBuffer = gDevice->newBuffer( UniformBufferSize, MTL::ResourceCPUCacheModeDefaultCache );
-#endif
         renderer.frameResources[ i ].uniformBuffer->setLabel( NS::String::string( "uniform buffer", NS::UTF8StringEncoding ) );
     }
     
@@ -438,9 +434,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uint8_t* bufferPointer = (uint8_t*)(uniformBuffer->contents()) + renderer.frameResources[ renderer.frameIndex ].uboOffset;
 
     memcpy( bufferPointer, &uboStruct, sizeof( PerObjectUboStruct ) );
-#if !TARGET_OS_IPHONE
     uniformBuffer->didModifyRange( NS::Range::Make( renderer.frameResources[ renderer.frameIndex ].uboOffset, sizeof( PerObjectUboStruct ) ) );
-#endif
 }
 
 void teBeginFrame()
@@ -571,9 +565,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
     pipelineStateDescriptor->setRasterSampleCount( 1 );
     pipelineStateDescriptor->setVertexFunction( vertexProgram );
     pipelineStateDescriptor->setFragmentFunction( pixelProgram );
-#if !TARGET_OS_IPHONE
     pipelineStateDescriptor->setInputPrimitiveTopology( topology == teTopology::Triangles ? MTL::PrimitiveTopologyClassTriangle : MTL::PrimitiveTopologyClassLine );
-#endif
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setPixelFormat( colorFormat );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setBlendingEnabled( blendMode != teBlendMode::Off );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceRGBBlendFactor( MTL::BlendFactorSourceAlpha );

@@ -30,7 +30,6 @@ static inline unsigned Max2( unsigned x, unsigned y ) noexcept
 
 static MTL::PixelFormat GetPixelFormat( teTextureFormat aeFormat )
 {
-#if !TARGET_OS_IPHONE
     if (aeFormat == teTextureFormat::BC1)
     {
         return MTL::PixelFormatBC1_RGBA;
@@ -71,9 +70,7 @@ static MTL::PixelFormat GetPixelFormat( teTextureFormat aeFormat )
     {
         return MTL::PixelFormatBC5_RGSnorm;
     }
-    else
-#endif
-    if (aeFormat == teTextureFormat::R32G32F)
+    else if (aeFormat == teTextureFormat::R32G32F)
     {
         return MTL::PixelFormatRG32Float;
     }
@@ -300,7 +297,6 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         cmdBuffer->waitUntilCompleted();
         stagingTexture->release();
     }
-#if !TARGET_OS_IPHONE
     else if (strstr( file.path, ".dds" ) || strstr( file.path, ".DDS" ))
     {
         unsigned mipOffsets[ 15 ] = {};
@@ -384,7 +380,6 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         cmdBuffer->waitUntilCompleted();
         stagingTexture->release();
     }
-#endif
     else
     {
         teAssert( !"Unknown texture extension!" );
@@ -403,7 +398,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     teTextureImpl& tex = textures[ outTexture.index ];
     tex.flags = flags;
 
-#if !TARGET_OS_IPHONE
     if (strstr( negX.path, ".dds" ) || strstr( negX.path, ".DDS" ))
     {
         // This code assumes that all cube map faces have the same format/dimension.
@@ -474,7 +468,6 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
         stagingTexture->release();
     }
-#endif
     
     return outTexture;
 }
