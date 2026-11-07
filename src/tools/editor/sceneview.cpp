@@ -63,6 +63,7 @@ struct SceneView
 
     teTexture2D fontTex;
     teTexture2D gliderTex;
+    teTexture2D defaultNormalTex;
     teTexture2D redTex;
     teTexture2D greenTex;
     teTexture2D blueTex;
@@ -769,17 +770,21 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teCameraGetColorTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
     teCameraGetDepthTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
+    teFile defaultNormalFile = teLoadFile( "assets/textures/default_n.tga" );
+    sceneView.defaultNormalTex = teLoadTexture( defaultNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+
     teFile gliderFile = teLoadFile( "assets/textures/glider_color.tga" );
     sceneView.gliderTex = teLoadTexture( gliderFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     sceneView.material = teCreateMaterial( sceneView.unlitShader );
     teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 0 );
-    teMaterialSetTexture2D( sceneView.material, sceneView.gliderTex, 1 );
-    
+
     sceneView.standardMaterial = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.gliderTex, 0 );
+    teMaterialSetTexture2D( sceneView.standardMaterial, sceneView.defaultNormalTex, 1 );
 
     sceneView.materials[ 0 ] = teCreateMaterial( sceneView.standardShader );
     teMaterialSetTexture2D( sceneView.materials[ 0 ], sceneView.gliderTex, 0 );
+    teMaterialSetTexture2D( sceneView.materials[ 0 ], sceneView.defaultNormalTex, 1 );
     strncpy( sceneView.materials[ 0 ].name, "default", strlen( "default" ) );
     ++sceneView.materialCount;
 
@@ -827,7 +832,7 @@ void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiS
     teSceneAdd( sceneView.scene, sceneView.camera3d.index );
     teSceneAdd( sceneView.scene, sceneView.translateGizmoGo.index );
     teSceneAdd( sceneView.scene, sceneView.cubeGo.index );
-    teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( 1, 1, 1 ).Normalized() );
+    teSceneSetupDirectionalLight( sceneView.scene, Vec3( 1, 1, 1 ), Vec3( sceneView.lightDir[ 0 ], sceneView.lightDir[ 1 ], sceneView.lightDir[ 2 ] ).Normalized() );
 
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

@@ -93,6 +93,8 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     bool currentLightIsPointLight = false;
     bool currentLightIsSpotLight = false;
 
+    float intensity = 1.0f;
+    
     while (fgets( line, sizeof( line ), file ))
     {
         //printf("read line: %s\n", line );
@@ -104,13 +106,16 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         {
             sceneGos[ goIndex ] = teCreateGameObject( "gameobject", teComponent::Transform );
             ++goIndex;
+
+            currentLightIsPointLight = false;
+            currentLightIsSpotLight = false;
         }
         else if (strstr( line, "def SphereLight" ))
         {
             assert( goIndex != 0 );
 
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::PointLight );
-            tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), 1.0f );
+            tePointLightSetParams( sceneGos[ goIndex - 1 ].index, 2, Vec3( 1, 1, 1 ), intensity );
             currentLightIsPointLight = true;
         }
         else if (strstr( line, "color3f" ))
@@ -141,7 +146,6 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
         {
             assert( goIndex != 0 );
 
-            float intensity = 1;
             char skip1[ 255 ] = {};
             char skip2[ 255 ] = {};
             char skip3[ 255 ] = {};
@@ -154,6 +158,20 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             }
 
             // TODO spotlight
+        }
+        else if (strstr( line, "float inputs:radius =" ))
+        {
+            assert( goIndex != 0 );
+
+            float radius = 1.0f;
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%254s %254s %254s %f)", skip1, skip2, skip3, &radius );
+            if (currentLightIsPointLight)
+            {
+                *tePointLightAccessRadius( sceneGos[ goIndex - 1 ].index ) = radius;
+            }
         }
         else if (strstr( line, "#usda 1.0" ))
         {
@@ -287,7 +305,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
                     strcpy( gLoadedMeshes[ gLoadedMeshCount ].file.path, meshPath );
                     teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
                     ++gLoadedMeshCount;
-                    if (gLoadedMeshCount >= MaxLoadedMeshes)
+                    if (gLoadedMeshCount > MaxLoadedMeshes)
                     {
                         printf( "USD file contains more unique meshes than the loader can handle!\n" );
                         assert( false );
@@ -337,6 +355,20 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             char skip3[ 255 ] = {};
             sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &scale.x, &scale.y, &scale.z );
             teTransformSetLocalScale( sceneGos[ goIndex - 1 ].index, scale.x );
+        }
+        else if (strstr( line, "xformOp:rotateXYZ" ))
+        {
+            assert( goIndex != 0 );
+
+            Vec3 euler;
+            char skip1[ 255 ] = {};
+            char skip2[ 255 ] = {};
+            char skip3[ 255 ] = {};
+            sscanf( line, "%254s %254s %254s (%f, %f, %f)", skip1, skip2, skip3, &euler.x, &euler.y, &euler.z );
+
+            Quaternion rotation;
+            rotation.FromEuler( euler );
+            teTransformSetLocalRotation( sceneGos[ goIndex - 1 ].index, rotation );
         }
     }
 

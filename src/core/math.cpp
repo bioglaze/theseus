@@ -233,10 +233,10 @@ void Matrix::TransformPoint( const Vec3& point, const Matrix& mat, Vec3& out )
 void Matrix::InitFrom( const float* mat )
 {
 #ifdef SIMD_SSE3
-    __m128 row1 = _mm_load_ps( &mat[ 0 ] );
-    __m128 row2 = _mm_load_ps( &mat[ 4 ] );
-    __m128 row3 = _mm_load_ps( &mat[ 8 ] );
-    __m128 row4 = _mm_load_ps( &mat[ 12 ] );
+    __m128 row1 = _mm_loadu_ps( &mat[ 0 ] );
+    __m128 row2 = _mm_loadu_ps( &mat[ 4 ] );
+    __m128 row3 = _mm_loadu_ps( &mat[ 8 ] );
+    __m128 row4 = _mm_loadu_ps( &mat[ 12 ] );
     _mm_store_ps( &m[ 0 ], row1 );
     _mm_store_ps( &m[ 4 ], row2 );
     _mm_store_ps( &m[ 8 ], row3 );
