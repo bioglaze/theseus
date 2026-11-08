@@ -65,15 +65,15 @@ void teGameObjectAddComponent( unsigned index, teComponent component )
 {
     teAssert( index < MaxGameObjects );
 
-    gameObjects[ index ].components |= component;
-
-    if (gameObjects[ index ].components & teComponent::PointLight)
+    if (component & teComponent::PointLight)
     {
         AddPointLight( index );
     }
 
-    if (gameObjects[ index ].components & teComponent::SpotLight)
+    if (component & teComponent::SpotLight)
     {
         AddSpotLight( index );
     }
+
+    gameObjects[ index ].components |= component;
 }
