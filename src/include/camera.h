@@ -18,5 +18,6 @@ teTexture2D& teCameraGetDepthNormalsTexture( unsigned index );
 /// \param worldPoint Point in the world.
 /// \param viewWidth Camera's viewport width.
 /// \param viewHeight Camera's viewport height.
-/// \return Screen point for worldPoint.
-struct Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewWidth, float viewHeight );
+/// \param outScreenPoint Screen point for worldPoint.
+/// \return true if the point lies in front of the camera. False if it lies behind the camera
+bool teCameraGetScreenPoint( unsigned index, const struct Vec3& worldPoint, float viewWidth, float viewHeight, Vec3& outScreenPoint );

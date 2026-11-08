@@ -324,7 +324,8 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
 
             if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
             {
-                const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height );
+                Vec3 screenPoint;
+                bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
 
@@ -921,15 +922,19 @@ void RenderSceneView( float gridStep )
 
         if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
         {
-            const Vec3 screenPoint = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height );
+            Vec3 screenPoint;
+            bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
 
-            float x = screenPoint.x;
-            float y = sceneView.height - screenPoint.y;
-            shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
-            shaderParams.tilesXY[ 1 ] = sceneView.flipSprites ? -0.2f : 0.2f;
-            shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
-            shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
-            teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Off );
+            if (isFront)
+            {
+                float x = screenPoint.x;
+                float y = sceneView.height - screenPoint.y;
+                shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
+                shaderParams.tilesXY[ 1 ] = sceneView.flipSprites ? -0.2f : 0.2f;
+                shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
+                shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
+                teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Off );
+            }
         }
     }
 

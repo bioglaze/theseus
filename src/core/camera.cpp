@@ -1,7 +1,6 @@
 #include "camera.h"
 #include "frustum.h"
 #include "matrix.h"
-#include "quaternion.h"
 #include "te_stdlib.h"
 #include "texture.h"
 #include "transform.h"
@@ -75,7 +74,7 @@ teTexture2D& teCameraGetDepthTexture( unsigned index )
     return cameras[ index ].depth;
 }
 
-Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewWidth, float viewHeight )
+bool teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewWidth, float viewHeight, Vec3& outScreenPoint )
 {
     teAssert( index < MaxCameras );
 
@@ -84,17 +83,23 @@ Vec3 teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewW
     Matrix::Multiply( teTransformGetMatrix( index ), cameras[ index ].projection, worldToClip );
     Vec4 pos{ worldPoint.x, worldPoint.y, worldPoint.z, 1.0f };
     Matrix::TransformPoint( pos, worldToClip, pos );
+
+    if (pos.w < 0)
+    {
+        return false;
+    }
+    
     pos.x /= pos.w;
     pos.y /= pos.w;
 
     const float halfWidth = viewWidth * 0.5f;
     const float halfHeight = viewHeight * 0.5f;
 
-    Vec3 out = Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
+    outScreenPoint = Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
 #if API_METAL
-    out.y = viewHeight - out.y;
+    outScreenPoint.y = viewHeight - out.y;
 #endif
-    return out;
+    return true;
 }
 
 void teCameraSetProjectionType( unsigned index, teProjectionType projectionType )
@@ -123,6 +128,7 @@ void teCameraSetProjection( unsigned index, float left, float right, float botto
     cameras[ index ].nearDepth = aNear;
     cameras[ index ].farDepth = aFar;
     cameras[ index ].projection.MakeProjection( left, right, bottom, top, aNear, aFar );
+    FrustumSetProjection( index, left, right, bottom, top, aNear, aFar );
 }
 
 void teCameraGetProjection( unsigned index, float& outFovDegrees, float& outAspect, float& outNearDepth, float& outFarDepth )
