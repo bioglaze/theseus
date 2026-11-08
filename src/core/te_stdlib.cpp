@@ -84,9 +84,21 @@ void tePrint( const char* format, ... )
             break;
         case 's':
             s = va_arg( arg, char* );
-            teAssert( teStrlen( output ) + teStrlen( s ) < length );
-            teMemcpy( outPtr, s, teStrlen( s ) );
-            outPtr += teStrlen( s );
+            if (s)
+            {
+                teAssert( teStrlen( output ) + teStrlen( s ) < length );
+                teMemcpy( outPtr, s, teStrlen( s ) );
+                outPtr += teStrlen( s );
+            }
+            else
+            {
+                *outPtr++ = '(';
+                *outPtr++ = 'n';
+                *outPtr++ = 'u';
+                *outPtr++ = 'l';
+                *outPtr++ = 'l';
+                *outPtr++ = ')';
+            }
             break;
         case 'f':
             f = (float)va_arg( arg, double );

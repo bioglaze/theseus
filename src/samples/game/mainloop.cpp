@@ -129,7 +129,7 @@ void ReadMaterials()
                         size_t offset = strlen( "name " );
 
                         while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
-                            line[ nameCursor + offset ] != 0)
+                            line[ nameCursor + offset ] != 0 && nameCursor < 100)
                         {
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
@@ -139,7 +139,7 @@ void ReadMaterials()
                         {
                             nameCursor = sizeof( gResources.materials[ gResources.materialCount ].name ) - 1;
                         }
-                        printf( "material name: %s\n", name );
+
                         strncpy( gResources.materials[ gResources.materialCount ].name, name, sizeof( gResources.materials[ gResources.materialCount ].name ) );
                         gResources.materials[ gResources.materialCount ].name[ nameCursor ] = 0;
                     }
@@ -164,6 +164,7 @@ void ReadMaterials()
                             gResources.textures[ gResources.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
                             teMaterialSetTexture2D( gResources.materials[ gResources.materialCount ], gResources.textures[ gResources.textureCount ], 0 );
                             ++gResources.textureCount;
+                            free( texFile.data );
                         }
                     }
                     else if (strstr( line, "normal" ) == line)
@@ -311,7 +312,7 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
             else if (strstr(line, "entityTarget") == line)
             {
                 unsigned nameCursor = 0;
-                unsigned offset = (unsigned)strlen( "entity " );
+                unsigned offset = (unsigned)strlen( "entityTarget " );
 
                 while (nameCursor + offset < strlen( line ) &&
                     line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n')
@@ -753,6 +754,7 @@ void HandleEvent( const teWindowEvent& event )
     else if (event.type == teWindowEvent::Type::FocusLoss)
     {
         gInput.moveDir = Vec3( 0, 0, 0 );
+        gInput.isLeftMouseDown = false;
         gInput.isRightMouseDown = false;
     }
     // The rest of the keycodes are for debugging
@@ -829,8 +831,9 @@ void HandleEvent( const teWindowEvent& event )
 
         if (gInput.isRightMouseDown || gInput.isLeftMouseDown)
         {
-            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 0, 1, 0 ), -gInput.deltaX / 100.0f * (float)gGameState.dt );
-            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY / 100.0f * (float)gGameState.dt );
+            const float mouseSensitivity = 0.0167f; // radians per pixel
+            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 0, 1, 0 ), -gInput.deltaX * mouseSensitivity );
+            teTransformOffsetRotate( gResources.camera3d.index, Vec3( 1, 0, 0 ), -gInput.deltaY * mouseSensitivity );
         }
 
         int closestSceneGo = 0;
