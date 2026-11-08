@@ -17,6 +17,8 @@
 #include <sys/ioctl.h>
 #endif
 
+#define XDG_WM_BASE_PONG 3
+
 constexpr int EventStackSize = 100;
 
 struct GamePad
@@ -202,6 +204,17 @@ static const struct wl_interface *xdg_shell_types[] = {
     &xdg_positioner_interface,
     nullptr,
 };
+
+static void xdg_wm_base_pong( struct xdg_wm_base* xdg_wm_base, uint32_t serial )
+{
+	wl_proxy_marshal_flags((struct wl_proxy *) xdg_wm_base,
+			 XDG_WM_BASE_PONG, NULL, wl_proxy_get_version((struct wl_proxy *) xdg_wm_base), 0, serial);
+}
+
+static void xdg_wm_base_ping( void* data, struct xdg_wm_base* xdg_wm_base, uint32_t serial )
+{
+    xdg_wm_base_pong( xdg_wm_base, serial );
+}
 
 static const wl_message xdg_wm_base_requests[] = {
     { "destroy", "", xdg_shell_types + 0 },
@@ -504,7 +517,7 @@ static void pointerAxis( void*       data,
     }
 }
 
-static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr };
+static struct wl_pointer_listener pointerListener = { pointerEnter, pointerLeave, pointerMotion, pointerButton, pointerAxis, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 
 void keyMap( void* data, wl_keyboard* wlKeyboard, uint format, int fd, uint size )
 {
