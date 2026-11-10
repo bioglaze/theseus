@@ -188,15 +188,12 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             float3 F = F_Schlick( dotLH, f0v );
             float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             float3 Fr = (D * v) * F;
-            float3 Fd = Fd_Lambert();
+            float3 Fd = Fd_Lambert() * 3.14159f;
 
-            float attenuation = 1.0f;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
-            // FIXME: something wrong with the following line
-            //const float3 color = Fd + Fr;
-            const float3 color = 1.0f;
+            float attenuation = 1.0f;//pointLightAttenuation( length( vecToLightWS ), radius );
+            const float3 color = Fd + Fr;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
-            //return float4( pointLightColor.rgb, 1 );
         }
     }
 
@@ -219,7 +216,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
         accumDiffuseAndSpecular.rgb += spotLightColor.rgb;
     }
 
-    accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
+    accumDiffuseAndSpecular += ambient;
     
-    return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
+    return albedo * float4( accumDiffuseAndSpecular, 1 );
 }
