@@ -97,7 +97,7 @@ bool teCameraGetScreenPoint( unsigned index, const Vec3& worldPoint, float viewW
 
     outScreenPoint = Vec3( pos.x * halfWidth + halfWidth, -pos.y * halfHeight + halfHeight, pos.z );
 #if API_METAL
-    outScreenPoint.y = viewHeight - out.y;
+    outScreenPoint.y = viewHeight - outScreenPoint.y;
 #endif
     return true;
 }

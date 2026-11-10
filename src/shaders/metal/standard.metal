@@ -206,7 +206,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float3 Fr = (D * v) * F;
             const float3 Fd = Fd_Lambert();
 
-            const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), 1.0f / radius );
+            const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), radius );
             const float3 color = float3( 1, 1, 1 );
             //const float3 color = Fd + Fr;
             accumDiffuseAndSpecular.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
@@ -228,6 +228,6 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         float3 spotLightDir = spotParams.xyz;
     }
 
-    accumDiffuseAndSpecular = max( ambient, accumDiffuseAndSpecular );
-    return albedo * float4( saturate( accumDiffuseAndSpecular ), 1 );
+    accumDiffuseAndSpecular += ambient;
+    return albedo * float4( accumDiffuseAndSpecular, 1 );
 }

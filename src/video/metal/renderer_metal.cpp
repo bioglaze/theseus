@@ -23,6 +23,10 @@ unsigned GetPointLightCount();
 unsigned GetSpotLightCount();
 teBuffer GetPointLightCenterAndRadiusBuffer();
 teBuffer GetPointLightColorBuffer();
+teBuffer GetSpotLightCenterAndRadiusBuffer();
+teBuffer GetSpotLightParamBuffer();
+teBuffer GetSpotLightColorBuffer();
+teBuffer GetLightIndexBuffer();
 void WaitForPreviousFrame();
 void AddCompletedHandler();
 
@@ -640,8 +644,8 @@ void MoveToNextUboOffset()
 {
     unsigned mask = 256 - 1; // Intel requires 256-byte alignment, Apple silicon 32. 256 satisfies both.
     unsigned alignedSize = sizeof( PerObjectUboStruct ) + (-sizeof( PerObjectUboStruct ) & mask); // Works only for power of two alignment.
+    teAssert( renderer.frameResources[ renderer.frameIndex ].uboOffset + alignedSize <= UniformBufferSize );
     renderer.frameResources[ renderer.frameIndex ].uboOffset += alignedSize;
-    teAssert( renderer.frameResources[ renderer.frameIndex ].uboOffset + alignedSize < UniformBufferSize );
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
