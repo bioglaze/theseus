@@ -820,6 +820,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
     if (isDDS)
     {
+        SetImageLayout( cmdBuffer, tex.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 6, 0, tex.mipLevelCount, VK_PIPELINE_STAGE_TRANSFER_BIT );
         CopyMipmapsFromDDS( tex, format, 6, files, mipOffsets, device, cmdBuffer, deviceMemoryProperties );
     }
 
