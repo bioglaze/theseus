@@ -79,7 +79,7 @@ void RegisterFileForModifications( const teFile& file, void(*updateFunc)(const c
 
     if (stat( fileEntries[ fileEntryCount ].path, &inode ) != -1)
     {
-#if _MSC_VER
+#if _WIN32
         tm timeinfo = {};
         localtime_s( &timeinfo, &inode.st_mtime );
         const tm* timeinfo2 = &timeinfo;
@@ -102,7 +102,7 @@ void teHotReload()
     {
         if (stat( fileEntries[ i ].path, &inode ) != -1)
         {
-#if _MSC_VER
+#if _WIN32
             tm timeinfo = {};
             localtime_s( &timeinfo, &inode.st_mtime );
             const tm* timeinfo2 = &timeinfo;
@@ -120,7 +120,7 @@ void teHotReload()
     }
 }
 
-#if _MSC_VER
+#if _WIN32
 struct DirectoryHandle
 {
     WIN32_FIND_DATA ffd;

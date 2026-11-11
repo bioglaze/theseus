@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if _MSC_VER
+#if _WIN32
 #define teAssert( c ) if (!(c)) __debugbreak()
 #else
 //#define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
@@ -20,14 +20,14 @@
 #ifndef TE_ALLOCA
 #if defined( __APPLE__ ) || defined( __GLIBC__ )
 #include <alloca.h>
-#elif defined( _MSC_VER )
+#elif defined( _WIN32 )
 #include <malloc.h>
 #ifndef alloca
 #define alloca _alloca
 #endif // alloca
 #else
 #include <stdlib.h>
-#endif // _MSC_VER
+#endif // _WIN32
 #define TE_ALLOCA alloca
 #endif // TE_ALLOCA
 

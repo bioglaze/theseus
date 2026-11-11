@@ -1,5 +1,5 @@
 #include "te_stdlib.h"
-#if !defined( _MSC_VER )
+#if !defined( _WIN32 )
 #include <unistd.h>
 #endif
 #include <fcntl.h>
@@ -122,7 +122,7 @@ void tePrint( const char* format, ... )
 
     va_end( arg );
 
-#if _MSC_VER
+#if _WIN32
     OutputDebugStringA( output );
 #else
     int terminal = open( "/dev/tty", O_WRONLY );
