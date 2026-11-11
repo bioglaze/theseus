@@ -162,6 +162,7 @@ struct SwapchainResource
     unsigned setIndex = 0;
     VkDescriptorSet descriptorSets[ SetCount ] = {};
     VkQueryPool queryPool;
+    bool hasTimestampResults = false;
 };
 
 struct Renderer
@@ -1697,6 +1698,20 @@ void teBeginFrame()
     vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence, VK_TRUE, UINT64_MAX );
     vkResetFences( renderer.device, 1, &renderer.swapchainResources[ renderer.frameIndex ].fence );
 
+    // The fence above guarantees the submission that previously used this swapchain slot has finished,
+    // so its timestamp results are available. Read them before resetting the query pool below.
+    if (renderer.swapchainResources[ renderer.frameIndex ].hasTimestampResults)
+    {
+        uint64_t timestamps[ 2 ] = {};
+        VkResult res = vkGetQueryPoolResults( renderer.device, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2,
+            sizeof( timestamps ), timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT );
+
+        if (res == VK_SUCCESS)
+        {
+            //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
+        }
+    }
+
     VkResult err = renderer.acquireNextImageKHR( renderer.device, renderer.swapchain, UINT64_MAX, renderer.swapchainResources[ renderer.frameIndex ].imageAcquiredSemaphore, VK_NULL_HANDLE, &renderer.currentBuffer );
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1739,7 +1754,8 @@ void teBeginFrame()
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &cmdBufInfo ) );
 
-    //vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2 );
+    vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2 );
+    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0 );
 
     SetImageLayout( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.currentBuffer ].image,
         VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1, 0, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT );
@@ -1764,6 +1780,8 @@ void teEndFrame()
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
+    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 1 );
+
     VK_CHECK( vkEndCommandBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer ) );
 
     VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
@@ -1780,9 +1798,7 @@ void teEndFrame()
 
     VK_CHECK( vkQueueSubmit( renderer.graphicsQueue, 1, &submitInfo, renderer.swapchainResources[ renderer.frameIndex ].fence ) );
 
-    uint64_t timestamps[ 2 ] = {};
-    /*VkResult res =*/ vkGetQueryPoolResults( renderer.device, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2, sizeof( uint64_t ) * 2, timestamps, sizeof( uint64_t ), VK_QUERY_RESULT_64_BIT /*| VK_QUERY_RESULT_WAIT_BIT*/);
-    //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
+    renderer.swapchainResources[ renderer.frameIndex ].hasTimestampResults = true;
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1879,11 +1895,7 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
     vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr, 1, &depthMemoryBarrier );
 
-    vkCmdResetQueryPool( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0, 2 );
-
     vkCmdBeginRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, &renderInfo );
-
-    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 0 );
 
     VkViewport viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
     vkCmdSetViewport( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, 0, 1, &viewport );
@@ -1899,8 +1911,6 @@ void BeginRendering( teTexture2D& color, teTexture2D& depth, teClearFlag clearFl
 
 void EndRendering( teTexture2D& color, teTexture2D& depth )
 {
-    vkCmdWriteTimestamp( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, renderer.swapchainResources[ renderer.frameIndex ].queryPool, 1 );
-
     vkCmdEndRendering( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer );
 
     VkImageMemoryBarrier imageMemoryBarrier = {};
