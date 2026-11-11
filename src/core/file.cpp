@@ -127,22 +127,27 @@ struct DirectoryHandle
     HANDLE handle = INVALID_HANDLE_VALUE;
 };
 
-DirectoryHandle dirHandles[ 100 ];
-unsigned dirHandleCount = 0;
+constexpr unsigned MaxDirHandles = 100;
+DirectoryHandle dirHandles[ MaxDirHandles ];
 
 unsigned teReadDirectory( const char* root )
 {
-    if (dirHandleCount == 99)
-        dirHandleCount = 0;
-
     char path[ 260 ] = {};
     unsigned len = teStrlen( root );
     teMemcpy( path, root, len );
     path[ len ] = '/';
     path[ len + 1 ] = '*';
 
-    dirHandles[ dirHandleCount ].handle = FindFirstFile( path, &dirHandles[ dirHandleCount ].ffd );
-    return dirHandleCount++;
+    for (unsigned i = 0; i < MaxDirHandles; ++i)
+    {
+        if (dirHandles[ i ].handle == INVALID_HANDLE_VALUE)
+        {
+            dirHandles[ i ].handle = FindFirstFile( path, &dirHandles[ i ].ffd );
+            return i;
+        }
+    }
+
+    return 0;
 }
 
 bool teGetNextFile( unsigned handle, char** outPath )
@@ -156,9 +161,7 @@ bool teGetNextFile( unsigned handle, char** outPath )
 void teCloseDirectory( unsigned handle )
 {
     FindClose( dirHandles[ handle ].handle );
-    
-    if (dirHandleCount > 0)
-        --dirHandleCount;
+    dirHandles[ handle ].handle = INVALID_HANDLE_VALUE;
 }
 #else
 #include <dirent.h>
