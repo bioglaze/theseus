@@ -194,7 +194,7 @@ teBuffer CreateStagingBuffer( unsigned size, const char* debugName )
     return CreateBuffer( gDevice, size, true, debugName );
 }
 
-void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
+void teCreateRenderer( unsigned swapInterval, unsigned width, unsigned height )
 {
     MTL::SamplerDescriptor* samplerDescriptor = MTL::SamplerDescriptor::alloc()->init();
 
@@ -576,7 +576,7 @@ static int GetPSO( MTL::Function* vertexProgram, MTL::Function* pixelProgram, te
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationRGBBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorOneMinusSourceAlpha : MTL::BlendFactorOne );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setRgbBlendOperation( MTL::BlendOperationAdd );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setSourceAlphaBlendFactor( MTL::BlendFactorOne );
-    pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationAlphaBlendFactor( MTL::BlendFactorOneMinusSourceAlpha );
+    pipelineStateDescriptor->colorAttachments()->object( 0 )->setDestinationAlphaBlendFactor( blendMode == teBlendMode::Alpha ? MTL::BlendFactorOneMinusSourceAlpha : : MTL::BlendFactorOne );
     pipelineStateDescriptor->colorAttachments()->object( 0 )->setAlphaBlendOperation( MTL::BlendOperationAdd );
     pipelineStateDescriptor->setDepthAttachmentPixelFormat( depthFormat );
         

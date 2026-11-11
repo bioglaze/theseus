@@ -581,6 +581,34 @@ void GetSavePath( char* path, const char* extension )
     }
 }
 
+- (void)rightMouseDown:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
+
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse2Down;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
+    }
+}
+
+- (void)rightMouseUp:(NSEvent *)theEvent
+{
+    if (IncEventIndex())
+    {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
+
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::Mouse2Up;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
+    }
+}
+
 - (void)mouseMoved:(NSEvent *)theEvent
 {
     if (IncEventIndex())
@@ -611,7 +639,6 @@ void GetSavePath( char* path, const char* extension )
 
 - (void)scrollWheel:(NSEvent *)theEvent
 {
-    printf("scrollwheel\n");
     if (IncEventIndex())
     {
         float x = theEvent.locationInWindow.x * win.scale;
@@ -629,12 +656,21 @@ void GetSavePath( char* path, const char* extension )
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
 {
-    printf("rightMouseDragged\n");
+    if (IncEventIndex())
+    {
+        float x = theEvent.locationInWindow.x * win.scale;
+        float y = theEvent.locationInWindow.y * win.scale;
+        y = win.height - y;
+
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseMove;
+        win.events[ win.eventIndex ].x = x >= 0 ? x : 0;
+        win.events[ win.eventIndex ].y = y >= 0 ? y : 0;
+    }
 }
 
 @end
 
-void* teCreateWindow( unsigned width, unsigned height, const char* title )
+void teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -689,8 +725,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     unsigned maxFramesInFlight = 3;
     win.inFlightSemaphore = dispatch_semaphore_create( maxFramesInFlight );
-
-    return nullptr;
 }
 
 void teWindowGetSize( unsigned& outWidth, unsigned& outHeight )
