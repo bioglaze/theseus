@@ -468,7 +468,80 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
         stagingTexture->release();
     }
-    
+    else if (strstr( negX.path, ".tga" ) || strstr( negX.path, ".TGA" ))
+    {
+        unsigned bitsPerPixel = 24;
+        unsigned offset = 0;
+        bool res = LoadTGA( negX, tex.width, tex.height, offset, bitsPerPixel );
+
+        if (bitsPerPixel == 24 || !res)
+        {
+            tePrint( "TGA loading failed! Possible reason: 24-bit .tga is not currently supported, must be 32-bit: %s\n", negX.path );
+            outTexture.index = 1;
+            --textureCount;
+            return outTexture;
+        }
+
+        if (!(flags & teTextureFlags::GenerateMips))
+        {
+            tex.mipLevelCount = 1;
+        }
+
+        tex.format = MTL::PixelFormatRGBA8Unorm_sRGB;
+
+        MTL::TextureDescriptor* stagingDescriptor =
+        MTL::TextureDescriptor::textureCubeDescriptor( tex.format,
+                                                       tex.width,
+                                                       false );
+        MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
+        NS::String* label = NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding );
+        NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
+        NS::String* label2 = label->stringByAppendingString( stagingLabel );
+        stagingTexture->setLabel( label2 );
+
+        const unsigned char* datas[ 6 ] = { posX.data, negX.data, posY.data, negY.data, posZ.data, negZ.data };
+        MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.width );
+        
+        unsigned multiplier = 4;
+
+        for (int face = 0; face < 6; ++face)
+        {
+            stagingTexture->replaceRegion( region, 0, face, datas[ face ] + offset, multiplier * tex.width, 0 );
+        }
+
+        stagingDescriptor->setUsage( MTL::TextureUsageShaderRead );
+        stagingDescriptor->setStorageMode( MTL::StorageModePrivate );
+        tex.metalTexture = gDevice->newTexture( stagingDescriptor );
+        tex.metalTexture->setLabel( NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding ) );
+
+        MTL::CommandBuffer* cmdBuffer = gCommandQueue->commandBuffer();
+        MTL::BlitCommandEncoder* blitEncoder = cmdBuffer->blitCommandEncoder();
+
+        for (unsigned faceIndex = 0; faceIndex < 6; ++faceIndex)
+        {
+            blitEncoder->copyFromTexture( stagingTexture,
+                              faceIndex,
+                              0,
+                              MTL::Origin::Make( 0, 0, 0 ),
+                              MTL::Size::Make( tex.width, tex.height, 1 ),
+                              tex.metalTexture,
+                              faceIndex,
+                              0,
+                        MTL::Origin::Make( 0, 0, 0 ) );
+        }
+
+        if ((flags & teTextureFlags::GenerateMips))
+        {
+            blitEncoder->generateMipmaps( tex.metalTexture );
+        }
+
+        blitEncoder->endEncoding();
+        cmdBuffer->commit();
+        cmdBuffer->waitUntilCompleted();
+        
+        stagingTexture->release();
+    }
+
     return outTexture;
 }
 
