@@ -448,14 +448,14 @@ static void InitGamePad()
 #endif
 }
 
-void* teCreateWindow( unsigned width, unsigned height, const char* title )
+void teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     connection = xcb_connect( nullptr, nullptr );
 
     if (xcb_connection_has_error( connection ))
     {
         tePrint( "Can't get xcb connection from display\n" );
-        return nullptr;
+        return;
     }
     
     xcb_screen_t* s = xcb_setup_roots_iterator( xcb_get_setup( connection ) ).data;
@@ -492,7 +492,8 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
     if (!xcb_ewmh_init_atoms_replies( &win.EWMH, win.EWMHCookie, nullptr ))
     {
-        return nullptr;
+        tePrint( "Atom init failed!\n" );
+        return;
     }
 
     xcb_flush( connection );
@@ -508,15 +509,13 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
 
         if (!reply)
         {
-            return nullptr;
+            return;
         }
 
         free( reply );
     }
 
     InitGamePad();
-    
-    return nullptr;
 }
 
 teWindowEvent* teGetWindowEvents()

@@ -349,7 +349,7 @@ static void cursorSurfaceEnter( void* data, wl_surface* wlSurface, wl_output* wl
     pointerOutput->output = (Output*)wl_output_get_user_data( wlOutput );
     wl_list_insert( &seate->pointer_outputs, &pointerOutput->link );
     //try_update_cursor( seate );
-    printf( "TODO: try_update_cursor()\n");
+    //printf( "TODO: try_update_cursor()\n");
 }
 
 static void cursorSurfaceLeave( void* data, wl_surface* wlSurface, wl_output* wlOutput )
@@ -513,7 +513,7 @@ static void pointerAxis( void*       data,
     if (IncEventIndex())
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::MouseWheel;
-        win.events[ win.eventIndex ].wheelDelta = -(int)wl_fixed_to_double( value );
+        win.events[ win.eventIndex ].wheelDelta = -(int)wl_fixed_to_double( value ); // FIXME: value can be below 1 so this truncates it.
     }
 }
 
@@ -532,7 +532,10 @@ void keyEnter( void* data, wl_keyboard* wlKeyboard, uint serial, wl_surface* sur
 
 void keyLeave( void* data, wl_keyboard* wlKeyboard, uint serial, wl_surface* surface )
 {
-    //printf("keyLeave\n");
+    if (IncEventIndex())
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::FocusLoss;
+    }
 }
 
 void keyKey( void* data, wl_keyboard* wlKeyboard, uint serial, uint time, uint key, uint keyState )
@@ -621,7 +624,7 @@ static void outputGeometry( void* data,
 
 static void outputMode( void* data, wl_output* wlOutput, uint32_t flags, int32_t width, int32_t height, int32_t refresh )
 {
-    printf( "TODO: output_mode\n" );
+    //printf( "TODO: output_mode\n" );
 }
 
 static void outputDone( void *data, struct wl_output* wl_output )
@@ -640,7 +643,7 @@ static void outputDone( void *data, struct wl_output* wl_output )
 
     wl_list_for_each( sseat, &seats, link )
     {
-        printf( "TODO: try_update_cursor\n" );
+        //printf( "TODO: try_update_cursor\n" );
         //try_update_cursor( seat );
     }
 }
@@ -650,7 +653,7 @@ static void outputScale( void *data, struct wl_output *wl_output, int32_t factor
     Output* output = (Output*)data;
     output->scale = factor;
     window.outputScale = factor;
-    printf( "outputScale: %d\n", factor );
+    //printf( "outputScale: %d\n", factor );
 }
 
 static struct wl_output_listener output_listener = { outputGeometry, outputMode, outputDone, outputScale, nullptr, nullptr };
@@ -748,7 +751,7 @@ void registry_handle_global_remove( void* data, struct wl_registry* registry, ui
 
 void updateScale( Window* windowa )
 {
-    printf( "TODO: updateScale\n");
+    //printf( "TODO: updateScale\n");
     
     /*int scale = 1;
     WindowOutput* window_output;
@@ -820,6 +823,9 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
         height = win.height;
     }
 
+    win.width = width;
+    win.height = height;
+    
     //printf( "handle_configure 2: width: %d, height %d\n", width, height );
 
     libdecor_state* decState = libdecor_state_new( width, height );
@@ -831,7 +837,7 @@ static void handleConfigure( libdecor_frame* frame, libdecor_configuration* conf
 
 void handle_error( libdecor* context, enum libdecor_error error, const char* message )
 {
-    printf( "libdecor error: %d: %s\n", error, message );
+    tePrint( "libdecor error: %d: %s\n", error, message );
 }
 
 static struct libdecor_interface libdecor_iface =
@@ -997,7 +1003,7 @@ static void InitGamePad()
 #endif
 }
 
-void* teCreateWindow( unsigned width, unsigned height, const char* title )
+void teCreateWindow( unsigned width, unsigned height, const char* title )
 {
     InitKeyMap();
     InitGamePad();
@@ -1006,10 +1012,11 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     
     if (!gwlDisplay)
     {
-        printf( "No Wayland connection!\n" );
-        return nullptr;
+        tePrint( "No Wayland connection!\n" );
+        return;
     }
 
+    wl_list_init( &window.outputs );
     wl_list_init( &seats );
     wl_list_init( &outputs );
 
@@ -1024,6 +1031,7 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     {
         //window->scale = MAX(window->scale, output->scale);
         printf( "output scale: %d, window scale: %d\n", output->scale, window.scale );
+        // FIXME: this is wrong if the user has multiple displays.
         width /= output->scale;
         height /= output->scale;
     }
@@ -1031,7 +1039,6 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     win.width = width;
     win.height = height;
 
-    wl_list_init( &window.outputs );
     window.wlSurface = wl_compositor_create_surface( wlCompositor );
     gwlSurface = window.wlSurface;
     wl_surface_add_listener( window.wlSurface, &surfaceListener, &window );
@@ -1048,12 +1055,10 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     {
         if (libdecor_dispatch( decorContext, 0 ) < 0 )
         {
-            printf( "Waiting for window configuration failed!\n" );
+            tePrint( "Waiting for window configuration failed!\n" );
             exit( 1 );
         }
     }
-    
-    return nullptr;
 }
 
 void tePushWindowEvents()
