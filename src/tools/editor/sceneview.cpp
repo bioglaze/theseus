@@ -933,7 +933,7 @@ void RenderSceneView( float gridStep )
                 shaderParams.tilesXY[ 1 ] = sceneView.flipSprites ? -0.2f : 0.2f;
                 shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
                 shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
-                teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Off );
+                teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Alpha );
             }
         }
     }
