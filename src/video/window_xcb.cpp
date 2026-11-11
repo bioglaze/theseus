@@ -180,7 +180,6 @@ void tePushWindowEvents()
         if (responseType == XCB_BUTTON_PRESS || responseType == XCB_BUTTON_RELEASE)
         {
             xcb_button_press_event_t* bp = (xcb_button_press_event_t *)event;
-            IncEventIndex();
 
             if (bp->detail == 2 && IncEventIndex())
             {

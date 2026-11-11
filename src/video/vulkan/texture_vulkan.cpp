@@ -749,11 +749,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
             else if (files[ face ].data == nullptr)
             {
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
 
@@ -766,6 +768,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             {
                 teAssert( !"One of cube map faces failed to load!" );
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
 
@@ -782,12 +785,14 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             {
                 teAssert( !"cube map contains both .tga and .dds, not supported!" );
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
             else if (files[ face ].data == nullptr)
             {
                 // File not found, return default cube texture.
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
 
@@ -797,6 +802,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
             {
                 teAssert( !"One of cube map faces failed to load!" );
                 outTexture.index = GetDefaultTextureCube().index;
+                --textureCount;
                 return outTexture;
             }
 
