@@ -11,7 +11,7 @@
 #include "vec3.h"
 #include "transform.h"
 
-#if _MSC_VER
+#if _WIN32
 #include <Windows.h>
 #endif
 
@@ -44,7 +44,7 @@ struct InputState
     bool isMovingGizmo = false;
 };
 
-#if _MSC_VER
+#if _WIN32
 void GetOpenPath( char* path, const char* extension )
 {
     OPENFILENAME ofn = {};
@@ -109,11 +109,12 @@ void GetSavePath( char* path, const char* extension )
         ofn.lpstrFilter = "USDA\0*.usda\0All\0*.*\0";
     }
 
+    ofn.lpstrDefExt = extension;
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = nullptr;
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = nullptr;
-    ofn.Flags = 0;
+    ofn.Flags = OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT;
 
     if (GetSaveFileName( &ofn ) != FALSE)
     {

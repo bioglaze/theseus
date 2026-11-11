@@ -26,15 +26,16 @@ Bugs:
   * XCB: closing a window with close button causes Illegal instruction. Quitting otherwise doesn't.
   
 * 0.1 hitlist
-  * imgui.ini for Editor
-  * spot light lighting
+  * imgui.ini for Editor in git
+  * implement spot light lighting in standard shader
   * mention that save scene and export scene should save to build/
-  * light removal
+  * fix light removal bug
   * fix sprite clicking bug
   * alsa: audio threading
 
 TODO:
 * Editor
+  * Move GetOpenPath and GetSavePath into window_win32.cpp
   * show scene name in title bar
   * component removing
   * ctrl-s and ctrl-o
