@@ -79,7 +79,7 @@ struct GameState
 
 void ZeroMem( char* dst, size_t size )
 {
-    for (unsigned i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         dst[ i ] = 0;
     }
@@ -530,7 +530,7 @@ void LoadResources( unsigned width, unsigned height )
 
     gResources.camera3d = teCreateGameObject( "camera3d", teComponent::Transform | teComponent::Camera );
     Vec3 cameraPos = { 0, 2, 10 };
-    Vec4 clearColor = { 1, 0, 0, 1 };
+    Vec4 clearColor = { 0, 0, 0, 1 };
     teClearFlag clearFlag = teClearFlag::DepthAndColor;
     teTransformSetLocalPosition( gResources.camera3d.index, cameraPos );
     teCameraSetProjection( gResources.camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
@@ -640,8 +640,17 @@ void Init( unsigned width, unsigned height )
 
 void Tick()
 {
+    double lastTime = gGameState.theTime;
+    gGameState.theTime = GetMilliseconds();
+    gGameState.dt = gGameState.theTime - lastTime;
+
+    if (gGameState.dt < 0)
+    {
+        gGameState.dt = 0;
+    }
+
     bool fpsCamera = true;
-    const float speed = fpsCamera ? 0.25f : 0.5f;
+    const float speed = fpsCamera ? 0.025f : 0.05f;
 
     Vec3 oldCameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
 
@@ -683,17 +692,6 @@ void Tick()
     {
         gGameState.doorFrame = 40;
     }
-
-    double lastTime = gGameState.theTime;
-    gGameState.theTime = GetMilliseconds();
-    gGameState.dt = gGameState.theTime - lastTime;
-
-    gGameState.dt /= 10.0f;
-
-    if (gGameState.dt < 0)
-    {
-        gGameState.dt = 0;
-    }
 }
 
 void Render()
@@ -719,6 +717,8 @@ void Render()
 
 void HandleEvent( const teWindowEvent& event )
 {
+    constexpr float MinInteractDistance = 5.0f;
+
     if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
     {
         gInput.moveDir.z = -0.5f;
@@ -780,7 +780,9 @@ void HandleEvent( const teWindowEvent& event )
         unsigned closestSubMesh = 0;
         GetColliders( event.x, event.y, gGameState.width, gGameState.height, gResources.scene, gResources.camera3d.index, closestSceneGo, closestSubMesh );
         
-        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
+        float distance = (teTransformGetLocalPosition( closestSceneGo ) - teTransformGetLocalPosition( gResources.camera3d.index )).Length();
+
+        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton) && distance < MinInteractDistance)
         {
             printf( "Clicked door button.\n" );
             tePlayAudioClip( gResources.audioClipClick );
@@ -842,7 +844,12 @@ void HandleEvent( const teWindowEvent& event )
         
         if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
         {
-            teMeshRendererSetMaterial( closestSceneGo, gResources.hilightMaterial, 1 );
+            float distance = (teTransformGetLocalPosition( closestSceneGo ) - teTransformGetLocalPosition( gResources.camera3d.index ) ).Length();
+
+            if (distance < MinInteractDistance)
+            {
+                teMeshRendererSetMaterial( closestSceneGo, gResources.hilightMaterial, 1 );
+            }
         }
         else
         {

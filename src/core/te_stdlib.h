@@ -67,6 +67,11 @@ static const char* teStrstr( const char* s1, const char* s2 )
         {
             ref++;
         }
+        else
+        {
+            ref = s2;
+        }
+
         if (!*ref)
         {
             return (s1 - len);

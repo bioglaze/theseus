@@ -12,7 +12,6 @@ Bugs:
     * .tscene does not get rotation
     * if scale etc. is set in imgui it doesn't apply immediately.
     * dirlight is not exported
-    * entity target not exported
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: Spot Light renders nothing (missing from standard shader)
   * Vulkan: point light intensity changes with distance from origin
