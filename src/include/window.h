@@ -52,8 +52,7 @@ struct teWindowEvent
 // @param width Width of the rendering area in pixels. Pass 0 to width and height for fullscreen.
 // @param height Height of the rendering area in pixels. Pass 0 to width and height for fullscreen.
 // @param title Window title.
-// @return Window handle opaque pointer. On Windows its type is HWND.
-void* teCreateWindow( unsigned width, unsigned height, const char* title );
+void teCreateWindow( unsigned width, unsigned height, const char* title );
 void tePushWindowEvents();
 teWindowEvent* teGetWindowEvents();
 unsigned teGetWindowEventCount();

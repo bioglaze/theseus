@@ -1,6 +1,6 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2026-05-19
+// Modified: 2026-11-11
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -17,7 +17,7 @@
 
 double GetMilliseconds();
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites );
+void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprites );
 void RenderSceneView( float gridStep );
 unsigned SceneViewGetCameraIndex();
 void SelectObject( unsigned x, unsigned y );
@@ -602,13 +602,13 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
 int main()
 {
-    //unsigned width = 2560 / 1;
-    //unsigned height = 1440 / 1;
-    unsigned width = 750*2, height = 390*2;
-    void* windowHandle = teCreateWindow( width, height, "Theseus Engine Editor" );
+    unsigned width = 2560 / 1;
+    unsigned height = 1440 / 1;
+    //unsigned width = 750*2, height = 390*2;
+    teCreateWindow( width, height, "Theseus Engine Editor" );
     teWindowGetSize( width, height );
 
-    InitSceneView( width, height, windowHandle, 1, false );
+    InitSceneView( width, height, 1, false );
 
     double theTime = GetMilliseconds();
     double dt = 0;

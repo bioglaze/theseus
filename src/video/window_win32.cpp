@@ -41,6 +41,7 @@ struct WindowImpl
 };
 
 WindowImpl win;
+HWND gWindowHandle;
 
 double GetMilliseconds()
 {
@@ -302,7 +303,7 @@ LRESULT CALLBACK WindowProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
     return DefWindowProc( hWnd, message, wParam, lParam );
 }
 
-void* teCreateWindow( unsigned width, unsigned height, const char* title )
+void teCreateWindow( unsigned width, unsigned height, const char* title )
 {
 #if _DEBUG
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CRTDBG_ALLOC_MEM_DF );
@@ -345,24 +346,22 @@ void* teCreateWindow( unsigned width, unsigned height, const char* title )
     const int xPos = (GetSystemMetrics( SM_CXSCREEN ) - win.width) / 2;
     const int yPos = (GetSystemMetrics( SM_CYSCREEN ) - win.height) / 2;
 
-    HWND hwnd = CreateWindowExA( fullscreen ? WS_EX_TOOLWINDOW | WS_EX_TOPMOST : 0,
+    gWindowHandle = CreateWindowExA( fullscreen ? WS_EX_TOOLWINDOW | WS_EX_TOPMOST : 0,
         "WindowClass1", title,
         fullscreen ? WS_POPUP : (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU),
         xPos, yPos,
         adjWidth, adjHeight,
         nullptr, nullptr, hInstance, nullptr );
 
-    ShowWindow( hwnd, SW_SHOW );
+    ShowWindow( gWindowHandle, SW_SHOW );
 
     RECT rect = {};
-    GetClientRect( hwnd, &rect );
+    GetClientRect( gWindowHandle, &rect );
     win.windowWidthWithoutTitleBar = rect.right;
     win.windowHeightWithoutTitleBar = rect.bottom;
 
     InitKeyMap();
     InitGamePad();
-
-    return hwnd;
 }
 
 void PumpGamePadEvents()

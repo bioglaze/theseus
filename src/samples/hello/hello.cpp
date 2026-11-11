@@ -264,9 +264,9 @@ int main()
     unsigned width =  1920 / 1;
     unsigned height =  1080 / 1;
     //unsigned width = 800, height = 450;
-    void* windowHandle = teCreateWindow( width, height, "Theseus Engine Hello" );
+    teCreateWindow( width, height, "Theseus Engine Hello" );
     teWindowGetSize( width, height );
-    teCreateRenderer( 1, windowHandle, width, height );
+    teCreateRenderer( 1, width, height );
 
     teFile unlitMsFile = teLoadFile( "shaders/unlit_ms.spv" );
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );

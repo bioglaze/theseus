@@ -56,6 +56,9 @@ extern struct wl_surface* gwlSurface;
 extern struct xcb_connection_t* connection;
 extern xcb_window_t window;
 #endif
+#if VK_USE_PLATFORM_WIN32_KHR
+extern HWND gWindowHandle;
+#endif
 
 constexpr unsigned DescriptorEntryCount = 4;
 constexpr unsigned SamplerCount = 6;
@@ -1183,13 +1186,13 @@ void CreateCommandBuffers()
     VK_CHECK( vkAllocateCommandBuffers( renderer.device, &texCommandBufferAllocateInfo, &renderer.texCommandBuffer ) );
 }
 
-void CreateSwapchain( void* windowHandle, unsigned width, unsigned height, unsigned presentInterval )
+void CreateSwapchain( unsigned width, unsigned height, unsigned presentInterval )
 {
 #if VK_USE_PLATFORM_WIN32_KHR
     VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
     surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surfaceCreateInfo.hinstance = GetModuleHandle( nullptr );
-    surfaceCreateInfo.hwnd = (HWND)windowHandle;
+    surfaceCreateInfo.hwnd = gWindowHandle;
     VK_CHECK( vkCreateWin32SurfaceKHR( renderer.instance, &surfaceCreateInfo, nullptr, &renderer.surface ) );
 #elif VK_USE_PLATFORM_XCB_KHR
     VkXcbSurfaceCreateInfoKHR surfaceCreateInfo = {};
@@ -1582,7 +1585,7 @@ VkPipelineLayout GetPipelineLayout()
     return renderer.pipelineLayout;
 }
 
-void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width, unsigned height )
+void teCreateRenderer( unsigned swapInterval, unsigned width, unsigned height )
 {
     CreateInstance();
     CreateDevice();
@@ -1622,7 +1625,7 @@ void teCreateRenderer( unsigned swapInterval, void* windowHandle, unsigned width
     cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK( vkBeginCommandBuffer( renderer.swapchainResources[ 0 ].drawCommandBuffer, &cmdBufInfo ) );
 
-    CreateSwapchain( windowHandle, width, height, swapInterval );
+    CreateSwapchain( width, height, swapInterval );
     CreateDescriptorSets();
 
     VkQueryPoolCreateInfo queryPoolInfo = {};

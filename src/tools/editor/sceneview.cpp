@@ -712,9 +712,9 @@ void ReadMaterials()
     teCloseDirectory( handle );
 }
 
-void InitSceneView( unsigned width, unsigned height, void* windowHandle, int uiScale, bool flipSprites )
+void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprites )
 {
-    teCreateRenderer( 1, windowHandle, width, height );
+    teCreateRenderer( 1, width, height );
     
     sceneView.width = width;
     sceneView.height = height;
