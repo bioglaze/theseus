@@ -155,7 +155,6 @@ void ReadMaterials()
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
                         }
-                        printf( "albedo: %s\n", name );
                         char texPath[ 260 ] = {};
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
@@ -179,7 +178,6 @@ void ReadMaterials()
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
                         }
-                        printf( "normal: %s\n", name );
                         char texPath[ 260 ] = {};
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
@@ -563,7 +561,7 @@ void LoadResources( unsigned width, unsigned height )
         teSceneAdd( gResources.scene, sceneGos[ i ].index );
     }
 
-    teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.005f, -1, 0.005f ).Normalized() );
+    teSceneSetupDirectionalLight( gResources.scene, Vec3( 1, 1, 1 ), Vec3( 0.02f, -1, 0.02f ).Normalized() );
 
     teFinalizeMeshBuffers();
 
