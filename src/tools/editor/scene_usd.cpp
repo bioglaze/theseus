@@ -389,7 +389,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         return;
     }
 
-    fprintf( outFile, "#usda 1.0\n\n" );
+    fprintf( outFile, "#usda 1.0\n(\n    upAxis = \"Y\"\n    metersPerUnit = 1\n)\n\n" );
 
     for (unsigned go = 0; go < MaxSceneGameObjects; ++go)
     {
@@ -408,7 +408,7 @@ void SaveUsdScene( const teScene& scene, const char* path, int entityTypes[], ch
         Quaternion rotation = teTransformGetLocalRotation( sceneGo );
         rotation.Normalize();
         Vec3 rotationEuler = rotation.GetEuler();
-        fprintf( outFile, "    float xformOp:rotateXYZ = (%f, %f, %f)\n", rotationEuler.x, rotationEuler.y, rotationEuler.z );
+        fprintf( outFile, "    float3 xformOp:rotateXYZ = (%f, %f, %f)\n", rotationEuler.x, rotationEuler.y, rotationEuler.z );
 
         float* scale = teTransformAccessLocalScale( sceneGo );
         fprintf( outFile, "    float3 xformOp:scale = (%f, %f, %f)\n", *scale, *scale, *scale );
