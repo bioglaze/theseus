@@ -10,6 +10,7 @@ struct Quaternion
     void FromAxisAngle( const Vec3& axis, float angleDeg );
     void FromMatrix( const struct Matrix& mat );
     void FromEuler( const Vec3& euler );
+    // \return angle in radians.
     float FindTwist( const Vec3& axis ) const;
     void FindOrthonormals( const Vec3& normal, Vec3& orthonormal1, Vec3& orthonormal2 ) const;
     void GetMatrix( Matrix& outMatrix ) const;

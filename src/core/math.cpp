@@ -6,9 +6,18 @@
 #include "vec3.h"
 #include <math.h>
 
+const float acceptableDelta = 0.0001f;
+
 void Vec3::Normalize()
 {
-    const float invLen = 1.0f / sqrtf( x * x + y * y + z * z );
+    const float sum = x * x + y * y + z * z;
+
+    if (fabs( sum ) < acceptableDelta)
+    {
+        return;
+    }
+    
+    const float invLen = 1.0f / sqrtf( sum );
     x *= invLen;
     y *= invLen;
     z *= invLen;
@@ -23,7 +32,7 @@ Vec3 Vec3::Normalized() const
 
 float Vec3::Length() const
 {
-        return sqrtf( x * x + y * y + z * z );
+    return sqrtf( x * x + y * y + z * z );
 }
 
 void Vec4::Normalize()
@@ -351,7 +360,6 @@ void Matrix::InverseTranspose( const float m[ 16 ], float* out )
 
     // Calculates the determinant.
     const float det = m[ 0 ] * out[ 0 ] + m[ 1 ] * out[ 1 ] + m[ 2 ] * out[ 2 ] + m[ 3 ] * out[ 3 ];
-    const float acceptableDelta = 0.0001f;
 
     if (fabs( det ) < acceptableDelta)
     {
@@ -589,8 +597,7 @@ void Quaternion::FromEuler( const Vec3& euler )
     qx.FromAxisAngle( xAxis, euler.x );
     qy.FromAxisAngle( yAxis, euler.y );
     qz.FromAxisAngle( zAxis, euler.z );
-    qt = qx * qy;
-    *this = qt;
+    *this = qz * qy * qx;
 }
 
 Vec3 Quaternion::GetEuler() const
@@ -623,9 +630,8 @@ Vec3 Quaternion::GetEuler() const
 void Quaternion::Normalize()
 {
     const float mag2 = w * w + x * x + y * y + z * z;
-    const float acceptableDelta = 0.00001f;
 
-    if (fabsf( mag2 ) > acceptableDelta && fabsf( mag2 - 1.0f ) > acceptableDelta)
+    if (mag2 > acceptableDelta && fabsf( mag2 - 1.0f ) > acceptableDelta)
     {
         const float oneOverMag = 1.0f / sqrtf( mag2 );
 
@@ -633,6 +639,13 @@ void Quaternion::Normalize()
         y *= oneOverMag;
         z *= oneOverMag;
         w *= oneOverMag;
+    }
+    else
+    {
+        x = 0;
+        y = 0;
+        z = 0;
+        w = 1;
     }
 }
 
