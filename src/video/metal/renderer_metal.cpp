@@ -121,6 +121,7 @@ struct Renderer
     teBuffer    uiIndexBuffer;
 
     teTexture2D defaultTexture2D;
+    teTextureCube defaultTextureCube;
     teShader lineShader;
     teBuffer lineVertexBuffer;
     unsigned lineCount = 0;
@@ -145,6 +146,16 @@ MTL::CommandBuffer* gCommandBuffer;
 double GetMilliseconds()
 {
     return CFAbsoluteTimeGetCurrent() * 1000;
+}
+
+teTexture2D GetDefaultTexture2D()
+{
+    return renderer.defaultTexture2D;
+}
+
+teTextureCube GetDefaultTextureCube()
+{
+    return renderer.defaultTextureCube;
 }
 
 MTL::Buffer* GetUniformBufferAndOffset( unsigned& outOffset )
@@ -324,6 +335,9 @@ void teCreateRenderer( unsigned swapInterval, unsigned width, unsigned height )
     teFile nullFile;
     memcpy( nullFile.path, "defaultTexture2D", strlen( "defaultTexture2D" ) );
     renderer.defaultTexture2D = teLoadTexture( nullFile, 0, pixels, 32, 32, teTextureFormat::RGBA_sRGB );
+    
+    //renderer.defaultTextureCube = teCreateTextureCube( 32, 32, teTextureFormat::RGBA_sRGB );
+
     InitLightTiler( width, height );
 
     teLoadMetalShaderLibrary();

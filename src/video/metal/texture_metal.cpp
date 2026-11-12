@@ -5,6 +5,8 @@
 
 bool LoadTGA( const teFile& file, unsigned& outWidth, unsigned& outHeight, unsigned& outDataBeginOffset, unsigned& outBitsPerPixel );
 bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeight, teTextureFormat& outFormat, unsigned& outMipLevelCount, unsigned( &outMipOffsets )[ 15 ] );
+teTextureCube GetDefaultTextureCube();
+teTexture2D GetDefaultTexture2D();
 
 extern MTL::Device* gDevice;
 extern MTL::CommandQueue* gCommandQueue;
@@ -90,6 +92,10 @@ static MTL::PixelFormat GetPixelFormat( teTextureFormat aeFormat )
     {
         return MTL::PixelFormatBGRA8Unorm_sRGB;
     }
+    else if (aeFormat == teTextureFormat::BGRA)
+    {
+        return MTL::PixelFormatBGRA8Unorm;
+    }
     else if (aeFormat == teTextureFormat::RGBA_sRGB)
     {
         return MTL::PixelFormatRGBA8Unorm_sRGB;
@@ -129,6 +135,7 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
     tex.width = width;
     tex.height = height;
     tex.flags = flags;
+    tex.mipLevelCount = 1;
 
     teTexture2D outTex;
     outTex.index = index;
@@ -155,7 +162,7 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
 
     textureDescriptor->setStorageMode( MTL::StorageModePrivate );
     tex.metalTexture = gDevice->newTexture( textureDescriptor );
-    tex.metalTexture->setLabel( NS::String::string( debugName, NS::StringEncoding::UTF8StringEncoding ) );
+    tex.metalTexture->setLabel( NS::String::string( debugName ? debugName : "<unnamed>", NS::StringEncoding::UTF8StringEncoding ) );
 
     return outTex;
 }
@@ -181,7 +188,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
     if (file.data == nullptr && pixels == nullptr)
     {
-        outTexture.index = 1;
+        outTexture.index = GetDefaultTexture2D().index;
         --textureCount;
         return outTexture;
     }
@@ -196,7 +203,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
         if (!res)
         {
-            outTexture.index = 1;
+            outTexture.index = GetDefaultTexture2D().index;
             --textureCount;
             return outTexture;
         }
@@ -206,7 +213,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         if (bitsPerPixel == 24)
         {
             tePrint( "24-bit .tga is not currently supported, must be 32-bit: %s\n", file.path );
-            outTexture.index = 1;
+            outTexture.index = GetDefaultTexture2D().index;
             --textureCount;
             return outTexture;
         }
@@ -304,7 +311,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
 
         if (!loadRes)
         {
-            outTexture.index = 1;
+            outTexture.index = GetDefaultTexture2D().index;
             --textureCount;
             return outTexture;
         }
@@ -312,6 +319,15 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
         tex.format = GetPixelFormat( outTexture.format );
         multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || 
                       outTexture.format == teTextureFormat::BC4U || outTexture.format == teTextureFormat::BC4S) ? 2 : 4;
+        if (outTexture.format == teTextureFormat::R32G32F)
+        {
+            multiplier = 4;
+        }
+
+        if (outTexture.format == teTextureFormat::R32G32B32A32F)
+        {
+            multiplier = 16;
+        }
 
         if (!(flags & teTextureFlags::GenerateMips))
         {
@@ -407,7 +423,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         bool loadRes = LoadDDS( negX, tex.width, tex.height, outTexture.format, tex.mipLevelCount, mipOffsets );
         if (!loadRes)
         {
-            outTexture.index = 1; // FIXME: this is defaultTexture2D, not a cube map.
+            outTexture.index = GetDefaultTextureCube().index;
             --textureCount;
             return outTexture;
         }
@@ -444,13 +460,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         tex.metalTexture = gDevice->newTexture( stagingDescriptor );
         tex.metalTexture->setLabel( NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding ) );
 
+        MTL::CommandBuffer* cmdBuffer = gCommandQueue->commandBuffer();
+        MTL::BlitCommandEncoder* blitEncoder = cmdBuffer->blitCommandEncoder();
+
         for (unsigned mipIndex = 0; mipIndex < stagingTexture->mipmapLevelCount(); ++mipIndex)
         {
             for (unsigned faceIndex = 0; faceIndex < 6; ++faceIndex)
             {
-                MTL::CommandBuffer* cmdBuffer = gCommandQueue->commandBuffer();
-                //cmdBuffer.label = @"BlitCommandBuffer";
-                MTL::BlitCommandEncoder* blitEncoder = cmdBuffer->blitCommandEncoder();
                 blitEncoder->copyFromTexture( stagingTexture,
                                   faceIndex,
                                   mipIndex,
@@ -460,16 +476,18 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
                              faceIndex,
                              mipIndex,
                             MTL::Origin::Make( 0, 0, 0 ) );
-                blitEncoder->endEncoding();
-                cmdBuffer->commit();
-                cmdBuffer->waitUntilCompleted();
             }
         }
 
+        blitEncoder->endEncoding();
+        cmdBuffer->commit();
+        cmdBuffer->waitUntilCompleted();
         stagingTexture->release();
     }
     else if (strstr( negX.path, ".tga" ) || strstr( negX.path, ".TGA" ))
     {
+        outTexture.format = teTextureFormat::BGRA;
+
         unsigned bitsPerPixel = 24;
         unsigned offset = 0;
         bool res = LoadTGA( negX, tex.width, tex.height, offset, bitsPerPixel );
@@ -477,22 +495,17 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         if (bitsPerPixel == 24 || !res)
         {
             tePrint( "TGA loading failed! Possible reason: 24-bit .tga is not currently supported, must be 32-bit: %s\n", negX.path );
-            outTexture.index = 1;
+            outTexture.index = GetDefaultTextureCube().index;
             --textureCount;
             return outTexture;
         }
 
-        if (!(flags & teTextureFlags::GenerateMips))
-        {
-            tex.mipLevelCount = 1;
-        }
-
-        tex.format = MTL::PixelFormatRGBA8Unorm_sRGB;
+        tex.format = MTL::PixelFormatBGRA8Unorm_sRGB;
 
         MTL::TextureDescriptor* stagingDescriptor =
         MTL::TextureDescriptor::textureCubeDescriptor( tex.format,
                                                        tex.width,
-                                                       false );
+                                                       (flags & teTextureFlags::GenerateMips) ? true : false );
         MTL::Texture* stagingTexture = gDevice->newTexture( stagingDescriptor );
         NS::String* label = NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding );
         NS::String* stagingLabel = NS::String::string( " staging", NS::StringEncoding::UTF8StringEncoding );
@@ -511,8 +524,10 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
 
         stagingDescriptor->setUsage( MTL::TextureUsageShaderRead );
         stagingDescriptor->setStorageMode( MTL::StorageModePrivate );
+
         tex.metalTexture = gDevice->newTexture( stagingDescriptor );
         tex.metalTexture->setLabel( NS::String::string( negX.path, NS::StringEncoding::UTF8StringEncoding ) );
+        tex.mipLevelCount = tex.metalTexture->mipmapLevelCount();
 
         MTL::CommandBuffer* cmdBuffer = gCommandQueue->commandBuffer();
         MTL::BlitCommandEncoder* blitEncoder = cmdBuffer->blitCommandEncoder();
@@ -540,6 +555,13 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         cmdBuffer->waitUntilCompleted();
         
         stagingTexture->release();
+    }
+    else
+    {
+        tePrint( "Unsupported texture extension: %s\n", negX.path );
+        outTexture.index = GetDefaultTextureCube().index;
+        --textureCount;
+        return outTexture;
     }
 
     return outTexture;
