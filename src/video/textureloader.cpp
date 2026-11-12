@@ -231,18 +231,25 @@ bool LoadDDS( const teFile& fileContents, unsigned& outWidth, unsigned& outHeigh
     else if (PF_IS_DX10( header.sHeader.sPixelFormat ))
     {
         teMemcpy( &header10, fileContents.data + sizeof( header ), sizeof( header10 ) );
-        if (header10.DXGIFormat == dxgiFormat_BC1_UNORM || header10.DXGIFormat == dxgiFormat_BC1_UNORM_SRGB)
+        const unsigned fmt = header10.DXGIFormat;
+        
+        if (fmt == dxgiFormat_BC1_UNORM || fmt == dxgiFormat_BC1_UNORM_SRGB ||
+            fmt == dxgiFormat_BC4_UNORM || fmt == dxgiFormat_BC4_SNORM)
         {
             li = loadInfo4_8;
         }
-        else if (header10.DXGIFormat == dxgiFormat_BC4_UNORM || header10.DXGIFormat == dxgiFormat_BC4_SNORM)
+        else if (fmt == dxgiFormat_BC2_UNORM || fmt == dxgiFormat_BC2_UNORM_SRGB ||
+                 fmt == dxgiFormat_BC3_UNORM || fmt == dxgiFormat_BC3_UNORM_SRGB ||
+                 fmt == dxgiFormat_BC5_UNORM || fmt == dxgiFormat_BC5_SNORM)
         {
-            li = loadInfo4_8;
+            li = loadInfo4_16;
         }
         else
         {
-            tePrint( "Unhandled DXGI format with DX10 header in %s\n", fileContents.path );
-            li = loadInfo4_8;
+            tePrint( "Unhandled DXGI format %u with DX10 header in %s\n", fmt, fileContents.path );
+            outWidth = 32; outHeight = 32; outMipLevelCount = 1;
+            outFormat = teTextureFormat::Invalid;
+            return false;
         }
 
         outFormat = DXGIFormatToTeTextureFormat( header10.DXGIFormat );
