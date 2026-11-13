@@ -305,7 +305,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
                     strcpy( gLoadedMeshes[ gLoadedMeshCount ].file.path, meshPath );
                     teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
                     ++gLoadedMeshCount;
-                    if (gLoadedMeshCount > MaxLoadedMeshes)
+                    if (gLoadedMeshCount >= MaxLoadedMeshes)
                     {
                         printf( "USD file contains more unique meshes than the loader can handle!\n" );
                         assert( false );

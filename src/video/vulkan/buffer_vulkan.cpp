@@ -4,6 +4,7 @@
 void SetObjectName( VkDevice device, uint64_t object, VkObjectType objectType, const char* name );
 uint32_t GetMemoryType( uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties, VkFlags properties );
 void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize );
+void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize, bool syncGPU );
 
 struct BufferImpl
 {
@@ -78,4 +79,11 @@ void CopyBuffer( const teBuffer& source, const teBuffer& destination )
     teAssert( source.sizeBytes <= destination.sizeBytes );
 
     CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.sizeBytes );
+}
+
+void CopyBuffer( const teBuffer& source, const teBuffer& destination, bool syncGPU )
+{
+    teAssert( source.sizeBytes <= destination.sizeBytes );
+
+    CopyVulkanBuffer( buffers[ source.index ].buffer, buffers[ destination.index ].buffer, source.sizeBytes, syncGPU );
 }

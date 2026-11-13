@@ -1509,6 +1509,26 @@ void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSiz
     vkFreeCommandBuffers( renderer.device, cmdBufInfo.commandPool, 1, &copyCommandBuffer );
 }
 
+void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSize, bool syncGPU )
+{
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = bufferSize;
+
+    vkCmdCopyBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, source, destination, 1, &copyRegion );
+
+    VkBufferMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.buffer = destination;
+    barrier.offset = 0;
+    barrier.size = bufferSize;
+
+    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr );
+}
+
 void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )
 {
     teAssert( BufferGetMemory( buffer ) != VK_NULL_HANDLE );
