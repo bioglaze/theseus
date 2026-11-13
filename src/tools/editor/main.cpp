@@ -26,6 +26,7 @@ void DeleteSelectedObject();
 void SceneMouseMove( float x, float y, float dx, float dy, bool isLeftMouseDown );
 void SceneMoveSelection( Vec3 amount );
 void SceneViewDuplicate();
+void UnselectGizmo();
 
 struct InputState
 {
@@ -490,6 +491,8 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
             io.AddMouseButtonEvent( 0, false );
 
+            UnselectGizmo();
+            
             if (!io.WantCaptureKeyboard && !io.WantCaptureMouse && !inputParams.isMovingGizmo)
             {
                 SelectObject( event.x, event.y );

@@ -187,6 +187,11 @@ teMaterial& GetMaterial( const char* name )
     return sceneView.materials[ 0 ];
 }
 
+void UnselectGizmo()
+{
+    sceneView.gizmoAxisSelected = -1;
+}
+
 bool SceneViewNothingSelected()
 {
     return selectedGoIndex == EditorCameraGoIndex;
