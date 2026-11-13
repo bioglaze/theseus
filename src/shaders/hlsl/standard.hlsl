@@ -38,9 +38,6 @@ VSOutput standardVS( uint vertexId : SV_VertexID )
     vsOut.positionVS = mul( uniforms.localToView, float4( pos, 1 ) ).xyz;
     vsOut.positionWS = mul( uniforms.localToWorld, float4( pos, 1 ) ).xyz;
     
-    // aether:
-    //float3 ct = cross( tangent.xyz, normal ) * tangent.w;
-    // mikkt
     float3 ct = cross( normal, tangent.xyz ) * tangent.w;
     vsOut.bitangentVS = mul( uniforms.localToView, float4( ct, 0 ) ).xyz;
 
@@ -118,6 +115,11 @@ float Fd_Lambert()
     return 1.0f / 3.14159265f;
 }
 
+float3 BRDF( float3 N, float3 V, float3 L, float3 albedo, float3 roughness )
+{
+    return float3( 1, 1, 1 );
+}
+
 float4 standardPS( VSOutput vsOut ) : SV_Target
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
@@ -188,7 +190,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             float3 F = F_Schlick( dotLH, f0v );
             float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             float3 Fr = (D * v) * F;
-            float3 Fd = Fd_Lambert() * 3.14159f;
+            float3 Fd = Fd_Lambert();
 
             float attenuation = 1.0f;//pointLightAttenuation( length( vecToLightWS ), radius );
             const float3 color = Fd + Fr;
