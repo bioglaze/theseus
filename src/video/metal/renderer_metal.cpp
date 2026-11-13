@@ -466,9 +466,6 @@ void teBeginFrame()
 
     gCommandBuffer = renderer.frameResources[ renderer.frameIndex ].commandBuffer;
 
-    gDrawable = gMetalLayer->nextDrawable();
-    renderPassDescriptor->colorAttachments()->object( 0 )->setTexture( gDrawable->texture() );
-
     renderer.statDrawCalls = 0;
     renderer.statPSOBinds = 0;
 }
@@ -531,6 +528,13 @@ void EndRendering( teTexture2D& color, teTexture2D& depth )
 
 void teBeginSwapchainRendering()
 {
+    gDrawable = gMetalLayer->nextDrawable();
+
+    if (gDrawable)
+    {
+        renderPassDescriptor->colorAttachments()->object( 0 )->setTexture( gDrawable->texture() );
+    }
+    
     teTexture2D nullColor, nullDepth;
     nullColor.index = -1;
     nullDepth.index = -1;
