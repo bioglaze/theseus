@@ -600,31 +600,28 @@ void Quaternion::FromEuler( const Vec3& euler )
     *this = qz * qy * qx;
 }
 
+// \return Euler angles in degrees, inverse of FromEuler (X applied first, then Y, then Z).
 Vec3 Quaternion::GetEuler() const
 {
+    // Inverse of FromEuler: q = qz * qy * qx (X applied first, matches USD rotateXYZ).
     Vec3 out;
-    const float test = x * y + z * w;
+    float sinY = 2 * (w * y - x * z);
+    sinY = sinY > 1.0f ? 1.0f : (sinY < -1.0f ? -1.0f : sinY);
 
-    if (test > 0.499f) // Singularity at north pole.
+    if (fabsf( sinY ) > 0.9999f) // Gimbal lock: X and Z share an axis, put it all in Z.
     {
-        out.z = 2 * atan2f( x, w );
-        out.y = 3.14159265f / 2.0f;
         out.x = 0;
-        return out / (3.14159265358979f / 180.0f);
+        out.y = sinY > 0 ? 3.14159265f / 2.0f : -3.14159265f / 2.0f;
+        out.z = atan2f( -2 * (x * y - w * z), 1 - 2 * (x * x + z * z) );
+    }
+    else
+    {
+        out.x = atan2f( 2 * (w * x + y * z), 1 - 2 * (x * x + y * y) );
+        out.y = asinf( sinY );
+        out.z = atan2f( 2 * (w * z + x * y), 1 - 2 * (y * y + z * z) );
     }
 
-    if (test < -0.499f) // Singularity at south pole.
-    {
-        out.z = -2 * atan2f( x, w );
-        out.y = -3.14159265f / 2.0f;
-        out.x = 0;
-        return out / (3.14159265358979f / 180.0f);
-    }
-
-    out.z = atan2f( 2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z );
-    out.y = asinf( 2 * x * y + 2 * z * w );
-    out.x = atan2f( 2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z );
-    return out / (3.14159265358979f / 180.0f);
+    return out;
 }
 
 void Quaternion::Normalize()
