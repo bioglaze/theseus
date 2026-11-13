@@ -27,7 +27,7 @@ struct LightTiler
     teBuffer spotLightParamStagingBuffer;
 
     Vec4 pointLightCenterAndRadius[ MaxLights ];
-    Vec4 pointLightColors[ MaxLights ];
+    Vec4 pointLightColors[ MaxLights ]; // .w is intensity
     Vec4 spotLightCenterAndRadius[ MaxLights ];
     Vec4 spotLightColors[ MaxLights ];
     Vec4 spotLightParams[ MaxLights ];
@@ -36,7 +36,6 @@ struct LightTiler
 struct LightImpl
 {
     unsigned tilerIndex = LightTiler::MaxLights;
-    float intensity = 1.0f;
 
     // SpotLight specific stuff
     float coneAngle = 45;
@@ -93,7 +92,7 @@ void RemovePointLight( unsigned index )
         if (pointLights[ i ].tilerIndex != LightTiler::MaxLights)
         {
             pointLights[ i ].tilerIndex = LightTiler::MaxLights;
-            pointLights[ pointLights[ index ].tilerIndex ].intensity = pointLights[ i ].intensity;
+            gLightTiler.pointLightColors[ pointLights[ index ].tilerIndex ].w = gLightTiler.pointLightColors[ pointLights[ i ].tilerIndex ].w;
             return;
         }
     }
@@ -123,10 +122,8 @@ void tePointLightSetParams( unsigned goIndex, float radius, const Vec3& color, f
         return;
     }
     
-    pointLights[ goIndex ].intensity = intensity;
-
     gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w = radius;
-    gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, 1 );    
+    gLightTiler.pointLightColors[ tilerIndex ] = Vec4( color.x, color.y, color.z, intensity );
 }
 
 void teSpotLightSetParams( unsigned goIndex, Vec3& position, const Vec3& color, float coneAngleDegrees, const Vec3& direction, float falloffRadius )
@@ -181,6 +178,19 @@ float* tePointLightAccessRadius( unsigned goIndex )
     }
 
     return &gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
+}
+
+float* tePointLightAccessIntensity( unsigned goIndex )
+{
+    unsigned tilerIndex = pointLights[ goIndex ].tilerIndex;
+
+    if (tilerIndex >= LightTiler::MaxLights)
+    {
+        return nullptr;
+    }
+
+    return &gLightTiler.pointLightColors[ tilerIndex ].w;
+
 }
 
 float* tePointLightAccessColor( unsigned goIndex )
@@ -246,11 +256,11 @@ void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadiu
     
     outRadius = gLightTiler.pointLightCenterAndRadius[ tilerIndex ].w;
 
-    outIntensity = pointLights[ goIndex ].intensity;
-
     outColor.x = gLightTiler.pointLightColors[ tilerIndex ].x;
     outColor.y = gLightTiler.pointLightColors[ tilerIndex ].y;
     outColor.z = gLightTiler.pointLightColors[ tilerIndex ].z;
+
+    outIntensity = gLightTiler.pointLightColors[ tilerIndex ].w;
 }
 
 unsigned GetMaxLightsPerTile( unsigned height )
