@@ -226,6 +226,21 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
 
         float4 spotParams = spotLightBufferParams[ lightIndex ];
         float3 spotLightDir = spotParams.xyz;
+        float4 spotLightColor = spotLightBufferColors[ lightIndex ];
+        float4 spotLightCenterAndRadius = spotLightBufferCenterAndRadius[ lightIndex ];
+
+        const float3 vecToLight = normalize( spotLightCenterAndRadius.xyz - in.positionWS.xyz );
+        const float spotAngle = dot( -spotParams.xyz, vecToLight );
+        const float cosineOfConeAngle = abs( spotParams.w );
+
+        float cutOff = cosineOfConeAngle;
+        float outerCutOff = cutOff - 0.1f;
+
+        float theta     = spotAngle;
+        float epsilon   = cutOff - outerCutOff;
+        float attenuation = saturate( (theta - outerCutOff) / epsilon);
+
+        accumDiffuseAndSpecular.rgb += spotLightColor.rgb * attenuation;
     }
 
     accumDiffuseAndSpecular += ambient;
