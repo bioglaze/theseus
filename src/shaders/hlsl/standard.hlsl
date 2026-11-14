@@ -195,7 +195,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float3 color = Fd;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuse += (color * pointLightColor.rgb) * attenuation * dotNL;
-            accumSpecular += Fr;
+            accumSpecular += Fr * pointLightColor.rgb;
         }
     }
 
