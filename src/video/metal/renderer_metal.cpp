@@ -18,6 +18,7 @@ MTL::Buffer* BufferGetBuffer( const teBuffer& buffer );
 MTL::Function* teShaderGetVertexProgram( const teShader& shader );
 MTL::Function* teShaderGetPixelProgram( const teShader& shader );
 MTL::Texture* TextureGetMetalTexture( unsigned index );
+teTextureCube teCreateTextureCube( unsigned dimension );
 unsigned GetMaxLightsPerTile( unsigned height );
 unsigned GetPointLightCount();
 unsigned GetSpotLightCount();
@@ -341,7 +342,7 @@ void teCreateRenderer( unsigned swapInterval, unsigned width, unsigned height )
     memcpy( nullFile.path, "defaultTexture2D", strlen( "defaultTexture2D" ) );
     renderer.defaultTexture2D = teLoadTexture( nullFile, 0, pixels, 32, 32, teTextureFormat::RGBA_sRGB );
     
-    //renderer.defaultTextureCube = teCreateTextureCube( 32, 32, teTextureFormat::RGBA_sRGB );
+    renderer.defaultTextureCube = teCreateTextureCube( 32 );
 
     InitLightTiler( width, height );
 

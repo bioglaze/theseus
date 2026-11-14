@@ -167,6 +167,36 @@ teTexture2D teCreateTexture2D( unsigned width, unsigned height, unsigned flags, 
     return outTex;
 }
 
+teTextureCube teCreateTextureCube( unsigned dimension )
+{
+    teAssert( textureCount + 1 < TextureCount );
+
+    const unsigned index = ++textureCount;
+
+    teTextureImpl& tex = textures[ index ];
+    tex.width = dimension;
+    tex.height = dimension;
+    tex.flags = 0;
+    tex.mipLevelCount = 1;
+
+    teTextureCube outTex;
+    outTex.index = index;
+    outTex.format = teTextureFormat::BGRA_sRGB;
+
+    tex.format = MTL::PixelFormatBGRA8Unorm_sRGB;
+
+    MTL::TextureDescriptor* textureDescriptor =
+    MTL::TextureDescriptor::textureCubeDescriptor( tex.format,
+                                                   tex.width,
+                                                   false );
+    textureDescriptor->setUsage( MTL::TextureUsageShaderRead );
+    textureDescriptor->setStorageMode( MTL::StorageModePrivate );
+    tex.metalTexture = gDevice->newTexture( textureDescriptor );
+    tex.metalTexture->setLabel( NS::String::string( "teCreateTextureCube", NS::StringEncoding::UTF8StringEncoding ) );
+
+    return outTex;
+}
+
 void teTextureGetDimension( teTexture2D texture, unsigned& outWidth, unsigned& outHeight )
 {
     outWidth = textures[ texture.index ].width;
@@ -448,11 +478,28 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         stagingTexture->setLabel( label2 );
 
         const unsigned char* datas[ 6 ] = { posX.data, negX.data, posY.data, negY.data, posZ.data, negZ.data };
-        MTL::Region region = MTL::Region::Make2D( 0, 0, tex.width, tex.width );
         
         for (int face = 0; face < 6; ++face)
         {
-            stagingTexture->replaceRegion( region, 0, face, datas[ face ] + mipOffsets[ 0 ], multiplier * tex.width, 0 );
+            for (int mipIndex = 0; mipIndex < tex.mipLevelCount; ++mipIndex)
+            {
+                unsigned mipWidth  = Max2( tex.width >> mipIndex, 1 );
+                unsigned mipHeight = Max2( tex.height >> mipIndex, 1 );
+                unsigned mipBytesPerRow = mipWidth * multiplier;
+            
+                if (mipBytesPerRow < 16 && (tex.format == MTL::PixelFormatBC5_RGUnorm || tex.format == MTL::PixelFormatBC5_RGSnorm))
+                {
+                    mipBytesPerRow = 16;
+                }
+
+                if (mipBytesPerRow < 8)
+                {
+                    mipBytesPerRow = 8;
+                }
+
+                MTL::Region region = MTL::Region::Make2D( 0, 0, mipWidth, mipHeight );
+                stagingTexture->replaceRegion( region, mipIndex, face, datas[ face ] + mipOffsets[ mipIndex ], mipBytesPerRow, 0 );
+            }
         }
 
         stagingDescriptor->setUsage( MTL::TextureUsageShaderRead );
