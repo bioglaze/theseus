@@ -134,17 +134,16 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float specularStrength = 0.5;
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
-    float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
+    float3 accumDiffuse = uniforms.lightColor.rgb;
     const float3 surfaceToLightVS = -uniforms.lightDirection.xyz;
     float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
-    accumDiffuseAndSpecular *= dotNL;
+    accumDiffuse *= dotNL;
     
     float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
     float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
-    float3 specular = specularStrength * spec;
-    accumDiffuseAndSpecular += specular;
+    float3 accumSpecular = specularStrength * spec * uniforms.lightColor.rgb;
     
-    accumDiffuseAndSpecular *= shadow;
+    accumDiffuse *= shadow;
     
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
     
@@ -193,9 +192,10 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             float3 Fd = Fd_Lambert();
 
             float attenuation = 1.0f;//pointLightAttenuation( length( vecToLightWS ), radius );
-            const float3 color = Fd + Fr;
+            const float3 color = Fd;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
-            accumDiffuseAndSpecular.rgb += (color * pointLightColor.rgb) * attenuation * dotNL;
+            accumDiffuse += (color * pointLightColor.rgb) * attenuation * dotNL;
+            accumSpecular += Fr;
         }
     }
 
@@ -215,10 +215,10 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
 
         float4 spotLightColor = vk::RawBufferLoad < float4 > (pushConstants.spotLightColorBuf + 16 * lightIndex);
-        accumDiffuseAndSpecular.rgb += spotLightColor.rgb;
+        accumDiffuse.rgb += spotLightColor.rgb;
     }
 
-    accumDiffuseAndSpecular += ambient;
+    accumDiffuse += ambient;
     
-    return albedo * float4( accumDiffuseAndSpecular, 1 );
+    return albedo * float4( accumDiffuse, 1 ) + float4( accumSpecular, 1.0f );
 }
