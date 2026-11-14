@@ -565,6 +565,11 @@ void CopyBuffer( const teBuffer& source, const teBuffer& destination )
     cmd_buffer->waitUntilCompleted();
 }
 
+void CopyBuffer( const teBuffer& source, const teBuffer& destination, bool syncGPU )
+{
+    CopyBuffer( source, destination );
+}
+
 void teFinalizeMeshBuffers()
 {
     CopyBuffer( renderer.staticMeshIndexStagingBuffer, renderer.staticMeshIndexBuffer );
