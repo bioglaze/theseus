@@ -1516,17 +1516,27 @@ void CopyVulkanBuffer( VkBuffer source, VkBuffer destination, unsigned bufferSiz
 
     vkCmdCopyBuffer( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, source, destination, 1, &copyRegion );
 
-    VkBufferMemoryBarrier barrier = {};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.buffer = destination;
-    barrier.offset = 0;
-    barrier.size = bufferSize;
+    if (syncGPU)
+    {
+        VkBufferMemoryBarrier barrier = {};
+        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.buffer = destination;
+        barrier.offset = 0;
+        barrier.size = bufferSize;
 
-    vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr );
+        vkCmdPipelineBarrier( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 1, &barrier, 0, nullptr );
+    }
+}
+
+void WaitPreviousFence()
+{
+    const uint32_t prev = (renderer.frameIndex + renderer.swapchainImageCount - 1) % renderer.swapchainImageCount;
+
+    vkWaitForFences( renderer.device, 1, &renderer.swapchainResources[ prev ].fence, VK_TRUE, UINT64_MAX );
 }
 
 void UpdateStagingBuffer( const teBuffer& buffer, const void* data, unsigned dataBytes, unsigned offset )

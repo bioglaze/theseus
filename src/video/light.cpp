@@ -4,6 +4,8 @@
 #include "shader.h"
 #include "vec3.h"
 
+void WaitPreviousFence();
+
 unsigned gCurrentPointTilerIndex = 0;
 unsigned gCurrentSpotTilerIndex = 0;
 
@@ -299,6 +301,8 @@ void InitLightTiler( unsigned widthPixels, unsigned heightPixels )
 
 void CullLights( const teShader& shader, const Matrix& localToView, const Matrix& viewToClip, unsigned widthPixels, unsigned heightPixels, unsigned depthNormalsTextureIndex )
 {
+    WaitPreviousFence();
+
     UpdateStagingBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadius, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
     UpdateStagingBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
 
@@ -306,11 +310,11 @@ void CullLights( const teShader& shader, const Matrix& localToView, const Matrix
     UpdateStagingBuffer( gLightTiler.spotLightColorStagingBuffer, gLightTiler.spotLightColors, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
     UpdateStagingBuffer( gLightTiler.spotLightParamStagingBuffer, gLightTiler.spotLightParams, LightTiler::MaxLights * 4 * sizeof( float ), 0 );
 
-    CopyBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadiusBuffer );
-    CopyBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColorBuffer );
-    CopyBuffer( gLightTiler.spotLightCenterAndRadiusStagingBuffer, gLightTiler.spotLightCenterAndRadiusBuffer );
-    CopyBuffer( gLightTiler.spotLightColorStagingBuffer, gLightTiler.spotLightColorBuffer );
-    CopyBuffer( gLightTiler.spotLightParamStagingBuffer, gLightTiler.spotLightParamBuffer );
+    CopyBuffer( gLightTiler.pointLightCenterAndRadiusStagingBuffer, gLightTiler.pointLightCenterAndRadiusBuffer, false );
+    CopyBuffer( gLightTiler.pointLightColorStagingBuffer, gLightTiler.pointLightColorBuffer, false );
+    CopyBuffer( gLightTiler.spotLightCenterAndRadiusStagingBuffer, gLightTiler.spotLightCenterAndRadiusBuffer, false );
+    CopyBuffer( gLightTiler.spotLightColorStagingBuffer, gLightTiler.spotLightColorBuffer, false );
+    CopyBuffer( gLightTiler.spotLightParamStagingBuffer, gLightTiler.spotLightParamBuffer, true );
 
     ShaderParams params = {};
 

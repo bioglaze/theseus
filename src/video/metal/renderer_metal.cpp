@@ -195,6 +195,11 @@ void teLoadMetalShaderLibrary()
     }
 }
 
+void WaitPreviousFence()
+{
+    // Only used in Vulkan
+}
+
 teBuffer CreateBuffer( unsigned size, const char* debugName )
 {
     return CreateBuffer( gDevice, size, false, debugName );
