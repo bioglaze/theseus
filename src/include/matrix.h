@@ -17,7 +17,6 @@ struct alignas( 16 ) Matrix
     void MakeRotationXYZ( float xDeg, float yDeg, float zDeg );
     void MakeProjection( float fovDegrees, float aspect, float nearDepth, float farDepth );
     void MakeProjection( float left, float right, float bottom, float top, float nearDepth, float farDepth );
-    void MakeLookAtLH( const struct Vec3& eye, const Vec3& center, const Vec3& up );
     // World-to-view matrix with -Z forward, matching MakeProjection. Row-vector convention (v * M), translation in m[ 12..14 ].
     void MakeLookAtRH( const Vec3& eye, const Vec3& center, const Vec3& up );
     void Scale( float x, float y, float z );

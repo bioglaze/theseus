@@ -10,14 +10,14 @@ const float acceptableDelta = 0.0001f;
 
 void Vec3::Normalize()
 {
-    const float sum = x * x + y * y + z * z;
+    const float length = sqrtf( x * x + y * y + z * z );
 
-    if (fabs( sum ) < acceptableDelta)
+    if (length < acceptableDelta)
     {
         return;
     }
     
-    const float invLen = 1.0f / sqrtf( sum );
+    const float invLen = 1.0f / length;
     x *= invLen;
     y *= invLen;
     z *= invLen;
@@ -256,18 +256,6 @@ void Matrix::InitFrom( const float* mat )
         m[ i ] = mat[ i ];
     }
 #endif
-}
-
-void Matrix::MakeLookAtLH( const Vec3& eye, const Vec3& center, const Vec3& up )
-{
-    const Vec3 zAxis = (center - eye).Normalized();
-    const Vec3 xAxis = Vec3::Cross( up, zAxis ).Normalized();
-    const Vec3 yAxis = Vec3::Cross( zAxis, xAxis ).Normalized();
-
-    m[ 0 ] = xAxis.x; m[ 1 ] = xAxis.y; m[ 2 ] = xAxis.z; m[ 3 ] = -Vec3::Dot( xAxis, eye );
-    m[ 4 ] = yAxis.x; m[ 5 ] = yAxis.y; m[ 6 ] = yAxis.z; m[ 7 ] = -Vec3::Dot( yAxis, eye );
-    m[ 8 ] = zAxis.x; m[ 9 ] = zAxis.y; m[ 10 ] = zAxis.z; m[ 11 ] = -Vec3::Dot( zAxis, eye );
-    m[ 12 ] = 0; m[ 13 ] = 0; m[ 14 ] = 0; m[ 15 ] = 1;
 }
 
 void Matrix::MakeLookAtRH( const Vec3& eye, const Vec3& center, const Vec3& up )
