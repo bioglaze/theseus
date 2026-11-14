@@ -778,13 +778,15 @@ void HandleEvent( const teWindowEvent& event )
         unsigned closestSubMesh = 0;
         GetColliders( event.x, event.y, gGameState.width, gGameState.height, gResources.scene, gResources.camera3d.index, closestSceneGo, closestSubMesh );
         
-        float distance = (teTransformGetLocalPosition( closestSceneGo ) - teTransformGetLocalPosition( gResources.camera3d.index )).Length();
-
-        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton) && distance < MinInteractDistance)
+        if (closestSceneGo != -1 && (gResources.entities[ closestSceneGo ] == EntityButton))
         {
-            printf( "Clicked door button.\n" );
-            tePlayAudioClip( gResources.audioClipClick );
-            gGameState.doorFrame = 1;
+            float distance = (teTransformGetLocalPosition( closestSceneGo ) - teTransformGetLocalPosition( gResources.camera3d.index )).Length();
+
+            if (distance < MinInteractDistance)
+            {
+                tePlayAudioClip( gResources.audioClipClick );
+                gGameState.doorFrame = 1;
+            }
         }
 
         gInput.x = event.x;
