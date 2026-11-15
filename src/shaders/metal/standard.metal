@@ -144,26 +144,26 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     //float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f ) );
     //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
-    float3 normalVS = tangentSpaceTransform( in.tangentVS, in.bitangentVS, in.normalVS, normalTS.xyz );
+    float3 normalVS = tangentSpaceTransform( normalize( in.tangentVS ), normalize( in.bitangentVS ), normalize( in.normalVS ), normalTS.xyz );
     
     const float3 N = normalize( normalVS );
     const float3 V = -normalize( in.positionVS );
     float specularStrength = 0.5;
     
     float3 ambient = float3( 0.2, 0.2, 0.2 );
-    float3 accumDiffuseAndSpecular = uniforms.lightColor.rgb;
+    float3 accumDiffuse = uniforms.lightColor.rgb;
     const float3 surfaceToLightVS = -uniforms.lightDir.xyz;
     float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
     const float dotNV = abs( dot( N, V ) ) + 1e-5f;
     
-    accumDiffuseAndSpecular *= dotNL;
+    accumDiffuse *= dotNL;
     
     float3 reflectDir = reflect( -surfaceToLightVS, N );
     float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
     float3 specular = specularStrength * spec;
-    accumDiffuseAndSpecular += specular;
+    float3 accumSpecular = specular * uniforms.lightColor.rgb * dotNL;
     
-    accumDiffuseAndSpecular *= shadow;
+    accumDiffuse *= shadow;
 
     float4 albedo = textureMap.sample( sampler0, in.uv );
 
@@ -209,8 +209,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), radius );
             const float3 color = float3( 1, 1, 1 );
             //const float3 color = Fd + Fr;
-            accumDiffuseAndSpecular.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
-            //return pointLightBufferColors[ lightIndex ];
+            accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
+            accumSpecular += Fr * dotNL * pointLightBufferColors[ lightIndex ].rgb;
         }
     }
 
@@ -240,9 +240,9 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         float epsilon   = cutOff - outerCutOff;
         float attenuation = saturate( (theta - outerCutOff) / epsilon);
 
-        accumDiffuseAndSpecular.rgb += spotLightColor.rgb * attenuation;
+        accumDiffuse.rgb += spotLightColor.rgb * attenuation;
     }
 
-    accumDiffuseAndSpecular += ambient;
-    return albedo * float4( accumDiffuseAndSpecular, 1 );
+    accumDiffuse += ambient;
+    return albedo * float4( accumDiffuse, 1 ) + float4( accumSpecular, 0 );
 }

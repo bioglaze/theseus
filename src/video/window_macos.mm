@@ -347,6 +347,24 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::P;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
+    else if ([theEvent keyCode] == 5 && IncEventIndex()) // G
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::G;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 4 && IncEventIndex()) // H
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::H;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 38 && IncEventIndex()) // J
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::J;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
 
 }
 
@@ -584,6 +602,24 @@ void GetSavePath( char* path, const char* extension )
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::P;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 5 && IncEventIndex()) // G
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::G;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 4 && IncEventIndex()) // H
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::H;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 38 && IncEventIndex()) // J
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::J;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 
