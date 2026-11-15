@@ -125,7 +125,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
     float3 shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
     float3 normalTS = normalize( texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xyz * 2.0 - 1.0 );
-    float3 normalVS = tangentSpaceTransform( vsOut.tangentVS, vsOut.bitangentVS, vsOut.normalVS, normalTS.xyz );
+    float3 normalVS = tangentSpaceTransform( normalize( vsOut.tangentVS ), normalize( vsOut.bitangentVS ), normalize( vsOut.normalVS ), normalTS.xyz );
 
     const float3 N = normalize( normalVS );
     const float3 V = -normalize( vsOut.positionVS );
@@ -141,7 +141,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     
     float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
     float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
-    float3 accumSpecular = specularStrength * spec * uniforms.lightColor.rgb;
+    float3 accumSpecular = specularStrength * spec * uniforms.lightColor.rgb * dotNL;
     
     accumDiffuse *= shadow;
     
@@ -186,7 +186,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             float3 f0v = float3( f0, f0, f0 );
             float a = roughness * roughness;
             float D = D_GGX( dotNH, a );
-            float3 F = F_Schlick( dotLH, f0v );
+            float3 F = F_Schlick( dotVH, f0v );
             float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             float3 Fr = (D * v) * F;
             float3 Fd = Fd_Lambert();
@@ -195,7 +195,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float3 color = Fd;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuse += (color * pointLightColor.rgb) * attenuation * dotNL;
-            accumSpecular += Fr * pointLightColor.rgb;
+            accumSpecular += Fr * pointLightColor.rgb * dotNL;
         }
     }
 
