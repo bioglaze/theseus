@@ -351,7 +351,7 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
                       outTexture.format == teTextureFormat::BC4U || outTexture.format == teTextureFormat::BC4S) ? 2 : 4;
         if (outTexture.format == teTextureFormat::R32G32F)
         {
-            multiplier = 4;
+            multiplier = 8;
         }
 
         if (outTexture.format == teTextureFormat::R32G32B32A32F)
@@ -429,6 +429,8 @@ teTexture2D teLoadTexture( const teFile& file, unsigned flags, void* pixels, int
     else
     {
         teAssert( !"Unknown texture extension!" );
+        outTexture.index = GetDefaultTexture2D().index;
+        --textureCount;
     }
     
     return outTexture;
@@ -461,6 +463,19 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
         tex.format = GetPixelFormat( outTexture.format );
         multiplier = (outTexture.format == teTextureFormat::BC1 || outTexture.format == teTextureFormat::BC1_SRGB || 
                       outTexture.format == teTextureFormat::BC4U || outTexture.format == teTextureFormat::BC4S) ? 2 : 4;
+
+        if (outTexture.format == teTextureFormat::R32G32B32A32F)
+        {
+            multiplier = 16;
+        }
+        else if (outTexture.format == teTextureFormat::R32G32F)
+        {
+            multiplier = 8;
+        }
+        else if (outTexture.format == teTextureFormat::R32F)
+        {
+            multiplier = 4;
+        }
 
         if (!(flags & teTextureFlags::GenerateMips))
         {
