@@ -125,6 +125,7 @@ struct PerObjectUboStruct
     Matrix localToShadowClip;
     Matrix localToWorld;
     Matrix clipToView;
+    Matrix worldToView;
     Vec4 bloomParams;
     Vec4 tilesXY;
     Vec4 tint{ 1, 1, 1, 1 };
@@ -2031,7 +2032,7 @@ void RendererGetSize( unsigned& outWidth, unsigned& outHeight )
     outHeight = renderer.swapchainHeight;
 }
 
-void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition, unsigned shadowDim )
+void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16 ], const float localToWorld[ 16 ], const ShaderParams& shaderParams, const Vec4& lightDirection, const Vec4& lightColor, const Vec4& lightPosition, unsigned shadowDim, const float worldToView[ 16 ] )
 {
     PerObjectUboStruct uboStruct = {};
     uboStruct.localToClip.InitFrom( localToClip );
@@ -2039,6 +2040,7 @@ void UpdateUBO( const float localToClip[ 16 ], const float localToShadowClip[ 16
     uboStruct.localToShadowClip.InitFrom( localToShadowClip );
     uboStruct.localToWorld.InitFrom( localToWorld );
     uboStruct.clipToView.InitFrom( shaderParams.clipToView );
+    uboStruct.worldToView.InitFrom( worldToView );
     uboStruct.bloomParams.w = shaderParams.bloomThreshold;
     uboStruct.tilesXY.x = shaderParams.tilesXY[ 0 ];
     uboStruct.tilesXY.y = shaderParams.tilesXY[ 1 ];
@@ -2130,7 +2132,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
     renderer.shaderParams = params;
 
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
+    UpdateUBO( identity.m, identity.m, identity.m, params, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0, identity.m );
 
     BeginRegion( renderer.swapchainResources[ renderer.frameIndex ].drawCommandBuffer, debugName, 1, 1, 1 );
 

@@ -235,7 +235,8 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
         shaderParams.localToView[ i ] = localToView.m[ i ];
     }
 
-    UpdateUBO( localToClip.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
+    Matrix worldToView;
+    UpdateUBO( localToClip.m, localToShadowClip.m, localToView.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0, worldToView.m );
 
     PushGroupMarker( "Skybox" );
     unsigned indexOffset = teMeshGetIndexOffset( *skyboxMesh, 0 );
@@ -252,7 +253,7 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
 void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams& shaderParams, teBlendMode blendMode )
 {
     Matrix identity;
-    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
+    UpdateUBO( identity.m, identity.m, identity.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0, identity.m );
 
     PushGroupMarker( "Fullscreen Quad" );
     unsigned indexOffset = teMeshGetIndexOffset( quadMesh, 0 );
@@ -343,8 +344,9 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             RendererGetSize( width, height );
             shaderParams.tilesXY[ 0 ] = (float)width;
             shaderParams.tilesXY[ 1 ] = (float)height;
-                
-            UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition, scenes[ scene.index ].shadowCaster.shadowDim );
+
+            Matrix worldToView = teTransformGetMatrix( cameraGOIndex );
+            UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, lightDir, lightColor, lightPosition, scenes[ scene.index ].shadowCaster.shadowDim, worldToView.m );
 
             const teShader shader = overrideShader ? *overrideShader : teMaterialGetShader( material );
 
@@ -461,7 +463,8 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
         shaderParams.tint[ 2 ] = 1;
         shaderParams.tint[ 3 ] = 1;
 
-        UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0 );
+        Matrix identity;
+        UpdateUBO( localToClip.m, localToShadowClip.m, localToWorld.m, shaderParams, Vec4( 0, 0, 0, 1 ), Vec4( 1, 1, 1, 1 ), Vec4( 1, 1, 1, 1 ), 0, identity.m );
 
         DrawLines();
     }

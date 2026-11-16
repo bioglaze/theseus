@@ -1,25 +1,17 @@
 Bugs:
   * Editor
     * macOS: deleting cube changes grid to black.
-    * object wasd-movement should depend on camera direction.
-    * grid is visible through meshes.
-    * scene properties cannot be changed after editing a material.
-    * macOS: editing point light color moves the gizmo
     * macOS: clicking light sprites doesn't select them.
     * macOS: no scrolling in ImGui. Repro: add lots of gameobjects.
+    * object wasd-movement should depend on camera direction.
+    * scene properties cannot be changed after editing a material.
     * scene middle mouse drag works on ImGUI
-    * .usda does not get rotation
     * .tscene does not get rotation
     * if scale etc. is set in imgui it doesn't apply immediately.
-    * dirlight is not exported
+    * directional light is not exported
   * Wayland: not HiDPI, for example ImGui and cursor too big.
-  * Metal: Spot Light renders nothing (missing from standard shader)
-  * Vulkan: point light intensity changes with distance from origin
-    * repro: line up some cubes, drag a point light in front of them.
-      -> doesn't seem to repro on macOS.
-  * Vulkan: point light intensity changes when moving the camera (eg. panning), sometimes fading completely.
+  * Metal: Spot Light shading is stub
   * Vulkan: point light minmax-z culling is broken so it's disabled.
-  * Vulkan: point lights don't show over directional light lighting.
   * Vulkan: standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.
@@ -41,8 +33,6 @@ TODO:
   * ctrl-s and ctrl-o
   * asset browser could read assets from build/assets
   * line colors
-  * sprites should have alpha, esp. light sprite
-* macOS: index renderer.frameResources[]
 * wayland: read somewhere, that icon setting has like 6 variants for different desktop envs.
 -> xdg_toplevel_icon_manager, set_icon
 * vulkan: vk::BufferPointer when it's in Vulkan SDK.
