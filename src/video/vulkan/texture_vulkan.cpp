@@ -74,6 +74,18 @@ unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
     {
         return (width * height * 3);
     }
+    else if (format == VK_FORMAT_R32_SFLOAT)
+    {
+        return (width * height * 4);
+    }
+    else if (format == VK_FORMAT_R32G32_SFLOAT)
+    {
+        return (width * height * 4 * 2);
+    }
+    else if (format == VK_FORMAT_R32G32B32A32_SFLOAT)
+    {
+        return (width * height * 4 * 4);
+    }
 
     return width * height * 4;
 }
@@ -394,7 +406,7 @@ static void CreateBaseMip( teTextureImpl& tex, VkDevice device, VkPhysicalDevice
         vkCmdCopyBufferToImage( cmdBuffer, stagingBuffers[ face ], tex.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion );
     }
 
-    vkEndCommandBuffer( cmdBuffer );
+    VK_CHECK( vkEndCommandBuffer( cmdBuffer ) );
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -737,7 +749,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     bool isTGA = false;
     teTextureFormat bcFormat = teTextureFormat::Invalid;
     VkFormat format = VK_FORMAT_B8G8R8A8_SRGB;
-    outTexture.format = teTextureFormat::RGBA_sRGB;
+    outTexture.format = teTextureFormat::BGRA_sRGB;
 
     for (unsigned face = 0; face < 6; ++face)
     {
@@ -844,7 +856,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier( cmdBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
+    vkCmdPipelineBarrier( cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier );
 
     VK_CHECK( vkEndCommandBuffer( cmdBuffer ) );
 
