@@ -222,9 +222,10 @@ static void RenderSky( unsigned cameraGOIndex, const teShader* skyboxShader, con
     Matrix localToShadowClip;
 
     Matrix localToClip;
+    Matrix cameraToWorld;
+    teTransformGetLocalRotation( cameraGOIndex ).GetMatrix( cameraToWorld );
     Matrix view;
-    Quaternion cameraRot = teTransformGetLocalRotation( cameraGOIndex );
-    cameraRot.GetMatrix( view );
+    cameraToWorld.Transpose( view );
     const Matrix& projection = teCameraGetProjection( cameraGOIndex );
     Matrix::Multiply( view, projection, localToClip );
     ShaderParams shaderParams{};

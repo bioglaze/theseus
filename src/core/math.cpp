@@ -413,16 +413,17 @@ void Matrix::MakeRotationXYZ( float xDeg, float yDeg, float zDeg )
     const float cy = cosf( yDeg * deg2rad );
     const float cz = cosf( zDeg * deg2rad );
 
-    m[ 0 ] = cy * cz;
-    m[ 1 ] = cz * sx * sy - cx * sz;
-    m[ 2 ] = cx * cz * sy + sx * sz;
+    // Row-vector convention (v * M): X applied first, then Y, then Z. Matches Quaternion::FromEuler.
+    m[ 0 ] = cy * cz; 
+    m[ 1 ] = cy * sz;
+    m[ 2 ] = -sy;
     m[ 3 ] = 0;
-    m[ 4 ] = cy * sz;
+    m[ 4 ] = cz * sx * sy - cx * sz;
     m[ 5 ] = cx * cz + sx * sy * sz;
-    m[ 6 ] = -cz * sx + cx * sy * sz;
+    m[ 6 ] = cy * sx;
     m[ 7 ] = 0;
-    m[ 8 ] = -sy;
-    m[ 9 ] = cy * sx;
+    m[ 8 ] = cx * cz * sy + sx * sz;
+    m[ 9 ] = -cz * sx + cx * sy * sz;
     m[ 10 ] = cx * cy;
     m[ 11 ] = 0;
     m[ 12 ] = 0;
@@ -677,22 +678,23 @@ void Quaternion::GetMatrix( Matrix& outMatrix ) const
     const float wy = w * y;
     const float wz = w * z;
 
+    // Row-vector convention: v * outMatrix == *this * v. Inverse of FromMatrix.
     outMatrix.m[ 0 ] = 1 - 2 * (y2 + z2);
-    outMatrix.m[ 1 ] = 2 * (xy - wz);
-    outMatrix.m[ 2 ] = 2 * (xz + wy);
+    outMatrix.m[ 1 ] = 2 * (xy + wz);
+    outMatrix.m[ 2 ] = 2 * (xz - wy);
     outMatrix.m[ 3 ] = 0;
-    outMatrix.m[ 4 ] = 2 * (xy + wz);
+    outMatrix.m[ 4 ] = 2 * (xy - wz);
     outMatrix.m[ 5 ] = 1 - 2 * (x2 + z2);
-    outMatrix.m[ 6 ] = 2 * (yz - wx);
+    outMatrix.m[ 6 ] = 2 * (yz + wx);
     outMatrix.m[ 7 ] = 0;
-    outMatrix.m[ 8 ] = 2 * (xz - wy);
-    outMatrix.m[ 9 ] = 2 * (yz + wx);
+    outMatrix.m[ 8 ] = 2 * (xz + wy);
+    outMatrix.m[ 9 ] = 2 * (yz - wx);
     outMatrix.m[ 10 ] = 1 - 2 * (x2 + y2);
     outMatrix.m[ 11 ] = 0;
     outMatrix.m[ 12 ] = 0;
     outMatrix.m[ 13 ] = 0;
     outMatrix.m[ 14 ] = 0;
-    outMatrix.m[ 15 ] = 1;
+    outMatrix.m[ 15 ] = 1;    
 }
 
 void teGetCorners( const Vec3& min, const Vec3& max, Vec3 outCorners[ 8 ] )

@@ -81,13 +81,23 @@ void teTransformGetComputedLocalToViewMatrix( unsigned index, Matrix& outLocalTo
 void TransformSolveLocalMatrix( unsigned index, bool isCamera )
 {
     TransformImpl& ti = transforms[ index ];
-    
-    ti.localRotation.GetMatrix( ti.localMatrix );
+
+    if (isCamera)
+    {
+        // Camera's matrix is world-to-view, so it uses the inverse (transposed) rotation.
+        Matrix rotation;
+        ti.localRotation.GetMatrix( rotation );
+        rotation.Transpose( ti.localMatrix );
+    }
+    else
+    {
+        ti.localRotation.GetMatrix( ti.localMatrix );
+    }
 
     if (ti.localScale != 1)
     {
         ti.localMatrix.Scale( ti.localScale, ti.localScale, ti.localScale );
-    }    
+    }
 
     Matrix translation;
     if (isCamera)
@@ -95,7 +105,7 @@ void TransformSolveLocalMatrix( unsigned index, bool isCamera )
     else
         translation.SetTranslation( ti.localPosition );
 
-    // FIXME: This is a hack to prevent camera's rotation to be weird
+    // Camera: worldToView = T( -position ) * R^-1. Others: localToWorld = R * S * T( position ).
     if (isCamera)
     {
         Matrix::Multiply( translation, ti.localMatrix, ti.localMatrix );
@@ -118,16 +128,8 @@ void TransformSetComputedLocalToView( unsigned index, const Matrix& localToView 
 
 Vec3 teTransformGetViewDirection( unsigned index )
 {
-    TransformImpl& ti = transforms[ index ];
-
-    Matrix view;
-    ti.localRotation.GetMatrix( view );
-
-    Matrix translation;
-    translation.SetTranslation( -ti.localPosition );
-    Matrix::Multiply( translation, view, view );
-    
-    return Vec3( view.m[ 2 ], view.m[ 6 ], view.m[ 10 ] ).Normalized();
+    // Local +Z in world space.
+    return (transforms[ index ].localRotation * Vec3( 0, 0, 1 )).Normalized();
 }
 
 static float MyAbs( float f )
