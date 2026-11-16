@@ -35,7 +35,7 @@ imgui:
 engine:
 	mkdir -p ../build
 ifeq ($(UNAME), Darwin)
-	$(CC) $(DEFINES) $(SANITIZERS) -fsanitize=address,undefined -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c video/window_macos.mm -fno-objc-arc -o ../build/window.o
+	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c video/window_macos.mm -fno-objc-arc -o ../build/window.o
 	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Icore -Ivideo -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -c unity.cpp -fno-objc-arc -o ../build/engine.o
 	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Ithirdparty/imgui -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework CoreAudio -framework AudioUnit -framework QuartzCore -framework Metal -framework UniformTypeIdentifiers *.o ../build/engine.o ../build/window.o samples/hello/include_metal.cpp samples/hello/hello.cpp -o ../build/hello
 	$(CC) $(DEFINES) $(SANITIZERS) -mmacos-version-min=26.0 -std=c++17 -g -Iinclude -Isamples/game/include -Ithirdparty/metal_cpp -Ithirdparty/metal_ext -framework Cocoa -framework CoreAudio -framework AudioUnit -framework QuartzCore -framework Metal -framework UniformTypeIdentifiers *.o ../build/engine.o ../build/window.o samples/game/include_metal.cpp samples/game/game.cpp samples/game/mainloop.cpp -o ../build/game

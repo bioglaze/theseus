@@ -164,7 +164,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     float3 accumSpecular = specular * uniforms.lightColor.rgb * dotNL;
     
     accumDiffuse *= shadow;
-
+    accumSpecular *= shadow;
+    
     float4 albedo = textureMap.sample( sampler0, in.uv );
 
     const uint tileIndex = GetTileIndex( in.position.xy, uniforms.tilesXY.xy );
@@ -182,26 +183,25 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         const float radius = center.w;
         const float3 vecToLightWS = center.xyz - in.positionWS.xyz;
         const float lightDistance = length( vecToLightWS );
-        //const float3 lightDirVS = normalize( uniforms.localToView * float4( vecToLightWS, 0 ) ).xyz;
         const float3 lightDirVS = normalize( vecToLightWS );
         
         if (lightDistance < radius)
         {
-            const float3 vecToLightVS = (uniforms.localToView * float4( vecToLightWS, 0 )).xyz;
+            const float3 vecToLightVS = (uniforms.worldToView * float4( vecToLightWS, 0 )).xyz;
             const float3 L = normalize( vecToLightVS );
             const float3 H = normalize( L + V );
             
-            //const float dotNL = saturate( dot( N, -L ) );
             const float dotNL = saturate( dot( N, lightDirVS ) );
+            const float dotVH = saturate( dot( V, H ) );
             const float dotLH = saturate( dot( L, H ) );
             const float dotNH = saturate( dot( N, H ) );
             
             const float3 f0 = float3( 0.04f );
-            
             float roughness = 0.5f;
+
             const float a = roughness * roughness;
             const float D = D_GGX( dotNH, a );
-            const float3 F = F_Schlick( dotLH, f0 );
+            const float3 F = F_Schlick( dotVH, f0 );
             const float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             const float3 Fr = (D * v) * F;
             const float3 Fd = Fd_Lambert();
