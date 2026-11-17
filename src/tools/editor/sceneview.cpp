@@ -95,7 +95,8 @@ struct SceneView
     char openFilePath[ 280 ];
     int gizmoAxisSelected = -1;
     int selectedMaterialIndex = -1;
-
+    float gridStep = -1.0f;
+    
     float lightDir[ 3 ] = { 0.02f, -1, 0.02f };
     float lightColor[ 3 ] = { 1, 1, 1 };
 
@@ -903,9 +904,13 @@ void AddGridLines( float gridStep )
 
 void RenderSceneView( float gridStep )
 {
-    AddGridLines( gridStep );
-    teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 100 );
-
+    if (sceneView.gridStep != gridStep)
+    {
+        sceneView.gridStep = gridStep;
+        AddGridLines( gridStep );
+        teRendererUpdateLineBuffer( sceneView.unlitShader, sceneView.lineBuffer, 100 );
+    }
+    
     teBeginFrame();
     ImGui::NewFrame();
 
