@@ -1,20 +1,24 @@
+@echo off
+
+if not exist ..\build mkdir ..\build
+
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" (
   if "%COMPILER_FOUND%"  == "" (
-      call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+      call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" %PROCESSOR_ARCHITECTURE%
       SET COMPILER_FOUND=1
   )
 )
 
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" (
   if "%COMPILER_FOUND%"  == "" (
-      call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+      call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" %PROCESSOR_ARCHITECTURE%
       SET COMPILER_FOUND=1
   )
 )
 
 if exist "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" (
   if "%COMPILER_FOUND%"  == "" (
-      call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x86_amd64
+      call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" %PROCESSOR_ARCHITECTURE%
       SET COMPILER_FOUND=1
   )
 )
@@ -22,10 +26,18 @@ if exist "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Bui
 @if %PROCESSOR_ARCHITECTURE% == AMD64 (SET SIMD=/DSIMD_SSE3)
 @if %PROCESSOR_ARCHITECTURE% == ARM64 (SET SIMD=/DSIMD_NEON)
 
-cl -c unity.cpp -W4 /O2 /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /nologo /Iinclude /Ivideo /Icore /I%VULKAN_SDK%\Include /std:c++17 -Zi /FC /diagnostics:column /Fo..\build\
-cl samples\hello\hello.cpp thirdparty\imgui\*.cpp ..\build\unity.obj /Fo..\build\ -Zi -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib vulkan-1.lib user32.lib Ole32.lib /OUT:..\build\hello.exe
-cl samples\game\game.cpp samples\game\mainloop.cpp ..\build\unity.obj /Fo..\build\ -Zi -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Isamples/game/include /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib vulkan-1.lib user32.lib Ole32.lib /OUT:..\build\game.exe
-cl tools\editor\*.cpp thirdparty\imgui\*.cpp ..\build\unity.obj /Fo..\build\ -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Isamples/game/include /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib Comdlg32.lib Ole32.lib vulkan-1.lib /OUT:..\build\editor.exe
-mt -manifest tools\editor\editor.manifest -outputresource:..\build\editor.exe;1
-cl tools\convert_obj\convert_obj.cpp thirdparty\meshoptimizer\*.cpp ..\build\unity.obj -Zi -W4 /O2  /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Ivideo /Icore /Ithirdparty/meshoptimizer /std:c++17 /Fo..\build\ /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib Ole32.lib user32.lib vulkan-1.lib /OUT:..\build\convert_obj.exe
+cl -c unity.cpp -W4 /O2 /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /nologo /Iinclude /Ivideo /Icore /I%VULKAN_SDK%\Include /std:c++17 -Zi /Fd..\build\ /FC /diagnostics:column /Fo..\build\
+if errorlevel 1 exit /b 1
 
+cl samples\hello\hello.cpp thirdparty\imgui\*.cpp ..\build\unity.obj /Fo..\build\ -Zi /Fd..\build\ -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib vulkan-1.lib user32.lib Ole32.lib /OUT:..\build\hello.exe
+if errorlevel 1 exit /b 1
+
+cl samples\game\game.cpp samples\game\mainloop.cpp ..\build\unity.obj /Fo..\build\ -Zi /Fd..\build\ -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Isamples/game/include /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib vulkan-1.lib user32.lib Ole32.lib /OUT:..\build\game.exe
+if errorlevel 1 exit /b 1
+
+cl tools\editor\*.cpp thirdparty\imgui\*.cpp ..\build\unity.obj -Zi /Fo..\build\ -W4 /O2 /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Isamples/game/include /Ivideo /Icore /Ithirdparty/imgui/ /std:c++17 /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib Comdlg32.lib Ole32.lib user32.lib vulkan-1.lib /OUT:..\build\editor.exe
+if errorlevel 1 exit /b 1
+mt -manifest tools\editor\editor.manifest -outputresource:..\build\editor.exe;1
+
+cl tools\convert_obj\convert_obj.cpp thirdparty\meshoptimizer\*.cpp ..\build\unity.obj -Zi /Fd..\build\ -W4 /O2  /nologo /DVK_USE_PLATFORM_WIN32_KHR /D_CRT_SECURE_NO_WARNINGS %SIMD% /Iinclude /Ivideo /Icore /Ithirdparty/meshoptimizer /std:c++17 /Fo..\build\ /FC /diagnostics:column /link /INCREMENTAL:NO /LIBPATH:%VULKAN_SDK%\Lib Ole32.lib user32.lib vulkan-1.lib /OUT:..\build\convert_obj.exe
+if errorlevel 1 exit /b 1
