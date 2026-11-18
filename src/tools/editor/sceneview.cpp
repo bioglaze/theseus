@@ -331,7 +331,7 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
             if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
             {
                 Vec3 screenPoint;
-                bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
+                //bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
 
@@ -1230,7 +1230,7 @@ void RenderSceneView( float gridStep )
             ImGui::PopID();
             int& type = sceneView.entityTypes[ selectedGoIndex ];
             const char* types[ 4 ] = { "None", "Door", "Button", "Player Start" };
-            bool check2 = ImGui::Combo( "Type", &type, types, 4 );
+            /*bool check2 =*/ ImGui::Combo("Type", &type, types, 4);
 
             //if (check2)
             {

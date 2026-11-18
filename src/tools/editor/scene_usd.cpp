@@ -136,7 +136,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             if (currentLightIsSpotLight)
             {
                 Vec3 pos = teTransformGetLocalPosition( sceneGos[ goIndex - 1 ].index );
-                float coneAngle = 25.0f * 3.14159 / 180.0f;
+                float coneAngle = 25.0f * 3.14159f / 180.0f;
                 Vec3 direction;
                 float falloff = 3.0f;
                 teSpotLightSetParams( sceneGos[ goIndex - 1 ].index, pos, color, coneAngle, direction, falloff );

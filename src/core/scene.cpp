@@ -473,7 +473,7 @@ static void RenderSceneWithCamera( const teScene& scene, unsigned cameraGOIndex,
     EndRendering( color, depth );
 }
 
-static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, const Vec3& dirLightPosition, Vec3& outColor, unsigned& outShadowMapIndex )
+static void RenderDirLightShadow( const teScene& scene, const teShader& momentsShader, const Vec3& dirLightPosition, unsigned& outShadowMapIndex )
 {
     const bool castShadowMap = scenes[ scene.index ].shadowCaster.color.index != 0;
 
@@ -494,9 +494,8 @@ static void RenderDirLightShadow( const teScene& scene, const teShader& momentsS
 
 void teSceneRender( const teScene& scene, const teShader* skyboxShader, const teTextureCube* skyboxTexture, const teMesh* skyboxMesh, const teShader& momentsShader, const Vec3& dirLightPosition, const teShader& depthNormalsShader, const teShader& lightCullShader )
 {
-    Vec3 dirLightColor{ 1, 1, 1 };
     unsigned shadowMapIndex = 0;
-    RenderDirLightShadow( scene, momentsShader, dirLightPosition, dirLightColor, shadowMapIndex );
+    RenderDirLightShadow( scene, momentsShader, dirLightPosition, shadowMapIndex );
 
     int cameraIndex = -1;
 

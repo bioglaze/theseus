@@ -2246,7 +2246,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned /* tangentOffset */, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           unsigned textureIndex, teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned renderMeshIndex, unsigned subMeshIndex )
+           unsigned textureIndex, teTextureSampler /*sampler*/, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned renderMeshIndex, unsigned subMeshIndex)
 {
     if (textureIndex != 0)
     {
