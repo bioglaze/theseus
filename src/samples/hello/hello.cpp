@@ -267,10 +267,10 @@ int main()
     teWindowGetSize( width, height );
     teCreateRenderer( 1, width, height );
 
-    teFile unlitMsFile = teLoadFile( "shaders/unlit_ms.spv" );
+    //teFile unlitMsFile = teLoadFile( "shaders/unlit_ms.spv" );
     teFile unlitVsFile = teLoadFile( "shaders/unlit_vs.spv" );
     teFile unlitPsFile = teLoadFile( "shaders/unlit_ps.spv" );
-    teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
+    //teShader unlitShader = teCreateShader( unlitVsFile, unlitPsFile, "unlitVS", "unlitPS" );
     //teShader unlitMeshShader = teCreateMeshShader( unlitMsFile, unlitPsFile, "unlitMS", "unlitPS" );
 
     teFile uiVsFile = teLoadFile( "shaders/ui_vs.spv" );
@@ -366,8 +366,8 @@ int main()
 
     teMaterialSetTexture2D( standardMaterial, gliderTex, 0 );
 
-    teFile transFile = teLoadFile( "assets/textures/font.tga" );
-    teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+    //teFile transFile = teLoadFile( "assets/textures/font.tga" );
+    //teTexture2D transTex = teLoadTexture( transFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
     //teMaterial materialTransMS = teCreateMaterial( unlitMeshShader );
     //materialTransMS.blendMode = teBlendMode::Alpha;
     //teMaterialSetTexture2D( materialTransMS, transTex, 0 );

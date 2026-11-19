@@ -671,7 +671,7 @@ void Tick()
         {
             // Try to teleport on top of the AABB if it's not too high.
             printf("height: %f\n", aabbHeight);
-            teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, true, fpsCamera, false );
+            teTransformMoveForward( gResources.camera3d.index, 0.01f/*gInput.moveDir.z * (float)gGameState.dt * speed*/, true, fpsCamera, false );
             teTransformMoveUp( gResources.camera3d.index, aabbHeight + 0.01f );
 
             if (teScenePointInsideAABB( gResources.scene, cameraPos, aabbHeight ))
@@ -706,7 +706,7 @@ void Render()
 {
     teBeginFrame();
 
-    Vec3 dirLightShadowCasterPosition = Vec3( 0, 10, 0 );
+    Vec3 dirLightShadowCasterPosition = Vec3( 0, 45, 0 );
     teSceneRender( gResources.scene, &gResources.skyboxShader, &gResources.skyTex, &gResources.cubeMesh, gResources.momentsShader, dirLightShadowCasterPosition, gResources.depthNormalsShader, gResources.lightCullShader );
 
     teBeginSwapchainRendering();

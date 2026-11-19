@@ -203,7 +203,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             float3 Fr = (D * v) * F;
             float3 Fd = Fd_Lambert();
 
-            float attenuation = 1.0f;//getDistanceAttenuation( -vecToLightWS, 1.0f / radius );
+            float attenuation = 1.0f;//getDistanceAttenuation( -vecToLightWS, 1.0f / (radius * radius) );
             const float3 color = Fd;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
             accumDiffuse += (color * pointLightColor.rgb) * attenuation * dotNL;
