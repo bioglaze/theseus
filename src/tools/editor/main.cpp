@@ -1,12 +1,11 @@
 // Theseus engine editor
 // Author: Timo Wiren
-// Modified: 2026-11-11
+// Modified: 2026-11-19
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include "window.h"
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "vec3.h"
 #include "transform.h"

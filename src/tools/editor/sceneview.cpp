@@ -20,7 +20,6 @@
 #include "transform.h"
 #include "vec3.h"
 #include "window.h"
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 
 #include "game.h"
@@ -738,7 +737,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     sceneView.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
+    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );

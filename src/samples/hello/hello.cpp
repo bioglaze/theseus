@@ -1,7 +1,6 @@
 #include "camera.h"
 #include "file.h"
 #include "gameobject.h"
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 #include "light.h"
 #include "matrix.h"
