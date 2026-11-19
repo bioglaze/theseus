@@ -183,7 +183,6 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         const float radius = center.w;
         const float3 vecToLightWS = center.xyz - in.positionWS.xyz;
         const float lightDistance = length( vecToLightWS );
-        const float3 lightDirVS = normalize( vecToLightWS );
         
         if (lightDistance < radius)
         {
@@ -191,7 +190,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float3 L = normalize( vecToLightVS );
             const float3 H = normalize( L + V );
             
-            const float dotNL = saturate( dot( N, lightDirVS ) );
+            const float dotNL = saturate( dot( N, L ) );
             const float dotVH = saturate( dot( V, H ) );
             const float dotLH = saturate( dot( L, H ) );
             const float dotNH = saturate( dot( N, H ) );
@@ -207,8 +206,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float3 Fd = Fd_Lambert();
 
             const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), radius );
-            const float3 color = float3( 1, 1, 1 );
-            //const float3 color = Fd + Fr;
+            const float3 color = Fd;
             accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
             accumSpecular += Fr * dotNL * pointLightBufferColors[ lightIndex ].rgb;
         }
