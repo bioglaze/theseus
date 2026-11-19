@@ -502,7 +502,7 @@ void LoadResources( unsigned width, unsigned height )
     gResources.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    gResources.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+    gResources.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
 
     teFile backFile = teLoadFile( "assets/textures/skybox/back.dds" );
     teFile frontFile = teLoadFile( "assets/textures/skybox/front.dds" );

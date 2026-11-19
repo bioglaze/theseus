@@ -300,7 +300,7 @@ int main()
     teShader depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    teShader lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+    teShader lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
 
     teFile bloomThresholdFile = teLoadFile( "shaders/bloom_threshold.spv" );
     teShader bloomThresholdShader = teCreateComputeShader( bloomThresholdFile, "bloomThreshold", 8, 8 );
