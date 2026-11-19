@@ -7,8 +7,9 @@ void Tick();
 
 int main()
 {
-    Init( 800 * 2, 450 * 2 );
-
+    //Init( 800 * 2, 450 * 2 );
+    Init( 2560, 1440 );
+    
     bool shouldQuit = false;
 
     while (!shouldQuit)

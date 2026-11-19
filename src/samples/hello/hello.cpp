@@ -788,19 +788,20 @@ int main()
 
         cameraPos = teTransformGetLocalPosition(camera3d.index);
         bool collisionDetection = false;
-
-        if (collisionDetection && teScenePointInsideAABB( scene, cameraPos ))
+        float aabbHeight = 0.0f;
+        
+        if (collisionDetection && teScenePointInsideAABB( scene, cameraPos, aabbHeight ))
         {
             teTransformSetLocalPosition( camera3d.index, oldCameraPos );
             teTransformMoveForward( camera3d.index, inputParams.moveDir.z * (float)dt* speed, false, fpsCamera, true );
             cameraPos = teTransformGetLocalPosition( camera3d.index );
 
-            if (teScenePointInsideAABB( scene, cameraPos ))
+            if (teScenePointInsideAABB( scene, cameraPos, aabbHeight ))
             {
                 teTransformSetLocalPosition(camera3d.index, oldCameraPos);
                 teTransformMoveForward( camera3d.index, inputParams.moveDir.z* (float)dt* speed, true, fpsCamera, false );
                 cameraPos = teTransformGetLocalPosition( camera3d.index );
-                if (teScenePointInsideAABB( scene, cameraPos ))
+                if (teScenePointInsideAABB( scene, cameraPos, aabbHeight ))
                 {
                     teTransformSetLocalPosition( camera3d.index, oldCameraPos );
                 }

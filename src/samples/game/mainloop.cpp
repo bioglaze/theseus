@@ -659,20 +659,30 @@ void Tick()
     Vec3 cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
     bool collisionDetection = true;
 
-    if (collisionDetection && teScenePointInsideAABB( gResources.scene, cameraPos ))
+    float aabbHeight = 0.0f;
+
+    if (collisionDetection && teScenePointInsideAABB( gResources.scene, cameraPos, aabbHeight ))
     {
         teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
         teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, false, fpsCamera, true );
         cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
-
-        if (teScenePointInsideAABB( gResources.scene, cameraPos ))
+        
+        if (teScenePointInsideAABB( gResources.scene, cameraPos, aabbHeight ))
         {
-            teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+            // Try to teleport on top of the AABB if it's not too high.
+            printf("height: %f\n", aabbHeight);
             teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, true, fpsCamera, false );
-            cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
-            if (teScenePointInsideAABB( gResources.scene, cameraPos ))
+            teTransformMoveUp( gResources.camera3d.index, aabbHeight + 0.01f );
+
+            if (teScenePointInsideAABB( gResources.scene, cameraPos, aabbHeight ))
             {
                 teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+                teTransformMoveForward( gResources.camera3d.index, gInput.moveDir.z * (float)gGameState.dt * speed, true, fpsCamera, false );
+                cameraPos = teTransformGetLocalPosition( gResources.camera3d.index );
+                if (teScenePointInsideAABB( gResources.scene, cameraPos, aabbHeight ))
+                {
+                    teTransformSetLocalPosition( gResources.camera3d.index, oldCameraPos );
+                }
             }
         }
         else

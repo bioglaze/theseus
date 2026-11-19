@@ -515,10 +515,8 @@ void teSceneRender( const teScene& scene, const teShader* skyboxShader, const te
     }
 }
 
-bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
+bool teScenePointInsideAABB( const teScene& scene, const Vec3& point, float& outAABBHeight )
 {
-    bool isInside = false;
-
     for (unsigned gameObjectIndex = 0; gameObjectIndex < MaxSceneGameObjects; ++gameObjectIndex)
     {
         if (scenes[ scene.index ].gameObjects[ gameObjectIndex ] != 0 &&
@@ -551,13 +549,17 @@ bool teScenePointInsideAABB( const teScene& scene, const Vec3& point )
                     point.y > meshAabbMinWorld.y && point.y < meshAabbMaxWorld.y &&
                     point.z > meshAabbMinWorld.z && point.z < meshAabbMaxWorld.z )
                 {
+                    outAABBHeight = meshAabbMaxWorld.y;
+
+                    //tePrint( "min: %f, %f, %f\n", meshAabbMinWorld.x, meshAabbMinWorld.y, meshAabbMinWorld.z );
+                    //tePrint( "max: %f, %f, %f\n", meshAabbMaxWorld.x, meshAabbMaxWorld.y, meshAabbMaxWorld.z );
                     return true;
                 }
             }
         }
     }
 
-    return isInside;
+    return false;
 }
 
 void teSceneReadArraySizes( const teFile& sceneFile, unsigned& outGoCount, unsigned& outTextureCount, 

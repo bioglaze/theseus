@@ -12,7 +12,7 @@ teScene teCreateScene( unsigned directonalShadowMapDimension );
 void teSceneAdd( const teScene& scene, unsigned gameObjectIndex );
 void teSceneRemove( const teScene& scene, unsigned gameObjectIndex );
 void teSceneRender( const teScene& scene, const struct teShader* skyboxShader, const struct teTextureCube* skyboxTexture, const struct teMesh* skyboxMesh, const teShader& momentsShader, const struct Vec3& dirLightPosition, const teShader& depthNormalsShader, const teShader& lightCullShader );
-bool teScenePointInsideAABB( const teScene& scene, const Vec3& point );
+bool teScenePointInsideAABB( const teScene& scene, const Vec3& point, float& outAABBHeight );
 void teSceneSetupDirectionalLight( const teScene& scene, const Vec3& color, const Vec3& direction );
 // \return 0 if the game object at index i doesn't exist.
 unsigned teSceneGetGameObjectIndex( const teScene& scene, unsigned i );

@@ -1153,7 +1153,8 @@ void RenderSceneView( float gridStep )
                     ImGui::Text( "color" );
                     ImGui::ColorEdit3("Color", tePointLightAccessColor( selectedGoIndex ) );
 
-                    tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), 1.0f );
+                    float intensity = *tePointLightAccessIntensity( selectedGoIndex );
+                    tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), intensity );
                 }
             }
 
