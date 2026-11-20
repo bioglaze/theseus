@@ -5,10 +5,9 @@
 #include <stdlib.h>
 
 #if _WIN32
-#define teAssert( c ) if (!(c)) __debugbreak()
+#define teAssert( c ) do { if (!(c)) __debugbreak(); } while ( 0 )
 #else
-//#define teAssert( c ) if (!(c)) *(volatile int *)0 = 0
-#define teAssert( c ) if (!(c)) __builtin_trap()
+#define teAssert( c ) do { if (!(c)) __builtin_trap(); } while ( 0 )
 #endif
 
 #if _DEBUG
@@ -33,7 +32,7 @@
 
 void tePrint( const char* format, ... );
 
-static int teStrcmp( const char* s1, const char* s2 )
+static inline int teStrcmp( const char* s1, const char* s2 )
 {
     while (*s1 && (*s1 == *s2))
     {
@@ -44,7 +43,7 @@ static int teStrcmp( const char* s1, const char* s2 )
     return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
-static unsigned teStrlen( const char* str )
+static inline unsigned teStrlen( const char* str )
 {
     unsigned len = 0;
 
@@ -56,7 +55,7 @@ static unsigned teStrlen( const char* str )
     return len;
 }
 
-static const char* teStrstr( const char* s1, const char* s2 )
+static inline const char* teStrstr( const char* s1, const char* s2 )
 {
     int len = teStrlen( s2 );
     const char* ref = s2;
@@ -85,7 +84,7 @@ static const char* teStrstr( const char* s1, const char* s2 )
     return nullptr;
 }
 
-static void teMemcpy( void* dst, const void* src, size_t size )
+static inline void teMemcpy( void* dst, const void* src, size_t size )
 {
     char* x = (char*)dst;
     char* y = (char*)src;
@@ -94,22 +93,22 @@ static void teMemcpy( void* dst, const void* src, size_t size )
     memcpy( dst, src, size );
 }
 
-static void teZero( char* dst, size_t size )
+static inline void teZero( char* dst, size_t size )
 {
-    for (unsigned i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         dst[ i ] = 0;
     }
 }
 
-static void* teMalloc( size_t bytes )
+static inline void* teMalloc( size_t bytes )
 {
     teAssert( bytes > 0 );
 
     return malloc( bytes );
 }
 
-static void teFree( void* ptr )
+static inline void teFree( void* ptr )
 {
     free( ptr );
 }
