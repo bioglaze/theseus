@@ -766,7 +766,7 @@ void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexM
     *outIndexMemory = BufferGetBuffer( renderer.uiIndexBuffer )->contents();
 }
 
-void teUnmapUiMemory()
+void teUnmapUiMemory( unsigned vertexBytes, unsigned indexBytes )
 {
 }
 
