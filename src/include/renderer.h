@@ -13,7 +13,7 @@ void teDrawQuad( const teShader& shader, teTexture2D texture, const ShaderParams
 void teBeginSwapchainRendering();
 void teEndSwapchainRendering();
 void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexMemory, void** outIndexMemory );
-void teUnmapUiMemory();
+void teUnmapUiMemory( unsigned vertexBytes, unsigned indexBytes );
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset );
 
 enum class teStat

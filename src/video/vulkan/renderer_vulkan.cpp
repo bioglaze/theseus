@@ -2370,10 +2370,13 @@ void teMapUiMemory( unsigned vertexBytes, unsigned indexBytes, void** outVertexM
     *outIndexMemory = renderer.uiIndices;
 }
 
-void teUnmapUiMemory()
+void teUnmapUiMemory( unsigned vertexBytes, unsigned indexBytes )
 {
-    UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, UiBufferBytes, 0 );
-    UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, UiBufferBytes, 0 );
+    teAssert( vertexBytes < UiBufferBytes );
+    teAssert( indexBytes < UiBufferBytes );
+
+    UpdateStagingBuffer( renderer.uiVertexBuffer, renderer.uiVertices, vertexBytes, 0 );
+    UpdateStagingBuffer( renderer.uiIndexBuffer, renderer.uiIndices, indexBytes, 0 );
 }
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )

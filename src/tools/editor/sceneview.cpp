@@ -274,7 +274,7 @@ void RenderImGUIDrawData( const teShader& shader, const teTexture2D& fontTex )
             idxDst += cmdList->IdxBuffer.Size;
         }
 
-        teUnmapUiMemory();
+        teUnmapUiMemory( vertexBytes, indexBytes );
     }
 
     // Will project scissor/clipping rectangles into framebuffer space
