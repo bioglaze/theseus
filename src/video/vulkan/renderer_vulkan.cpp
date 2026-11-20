@@ -252,7 +252,8 @@ struct Renderer
 
     unsigned statDrawCalls = 0;
     unsigned statPSOBinds = 0;
-
+    float statFrameGpuTimeMs = 0.0f;
+    
     bool meshShaderSupported = false;
     unsigned lineCount = 0;
     teShader lineShader;
@@ -1058,7 +1059,6 @@ void CreateDevice()
         if (teStrstr( availableExtensions[ i ].extensionName, VK_EXT_MESH_SHADER_EXTENSION_NAME ))
         {
             renderer.meshShaderSupported = true;
-            tePrint( "mesh shader is supported\n" );
         }
     }
 
@@ -1739,6 +1739,7 @@ void teBeginFrame()
 
         if (res == VK_SUCCESS)
         {
+            renderer.statFrameGpuTimeMs = (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f;
             //tePrint( "GPU: %f ms\n", (timestamps[ 1 ] - timestamps[ 0 ]) * renderer.properties.limits.timestampPeriod * 1e-6f );
         }
     }
@@ -2489,8 +2490,8 @@ float teRendererGetStat( teStat stat )
 {
     if (stat == teStat::DrawCalls) return (float)renderer.statDrawCalls;
     if (stat == teStat::PSOBinds) return (float)renderer.statPSOBinds;
+    if (stat == teStat::FrameGpuTimeMs) return (float)renderer.statFrameGpuTimeMs;
     
-
     return 0;
 }
 

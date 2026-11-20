@@ -20,6 +20,7 @@ enum class teStat
 {
     DrawCalls,
     PSOBinds,
+    FrameGpuTimeMs
 };
 
 float teRendererGetStat( teStat stat );

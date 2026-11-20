@@ -394,7 +394,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.z = 0.5f;
+                inputParams.moveDir.z = 0.25f;
             io.AddInputCharacter( 'w' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
@@ -402,7 +402,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = -0.5f;
+                inputParams.moveDir.x = -0.25f;
             io.AddInputCharacter( 'a' );            
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
@@ -414,7 +414,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
                 SceneViewDuplicate();
             }
             else if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = 0.5f;
+                inputParams.moveDir.x = 0.25f;
             io.AddInputCharacter( 'd' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
@@ -424,7 +424,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = -0.5f;
+                inputParams.moveDir.y = -0.25f;
             io.AddInputCharacter( 'q' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
@@ -434,7 +434,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = 0.5f;
+                inputParams.moveDir.y = 0.25f;
             io.AddInputCharacter( 'e' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)

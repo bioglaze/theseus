@@ -565,10 +565,8 @@ bool SelectGizmo( unsigned x, unsigned y )
     if (closestSceneGo == (int)sceneView.translateGizmoGo.index)
     {
         sceneView.gizmoAxisSelected = closestSubMesh;
-        printf( "gizmo submesh %u\n", closestSubMesh );
     }
 
-    printf("Gizmo axis selected: %d\n", sceneView.gizmoAxisSelected );
     return sceneView.gizmoAxisSelected != -1;
 }
 
@@ -642,7 +640,7 @@ void ReadMaterials()
                         {
                             nameCursor = sizeof( sceneView.materials[ sceneView.materialCount ].name ) - 1;
                         }
-                        printf( "material name: %s\n", name );
+
                         strncpy( sceneView.materials[ sceneView.materialCount ].name, name, sizeof( sceneView.materials[ sceneView.materialCount ].name ) );
                         sceneView.materials[ sceneView.materialCount ].name[ nameCursor ] = 0;
                     }
@@ -658,7 +656,7 @@ void ReadMaterials()
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
                         }
-                        printf( "albedo: %s\n", name );
+
                         char texPath[ 260 ] = {};
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
@@ -682,7 +680,7 @@ void ReadMaterials()
                             name[ nameCursor ] = line[ nameCursor + offset ];
                             ++nameCursor;
                         }
-                        printf( "normal: %s\n", name );
+
                         char texPath[ 260 ] = {};
                         snprintf( texPath, 256, "assets/textures/%s", name );
                         teFile texFile = teLoadFile( texPath );
@@ -913,7 +911,7 @@ void RenderSceneView( float gridStep )
     teBeginFrame();
     ImGui::NewFrame();
 
-    Vec3 dirLightShadowCasterPosition( 0, 25, 0 );
+    Vec3 dirLightShadowCasterPosition( 0, 45, 0 );
     teSceneRender( sceneView.scene, &sceneView.skyboxShader, &sceneView.skyTex, &sceneView.cubeMesh, sceneView.momentsShader, dirLightShadowCasterPosition, sceneView.depthNormalsShader, sceneView.lightCullShader );
 
     teBeginSwapchainRendering();
@@ -1300,6 +1298,9 @@ void RenderSceneView( float gridStep )
             {
                 teHotReload();
             }
+
+            ImGui::SameLine();
+            ImGui::Text( "draw calls: %d, frame GPU time: %.2f ms", (int)teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::FrameGpuTimeMs ) );
         }
     }
 
