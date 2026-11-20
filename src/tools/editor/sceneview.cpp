@@ -330,12 +330,12 @@ void GetColliders( unsigned screenX, unsigned screenY, bool skipGizmo, int& outC
             if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
             {
                 Vec3 screenPoint;
-                //bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
+                bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
 
                 if (screenX > x && screenX < x + 100 &&
-                    screenY > y && screenY < y + 100)
+                    screenY > y && screenY < y + 100 && isFront)
                 {
                     outClosestSceneGo = goIndex;
                     return;
