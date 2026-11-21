@@ -188,6 +188,8 @@ InputState inputParams;
 
 bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 {
+    constexpr float cameraSpeed = 0.06f;
+    
     ImGuiIO& io = ImGui::GetIO();
 
     tePushWindowEvents();
@@ -366,13 +368,6 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Comma)
             io.AddInputCharacter( ',' );
-
-        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
-        {
-            if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.z = -0.5f;
-            io.AddInputCharacter( 's' );
-        }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::S)
             inputParams.moveDir.z = 0;
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::T)
@@ -391,10 +386,16 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             io.AddInputCharacter( '<' );
         //else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::AE)
         //    io.AddInputCharactersUTF8( "ä" );
+        else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::S)
+        {
+            if (!io.WantCaptureKeyboard)
+                inputParams.moveDir.z = -cameraSpeed;
+            io.AddInputCharacter( 's' );
+        }
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::W)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.z = 0.25f;
+                inputParams.moveDir.z = cameraSpeed;
             io.AddInputCharacter( 'w' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::W)
@@ -402,7 +403,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::A)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = -0.25f;
+                inputParams.moveDir.x = -cameraSpeed;
             io.AddInputCharacter( 'a' );            
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::A)
@@ -414,7 +415,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
                 SceneViewDuplicate();
             }
             else if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.x = 0.25f;
+                inputParams.moveDir.x = cameraSpeed;
             io.AddInputCharacter( 'd' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::D)
@@ -424,7 +425,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::Q)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = -0.25f;
+                inputParams.moveDir.y = -cameraSpeed;
             io.AddInputCharacter( 'q' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::Q)
@@ -434,7 +435,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
         else if (event.type == teWindowEvent::Type::KeyDown && event.keyCode == teWindowEvent::KeyCode::E)
         {
             if (!io.WantCaptureKeyboard)
-                inputParams.moveDir.y = 0.25f;
+                inputParams.moveDir.y = cameraSpeed;
             io.AddInputCharacter( 'e' );
         }
         else if (event.type == teWindowEvent::Type::KeyUp && event.keyCode == teWindowEvent::KeyCode::E)

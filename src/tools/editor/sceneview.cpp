@@ -952,7 +952,16 @@ void RenderSceneView( float gridStep )
                 {
                     color = teSpotLightAccessColor( goIndex );
                 }
+
+                const float distance = (teTransformGetLocalPosition( sceneView.camera3d.index ) - teTransformGetLocalPosition( goIndex ) ).Length();
+                const float lerpDistance = 10;
+                float opacity = 1;
                 
+                if (distance < lerpDistance)
+                {
+                    opacity = distance / lerpDistance;
+                }
+
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
                 shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
@@ -962,7 +971,7 @@ void RenderSceneView( float gridStep )
                 shaderParams.tint[ 0 ] = color[ 0 ];
                 shaderParams.tint[ 1 ] = color[ 1 ];
                 shaderParams.tint[ 2 ] = color[ 2 ];
-                //shaderParams.tint[ 3 ] = distanceFade;
+                shaderParams.tint[ 3 ] = opacity;
                 teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Alpha );
             }
         }
