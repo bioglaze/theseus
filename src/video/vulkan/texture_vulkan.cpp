@@ -86,6 +86,10 @@ unsigned GetMemoryUsage( unsigned width, unsigned height, VkFormat format )
     {
         return (width * height * 4 * 4);
     }
+    else if (format == VK_FORMAT_R16G16B16A16_SFLOAT)
+    {
+        return (width * height * 4 * 2);
+    }
 
     return width * height * 4;
 }
@@ -143,6 +147,10 @@ void GetFormat( teTextureFormat format, VkFormat& outFormat )
     else if (format == teTextureFormat::R32G32B32A32F)
     {
         outFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+    }
+    else if (format == teTextureFormat::R16G16B16A16F)
+    {
+        outFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
     }
     else if (format == teTextureFormat::Depth32F)
     {

@@ -449,12 +449,12 @@ int main()
 
     teTextureCube skyTex = teLoadTexture( rightFile, leftFile, topFile, bottomFile, backFile, frontFile, 0 );
 
-    teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomTarget" );
-    teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "blurTarget" );
-    teTexture2D bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bloomComposeTarget" );
-    teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget" );
-    teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget2" );
-    teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "downsampleTarget3" );
+    teTexture2D bloomTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "bloomTarget" );
+    teTexture2D blurTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "blurTarget" );
+    teTexture2D bloomComposeTarget = teCreateTexture2D( width, height, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "bloomComposeTarget" );
+    teTexture2D downsampleTarget = teCreateTexture2D( width / 2, height / 2, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "downsampleTarget" );
+    teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "downsampleTarget2" );
+    teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "downsampleTarget3" );
 
     teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bilinearTestTarget" );
 
