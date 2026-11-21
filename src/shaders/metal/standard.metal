@@ -96,9 +96,19 @@ float3 tangentSpaceTransform( float3 tangent, float3 bitangent, float3 normal, f
     return normalize( v.x * tangent + v.y * bitangent + v.z * normal );
 }
 
-float pointLightAttenuation( float d, float r )
+float smoothDistanceAtt( float squaredDistance, float invSqrAttRadius )
 {
-    return 2.0f / (d * d + r * r + d * sqrt( d * d + r * r ));
+    float factor = squaredDistance * invSqrAttRadius;
+    float smoothFactor = saturate( 1.0f - factor * factor );
+    return smoothFactor * smoothFactor;
+}
+
+float getDistanceAttenuation( float3 unnormalizedLightVector, float invSqrAttRadius )
+{
+    float sqrDist = dot( unnormalizedLightVector, unnormalizedLightVector );
+    float attenuation = 1.0f / max( sqrDist, 1e-4f ); // 1 cm min distance
+    attenuation *= smoothDistanceAtt( sqrDist, invSqrAttRadius );
+    return attenuation;
 }
 
 float D_GGX( float dotNH, float a )
@@ -205,10 +215,10 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float3 Fr = (D * v) * F;
             const float3 Fd = Fd_Lambert();
 
-            const float attenuation = 1;//pointLightAttenuation( length( vecToLightWS ), radius );
+            const float attenuation = getDistanceAttenuation( -vecToLightWS, 1.0f / (radius * radius) );
             const float3 color = Fd;
             accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
-            accumSpecular += Fr * dotNL * pointLightBufferColors[ lightIndex ].rgb;
+            accumSpecular += Fr * pointLightBufferColors[ lightIndex ].rgb * attenuation * dotNL;
         }
     }
 
