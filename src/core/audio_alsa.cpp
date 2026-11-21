@@ -80,7 +80,6 @@ void InitAudio()
     snd_pcm_uframes_t bufferSize;
     snd_pcm_hw_params_get_buffer_size( hwParams, &bufferSize );
 
-    tePrint( "Significant bits for linear samples: %d\n", snd_pcm_hw_params_get_sbits( hwParams ) );
     snd_pcm_hw_params_free( hwParams );
 
     if ((err = snd_pcm_prepare( gAudioDevice.device )) < 0)

@@ -926,6 +926,11 @@ int main()
         shaderParams.tilesXY[ 1 ] = 2.0f;
         shaderParams.tilesXY[ 2 ] = -1.0f;
         shaderParams.tilesXY[ 3 ] = -1.0f;
+        shaderParams.tint[ 0 ] = 1.0f;
+        shaderParams.tint[ 1 ] = 1.0f;
+        shaderParams.tint[ 2 ] = 1.0f;
+        shaderParams.tint[ 3 ] = 1.0f;
+
         teDrawQuad( fullscreenShader, teCameraGetColorTexture( camera3d.index ), shaderParams, teBlendMode::Off );
 
         shaderParams.tilesXY[ 0 ] = 2.0f;

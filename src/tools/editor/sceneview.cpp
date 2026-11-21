@@ -921,25 +921,48 @@ void RenderSceneView( float gridStep )
     shaderParams.tilesXY[ 1 ] = 2.0f;
     shaderParams.tilesXY[ 2 ] = -1.0f;
     shaderParams.tilesXY[ 3 ] = -1.0f;
+    shaderParams.tint[ 0 ] = 1.0f;
+    shaderParams.tint[ 1 ] = 1.0f;
+    shaderParams.tint[ 2 ] = 1.0f;
+    shaderParams.tint[ 3 ] = 1.0f;
+
     teDrawQuad( sceneView.fullscreenShader, teCameraGetColorTexture( sceneView.camera3d.index ), shaderParams, teBlendMode::Off );
 
     for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         unsigned goIndex = teSceneGetGameObjectIndex( sceneView.scene, i );
 
-        if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
+        if (goIndex != 0 && goIndex != sceneView.translateGizmoGo.index && goIndex != sceneView.camera3d.index && ((teGameObjectGetComponents( goIndex ) & teComponent::PointLight) ||
+                                                                                                                   (teGameObjectGetComponents( goIndex ) & teComponent::SpotLight)))
         {
             Vec3 screenPoint;
             bool isFront = teCameraGetScreenPoint( sceneView.camera3d.index, teTransformGetLocalPosition( goIndex ), (float)sceneView.width, (float)sceneView.height, screenPoint );
 
             if (isFront)
             {
+                float* color = nullptr;
+
+                if (teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
+                {
+                    color = tePointLightAccessColor( goIndex );
+                    //printf( "color: %f, %f, %f\n", color[0], color[1], color[2] );
+                }
+                
+                if (teGameObjectGetComponents( goIndex ) & teComponent::SpotLight)
+                {
+                    color = teSpotLightAccessColor( goIndex );
+                }
+                
                 float x = screenPoint.x;
                 float y = sceneView.height - screenPoint.y;
                 shaderParams.tilesXY[ 0 ] = 0.1f; // 2 is full screen
                 shaderParams.tilesXY[ 1 ] = sceneView.flipSprites ? -0.2f : 0.2f;
                 shaderParams.tilesXY[ 2 ] = (x / sceneView.width) * 2 - 1; // -1 is left
                 shaderParams.tilesXY[ 3 ] = (y / sceneView.height) * 2 - 1;
+                shaderParams.tint[ 0 ] = color[ 0 ];
+                shaderParams.tint[ 1 ] = color[ 1 ];
+                shaderParams.tint[ 2 ] = color[ 2 ];
+                //shaderParams.tint[ 3 ] = distanceFade;
                 teDrawQuad( sceneView.fullscreenShader, sceneView.lightTex, shaderParams, teBlendMode::Alpha );
             }
         }
