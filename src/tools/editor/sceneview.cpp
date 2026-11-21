@@ -146,8 +146,9 @@ void ExportGameScene( const char* path )
             {
                 float* color = tePointLightAccessColor( goIndex );
                 float* radius = tePointLightAccessRadius( goIndex );
+                float* intensity = tePointLightAccessIntensity( goIndex );
 
-                fprintf( outFile, "pointlight %f %f %f %f\n", color[ 0 ], color[ 1 ], color[ 2 ], *radius );
+                fprintf( outFile, "pointlight %f %f %f %f %f\n", color[ 0 ], color[ 1 ], color[ 2 ], *radius, *intensity );
             }
 
             if (teGameObjectGetComponents( goIndex ) & teComponent::SpotLight)
@@ -945,7 +946,6 @@ void RenderSceneView( float gridStep )
                 if (teGameObjectGetComponents( goIndex ) & teComponent::PointLight)
                 {
                     color = tePointLightAccessColor( goIndex );
-                    //printf( "color: %f, %f, %f\n", color[0], color[1], color[2] );
                 }
                 
                 if (teGameObjectGetComponents( goIndex ) & teComponent::SpotLight)

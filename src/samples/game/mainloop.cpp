@@ -374,15 +374,16 @@ void GameSceneReadScene( const teFile& sceneFile, teGameObject* gos )
             }
             else if (strstr( line, "pointlight" ) == line)
             {
-                float r, g, b, radius;
+                float r, g, b, radius, intensity;
                 int offset = (unsigned)strlen( "pointlight " );
                 offset += ParseFloat( line + offset, r ) + 1;
                 offset += ParseFloat( line + offset, g ) + 1;
                 offset += ParseFloat( line + offset, b ) + 1;
                 offset += ParseFloat( line + offset, radius );
+                offset += ParseFloat( line + offset, intensity );
                 
                 teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::PointLight );
-                tePointLightSetParams( gos[ goCount - 1 ].index, radius, Vec3( r, g, b ), 1.0f );
+                tePointLightSetParams( gos[ goCount - 1 ].index, radius, Vec3( r, g, b ), intensity );
             }
             else if (strstr( line, "meshrenderer" ) == line)
             {
