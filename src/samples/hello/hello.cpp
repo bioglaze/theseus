@@ -940,7 +940,7 @@ int main()
         teDrawQuad( fullscreenAdditiveShader, bloomComposeTarget, shaderParams, teBlendMode::Additive);
 
         ImGui::Begin( "Info" );
-        ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ) );
+        ImGui::Text( "draw calls: %.0f\nPSO binds: %.0f, GPU time: %.2f ms", teRendererGetStat( teStat::DrawCalls ), teRendererGetStat( teStat::PSOBinds ), teRendererGetStat( teStat::FrameGpuTimeMs ) );
         ImGui::SliderFloat( "Bloom Threshold", &bloomThreshold, 0.01f, 1.0f );
         ImGui::SliderFloat( "Compose Weight 0", &shaderParams.tint[ 0 ], 0.01f, 1.0f );
         ImGui::SliderFloat( "Compose Weight 1", &shaderParams.tint[ 1 ], 0.01f, 1.0f );
