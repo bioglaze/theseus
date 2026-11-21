@@ -610,6 +610,10 @@ Vec3 Quaternion::GetEuler() const
         out.z = atan2f( 2 * (w * z + x * y), 1 - 2 * (y * y + z * z) );
     }
 
+    out.x = out.x * 3.14159265f / 180.0f;
+    out.y = out.y * 3.14159265f / 180.0f;
+    out.z = out.z * 3.14159265f / 180.0f;
+    
     return out;
 }
 
