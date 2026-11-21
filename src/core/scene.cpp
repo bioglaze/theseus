@@ -295,6 +295,22 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
         const teMesh* mesh = teMeshRendererGetMesh( scenes[ scene.index ].gameObjects[ gameObjectIndex ] );
 
+        unsigned width, height;
+        RendererGetSize( width, height );
+
+        Vec4 lightDir;
+        lightDir.x = scenes[ scene.index ].directionalLightDirection.x;
+        lightDir.y = scenes[ scene.index ].directionalLightDirection.y;
+        lightDir.z = scenes[ scene.index ].directionalLightDirection.z;
+
+        Matrix lightDirToVS;
+        Vec3 lightDirWS = Vec3( lightDir.x, lightDir.y, lightDir.z );
+        Vec3 lightDirVS;
+        Matrix::TransformDirection( lightDirWS, teTransformGetMatrix( cameraGOIndex ), &lightDirVS );
+        lightDir.x = lightDirVS.x;
+        lightDir.y = lightDirVS.y;
+        lightDir.z = lightDirVS.z;
+
         for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( mesh ); ++subMeshIndex)
         {
             const teMaterial& material = teMeshRendererGetMaterial( scenes[ scene.index ].gameObjects[ gameObjectIndex ], subMeshIndex );
@@ -310,19 +326,6 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
             shaderParams.tint[ 1 ] = tint.y;
             shaderParams.tint[ 2 ] = tint.z;
             shaderParams.tint[ 3 ] = tint.w;
-
-            Vec4 lightDir;
-            lightDir.x = scenes[ scene.index ].directionalLightDirection.x;
-            lightDir.y = scenes[ scene.index ].directionalLightDirection.y;
-            lightDir.z = scenes[ scene.index ].directionalLightDirection.z;
-
-            Matrix lightDirToVS;
-            Vec3 lightDirWS = Vec3( lightDir.x, lightDir.y, lightDir.z );
-            Vec3 lightDirVS;
-            Matrix::TransformDirection( lightDirWS, teTransformGetMatrix( cameraGOIndex ), &lightDirVS );
-            lightDir.x = lightDirVS.x;
-            lightDir.y = lightDirVS.y;
-            lightDir.z = lightDirVS.z;
             
             Vec4 lightColor;
             lightColor.x = scenes[ scene.index ].directionalLightColor.x;
@@ -340,8 +343,6 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
                 //shaderParams.clipToView[ i ] = clipToView.m[ i ];
             }
 
-            unsigned width, height;
-            RendererGetSize( width, height );
             shaderParams.tilesXY[ 0 ] = (float)width;
             shaderParams.tilesXY[ 1 ] = (float)height;
 
