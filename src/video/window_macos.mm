@@ -365,7 +365,30 @@ void GetSavePath( char* path, const char* extension )
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::J;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
-
+    else if ([theEvent keyCode] == 40 && IncEventIndex()) // K
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::K;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 37 && IncEventIndex()) // L
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::L;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 6 && IncEventIndex()) // Z
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Z;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 7 && IncEventIndex()) // X
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyDown;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::X;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -620,6 +643,30 @@ void GetSavePath( char* path, const char* extension )
     {
         win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
         win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::J;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 40 && IncEventIndex()) // K
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::K;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 37 && IncEventIndex()) // L
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::L;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 6 && IncEventIndex()) // Z
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::Z;
+        win.events[ win.eventIndex ].keyModifiers = keyModifiers;
+    }
+    else if ([theEvent keyCode] == 7 && IncEventIndex()) // X
+    {
+        win.events[ win.eventIndex ].type = teWindowEvent::Type::KeyUp;
+        win.events[ win.eventIndex ].keyCode = teWindowEvent::KeyCode::X;
         win.events[ win.eventIndex ].keyModifiers = keyModifiers;
     }
 
