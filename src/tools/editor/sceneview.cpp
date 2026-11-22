@@ -1083,7 +1083,7 @@ void RenderSceneView( float gridStep )
          
             if (ImGui::CollapsingHeader( "Transform" ))
             {
-                const bool positionChanged = ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f", ImGuiInputTextFlags_CharsScientific );
+                const bool positionChanged = ImGui::InputFloat3( "position", (float*)teTransformAccessLocalPosition( selectedGoIndex ), "%.3f" );
                 if (positionChanged)
                 {
                     teTransformSetLocalPosition( sceneView.translateGizmoGo.index, teTransformGetLocalPosition( selectedGoIndex ) );
@@ -1184,7 +1184,9 @@ void RenderSceneView( float gridStep )
                     ImGui::Text( "color" );
                     ImGui::ColorEdit3("Color", tePointLightAccessColor( selectedGoIndex ) );
 
+                    ImGui::InputFloat( "intensity", tePointLightAccessIntensity( selectedGoIndex ), 0, 0, "%.3f", ImGuiInputTextFlags_CharsScientific );
                     float intensity = *tePointLightAccessIntensity( selectedGoIndex );
+
                     tePointLightSetParams( selectedGoIndex, *tePointLightAccessRadius( selectedGoIndex ), Vec3( tePointLightAccessColor( selectedGoIndex )[ 0 ], tePointLightAccessColor( selectedGoIndex )[ 1 ], tePointLightAccessColor( selectedGoIndex )[ 2 ] ), intensity );
                 }
             }
@@ -1274,7 +1276,7 @@ void RenderSceneView( float gridStep )
         else
         {
             ImGui::Text( "Sunlight direction" );
-            const bool dirChanged = ImGui::InputFloat3( "##dir", sceneView.lightDir, "%.3f", ImGuiInputTextFlags_CharsScientific | ImGuiInputTextFlags_AllowTabInput );
+            const bool dirChanged = ImGui::InputFloat3( "##dir", sceneView.lightDir, "%.3f" );
 
             if (dirChanged)
             {
