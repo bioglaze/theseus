@@ -567,7 +567,7 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             // TODO: if using mouse on macOS, this should be isRightMouseDown.
             if (inputParams.isLeftMouseDown && !io.WantCaptureMouse)
 #else
-            if (inputParams.isRightouseDown && !io.WantCaptureMouse)
+            if (inputParams.isRightMouseDown && !io.WantCaptureMouse)
 #endif
             {
                 teTransformOffsetRotate( SceneViewGetCameraIndex(), Vec3( 0, 1, 0 ), -inputParams.deltaX / 100.0f * (float)dt );
@@ -611,9 +611,9 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
 
 int main()
 {
-    //unsigned width = 2560 / 1;
-    //unsigned height = 1440 / 1;
-    unsigned width = 750*2, height = 390*2;
+    unsigned width = 2560 / 1;
+    unsigned height = 1440 / 1;
+    //unsigned width = 750*2, height = 390*2;
     teCreateWindow( width, height, "Theseus Engine Editor" );
     teWindowGetSize( width, height );
 

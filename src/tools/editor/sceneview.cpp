@@ -667,6 +667,7 @@ void ReadMaterials()
                             sceneView.textures[ sceneView.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
                             teMaterialSetTexture2D( sceneView.materials[ sceneView.materialCount ], sceneView.textures[ sceneView.textureCount ], 0 );
                             ++sceneView.textureCount;
+                            free( texFile.data );
                         }
                     }
                     else if (strstr( line, "normal" ) == line)
@@ -859,7 +860,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     for (unsigned i = 0; i < MaxSceneGameObjects; ++i)
     {
         sceneView.entityNames[ i ] = (char*)calloc( 100, sizeof( char ) );
-        sceneView.entityTargets[ i ] = (char*)calloc( 100, sizeof( char ) );
+        sceneView.entityTargets[ i ] = (char*)calloc( 25, sizeof( char ) );
     }
 
     if (unlitVsFile.data) free( unlitVsFile.data );
@@ -1115,7 +1116,7 @@ void RenderSceneView( float gridStep )
                                 }
                             }
                         }
-                        else
+                        else if (sceneView.openFilePath[ 0 ] != 0)
                         {
                             printf( "Opened file must be inside build/assets!\n" );
                         }
@@ -1266,7 +1267,7 @@ void RenderSceneView( float gridStep )
             {
                 if (type == EntityButton)
                 {
-                    ImGui::InputText( "target", sceneView.entityTargets[ selectedGoIndex ], 100 );
+                    ImGui::InputText( "target", sceneView.entityTargets[ selectedGoIndex ], 25 );
                 }
             }
         }
