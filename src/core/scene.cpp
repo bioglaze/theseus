@@ -669,7 +669,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "texture name: %s\n", name );
+
                 textureNameIndices[ textureCount ] = InsertSceneString( name );
 
                 char fileName[ 100 ] = {};
@@ -687,7 +687,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 fileName[ fileNameCursor + 1 ] = 'd';
                 fileName[ fileNameCursor + 2 ] = 'd';
                 fileName[ fileNameCursor + 3 ] = 's';
-                tePrint( "file name: %s\n", fileName );
                 teFile texFile = teLoadFile( fileName );
 
                 textures[ textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
@@ -706,7 +705,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     ++nameCursor;
                 }
 
-                tePrint( "material name: %s\n", name );
                 materialNameIndices[ materialCount ] = InsertSceneString( name );
                 materials[ materialCount ] = teCreateMaterial( standardShader );
 
@@ -724,13 +722,12 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "gameobject name: %s\n", name );
+
                 gos[ goCount ] = teCreateGameObject( name, teComponent::Transform );
                 ++goCount;
             }
             else if (teStrstr( line, "meshmaterial" ) == line)
             {
-                tePrint("line begins with meshmaterial\n");
                 char index[ 100 ] = {};
                 unsigned indexCursor = 0;
                 unsigned offset = teStrlen( "meshmaterial " );
@@ -740,7 +737,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     index[ indexCursor ] = line[ indexCursor + offset ];
                     ++indexCursor;
                 }
-                tePrint( "meshmaterial submesh index: %s\n", index );
 
                 char materialName[ 100 ] = {};
                 unsigned materialNameCursor = 0;
@@ -752,7 +748,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     ++materialNameCursor;
                 }
 
-                tePrint( "meshmaterial material name: %s\n", materialName );
                 unsigned materialIndex = 0;
 
                 for (unsigned m = 0; m < materialCount; ++m)
@@ -765,7 +760,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
 
                 if (teStrstr( index, "all" ))
                 {
-                    tePrint( "all submeshes wanted\n" );
                     for (unsigned subMeshIndex = 0; subMeshIndex < teMeshGetSubMeshCount( teMeshRendererGetMesh( gos[ goCount - 1 ].index ) ); ++subMeshIndex)
                     {
                         teMeshRendererSetMaterial( gos[ goCount - 1 ].index, materials[ materialIndex ], subMeshIndex );
@@ -787,7 +781,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                 {
                     tePrint( "meshrenderer without gameobject!\n" );
                 }
-                tePrint("line begins with meshrenderer\n");
+
                 char name[ 100 ] = {};
                 unsigned nameCursor = 0;
                 unsigned offset = teStrlen( "meshrenderer " );
@@ -798,7 +792,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "meshrenderer for mesh: '%s'\n", name );
+
                 teGameObjectAddComponent( gos[ goCount - 1 ].index, teComponent::MeshRenderer );
 
                 bool found = false;
@@ -828,7 +822,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "mesh name: %s\n", name );
+
                 teAssert( meshCount < 1000 );
                 meshNameIndices[ meshCount ] = InsertSceneString( name );
 
@@ -841,7 +835,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     fileName[ fileNameCursor ] = line[ nameCursor + offset + fileNameCursor + 1 ];
                     ++fileNameCursor;
                 }
-                tePrint("mesh fileName: '%s'\n", fileName );
+
                 teFile meshFile = teLoadFile( fileName );
                 meshes[ meshCount ] = teLoadMesh( meshFile );
                 ++meshCount;
@@ -858,7 +852,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "texture 0 name: %s\n", name );
 
                 for (unsigned t = 0; t < textureCount; ++t)
                 {
@@ -881,7 +874,6 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     name[ nameCursor ] = line[ nameCursor + offset ];
                     ++nameCursor;
                 }
-                tePrint( "texture 1 name: %s\n", name );
 
                 for (unsigned t = 0; t < textureCount; ++t)
                 {
@@ -908,7 +900,7 @@ void teSceneReadScene( const teFile& sceneFile, const teShader& standardShader, 
                     lightType[ typeCursor ] = line[ typeCursor + offset ];
                     ++typeCursor;
                 }
-                tePrint( "light type: %s\n", lightType );
+
                 if (teStrstr( lightType, "point" ) )
                 {
                     AddPointLight( gos[ goCount - 1 ].index );
