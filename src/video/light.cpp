@@ -32,16 +32,12 @@ struct LightTiler
     Vec4 pointLightColors[ MaxLights ]; // .w is intensity
     Vec4 spotLightCenterAndRadius[ MaxLights ];
     Vec4 spotLightColors[ MaxLights ];
-    Vec4 spotLightParams[ MaxLights ];
+    Vec4 spotLightParams[ MaxLights ]; // direction, cone angle.
 } gLightTiler;
 
 struct LightImpl
 {
     unsigned tilerIndex = LightTiler::MaxLights;
-
-    // SpotLight specific stuff
-    float coneAngle = 45;
-    Vec3 direction;
 };
 
 LightImpl pointLights[ 10000 ]; // 10000 is MaxGameObjects
@@ -240,7 +236,7 @@ float* teSpotLightAccessConeAngle( unsigned goIndex )
         return nullptr;
     }
 
-    return &spotLights[ goIndex ].coneAngle;
+    return &gLightTiler.spotLightParams[ tilerIndex ].w;
 }
 
 void tePointLightGetParams( unsigned goIndex, Vec3& outPosition, float& outRadius, Vec3& outColor, float& outIntensity )
