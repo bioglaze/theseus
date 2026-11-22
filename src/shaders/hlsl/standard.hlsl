@@ -138,7 +138,7 @@ float3 BRDF( float3 N, float3 V, float3 L, float3 albedo, float3 roughness )
 float4 standardPS( VSOutput vsOut ) : SV_Target
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - vsOut.positionWS );
-    float3 shadow = max( 0.2f, VSM( surfaceDistToLight, vsOut.projCoord ) );
+    float3 shadow = VSM( surfaceDistToLight, vsOut.projCoord );
     float3 normalTS = normalize( texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xyz * 2.0 - 1.0 );
     float3 normalVS = tangentSpaceTransform( normalize( vsOut.tangentVS ), normalize( vsOut.bitangentVS ), normalize( vsOut.normalVS ), normalTS.xyz );
 
