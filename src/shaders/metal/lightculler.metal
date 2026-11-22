@@ -1,5 +1,4 @@
 #include <metal_stdlib>
-#include <metal_atomic>
 #include <simd/simd.h>
 
 #include "ubo.h"
@@ -151,7 +150,11 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
                     // do a thread-safe increment of the list counter
                     // and put the index of this light into the list
                     int dstIdx = atomic_fetch_add_explicit( &ldsLightIdxCounter, 1, memory_order::memory_order_relaxed );
-                    ldsLightIdx[ dstIdx ] = il;
+                    
+                    if (dstIdx < MAX_NUM_LIGHTS_PER_TILE)
+                    {
+                        ldsLightIdx[ dstIdx ] = il;
+                    }
                 }
             }
         }
@@ -185,7 +188,11 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
                     // do a thread-safe increment of the list counter
                     // and put the index of this light into the list
                     int dstIdx = atomic_fetch_add_explicit( &ldsLightIdxCounter, 1, memory_order::memory_order_relaxed );
-                    ldsLightIdx[ dstIdx ] = il;
+                    
+                    if (dstIdx < MAX_NUM_LIGHTS_PER_TILE)
+                    {
+                        ldsLightIdx[ dstIdx ] = il;
+                    }
                 }
             }
         }
@@ -201,7 +208,6 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
         // per-tile list of light indices
         perTileLightIndexBufferOut[ startOffset + i ] = ldsLightIdx[ i ];
     }
-
 
     int jMax = atomic_load_explicit( &ldsLightIdxCounter, memory_order::memory_order_relaxed );
     for (int j = localIdxFlattened + pointLightsInThisTile; j < jMax; j += NUM_THREADS_PER_TILE)

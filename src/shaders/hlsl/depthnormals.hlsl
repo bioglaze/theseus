@@ -27,6 +27,5 @@ VSOutput depthNormalsVS( uint vertexId : SV_VertexID )
 
 float4 depthNormalsPS( VSOutput vsOut ) : SV_Target
 {
-    float linearDepth = vsOut.positionVS.z;
-    return float4( linearDepth, normalize( vsOut.normalVS ) );
+    return float4( -vsOut.positionVS.z, normalize( vsOut.normalVS ) );
 }
