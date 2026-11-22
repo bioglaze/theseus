@@ -2247,7 +2247,7 @@ void teShaderDispatch( const teShader& shader, unsigned groupsX, unsigned groups
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*/, unsigned /*normalOffset*/, unsigned /* tangentOffset */, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode,
-           unsigned textureIndex, teTextureSampler /*sampler*/, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned renderMeshIndex, unsigned subMeshIndex)
+           unsigned textureIndex, teTextureSampler /*sampler*/, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned roughnessMapIndex, unsigned renderMeshIndex, unsigned subMeshIndex)
 {
     if (textureIndex != 0)
     {
@@ -2274,6 +2274,14 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
         }
 
         //renderer.samplerInfos[ normalMapIndex ].sampler = GetSampler( sampler );
+    }
+
+    if (roughnessMapIndex != 0)
+    {
+        teTexture2D tex;
+        tex.index = roughnessMapIndex;
+
+        renderer.samplerInfos[ roughnessMapIndex ].imageView = TextureGetView( tex );
     }
 
     if (shadowMapIndex != 0)
@@ -2314,6 +2322,7 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned /*uvOffset*
     pushConstants.lightIndexBuf = BufferGetAddress( GetLightIndexBuffer() );
     pushConstants.textureIndex = (int)textureIndex;
     pushConstants.normalMapIndex = (int)normalMapIndex;
+    pushConstants.roughnessMapIndex = (int)roughnessMapIndex;
     pushConstants.shadowTextureIndex = (int)shadowMapIndex;
     pushConstants.vertexOffset = positionOffset;
 
