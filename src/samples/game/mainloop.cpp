@@ -189,13 +189,28 @@ void ReadMaterials()
                             free( texFile.data );
                         }
                     }
-                    else if (strstr( line, "specular" ) == line)
+                    else if (strstr( line, "roughness" ) == line)
                     {
-                        //sceneView.materials[ sceneView.materialCount ].specular =
-                    }
-                    else if (strstr( line, "smoothness" ) == line)
-                    {
-                        //sceneView.materials[ sceneView.materialCount ].smoothness =
+                        char name[ 100 ] = {};
+                        unsigned nameCursor = 0;
+                        size_t offset = strlen( "roughness " );
+
+                        while (line[ nameCursor + offset ] != '\r' && line[ nameCursor + offset ] != '\n' &&
+                            line[ nameCursor + offset ] != 0)
+                        {
+                            name[ nameCursor ] = line[ nameCursor + offset ];
+                            ++nameCursor;
+                        }
+                        char texPath[ 260 ] = {};
+                        snprintf( texPath, 256, "assets/textures/%s", name );
+                        teFile texFile = teLoadFile( texPath );
+                        if (texFile.data)
+                        {
+                            gResources.textures[ gResources.textureCount ] = teLoadTexture( texFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
+                            teMaterialSetTexture2D( gResources.materials[ gResources.materialCount ], gResources.textures[ gResources.textureCount ], 2 );
+                            ++gResources.textureCount;
+                            free( texFile.data );
+                        }
                     }
                 }
 

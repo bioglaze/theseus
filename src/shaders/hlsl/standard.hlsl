@@ -187,7 +187,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float dotNH = saturate( dot( N, iH ) );
         
             float f0 = 0.04f;
-            float roughness = 0.5f;
+            float roughness = 0.4f;//texture2ds[ pushConstants.roughnessMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).r;
         
             float3 f0v = float3( f0, f0, f0 );
             float a = roughness * roughness;

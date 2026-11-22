@@ -456,7 +456,7 @@ int main()
     teTexture2D downsampleTarget2 = teCreateTexture2D( width / 4, height / 4, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "downsampleTarget2" );
     teTexture2D downsampleTarget3 = teCreateTexture2D( width / 8, height / 8, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "downsampleTarget3" );
 
-    teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::R32G32B32A32F, "bilinearTestTarget" );
+    teTexture2D bilinearTestTarget = teCreateTexture2D( 8, 8, teTextureFlags::UAV, teTextureFormat::R16G16B16A16F, "bilinearTestTarget" );
 
     teFile bc1File = teLoadFile( "assets/textures/test/test_dxt1.dds" );
     teTexture2D bc1Tex = teLoadTexture( bc1File, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );

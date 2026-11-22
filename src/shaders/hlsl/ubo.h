@@ -36,7 +36,7 @@ struct PushConstants
     int textureIndex;
     int shadowTextureIndex;
     int normalMapIndex;
-    int specularMapIndex;
+    int roughnessMapIndex;
     float2 scale;
     float2 translate;
     int vertexOffset;
