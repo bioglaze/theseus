@@ -773,7 +773,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     teTransformSetLocalPosition( sceneView.camera3d.index, cameraPos );
     teCameraSetProjection( sceneView.camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
     teCameraSetClear( sceneView.camera3d.index, clearFlag, clearColor );
-    teCameraGetColorTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
+    teCameraGetColorTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R16G16B16A16F, "camera3d color" );
     teCameraGetDepthTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
 
     teFile defaultNormalFile = teLoadFile( "assets/textures/default_n.tga" );
