@@ -140,6 +140,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
                             constant Uniforms& uniforms [[ buffer(0) ]],
                             texture2d<float, access::sample> normalMap [[texture(1)]],
                             texture2d<float, access::sample> shadowMap [[texture(2)]],
+                            texture2d<float, access::sample> roughnessMap [[texture(3)]],
                             const device uint* lightIndexBuf [[ buffer(1) ]],
                             const device float4* pointLightBufferCenterAndRadius [[ buffer(2) ]],
                             const device float4* pointLightBufferColors [[ buffer(3) ]],
@@ -149,7 +150,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
                             sampler sampler0 [[sampler(0)]] )
 {
     float surfaceDistToLight = length( uniforms.lightPosition.xyz - in.positionWS );
-    float shadow = max( 0.2f, VSM( surfaceDistToLight, in.projCoord, shadowMap, uniforms ) );
+    float shadow = VSM( surfaceDistToLight, in.projCoord, shadowMap, uniforms );
 
     //float2 normalTex = normalMap.sample( sampler0, in.uv ).xy;
     float3 normalTS = normalize( (normalMap.sample( sampler0, in.uv ).xyz * 2.0f - 1.0f ) );
@@ -177,6 +178,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     accumSpecular *= shadow;
     
     float4 albedo = textureMap.sample( sampler0, in.uv );
+    float roughness = roughnessMap.sample( sampler0, in.uv ).r;
 
     const uint tileIndex = GetTileIndex( in.position.xy, uniforms.tilesXY.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
@@ -206,7 +208,6 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             const float dotNH = saturate( dot( N, H ) );
             
             const float3 f0 = float3( 0.04f );
-            float roughness = 0.5f;
 
             const float a = roughness * roughness;
             const float D = D_GGX( dotNH, a );
@@ -217,7 +218,7 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
 
             const float attenuation = getDistanceAttenuation( -vecToLightWS, 1.0f / (radius * radius) );
             const float3 color = Fd;
-            accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL;
+            accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL * (1.0f - F);
             accumSpecular += Fr * pointLightBufferColors[ lightIndex ].rgb * attenuation * dotNL;
         }
     }

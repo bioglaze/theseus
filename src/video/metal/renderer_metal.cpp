@@ -679,7 +679,7 @@ void MoveToNextUboOffset()
 }
 
 void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, unsigned normalOffset, unsigned tangentOffset, unsigned indexCount, unsigned indexOffset, teBlendMode blendMode, teCullMode cullMode, teDepthMode depthMode, teTopology topology, teFillMode fillMode, unsigned textureIndex,
-          teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned meshIndex, unsigned subMeshIndex )
+          teTextureSampler sampler, unsigned normalMapIndex, unsigned shadowMapIndex, unsigned roughnessMapIndex, unsigned meshIndex, unsigned subMeshIndex )
 {
     if (textureIndex == 0)
     {
@@ -691,13 +691,18 @@ void Draw( const teShader& shader, unsigned positionOffset, unsigned uvOffset, u
         normalMapIndex = renderer.defaultTexture2D.index;
     }
 
+    if (roughnessMapIndex == 0)
+    {
+        roughnessMapIndex = renderer.defaultTexture2D.index;
+    }
+
     if (shadowMapIndex == 0)
     {
         shadowMapIndex = renderer.defaultTexture2D.index;
     }
 
-    MTL::Texture* textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( normalMapIndex ), TextureGetMetalTexture( shadowMapIndex ) };
-    NS::Range rangeTextures = { 0, 3 };
+    MTL::Texture* textures[] = { TextureGetMetalTexture( textureIndex ), TextureGetMetalTexture( normalMapIndex ), TextureGetMetalTexture( shadowMapIndex ), TextureGetMetalTexture( roughnessMapIndex ) };
+    NS::Range rangeTextures = { 0, 4 };
     renderer.renderEncoder->setFragmentTextures( textures, rangeTextures );
     
     renderer.renderEncoder->setFragmentSamplerState( GetSampler( sampler ), 0 );
