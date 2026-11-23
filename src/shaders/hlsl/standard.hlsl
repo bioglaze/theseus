@@ -157,6 +157,7 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     accumSpecular *= shadow;
     
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
+    float roughness = texture2ds[ pushConstants.roughnessMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).r;
     
     const uint tileIndex = GetTileIndex( vsOut.pos.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
@@ -187,7 +188,6 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float dotNH = saturate( dot( N, iH ) );
         
             float f0 = 0.04f;
-            float roughness = texture2ds[ pushConstants.roughnessMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).r;
         
             float3 f0v = float3( f0, f0, f0 );
             float a = roughness * roughness;
