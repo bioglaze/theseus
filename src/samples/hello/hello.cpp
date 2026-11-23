@@ -321,7 +321,7 @@ int main()
     teTransformSetLocalPosition( camera3d.index, cameraPos );
     teCameraSetProjection( camera3d.index, 45, width / (float)height, 0.1f, 800.0f );
     teCameraSetClear( camera3d.index, clearFlag, clearColor );
-    teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::BGRA_sRGB, "camera3d color" );
+    teCameraGetColorTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R16G16B16A16F, "camera3d color" );
     teCameraGetDepthTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F_S8, "camera3d depth" );
     teCameraGetDepthNormalsTexture( camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
 
