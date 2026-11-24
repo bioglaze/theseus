@@ -5,7 +5,7 @@
 #define MAX_NUM_LIGHTS_PER_TILE 544
 #define LIGHT_INDEX_BUFFER_SENTINEL 0x7fffffff
 #define FLT_MAX 3.402823466e+38F
-#define USE_MINMAX_Z 0
+#define USE_MINMAX_Z 1
 
 groupshared uint ldsLightIdxCounter;
 groupshared uint ldsLightIdx[ MAX_NUM_LIGHTS_PER_TILE ];
@@ -115,17 +115,12 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
     // calculate the min and max depth for this tile, 
     // to form the front and back of the frustum
 
-    float minZ = FLT_MAX;
-    float maxZ = 0.0f;
-
     CalculateMinMaxDepthInLds( globalIdx, 0 );
 
     GroupMemoryBarrierWithGroupSync();
 
-    // FIXME: swapped min and max to prevent false culling near depth discontinuities.
-    //        AMD's ForwarPlus11 sample uses reverse depth test so maybe that's why this swap is needed. [2014-07-07]
-    minZ = asfloat( ldsZMax );
-    maxZ = asfloat( ldsZMin );
+    float minZ = asfloat( ldsZMin );
+    float maxZ = asfloat( ldsZMax );
 #endif
 
     // loop over the lights and do a sphere vs. frustum intersection test
@@ -141,8 +136,9 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
             center.xyz = mul( uniforms.localToView, float4( center.xyz, 1 ) ).xyz;
 
             // test if sphere is intersecting or inside frustum
+            float d = -center.z;
 #if USE_MINMAX_Z
-            if (-center.z + minZ < radius && center.z - maxZ < radius)
+            if (d + radius > minZ  && d - radius < maxZ)
 #else
             if (center.z < radius)
 #endif
@@ -182,7 +178,8 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
 
             // test if sphere is intersecting or inside frustum
 #if USE_MINMAX_Z
-            if (-center.z - minZ < radius && center.z - maxZ < radius)
+            float d = -center.z;
+            if (d + radius > minZ  && d - radius < maxZ)
 #else
             // Nothing to do here
 #endif
