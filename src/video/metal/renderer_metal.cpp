@@ -35,6 +35,8 @@ static const unsigned MaxPSOs = 100;
 static constexpr unsigned UiBufferBytes = 1024 * 1024 * 8;
 const unsigned MaxFramesInFlight = 3;
 
+extern float gFrameGpuTimeMs;
+
 // Must match shader header ubo.h
 struct PerObjectUboStruct
 {
@@ -779,6 +781,7 @@ float teRendererGetStat( teStat stat )
 {
     if (stat == teStat::DrawCalls) return (float)renderer.statDrawCalls;
     else if (stat == teStat::PSOBinds) return (float)renderer.statPSOBinds;
+    else if (stat == teStat::FrameGpuTimeMs) return gFrameGpuTimeMs;
     return 0;
 }
 

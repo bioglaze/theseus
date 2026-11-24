@@ -552,7 +552,7 @@ teTextureCube teLoadTexture( const teFile& negX, const teFile& posX, const teFil
     }
     else if (strstr( negX.path, ".tga" ) || strstr( negX.path, ".TGA" ))
     {
-        outTexture.format = teTextureFormat::BGRA;
+        outTexture.format = teTextureFormat::BGRA_sRGB;
 
         unsigned bitsPerPixel = 24;
         unsigned offset = 0;

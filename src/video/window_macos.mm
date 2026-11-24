@@ -11,6 +11,7 @@ constexpr int EventArraySize = 100;
 extern id<MTLCommandBuffer> gCommandBuffer;
 CAMetalLayer* gMetalLayer;
 id<MTLDevice> gDevice;
+float gFrameGpuTimeMs{ 0.0f }; // This should probably be atomic
 
 struct WindowImpl
 {
@@ -916,7 +917,12 @@ void AddCompletedHandler()
 {
     __block dispatch_semaphore_t block_semaphore = win.inFlightSemaphore;
     [gCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer)
-     {
-         dispatch_semaphore_signal( block_semaphore );
-     }];
+    {
+        if (buffer.status == MTLCommandBufferStatusCompleted && buffer.GPUEndTime > buffer.GPUStartTime)
+        {
+            gFrameGpuTimeMs = (float)((buffer.GPUEndTime - buffer.GPUStartTime) * 1000.0);
+        }
+        
+        dispatch_semaphore_signal( block_semaphore );
+    }];
 }
