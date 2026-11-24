@@ -240,7 +240,7 @@ teTexture2D teCreateTexture2D( VkDevice device, const VkPhysicalDeviceMemoryProp
 
     if ((flags & teTextureFlags::RenderTexture) && isDepthFormat)
     {
-        imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        imageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     }
     else if (flags & teTextureFlags::RenderTexture)
     {
@@ -506,9 +506,19 @@ static void CopyMipmapsFromDDS( teTextureImpl& tex, VkFormat format, unsigned fa
             const int32_t mipWidth = Max2( tex.width >> mipLevel, 1 );
             const int32_t mipHeight = Max2( tex.height >> mipLevel, 1 );
 
-            const VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK ||
+            VkDeviceSize bcBlockSize = (format == VK_FORMAT_BC1_RGB_UNORM_BLOCK || format == VK_FORMAT_BC1_RGB_SRGB_BLOCK ||
                                               format == VK_FORMAT_BC4_SNORM_BLOCK || format == VK_FORMAT_BC4_UNORM_BLOCK) ? 8 : 16;
 
+            if (format == VK_FORMAT_R32G32_SFLOAT)
+            {
+                bcBlockSize = 8;
+            }
+
+            if (format == VK_FORMAT_R32G32B32A32_SFLOAT)
+            {
+                bcBlockSize = 16;
+            }
+            
             VkDeviceSize imageSize = ((mipWidth + 3) / 4) * ((mipHeight + 3) / 4) * bcBlockSize;
 
             if (imageSize == 0)
@@ -631,6 +641,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         tex.width = pixelsWidth;
         tex.height = pixelsHeight;
 
+        outTexture.format = pixelsFormat;
+        
         tex.mipLevelCount = (flags & teTextureFlags::GenerateMips) ? GetMipLevelCount( tex.width, tex.height ) : 1;
         teAssert( tex.mipLevelCount <= 15 );
 
@@ -652,6 +664,8 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
             return outTexture;
         }
 
+        outTexture.format = bcFormat;
+
         for (unsigned i = 0; i < 15; ++i)
         {
             mipOffsets2[ 0 ][ i ] = mipOffsets[ i ];
@@ -663,7 +677,7 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
         }
 
         GetFormat( bcFormat, format );
-
+        
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -723,6 +737,9 @@ teTexture2D teLoadTexture( const struct teFile& file, unsigned flags, VkDevice d
     else
     {
         teAssert( !"unhandled texture type" );
+        outTexture.index = 1;
+        --textureCount;
+        return outTexture;
     }
 
     VkImageViewCreateInfo viewInfo = {};
