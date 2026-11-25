@@ -787,8 +787,8 @@ float teRendererGetStat( teStat stat )
 
 void teUIDrawCall( const teShader& shader, const teTexture2D& fontTex, int displaySizeX, int displaySizeY, int scissorX, int scissorY, unsigned scissorW, unsigned scissorH, unsigned elementCount, unsigned indexOffset, unsigned vertexOffset )
 {
-    MTL::PixelFormat colorFormat = renderer.renderPassDescriptorFBO->colorAttachments()->object( 0 )->texture()->pixelFormat();
-    MTL::PixelFormat depthFormat = renderer.renderPassDescriptorFBO->depthAttachment()->texture()->pixelFormat();
+    MTL::PixelFormat colorFormat = renderPassDescriptor->colorAttachments()->object( 0 )->texture()->pixelFormat();
+    MTL::PixelFormat depthFormat = renderPassDescriptor->depthAttachment()->texture()->pixelFormat();
     const int psoIndex = GetPSO( teShaderGetVertexProgram( shader ), teShaderGetPixelProgram( shader ), teBlendMode::Alpha, teTopology::Triangles, colorFormat, depthFormat, true );
     
     MTL::ScissorRect scissor;
