@@ -37,6 +37,7 @@ struct InputState
     int lastMouseY = 0;
     Vec3 moveDir;
     Vec3 gamepadMoveDir;
+    float wheelMove = 0;
     bool isMiddleMouseDown = false;
     bool isRightMouseDown = false;
     bool isLeftMouseDown = false;
@@ -588,14 +589,16 @@ bool HandleInput( unsigned /*width*/, unsigned /*height*/, double dt )
             inputParams.y = event.y;
             inputParams.lastMouseX = inputParams.x;
             inputParams.lastMouseY = inputParams.y;
-            inputParams.gamepadMoveDir.z = event.wheelDelta < 0 ? -100.0f : 100.0f;
+            inputParams.wheelMove = event.wheelDelta < 0 ? -1.0f : 1.0f;
         }
     }
 
     teClearWindowEvents();
 
     Vec3 moveDir = inputParams.moveDir + inputParams.gamepadMoveDir * 0.005f;
+    moveDir.z += inputParams.wheelMove;
     inputParams.gamepadMoveDir = Vec3( 0, 0, 0 );
+    inputParams.wheelMove = 0;
 
     teTransformMoveForward( SceneViewGetCameraIndex(), moveDir.z * (float)dt * 0.5f, false, false, false );
     teTransformMoveRight( SceneViewGetCameraIndex(), moveDir.x * (float)dt * 0.5f );
