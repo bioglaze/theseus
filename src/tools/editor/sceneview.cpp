@@ -754,7 +754,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     sceneView.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );
@@ -792,6 +792,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     teCameraSetClear( sceneView.camera3d.index, clearFlag, clearColor );
     teCameraGetColorTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R16G16B16A16F, "camera3d color" );
     teCameraGetDepthTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::Depth32F, "camera3d depth" );
+    teCameraGetDepthNormalsTexture( sceneView.camera3d.index ) = teCreateTexture2D( width, height, teTextureFlags::RenderTexture, teTextureFormat::R32G32B32A32F, "camera3d depthNormals" );
 
     teFile defaultNormalFile = teLoadFile( "assets/textures/default_n.tga" );
     sceneView.defaultNormalTex = teLoadTexture( defaultNormalFile, teTextureFlags::GenerateMips, nullptr, 0, 0, teTextureFormat::Invalid );
