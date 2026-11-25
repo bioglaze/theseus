@@ -754,7 +754,7 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     sceneView.depthNormalsShader = teCreateShader( depthNormalsVsFile, depthNormalsPsFile, "depthNormalsVS", "depthNormalsPS" );
 
     teFile lightCullFile = teLoadFile( "shaders/lightculler.spv" );
-    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 8, 8 );
+    sceneView.lightCullShader = teCreateComputeShader( lightCullFile, "cullLights", 16, 16 );
 
     teFile fullscreenVsFile = teLoadFile( "shaders/fullscreen_vs.spv" );
     teFile fullscreenPsFile = teLoadFile( "shaders/fullscreen_ps.spv" );

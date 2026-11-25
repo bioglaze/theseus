@@ -9,7 +9,7 @@ using namespace metal;
 #define NUM_THREADS_PER_TILE (TILE_RES * TILE_RES)
 #define MAX_NUM_LIGHTS_PER_TILE 544
 #define LIGHT_INDEX_BUFFER_SENTINEL 0x7fffffff
-#define USE_MINMAX_Z 0
+#define USE_MINMAX_Z 1
 
 float4 ConvertClipToView( float4 p, matrix_float4x4 clipToView )
 {
@@ -122,8 +122,8 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
 
     uint zMin = atomic_load_explicit( &ldsZMin, memory_order::memory_order_relaxed );
     uint zMax = atomic_load_explicit( &ldsZMax, memory_order::memory_order_relaxed );
-    float minZ = as_type< float >( zMax );
-    float maxZ = as_type< float >( zMin );
+    float minZ = as_type< float >( zMin );
+    float maxZ = as_type< float >( zMax );
 #endif
 
     for (uint i = 0; i < uniforms.pointLightCount; i += NUM_THREADS_PER_TILE)
@@ -137,7 +137,8 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
             center.xyz = (uniforms.localToView * float4( center.xyz, 1.0f ) ).xyz;
 
 #if USE_MINMAX_Z
-            if (-center.z + minZ < radius && center.z - maxZ < radius)
+            float d = -center.z;
+            if (d + radius > minZ  && d - radius < maxZ)
 #else
             if (center.z < radius)
 #endif
@@ -175,7 +176,8 @@ kernel void cullLights(texture2d<float, access::read> depthNormalsTexture [[text
             center.xyz = (uniforms.localToView * float4( center.xyz, 1.0f ) ).xyz;
 
 #if USE_MINMAX_Z
-            if (-center.z + minZ < radius && center.z - maxZ < radius)
+            float d = -center.z;
+            if (d + radius > minZ  && d - radius < maxZ)
 #else
             if (center.z < radius)
 #endif
