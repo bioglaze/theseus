@@ -4,7 +4,7 @@
 #define NUM_THREADS_PER_TILE (TILE_RES * TILE_RES)
 #define MAX_NUM_LIGHTS_PER_TILE 544
 #define LIGHT_INDEX_BUFFER_SENTINEL 0x7fffffff
-#define USE_MINMAX_Z 0
+#define USE_MINMAX_Z 1
 
 groupshared uint ldsLightIdxCounter;
 groupshared uint ldsLightIdx[ MAX_NUM_LIGHTS_PER_TILE ];
