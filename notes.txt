@@ -11,7 +11,6 @@ Bugs:
     * directional light is not exported
   * Wayland: not HiDPI, for example ImGui and cursor too big.
   * Metal: Spot Light shading is stub
-  * Vulkan: point light minmax-z culling is broken so it's disabled.
   * Vulkan: standard shader samplers are hardcoded.
   * macOS: audio clip indexing is broken
   * Removing lights doesn't really remove them from tiler and doesn't free the tiler index.

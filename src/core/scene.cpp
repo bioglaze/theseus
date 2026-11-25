@@ -369,16 +369,14 @@ static void RenderMeshes( const teScene& scene, teBlendMode blendMode, unsigned 
 
 static void RenderDepthAndNormals( const teScene& scene, unsigned cameraGOIndex, const teShader* shader )
 {
-    teClearFlag clearFlag;
     Vec4 clearColor;
-    teCameraGetClear( cameraGOIndex, clearFlag, clearColor );
 
     teTexture2D& depthNormals = teCameraGetDepthNormalsTexture( cameraGOIndex );
     teTexture2D& depth = teCameraGetDepthTexture( cameraGOIndex );
 
     teAssert( depthNormals.index != 0 ); // Camera must have a render target!
 
-    BeginRendering( depthNormals, depth, clearFlag, &clearColor.x );
+    BeginRendering( depthNormals, depth, teClearFlag::DepthAndColor, &clearColor.x );
     PushGroupMarker( "DepthNormals");
 
     RenderMeshes( scene, teBlendMode::Off, 0, shader, cameraGOIndex );
