@@ -1,11 +1,9 @@
-#include "file.h"
 #include "gameobject.h"
 #include "material.h"
 #include "mesh.h"
 #include "light.h"
 #include "quaternion.h"
 #include "scene.h"
-#include "texture.h"
 #include "transform.h"
 #include "vec3.h"
 #include <assert.h>
@@ -18,15 +16,7 @@
 unsigned GetTranslateGizmoGoIndex();
 teMaterial& GetMaterial( const char* name );
 
-struct LoadedMesh
-{
-    teFile file;
-    teMesh mesh;
-};
-
-constexpr unsigned MaxLoadedMeshes = 100;
-LoadedMesh gLoadedMeshes[ MaxLoadedMeshes ];
-unsigned gLoadedMeshCount = 0;
+teMesh* GetLoadedMesh( const char* path );
 
 void ReadSceneArraySizes( FILE* file, unsigned& outGoCount, unsigned& outMeshCount )
 {
@@ -81,14 +71,12 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     unsigned sceneMeshCount = 0;
     ReadSceneArraySizes( file, sceneGoCount, sceneMeshCount );
     teGameObject* sceneGos = (teGameObject*)malloc( sceneGoCount * sizeof( teGameObject ) );
-    teMesh* sceneMeshes = (teMesh*)malloc( sceneMeshCount * sizeof( teMesh ) );
 
     fseek( file, 0, 0 );
 
     char line[ 512 ];
 
     unsigned goIndex = 0;
-    unsigned meshIndex = 0;
 
     bool currentLightIsPointLight = false;
     bool currentLightIsSpotLight = false;
@@ -97,8 +85,6 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
     
     while (fgets( line, sizeof( line ), file ))
     {
-        //printf("read line: %s\n", line );
-        
         char input[ 255 ];
         sscanf( line, "%254s", input );
 
@@ -282,36 +268,7 @@ void LoadUsdScene( teScene& scene, const char* path, int outEntityTypes[], char*
             meshPath[ len - 1 ] = 0;
             teGameObjectAddComponent( sceneGos[ goIndex - 1 ].index, teComponent::MeshRenderer );
 
-            bool alreadyLoaded = false;
-            for (unsigned i = 0; i < gLoadedMeshCount; ++i)
-            {
-                if (strcmp( gLoadedMeshes[ i ].file.path, meshPath ) == 0)
-                {
-                    alreadyLoaded = true;
-                    teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, &gLoadedMeshes[ i ].mesh );
-                }
-            }
-
-            if (!alreadyLoaded)
-            {
-                teFile meshFile = teLoadFile( meshPath );
-
-                if (meshFile.data)
-                {
-                    teMesh* mesh = &sceneMeshes[ meshIndex ];
-                    ++meshIndex;
-                    *mesh = teLoadMesh( meshFile );
-                    gLoadedMeshes[ gLoadedMeshCount ].mesh = *mesh;
-                    strcpy( gLoadedMeshes[ gLoadedMeshCount ].file.path, meshPath );
-                    teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, mesh );
-                    ++gLoadedMeshCount;
-                    if (gLoadedMeshCount >= MaxLoadedMeshes)
-                    {
-                        printf( "USD file contains more unique meshes than the loader can handle!\n" );
-                        assert( false );
-                    }
-                }
-            }
+            teMeshRendererSetMesh( sceneGos[ goIndex - 1 ].index, GetLoadedMesh( meshPath ) );
         }
         else if (strstr( line, "string material" ))
         {

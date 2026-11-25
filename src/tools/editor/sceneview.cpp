@@ -12,14 +12,12 @@
 #include "mathutil.h"
 #include "matrix.h"
 #include "mesh.h"
-#include "quaternion.h"
 #include "renderer.h"
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
 #include "transform.h"
 #include "vec3.h"
-#include "window.h"
 #include "imgui.h"
 
 #include "game.h"
@@ -44,6 +42,16 @@ struct FontTextureUpdate
     unsigned char* pixels = nullptr;
     int index = -1;
 };
+
+struct LoadedMesh
+{
+    teFile file;
+    teMesh mesh;
+};
+
+constexpr unsigned MaxLoadedMeshes = 100;
+LoadedMesh gLoadedMeshes[ MaxLoadedMeshes ];
+unsigned gLoadedMeshCount = 0;
 
 struct SceneView
 {
@@ -115,6 +123,42 @@ struct ImGUIImplCustom
 };
 
 ImGUIImplCustom imguiImpl;
+
+teMesh* GetLoadedMesh( const char* path )
+{
+    for (unsigned i = 0; i < gLoadedMeshCount; ++i)
+    {
+        if (strstr( gLoadedMeshes[ i ].file.path, path))
+        {
+            return &gLoadedMeshes[ i ].mesh;
+        }
+    }
+
+    printf( "Could not find mesh path: %s\n", path );
+
+    return nullptr;
+}
+
+void ReadMeshes()
+{
+    unsigned handle = teReadDirectory( "assets/meshes" );
+    char* path = nullptr;
+
+    while (teGetNextFile( handle, &path ))
+    {
+        if (!strstr( path, ".t3d" ))
+        {
+            continue;
+        }
+        
+        char meshPath[ 260 ] = {};
+        snprintf( meshPath, sizeof( meshPath ), "assets/meshes/%s", path );
+
+        gLoadedMeshes[ gLoadedMeshCount ].file = teLoadFile( meshPath );
+        gLoadedMeshes[ gLoadedMeshCount ].mesh = teLoadMesh( gLoadedMeshes[ gLoadedMeshCount ].file );
+        ++gLoadedMeshCount;
+    }
+}
 
 void ExportGameScene( const char* path )
 {
@@ -813,7 +857,8 @@ void InitSceneView( unsigned width, unsigned height, int uiScale, bool flipSprit
     ++sceneView.materialCount;
 
     ReadMaterials();
-
+    ReadMeshes();
+    
     teFile redFile = teLoadFile( "assets/textures/red.tga" );
     teFile greenFile = teLoadFile( "assets/textures/green.tga" );
     teFile blueFile = teLoadFile( "assets/textures/blue.tga" );
