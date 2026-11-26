@@ -1362,6 +1362,9 @@ void RenderSceneView( float gridStep )
 
     if (ImGui::Begin( "Assets" ))
     {
+        static bool meshList = true;
+        static bool materialList = false;
+        
         ImGui::BeginGroup();
         ImGui::Text( "Materials" );
         ImGui::Text( "Meshes" );
@@ -1369,21 +1372,30 @@ void RenderSceneView( float gridStep )
         ImGui::EndGroup();
         ImGui::SameLine();
 
+        if (meshList)
         {
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
             ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
             ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
+
             if (ImGui::BeginTable( "split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
             {
-                for (unsigned i = 0; i < sceneView.materialCount; ++i)
+                for (unsigned i = 0; i < gLoadedMeshCount; ++i)
                 {
                     ImGui::TableNextColumn();
 
-                    if (ImGui::Button( sceneView.materials[ i ].name, ImVec2( -FLT_MIN, 0.0f ) ))
+                    if (ImGui::Button( gLoadedMeshes[ i ].file.path, ImVec2( -FLT_MIN, 0.0f ) ))
                     {
-                        // FIXME: allow enabling the following line
-                        //sceneView.selectedMaterialIndex = i;
-                        selectedGoIndex = EditorCameraGoIndex;
+                        teGameObject go = teCreateGameObject( "gameobject", teComponent::Transform );
+                        teGameObjectAddComponent( go.index, teComponent::MeshRenderer );
+                        teMeshRendererSetMesh( go.index, &gLoadedMeshes[ i ].mesh );
+
+                        Vec3 cameraPos = teTransformGetLocalPosition( EditorCameraGoIndex );
+                        Vec3 cameraDir = teTransformGetViewDirection( EditorCameraGoIndex ) * -4;
+
+                        teTransformSetLocalPosition( go.index, cameraPos + cameraDir );
+                        
+                        teSceneAdd( sceneView.scene, go.index );
                     }
                 }
 
@@ -1391,7 +1403,36 @@ void RenderSceneView( float gridStep )
             }
             ImGui::EndChild();
             ImGui::PopStyleVar();
+        }
 
+        {
+            
+            if (materialList)
+            {
+                ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+                ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
+                ImGui::BeginChild( "ChildR", ImVec2( 0, 160 ), ImGuiChildFlags_Borders, window_flags );
+
+                if (ImGui::BeginTable( "split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+                {
+                    for (unsigned i = 0; i < sceneView.materialCount; ++i)
+                    {
+                        ImGui::TableNextColumn();
+
+                        if (ImGui::Button( sceneView.materials[ i ].name, ImVec2( -FLT_MIN, 0.0f ) ))
+                        {
+                            // FIXME: allow enabling the following line
+                            //sceneView.selectedMaterialIndex = i;
+                            selectedGoIndex = EditorCameraGoIndex;
+                        }
+                    }
+
+                    ImGui::EndTable();
+                }
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
+            
             if (ImGui::Button( "Shader Reload" ))
             {
                 teHotReload();
