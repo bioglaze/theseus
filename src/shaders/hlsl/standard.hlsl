@@ -125,9 +125,14 @@ float Fd_Lambert()
     return 1.0f / 3.14159265f;
 }
 
-float3 BRDF( float3 N, float3 V, float3 L, float3 albedo, float3 roughness )
+float3 diffuseBRDF( float dotNL, float3 V, float3 albedo, float3 roughness )
 {
-    return float3( 1, 1, 1 );
+    return Fd_Lambert() * dotNL;
+}
+
+float3 specularBRDF()
+{
+    return 0;
 }
 
 float4 standardPS( VSOutput vsOut ) : SV_Target
@@ -137,27 +142,36 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
     float3 normalTS = normalize( texture2ds[ pushConstants.normalMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).xyz * 2.0 - 1.0 );
     float3 normalVS = tangentSpaceTransform( normalize( vsOut.tangentVS ), normalize( vsOut.bitangentVS ), normalize( vsOut.normalVS ), normalTS.xyz );
 
+    float roughness = texture2ds[ pushConstants.roughnessMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).r;
+    float a = roughness * roughness;
+
+    float3 Fd = Fd_Lambert();
+
+    float f0 = 0.04f;        
+    float3 f0v = float3( f0, f0, f0 );
+
     const float3 N = normalize( normalVS );
     const float3 V = -normalize( vsOut.positionVS );
     const float3 L = -uniforms.lightDirection.xyz;
     const float3 H = normalize( L + V );
-    float specularStrength = 0.5;
     
-    float3 accumDiffuse = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = -uniforms.lightDirection.xyz;
     const float dotNL = saturate( dot( N, L ) );
+    const float dotNH = saturate( dot( N, H ) );
     const float dotNV = abs( dot( N, V ) ) + 1e-5f;
-    accumDiffuse *= dotNL;
+    const float dotVH = saturate( dot( V, H ) );
     
-    float3 reflectDir = reflect( -surfaceToLightVS, normalVS );
-    float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
-    float3 accumSpecular = specularStrength * spec * uniforms.lightColor.rgb * dotNL;
+    float D = D_GGX( dotNH, a );
+    float3 F = F_Schlick( dotVH, f0v );
+    float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
+    float3 Fr = (D * v) * F;
+
+    float3 accumDiffuse  = Fd * dotNL * uniforms.lightColor.rgb * (1.0f - F);
+    float3 accumSpecular = Fr * dotNL * uniforms.lightColor.rgb;
     
     accumDiffuse *= shadow;
     accumSpecular *= shadow;
     
     float4 albedo = texture2ds[ pushConstants.textureIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv );
-    float roughness = texture2ds[ pushConstants.roughnessMapIndex ].Sample( samplers[ S_LINEAR_REPEAT ], vsOut.uv ).r;
     
     const uint tileIndex = GetTileIndex( vsOut.pos.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
@@ -181,27 +195,20 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
             const float3 vecToLightVS = (mul( uniforms.worldToView, float4( centerAndRadius.xyz, 1.0f ) )).xyz - vsOut.positionVS.xyz;
             const float3 iL = normalize( vecToLightVS );
             const float3 iH = normalize( iL + V );
-
+            
             const float dotNL = saturate( dot( N, iL ) );            
             const float dotVH = saturate( dot( V, iH ) );
-            const float dotLH = saturate( dot( iL, iH ) );
             const float dotNH = saturate( dot( N, iH ) );
         
-            float f0 = 0.04f;
-        
-            float3 f0v = float3( f0, f0, f0 );
-            float a = roughness * roughness;
             float D = D_GGX( dotNH, a );
             float3 F = F_Schlick( dotVH, f0v );
             float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             float3 Fr = (D * v) * F;
-            float3 Fd = Fd_Lambert();
 
             float attenuation = getDistanceAttenuation( -vecToLightWS, 1.0f / (radius * radius) );
-            const float3 color = Fd;
             float4 pointLightColor = vk::RawBufferLoad < float4 > (pushConstants.pointLightColorBuf + 16 * lightIndex);
-            accumDiffuse += (color * pointLightColor.rgb) * (attenuation * dotNL) * (1.0f - F);
-            accumSpecular += Fr * pointLightColor.rgb * (attenuation * dotNL);
+            accumDiffuse  += Fd * dotNL * pointLightColor.rgb * attenuation * (1.0f - F);
+            accumSpecular += Fr * dotNL * pointLightColor.rgb * attenuation;
         }
     }
 
@@ -226,6 +233,6 @@ float4 standardPS( VSOutput vsOut ) : SV_Target
 
     float3 ambient = float3( 0.2, 0.2, 0.2 );
     accumDiffuse += ambient;
-    
+
     return albedo * float4( accumDiffuse, 1 ) + float4( accumSpecular, 0.0f );
 }
