@@ -63,8 +63,6 @@ void tePrint( const char* format, ... )
         {
         case 'x':
             u = va_arg( arg, unsigned int );
-            *outPtr++ = '0';
-            *outPtr++ = 'x';
             convert( u, 16, &outPtr );
 
             break;
