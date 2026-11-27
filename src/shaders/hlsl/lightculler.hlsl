@@ -151,7 +151,10 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
                     // and put the index of this light into the list
                     uint dstIdx = 0;
                     InterlockedAdd( ldsLightIdxCounter, 1, dstIdx );
-                    ldsLightIdx[ dstIdx ] = il;
+                    if (dstIdx < MAX_NUM_LIGHTS_PER_TILE)
+                    {
+                        ldsLightIdx[ dstIdx ] = il;
+                    }
                 }
             }
         }
@@ -168,7 +171,6 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
 
         if (jl < uniforms.spotLightCount)
         {
-            // FIXME: replace pointLight with spotLight
             float4 cen = vk::RawBufferLoad < float4 > (pushConstants.spotLightCenterAndRadiusBuf + 16 * jl);
             float4 center = cen;
 
@@ -180,7 +182,7 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
             float d = -center.z;
             if (d + radius > minZ  && d - radius < maxZ)
 #else
-            // Nothing to do here
+            if (center.z < radius)
 #endif
             {
                 if ((GetSignedDistanceFromPlane( center.xyz, frustumEqn[ 0 ] ) < radius) &&
@@ -192,7 +194,10 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
                     // and put the index of this light into the list
                     uint dstIdx = 0;
                     InterlockedAdd( ldsLightIdxCounter, 1, dstIdx );
-                    ldsLightIdx[ dstIdx ] = jl;
+                    if (dstIdx < MAX_NUM_LIGHTS_PER_TILE)
+                    {
+                        ldsLightIdx[ dstIdx ] = jl;
+                    }
                 }
             }
         }
@@ -205,23 +210,19 @@ void cullLights( uint3 globalIdx : SV_DispatchThreadID, uint3 localIdx : SV_Grou
 
     for (uint i = localIdxFlattened; i < pointLightsInThisTile; i += NUM_THREADS_PER_TILE)
     {
-        //perTileLightIndexBuffer[ startOffset + i ] = ldsLightIdx[ i ];
         vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (startOffset + i), ldsLightIdx[ i ] );
     }
 
     for (uint j = (localIdxFlattened + pointLightsInThisTile); j < ldsLightIdxCounter; j += NUM_THREADS_PER_TILE)
     {
-        //perTileLightIndexBuffer[ startOffset + j + 1 ] = ldsLightIdx[ j ];
         vk::RawBufferStore< uint > (pushConstants.lightIndexBuf + 4 * (startOffset + j + 1), ldsLightIdx[ j ] );
     }
 
     if (localIdxFlattened == 0)
     {
         // mark the end of each per-tile list with a sentinel (point lights)
-        //perTileLightIndexBuffer[ startOffset + pointLightsInThisTile ] = LIGHT_INDEX_BUFFER_SENTINEL;
         vk::RawBufferStore < uint > (pushConstants.lightIndexBuf + 4 * (startOffset + pointLightsInThisTile), LIGHT_INDEX_BUFFER_SENTINEL);
         // mark the end of each per-tile list with a sentinel (spot lights)
-        //perTileLightIndexBuffer[ startOffset + ldsLightIdxCounter + 1 ] = LIGHT_INDEX_BUFFER_SENTINEL;
         vk::RawBufferStore < uint > (pushConstants.lightIndexBuf + 4 * (startOffset + ldsLightIdxCounter + 1), LIGHT_INDEX_BUFFER_SENTINEL);
     }
 }
