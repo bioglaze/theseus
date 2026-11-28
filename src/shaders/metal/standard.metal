@@ -157,28 +157,35 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
     //float3 normalTS = float3( normalTex.x, normalTex.y, sqrt( 1 - normalTex.x * normalTex.x - normalTex.y * normalTex.y ) );
     float3 normalVS = tangentSpaceTransform( normalize( in.tangentVS ), normalize( in.bitangentVS ), normalize( in.normalVS ), normalTS.xyz );
     
+    float roughness = roughnessMap.sample( sampler0, in.uv ).r;
+
+    const float3 Fd = Fd_Lambert();
+
+    const float3 f0 = float3( 0.04f );
+    const float a = roughness * roughness;
+
     const float3 N = normalize( normalVS );
     const float3 V = -normalize( in.positionVS );
-    float specularStrength = 0.5;
-    
-    float3 ambient = float3( 0.2, 0.2, 0.2 );
-    float3 accumDiffuse = uniforms.lightColor.rgb;
-    const float3 surfaceToLightVS = -uniforms.lightDir.xyz;
-    float dotNL = saturate( dot( normalVS, surfaceToLightVS ) );
+    const float3 L = -uniforms.lightDir.xyz;
+    const float3 H = normalize( L + V );
+
+    const float dotNL = saturate( dot( N, L ) );
     const float dotNV = abs( dot( N, V ) ) + 1e-5f;
-    
-    accumDiffuse *= dotNL;
-    
-    float3 reflectDir = reflect( -surfaceToLightVS, N );
-    float spec = pow( max( dot( V, reflectDir ), 0.0 ), 32 );
-    float3 specular = specularStrength * spec;
-    float3 accumSpecular = specular * uniforms.lightColor.rgb * dotNL;
+    const float dotVH = saturate( dot( V, H ) );
+    const float dotNH = saturate( dot( N, H ) );
+
+    float D = D_GGX( dotNH, a );
+    float3 F = F_Schlick( dotVH, f0 );
+    float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
+    float3 Fr = (D * v) * F;
+
+    float3 accumDiffuse  = Fd * dotNL * uniforms.lightColor.rgb * (1.0f - F);
+    float3 accumSpecular = Fr * dotNL * uniforms.lightColor.rgb;
     
     accumDiffuse *= shadow;
     accumSpecular *= shadow;
     
     float4 albedo = textureMap.sample( sampler0, in.uv );
-    float roughness = roughnessMap.sample( sampler0, in.uv ).r;
 
     const uint tileIndex = GetTileIndex( in.position.xy, uniforms.tilesXY.xy );
     uint index = uniforms.maxLightsPerTile * tileIndex;
@@ -204,22 +211,17 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
             
             const float dotNL = saturate( dot( N, L ) );
             const float dotVH = saturate( dot( V, H ) );
-            const float dotLH = saturate( dot( L, H ) );
             const float dotNH = saturate( dot( N, H ) );
-            
-            const float3 f0 = float3( 0.04f );
 
-            const float a = roughness * roughness;
             const float D = D_GGX( dotNH, a );
             const float3 F = F_Schlick( dotVH, f0 );
             const float v = V_SmithGGXCorrelated( dotNV, dotNL, a );
             const float3 Fr = (D * v) * F;
-            const float3 Fd = Fd_Lambert();
 
             const float attenuation = getDistanceAttenuation( -vecToLightWS, 1.0f / (radius * radius) );
-            const float3 color = Fd;
-            accumDiffuse.rgb += (color * pointLightBufferColors[ lightIndex ].rgb) * attenuation * dotNL * (1.0f - F);
-            accumSpecular += Fr * pointLightBufferColors[ lightIndex ].rgb * attenuation * dotNL;
+
+            accumDiffuse  += Fd * dotNL * pointLightBufferColors[ lightIndex ].rgb * attenuation * (1.0f - F);
+            accumSpecular += Fr * dotNL * pointLightBufferColors[ lightIndex ].rgb * attenuation;
         }
     }
 
@@ -252,6 +254,8 @@ fragment float4 standardPS( ColorInOut in [[stage_in]], texture2d<float, access:
         accumDiffuse.rgb += spotLightColor.rgb * attenuation;
     }
 
+    float3 ambient = float3( 0.2, 0.2, 0.2 );
     accumDiffuse += ambient;
+
     return albedo * float4( accumDiffuse, 1 ) + float4( accumSpecular, 0 );
 }
